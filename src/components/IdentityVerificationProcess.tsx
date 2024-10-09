@@ -6,6 +6,8 @@ import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
 //import { Identity, Challenges } from './types';
 
+import "../api/testnet2"
+
 const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(0);
   const [network, setNetwork] = useState('Polkadot');
