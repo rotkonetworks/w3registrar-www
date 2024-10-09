@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const CountdownTimer = () => {
-  const [time, setTime] = useState(5 * 3600 + 45 * 60 + 15); // use valtio
+    const [time, setTime] = useState(5 * 3600 + 45 * 60 + 15); // use valtio
 
   useEffect(() => {
     const timer = setInterval(() => {
