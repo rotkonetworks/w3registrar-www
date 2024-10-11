@@ -3,6 +3,10 @@ import React, { Suspense, lazy } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
+import { config } from "./api/config";
+import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
+
+
 interface Props {
   route: RouteType;
 }
@@ -30,18 +34,24 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 
 export default function App() {
   return (
-    <div className='dark:bg-black min-h-0px'>
-      <Router>
-        <Routes>
-          {routes.map((route) => (
-            <Route
-              path={route.path}
-              key={route.path}
-              element={<DomTitle route={route} />}
-            />
-          ))}
-        </Routes>
-      </Router>
-    </div>
+    <ReactiveDotProvider config={config}>
+      <ChainProvider chainId="people_rococo">
+        <Suspense>
+          <div className='dark:bg-black min-h-0px'>
+            <Router>
+              <Routes>
+                {routes.map((route) => (
+                  <Route
+                    path={route.path}
+                    key={route.path}
+                    element={<DomTitle route={route} />}
+                  />
+                ))}
+              </Routes>
+            </Router>
+          </div>
+        </Suspense>
+      </ChainProvider>
+    </ReactiveDotProvider>
   );
 }

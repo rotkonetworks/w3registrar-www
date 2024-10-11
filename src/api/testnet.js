@@ -1,7 +1,7 @@
 // `dot` is the name we gave to `npx papi add`
-import { alice as dot } from "@polkadot-api/descriptors"
+import { people_rococo as dot } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
-//import { getSmProvider } from "polkadot-api/sm-provider";
+import { getSmProvider } from "polkadot-api/sm-provider";
 import { WsProvider, ApiPromise } from "@polkadot/api"
 //import chainSpec from "../api/chainspec";
 //import { chainSpec } from "polkadot-api/descriptors/alice";
