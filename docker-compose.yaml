@@ -1,0 +1,31 @@
+services:
+  web-dev:
+    build:
+      context: ./
+      dockerfile: dev.Dockerfile
+    entrypoint: bash -c "pnpm install && pnpm dev"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    user: 1000:1000
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    hostname: web-dev.rotko.internal
+    volumes:
+      - ./:/App
+    working_dir: /App
+  web-staging:
+    build:
+      args:
+        UID: 1000
+        GID: 1000
+      context: ./
+      #dockerfile: dev.Dockerfile
+    #entrypoint: bash -c "pnpm install && pnpm dev"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    hostname: web-staging.rotko.internal
+    volumes:
+      - ./:/App
+    working_dir: /App
