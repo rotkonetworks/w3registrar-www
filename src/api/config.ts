@@ -1,6 +1,5 @@
 // `dot` is the name we gave to `npx papi add`
 import { people_rococo, polkadot, kusama, westend, paseo } from "@polkadot-api/descriptors";
-import { WsProvider } from "@polkadot/api";
 import type { Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
 //import { chainSpec } from "polkadot-api/chains/polkadot";
@@ -12,19 +11,31 @@ import peopleRococoChainSpec from "./chainSpecs/bob.json";
 import { getSmProvider } from "polkadot-api/sm-provider";
 import { getWsProvider } from "polkadot-api/ws-provider/web";
 import { startFromWorker } from "polkadot-api/smoldot/from-worker";
+import { LedgerWallet } from "@reactive-dot/wallet-ledger";
+import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 
-const smoldot = startFromWorker(
+
+const initWorker = () => startFromWorker(
   new Worker(new URL("polkadot-api/smoldot/worker", import.meta.url), {
     type: "module",
-  }),
-);
+  })
+)
+export let smoldot = initWorker();
+
+export const chainNames = [
+  { name: "People Rococo Local", chainId: "people_rococo", },
+  { name: "Polkadot", chainId: "polkadot", },
+  { name: "Kusama", chainId: "kusama", },
+  { name: "Westend", chainId: "westend", },
+  { name: "Paseo", chainId: "paseo", },
+  { name: "Custom...", chainId: "custom", },
+]
 
 export const config = {
   chains: {
-    // "polkadot" here can be any unique string value
-    people_rococo_ws: {
+    custom: {
       descriptor: people_rococo,
-      provider: () => getWsProvider("ws://localhost:42001"),
+      provider: () => getWsProvider(localStorage.wsUrl || "ws://localhost:46085"),
     },
     people_rococo: {
       descriptor: people_rococo,
@@ -46,10 +57,29 @@ export const config = {
       descriptor: paseo,
       provider: getSmProvider(smoldot.addChain({ chainSpec: paseoChainSpec })),
     }, 
-    /* 
-    */
   },
-  wallets: [new InjectedWalletAggregator()],
+  wallets: [
+    new InjectedWalletAggregator(),
+    new LedgerWallet(),
+    new WalletConnect({
+      projectId: import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_ID,
+      providerOptions: {
+        metadata: {
+          name: "ĐÓTConsole",
+          description: "Substrate development console.",
+          url: globalThis.origin,
+          icons: ["/logo.png"],
+        },
+      },
+      chainIds: [
+        "polkadot:91b171bb158e2d3848fa23a9f1c25182", // Polkadot
+      ],
+      optionalChainIds: [
+        "polkadot:91b171bb158e2d3848fa23a9f1c25182", // Polkadot
+        "polkadot:b0a8d493285c2df73290dfb7e61f870f", // Kusama
+        "polkadot:77afd6190f1554ad45fd0d31aee62aac", // Paseo
+        "polkadot:e143f23803ac50e8f6f8e62695d1ce9e", // Westend
+      ],
+    }),
+  ],
 } as const satisfies Config;
-
-

@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Header from './Header';
 import ProgressBar from './ProgressBar';
 import IdentityForm from './IdentityForm';
 import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
-//import { Identity, Challenges } from './types';
+
 
 const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(0);
-  const [network, setNetwork] = useState('Polkadot');
+  
   const [identity, setIdentity] = useState({
     displayName: '',
     matrix: '',
@@ -107,8 +107,6 @@ const IdentityVerificationProcess = () => {
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
       <Header
         displayName={identity.displayName}
-        network={network}
-        setNetwork={setNetwork}
         onSelectAccount={handleSelectAccount}
         onRemoveIdentity={handleRemoveIdentity}
         onLogout={handleLogout}
