@@ -43,7 +43,6 @@ npx papi add -n ksmcc3_people kusama
 npx papi add -n westend2_people westend
 npx papi add -n paseo paseo
 
-
 # Install the project dependencies
 pnpm install
 
@@ -52,9 +51,12 @@ npx vite build
 
 # Serve the project (can be commented out if necessary)
 # pnpm add serve
-npx serve --single dist
+#npx serve --single dist
+
+cp -r dist ${app_dir}
+ls -Al ${app_dir}/dist
 
 # Done
-echo "Build and serve process completed successfully."
+echo "Build completed successfully."
 
 # Returning to the original directory and cleaning up is automatically handled by the trap
