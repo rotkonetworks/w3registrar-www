@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "metadata": "bunx papi update",
     "postinstall": "bunx papi"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
     "rxjs": "^7.8.1",
+    "unicorn-magic": "0.1.0",
     "valtio": "^2.0.0"
   },
   "devDependencies": {
