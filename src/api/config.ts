@@ -1,15 +1,11 @@
-// `dot` is the name we gave to `npx papi add`
-import { people_rococo, polkadot, kusama, westend, paseo } from "@polkadot-api/descriptors";
+import { polkadot, kusama, westend, paseo } from "@polkadot-api/descriptors";
 import type { Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
-//import { chainSpec } from "polkadot-api/chains/polkadot";
 import { chainSpec as polkadotChainSpec } from "polkadot-api/chains/polkadot";
 import { chainSpec as kusamaChainSpec } from "polkadot-api/chains/ksmcc3";
 import { chainSpec as westendChainSpec } from "polkadot-api/chains/westend2";
 import { chainSpec as paseoChainSpec } from "polkadot-api/chains/paseo";
-import peopleRococoChainSpec from "./chainSpecs/bob.json";
 import { getSmProvider } from "polkadot-api/sm-provider";
-import { getWsProvider } from "polkadot-api/ws-provider/web";
 import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
@@ -33,14 +29,6 @@ export const chainNames = [
 
 export const config = {
   chains: {
-    custom: {
-      descriptor: people_rococo,
-      provider: () => getWsProvider(localStorage.wsUrl || "ws://localhost:46085"),
-    },
-    people_rococo: {
-      descriptor: people_rococo,
-      provider: getSmProvider(smoldot.addChain({ chainSpec: JSON.stringify(peopleRococoChainSpec) })),
-    },
     polkadot: {
       descriptor: polkadot,
       provider: getSmProvider(smoldot.addChain({ chainSpec: polkadotChainSpec })),

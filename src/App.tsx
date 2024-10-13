@@ -7,6 +7,8 @@ import { chainNames, config } from "./api/config";
 import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
 import { proxy, useSnapshot } from 'valtio';
 
+import { RpcWebSocketProvider, useRpcWebSocketProvider } from './api/WebSocketClient';
+
 
 interface Props {
   route: RouteType;
@@ -42,29 +44,30 @@ export const AppContext = createContext({})
 
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
+  useRpcWebSocketProvider()
 
   return (
     <AppContext.Provider value={proxy({ 
       chain: chainNames.find(c => c.chainId === "people_rococo")
     })}>
       <ReactiveDotProvider config={config}>
-        <ChainProvider chainId={appStateSnapshot.chain.chainId}>
-          <Suspense>
-            <div className='dark:bg-black min-h-0px'>
-              <Router>
-                <Routes>
-                  {routes.map((route) => (
-                    <Route
-                      path={route.path}
-                      key={route.path}
-                      element={<DomTitle route={route} />}
-                    />
-                  ))}
-                </Routes>
-              </Router>
-            </div>
-          </Suspense>
-        </ChainProvider>
+        <RpcWebSocketProvider>
+            <ChainProvider chainId={appStateSnapshot.chain.chainId}>
+              <div className='dark:bg-black min-h-0px'>
+                <Router>
+                  <Routes>
+                    {routes.map((route) => (
+                      <Route
+                        path={route.path}
+                        key={route.path}
+                        element={<DomTitle route={route} />}
+                      />
+                    ))}
+                  </Routes>
+                </Router>
+              </div>
+            </ChainProvider>
+        </RpcWebSocketProvider>
       </ReactiveDotProvider>
     </AppContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { chainNames } from '~/api/config';
 import { appState } from '~/App';
@@ -41,7 +41,7 @@ const NetworkDropdown = ({  }) => {
                 onChange={(e) => appState.wsUrl = e.target.value}
                 placeholder="Enter WebSocket URL"
                 className="w-full px-4 py-2 text-sm border-t border-stone-300"
-                />
+              />
               <span className='bg-warn'>
                 You need to restart for this change to take effect.
               </span>
