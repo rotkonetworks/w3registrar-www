@@ -20,12 +20,26 @@ services:
       args:
         UID: 1000
         GID: 1000
+        VITE_APP_DEFAULT_WS_URL: ws://172.16.0.1:41855
+        VITE_APP_WALLET_CONNECT_PROJECT_ID: rotko-w3-registrar-staging
       context: ./
       #dockerfile: dev.Dockerfile
     #entrypoint: bash -c "pnpm install && pnpm dev"
     extra_hosts:
       - host.docker.internal:host-gateway
     hostname: web-staging.rotko.internal
-    volumes:
-      - ./:/App
+    #volumes:
+    #  - ./:/App
+    working_dir: /App
+  web-builder:
+    build:
+      context: ./
+      dockerfile: builder.Dockerfile
+    entrypoint: bash scripts/build.sh
+    environment: 
+      VITE_APP_DEFAULT_WS_URL: ws://localhost:41855
+      VITE_APP_WALLET_CONNECT_PROJECT_ID: rotko-w3-registrar-staging
+    env_file: .env
+    #volumes:
+    #  - ./:/App
     working_dir: /App

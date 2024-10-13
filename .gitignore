@@ -24,6 +24,7 @@ dist-ssr
 *.sln
 *.sw?
 
+# Misc
 .papi
 .pnpm-store
 .env

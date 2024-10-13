@@ -1,6 +1,7 @@
 .gitignore
-Dodkerfile
-**.Dodkerfile
+Dockerfile
+**.Dockerfile
+docker-compose.yaml
 
 # Logs
 logs
@@ -28,7 +29,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Version Control
+.git
+
+# Misc
 .papi
 .pnpm-store
-node_modules
 .env

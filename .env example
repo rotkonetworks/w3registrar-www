@@ -1,1 +1,3 @@
 VITE_APP_WALLET_CONNECT_PROJECT_ID=rotko-w3-registrar
+VITE_APP_DEFAULT_WS_URL=ws://localhost:41855
+
