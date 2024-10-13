@@ -9,7 +9,6 @@ import { proxy, useSnapshot } from 'valtio';
 
 import { RpcWebSocketProvider, useRpcWebSocketProvider } from './api/WebSocketClient';
 
-
 interface Props {
   route: RouteType;
 }
@@ -35,8 +34,8 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   );
 };
 
-export const appState = proxy({ 
-  chain: chainNames.find(c => c.chainId === "people_rococo"),
+export const appState = proxy({
+  chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0],
   wsUrl: "ws://localhost:46085",
 })
 
@@ -47,8 +46,8 @@ export default function App() {
   useRpcWebSocketProvider()
 
   return (
-    <AppContext.Provider value={proxy({ 
-      chain: chainNames.find(c => c.chainId === "people_rococo")
+    <AppContext.Provider value={proxy({
+      chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0]
     })}>
       <ReactiveDotProvider config={config}>
         <RpcWebSocketProvider>

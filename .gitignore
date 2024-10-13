@@ -28,3 +28,8 @@ dist-ssr
 .papi
 .pnpm-store
 .env
+
+# yarn
+.pnp.cjs
+.pnp.loader.mjs
+.yarn

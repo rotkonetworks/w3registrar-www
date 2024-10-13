@@ -1,19 +1,27 @@
-FROM node:18 as build
+FROM oven/bun:canary-alpine AS base
+WORKDIR /app
 
-RUN npm install -g pnpm
+FROM base AS dependencies
+COPY package.json bun.lockb ./
 
-WORKDIR /App
-RUN pnpm add polkadot-api
-RUN node_modules/.bin/papi add -n polkadot_people polkadot
-RUN node_modules/.bin/papi add -n ksmcc3_people kusama
-RUN node_modules/.bin/papi add -n westend2_people westend
-RUN node_modules/.bin/papi add -n paseo paseo
+# Install dependencies
+RUN bun install --verbose
 
-COPY ./package.json pnpm-lock.yaml .
-RUN pnpm install
+# Use bunx to run 'papi' commands without full paths
+RUN bunx papi add -n polkadot_people people_polkadot
+RUN bunx papi add -n ksmcc3_people people_kusama
+RUN bunx papi add -n westend2_people people_westend
+RUN bunx papi add -n rococo_v2_2_people people_rococo
 
+FROM dependencies AS builder
 COPY . .
-RUN node_modules/.bin/vite build
+RUN bun run build
 
-#RUN pnpm add serve
-ENTRYPOINT npx serve --single dist
+FROM base AS production
+COPY --from=builder /app/dist /app/dist
+RUN bun add serve
+CMD ["bun", "run", "serve", "--single", "dist"]
+
+FROM dependencies AS development
+COPY . .
+CMD ["bun", "run", "dev"]

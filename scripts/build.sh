@@ -1,62 +1,52 @@
 #!/bin/bash
+set -euo pipefail
+shopt -s nullglob globstar
+umask 077
 
-# Stop script on any error
-set -ex
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
 
-# Function to clean up temporary directory and return to the original directory
-cleanup() {
-    echo "Cleaning up..."
-    popd >/dev/null 2>&1 || true  # Return to the original directory, if possible
-    rm -rf "$temp_dir"  # Remove the temporary directory
-    echo "Cleaned up temporary directory."
-}
+# Strict environment sanitization
+for var in $(compgen -e); do
+    case $var in
+        HOME|PATH|TERM|USER|SHELL|TMPDIR|VITE_*)
+            ;;
+        *)
+            unset "$var"
+            ;;
+    esac
+done
 
-# Ensure cleanup is done on exit, error, or script interruption (like Ctrl+C)
-trap cleanup EXIT
+export PATH="/usr/local/bin:/usr/bin:/bin"
 
-# Enforce VITE_APP_* environment variables to be present
-required_vars=("VITE_APP_WALLET_CONNECT_PROJECT_ID" "VITE_APP_DEFAULT_WS_URL")
+readonly REQUIRED_VARS=(
+    "VITE_APP_WALLET_CONNECT_PROJECT_ID"
+    "VITE_APP_DEFAULT_WS_URL"
+)
 
-for var in "${required_vars[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo "Error: Required environment variable $var is not set."
+for var in "${REQUIRED_VARS[@]}"; do
+    if [[ -z "${!var-}" ]]; then
+        echo "Error: $var is not set." >&2
         exit 1
     fi
 done
 
-app_dir=$(pwd)
+if command -v bun &> /dev/null; then
+    echo "Using Bun for build"
+    if ! bun run build; then
+        echo "Error: 'bun run build' failed." >&2
+        exit 1
+    fi
+elif command -v npm &> /dev/null; then
+    echo "Using npm for build"
+    if ! npm run build; then
+        echo "Error: 'npm run build' failed." >&2
+        exit 1
+    fi
+else
+    echo "Error: Neither Bun nor npm is available. Please install one of these package managers." >&2
+    exit 1
+fi
 
-# Create a temporary directory and navigate into it
-temp_dir=$(mktemp -d)
-echo "Created temporary directory: $temp_dir"
-pushd "$temp_dir" >/dev/null
-
-# Copy the package.json and pnpm-lock.yaml into the App directory
-cp -r ${app_dir}/.* ${app_dir}/* .
-
-# Install pnpm globally
-npm install pnpm vite polkadot-api serve
-
-# Add polkadot people, kusama, westend, and paseo using `papi`
-npx papi add -n polkadot_people polkadot
-npx papi add -n ksmcc3_people kusama
-npx papi add -n westend2_people westend
-npx papi add -n paseo paseo
-
-# Install the project dependencies
-pnpm install
-
-# Build the project using Vite
-npx vite build
-
-# Serve the project (can be commented out if necessary)
-# pnpm add serve
-#npx serve --single dist
-
-cp -r dist ${app_dir}
-ls -Al ${app_dir}/dist
-
-# Done
 echo "Build completed successfully."
-
-# Returning to the original directory and cleaning up is automatically handled by the trap

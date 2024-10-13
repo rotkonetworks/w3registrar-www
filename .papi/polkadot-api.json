@@ -2,25 +2,37 @@
   "version": 0,
   "descriptorPath": ".papi/descriptors",
   "entries": {
-    "people_rococo": {
-      "wsUrl": "ws://host.docker.internal:42001",
-      "metadata": ".papi/metadata/people_rococo.scale"
-    },
     "polkadot": {
-      "chain": "polkadot",
+      "wsUrl": "wss://polkadot.dotters.network",
       "metadata": ".papi/metadata/polkadot.scale"
     },
+    "people_polkadot": {
+      "wsUrl": "wss://people-polkadot.dotters.network",
+      "metadata": ".papi/metadata/people_polkadot.scale"
+    },
     "westend": {
-      "chain": "westend2",
+      "wsUrl": "wss://westend.dotters.network",
       "metadata": ".papi/metadata/westend.scale"
     },
-    "paseo": {
-      "chain": "paseo",
-      "metadata": ".papi/metadata/paseo.scale"
+    "people_westend": {
+      "wsUrl": "wss://people-westend.dotters.network",
+      "metadata": ".papi/metadata/people_westend.scale"
     },
     "kusama": {
-      "chain": "ksmcc3",
+      "wsUrl": "wss://kusama.dotters.network",
       "metadata": ".papi/metadata/kusama.scale"
+    },
+    "people_kusama": {
+      "wsUrl": "wss://people-kusama.dotters.network",
+      "metadata": ".papi/metadata/people_kusama.scale"
+    },
+    "rococo": {
+      "wsUrl": "wss://dev.rotko.net/rococo",
+      "metadata": ".papi/metadata/rococo.scale"
+    },
+    "people_rococo": {
+      "wsUrl": "wss://dev.rotko.net/people-rococo",
+      "metadata": ".papi/metadata/people_rococo.scale"
     }
   }
 }

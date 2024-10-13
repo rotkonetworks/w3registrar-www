@@ -1,45 +1,17 @@
 services:
-  web-dev:
+  web:
     build:
-      context: ./
-      dockerfile: dev.Dockerfile
-    entrypoint: bash -c "pnpm install && pnpm dev"
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    user: 1000:1000
-    ulimits:
-      nofile:
-        soft: 1048576
-        hard: 1048576
-    hostname: web-dev.rotko.internal
+      context: .
+      dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-development}
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - VITE_APP_WALLET_CONNECT_PROJECT_ID=${VITE_APP_WALLET_CONNECT_PROJECT_ID}
+      - VITE_APP_DEFAULT_WS_URL=${VITE_APP_DEFAULT_WS_URL}
+    ports:
+      - "${PORT:-3000}:3000"
     volumes:
-      - ./:/App
-    working_dir: /App
-  web-staging:
-    build:
-      args:
-        UID: 1000
-        GID: 1000
-        VITE_APP_DEFAULT_WS_URL: ws://172.16.0.1:41855
-        VITE_APP_WALLET_CONNECT_PROJECT_ID: rotko-w3-registrar-staging
-      context: ./
-      #dockerfile: dev.Dockerfile
-    #entrypoint: bash -c "pnpm install && pnpm dev"
-    extra_hosts:
-      - host.docker.internal:host-gateway
-    hostname: web-staging.rotko.internal
-    #volumes:
-    #  - ./:/App
-    working_dir: /App
-  web-builder:
-    build:
-      context: ./
-      dockerfile: builder.Dockerfile
-    entrypoint: bash scripts/build.sh
-    environment: 
-      VITE_APP_DEFAULT_WS_URL: ws://localhost:41855
-      VITE_APP_WALLET_CONNECT_PROJECT_ID: rotko-w3-registrar-staging
-    env_file: .env
-    #volumes:
-    #  - ./:/App
-    working_dir: /App
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
