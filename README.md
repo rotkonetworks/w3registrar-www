@@ -7,15 +7,19 @@ frontend to submit setIdentity + requestJudgement on polkadot-sdk chains using p
 ### Development
 
 Just run and visit http://localhost:3333
-```
+```sh
 bun install
-bun postinstall
 bun dev
+```
+
+To generate/update scale metadata
+```sh
+bunx papi update # or bun metadata
 ```
 
 ### Build
 
 To build the App, run
-```
+```sh
 bun build
 ```
