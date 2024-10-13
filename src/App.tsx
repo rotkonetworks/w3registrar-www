@@ -36,7 +36,7 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 
 export const appState = proxy({
   chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0],
-  wsUrl: "ws://localhost:46085",
+  wsUrl: "wss://dev.rotko.net/people-rococo",
 })
 
 export const AppContext = createContext({})
