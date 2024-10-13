@@ -1,11 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-const IdentityForm = ({ identity, setIdentity, onSubmit, error }) => {
-  const handleChange = (key, value) => {
+interface Identity {
+  [key: string]: string;
+}
+
+interface Props {
+  identity: Identity;
+  setIdentity: React.Dispatch<React.SetStateAction<Identity>>;
+  onSubmit: () => void;
+  error?: string;
+}
+
+const IdentityForm: React.FC<Props> = ({ identity, setIdentity, onSubmit, error }) => {
+  const handleChange = (key: string, value: string) => {
     setIdentity(prev => ({ ...prev, [key]: value }));
   };
 
-  const fieldNames = {
+  const fieldNames: { [key: string]: string } = {
     displayName: 'Display Name',
     matrix: 'Matrix',
     email: 'Email',
@@ -13,7 +24,7 @@ const IdentityForm = ({ identity, setIdentity, onSubmit, error }) => {
     twitter: 'Twitter'
   };
 
-  const placeholders = {
+  const placeholders: { [key: string]: string } = {
     displayName: 'Alice',
     matrix: '@alice:matrix.org',
     email: 'alice@w3reg.org',

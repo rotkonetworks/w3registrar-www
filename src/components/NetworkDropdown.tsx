@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { chainNames } from '~/api/config';
+import { appState } from '~/App';
 
-const NetworkDropdown = ({ network, setNetwork }) => {
+
+const NetworkDropdown = ({  }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [customWs, setCustomWs] = useState('');
-
-  const networks = ['Kusama', 'Polkadot', 'Paseo', 'Custom'];
+  const appStateSnapshot = useSnapshot(appState)
 
   return (
     <div className="relative">
@@ -12,30 +15,41 @@ const NetworkDropdown = ({ network, setNetwork }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
       >
-        {network} ▼
+        {appStateSnapshot.chain.name} ▼
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
-          {networks.map((net) => (
+          {chainNames.map((net) => (
             <button
-              key={net}
+              key={net.chainId}
               className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
               onClick={() => {
-                setNetwork(net);
-                setIsOpen(false);
+                appState.chain = net
+                if (net.chainId !== "custom") {
+                  setIsOpen(false);
+                }
               }}
             >
-              {net}
+              {net.name}
             </button>
           ))}
-          {network === 'Custom' && (
-            <input
-              type="text"
-              value={customWs}
-              onChange={(e) => setCustomWs(e.target.value)}
-              placeholder="Enter WebSocket URL"
-              className="w-full px-4 py-2 text-sm border-t border-stone-300"
-            />
+          {appStateSnapshot.chain.chainId === 'custom' && (
+            <>
+              <input
+                type="text"
+                value={appStateSnapshot.wsUrl}
+                onChange={(e) => appState.wsUrl = e.target.value}
+                placeholder="Enter WebSocket URL"
+                className="w-full px-4 py-2 text-sm border-t border-stone-300"
+              />
+              <span className='bg-warn'>
+                You need to restart for this change to take effect.
+              </span>
+              <button className='btn btn-primary' onClick={() => {
+                localStorage.wsUrl = appState.wsUrl
+                window.location.reload()
+              }}>Reload</button>
+            </>
           )}
         </div>
       )}

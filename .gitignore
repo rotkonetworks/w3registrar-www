@@ -23,3 +23,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Misc
+.papi
+.pnpm-store
+.env
+
+# yarn
+.pnp.cjs
+.pnp.loader.mjs
+.yarn

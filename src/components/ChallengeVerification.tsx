@@ -1,8 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import CountdownTimer from './CountdownTimer';
 
-const ChallengeVerification = ({ identity, challenges, onVerify, onCancel, onProceed }) => {
-  const fieldNames = {
+interface Challenge {
+  verified: boolean;
+  value: string;
+}
+
+interface Challenges {
+  [key: string]: Challenge | boolean;
+}
+
+interface Identity {
+  displayName: string;
+  [key: string]: string;
+}
+
+interface Props {
+  identity: Identity;
+  challenges: Challenges;
+  onVerify: (key: string) => void;
+  onCancel: () => void;
+  onProceed: () => void;
+}
+
+const ChallengeVerification: React.FC<Props> = ({ identity, challenges, onVerify, onCancel, onProceed }) => {
+  const fieldNames: { [key: string]: string } = {
     displayName: 'Display Name',
     matrix: 'Matrix',
     email: 'Email',
@@ -11,7 +33,7 @@ const ChallengeVerification = ({ identity, challenges, onVerify, onCancel, onPro
   };
 
   const allVerified = Object.values(challenges).every(challenge =>
-    challenge === true || challenge.verified === true
+    challenge === true || (challenge as Challenge).verified === true
   );
 
   return (
@@ -20,7 +42,7 @@ const ChallengeVerification = ({ identity, challenges, onVerify, onCancel, onPro
         <h2 className="text-xl font-bold text-stone-800">Challenge Verification</h2>
         <CountdownTimer />
       </div>
-      <div className={`flex items-center space-x-2 px-3 py-2 $(if [ ${challenges.displayName} ]; then echo 'bg-stone-200'; else echo 'bg-yellow-100'; fi)`}>
+      <div className={`flex items-center space-x-2 px-3 py-2 ${challenges.displayName ? 'bg-stone-200' : 'bg-yellow-100'}`}>
         <span className="w-24 text-sm font-semibold text-stone-700">Display:</span>
         <span className="flex-grow font-mono text-sm text-stone-800">{identity.displayName}</span>
         <span className="text-sm font-medium text-stone-600">
@@ -29,11 +51,12 @@ const ChallengeVerification = ({ identity, challenges, onVerify, onCancel, onPro
       </div>
       {Object.entries(challenges).map(([key, challenge]) => {
         if (key === 'displayName') return null;
+        const typedChallenge = challenge as Challenge;
         return (
-          <div key={key} className={`flex items-center space-x-2 px-3 py-2 $(if [ ${challenge.verified} ]; then echo 'bg-stone-200'; else echo 'bg-yellow-100'; fi)`}>
+          <div key={key} className={`flex items-center space-x-2 px-3 py-2 ${typedChallenge.verified ? 'bg-stone-200' : 'bg-yellow-100'}`}>
             <span className="w-24 text-sm font-semibold text-stone-700">{fieldNames[key]}:</span>
-            <span className="flex-grow font-mono text-sm text-stone-800">{challenge.value}</span>
-            {!challenge.verified ? (
+            <span className="flex-grow font-mono text-sm text-stone-800">{typedChallenge.value}</span>
+            {!typedChallenge.verified ? (
               <button
                 onClick={() => onVerify(key)}
                 className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
@@ -55,7 +78,7 @@ const ChallengeVerification = ({ identity, challenges, onVerify, onCancel, onPro
         </button>
         <button
           onClick={onProceed}
-          className={`bg-stone-700 text-white py-2 px-4 text-sm font-semibold transition duration-300 $(if [ ${allVerified} ]; then echo 'hover:bg-stone-800'; else echo 'opacity-50 cursor-not-allowed'; fi)`}
+          className={`bg-stone-700 text-white py-2 px-4 text-sm font-semibold transition duration-300 ${allVerified ? 'hover:bg-stone-800' : 'opacity-50 cursor-not-allowed'}`}
           disabled={!allVerified}
         >
           Proceed
