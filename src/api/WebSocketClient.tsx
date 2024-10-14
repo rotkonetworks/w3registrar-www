@@ -13,7 +13,7 @@ type RpcWebSocketContextProps ={
 }
 const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
   wsUrl: import.meta.env.VITE_APP_DEFAULT_WS_URL,
-  setWsUrl: (v) => void 0,
+  setWsUrl: (v: string | undefined) => void 0,
   isConnected: false,
   basicChainInfo: "",
   connect: () => {}
