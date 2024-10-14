@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { chainNames } from '~/api/config';
+import { useRpcWebSocketProvider } from '~/api/WebSocketClient';
 import { appState } from '~/App';
 
 
 const NetworkDropdown = ({  }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [customWs, setCustomWs] = useState('');
+  const {wsUrl, setWsUrl} = useRpcWebSocketProvider()
   const appStateSnapshot = useSnapshot(appState)
 
   return (
@@ -39,16 +40,17 @@ const NetworkDropdown = ({  }) => {
                 type="text"
                 value={appStateSnapshot.wsUrl}
                 onChange={(e) => appState.wsUrl = e.target.value}
+                onBlur={(e) => setWsUrl(e.target.value)}
                 placeholder="Enter WebSocket URL"
                 className="w-full px-4 py-2 text-sm border-t border-stone-300"
               />
-              <span className='bg-warn'>
+              {/* <span className='bg-warn'>
                 You need to restart for this change to take effect.
               </span>
               <button className='btn btn-primary' onClick={() => {
                 localStorage.wsUrl = appState.wsUrl
                 window.location.reload()
-              }}>Reload</button>
+              }}>Reload</button> */}
             </>
           )}
         </div>
