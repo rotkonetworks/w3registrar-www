@@ -3,13 +3,26 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createContext } from 'react';
 
 
-const RpcWebSocketContext = createContext({})
+type RpcWebSocketContextProps ={
+  api?: ApiPromise,
+  wsUrl?: string,
+  setWsUrl: (v: undefined) => void,
+  isConnected: boolean,
+  basicChainInfo: string,
+  connect: () => void
+}
+const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
+  setWsUrl: (v) => void 0,
+  isConnected: false,
+  basicChainInfo: "",
+  connect: () => {}
+})
 
 export const RpcWebSocketProvider = ({ children }) => {
   const [api, setApi] = useState(null);
   const [wsUrl, setWsUrl] = useState();
-  const [isConnected, setIsConnected] = useState(false);
-  const [chainInfo, setChainInfo] = useState('');
+  const [isConnected, setConnected] = useState(false);
+  const [basicChainInfo, setBasicChainInfo] = useState('');
 
   // Connect to the WebSocket and initialize the API
   const connect = async () => {
@@ -17,7 +30,7 @@ export const RpcWebSocketProvider = ({ children }) => {
       const provider = new WsProvider(wsUrl);
       const api = await ApiPromise.create({ provider });
       setApi(api);
-      setIsConnected(true);
+      setConnected(true);
 
       // Fetch chain info once connected
       const [chain, nodeName, nodeVersion] = await Promise.all([
@@ -27,10 +40,10 @@ export const RpcWebSocketProvider = ({ children }) => {
       ]);
       console.log({ wsUrl, chain, nodeName, nodeVersion })
 
-      setChainInfo(`${chain} - ${nodeName} v${nodeVersion}`);
+      setBasicChainInfo(`${chain} - ${nodeName} v${nodeVersion}`);
     } catch (error) {
       console.error('Connection failed', error);
-      setIsConnected(false);
+      setConnected(false);
     }
   };
 
@@ -55,7 +68,7 @@ export const RpcWebSocketProvider = ({ children }) => {
     };
   }, [api]);
 
-  return <RpcWebSocketContext.Provider value={{ api, wsUrl, setWsUrl, connect, isConnected, chainInfo }}>
+  return <RpcWebSocketContext.Provider value={{ api, wsUrl, setWsUrl, connect, isConnected, basicChainInfo }}>
     {children}
   </RpcWebSocketContext.Provider>;
 };
