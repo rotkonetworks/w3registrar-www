@@ -1,5 +1,5 @@
 import { useAccounts } from '@reactive-dot/react';
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
