@@ -6,7 +6,7 @@ import { createContext } from 'react';
 type RpcWebSocketContextProps ={
   api?: ApiPromise,
   wsUrl: string,
-  setWsUrl: (v: undefined) => void,
+  setWsUrl: (v: string | undefined) => void,
   isConnected: boolean,
   basicChainInfo: string,
   connect: () => void
