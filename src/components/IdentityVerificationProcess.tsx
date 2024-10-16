@@ -5,6 +5,69 @@ import IdentityForm from './IdentityForm';
 import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
 
+import { useAccounts } from "@reactive-dot/react";
+
+import {
+  useConnectedWallets,
+  useWallets,
+  useWalletConnector,
+  useWalletDisconnector,
+} from "@reactive-dot/react";
+
+export function Wallets() {
+  const wallets = useWallets();
+  const connectedWallets = useConnectedWallets();
+
+  const [_, connectWallet] = useWalletConnector();
+  const [__, disconnectWallet] = useWalletDisconnector();
+
+  return (
+    <section>
+      <header>
+        <h3>Wallet connection</h3>
+      </header>
+      <article>
+        <h4>Wallets</h4>
+        <ul>
+          {wallets.map((wallet) => (
+            <li key={wallet.id}>
+              <div>{wallet.name}</div>
+              <div>
+                {connectedWallets.includes(wallet) ? (
+                  <button onClick={() => disconnectWallet(wallet)}>
+                    Disconnect
+                  </button>
+                ) : (
+                  <button onClick={() => connectWallet(wallet)}>Connect</button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </article>
+    </section>
+  );
+}
+
+export function Accounts() {
+  const accounts = useAccounts();
+
+  return (
+    <section>
+      <header>
+        <h3>Accounts</h3>
+      </header>
+      <ul>
+        {accounts.map((account, index) => (
+          <li key={index}>
+            <div>{account.address}</div>
+            <div>{account.name}</div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(0);
@@ -113,6 +176,7 @@ const IdentityVerificationProcess = () => {
       />
       <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
       {renderStage()}
+      <Accounts />
     </div>
   );
 };
