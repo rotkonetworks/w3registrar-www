@@ -5,14 +5,15 @@ import { createContext } from 'react';
 
 type RpcWebSocketContextProps ={
   api?: ApiPromise,
-  wsUrl?: string,
-  setWsUrl: (v: undefined) => void,
+  wsUrl: string,
+  setWsUrl: (v: string | undefined) => void,
   isConnected: boolean,
   basicChainInfo: string,
   connect: () => void
 }
 const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
-  setWsUrl: (v) => void 0,
+  wsUrl: null,
+  setWsUrl: (v: string | undefined) => void 0,
   isConnected: false,
   basicChainInfo: "",
   connect: () => {}
@@ -20,7 +21,7 @@ const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
 
 export const RpcWebSocketProvider = ({ children }) => {
   const [api, setApi] = useState(null);
-  const [wsUrl, setWsUrl] = useState();
+  const [wsUrl, setWsUrl] = useState(null)
   const [isConnected, setConnected] = useState(false);
   const [basicChainInfo, setBasicChainInfo] = useState('');
 
@@ -48,14 +49,9 @@ export const RpcWebSocketProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    setWsUrl(import.meta.env.VITE_APP_DEFAULT_WS_URL)
-  }, [])
-
-  useEffect(() => {
     if (!wsUrl) {
       return
     }
-    console.log({ wsUrl })
     connect()
   }, [wsUrl])
 

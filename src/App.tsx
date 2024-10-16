@@ -3,11 +3,14 @@ import React, { Suspense, createContext } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
-import { chainNames, config } from "./api/config";
+import { config } from "./api/config";
 import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
 import { proxy, useSnapshot } from 'valtio';
 
 import { RpcWebSocketProvider, useRpcWebSocketProvider } from './api/WebSocketClient';
+
+import { ConnectionDialog } from "dot-connect/react.js";
+
 
 interface Props {
   route: RouteType;
@@ -34,9 +37,12 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   );
 };
 
-export const appState = proxy({
-  chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0],
-  wsUrl: import.meta.env.VITE_APP_DEFAULT_WS_URL,
+export const appState: {
+  chain: string,
+  walletDialogOpen: boolean,
+} = proxy({
+  chain: Object.keys(config.chains)[0],
+  walletDialogOpen: false,
 })
 
 export const AppContext = createContext({})
@@ -46,12 +52,10 @@ export default function App() {
   useRpcWebSocketProvider()
 
   return (
-    <AppContext.Provider value={proxy({
-      chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0]
-    })}>
+    <AppContext.Provider value={proxy({  })}>
       <ReactiveDotProvider config={config}>
         <RpcWebSocketProvider>
-            <ChainProvider chainId={appStateSnapshot.chain.chainId}>
+            <ChainProvider chainId={config[appState.chain]}>
               <div className='dark:bg-black min-h-0px'>
                 <Router>
                   <Routes>
@@ -64,6 +68,9 @@ export default function App() {
                     ))}
                   </Routes>
                 </Router>
+                <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
+                  onClose={() => { appState.walletDialogOpen = false }} 
+                />
               </div>
             </ChainProvider>
         </RpcWebSocketProvider>

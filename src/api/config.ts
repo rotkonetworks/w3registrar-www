@@ -1,5 +1,5 @@
 import { polkadot, kusama, westend, people_polkadot, people_kusama, people_westend } from "@polkadot-api/descriptors";
-import type { Config } from "@reactive-dot/core";
+import type { ChainConfig, Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
 import { chainSpec as peoplePolkadotChainSpec } from "polkadot-api/chains/polkadot_people";
 import { chainSpec as peopleKusamaChainSpec } from "polkadot-api/chains/ksmcc3_people";
@@ -11,6 +11,7 @@ import { getSmProvider } from "polkadot-api/sm-provider";
 import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
+import { registerDotConnect } from "dot-connect";
 
 
 const initWorker = () => startFromWorker(
@@ -20,37 +21,38 @@ const initWorker = () => startFromWorker(
 )
 export let smoldot = initWorker();
 
-export const chainNames = [
-  { name: "Rococo Local", chainId: "rococo_people", },
-  { name: "Polkadot", chainId: "people_polkadot", },
-  { name: "Kusama", chainId: "people_kusama", },
-  { name: "Westend", chainId: "people_westend", },
-  { name: "Custom...", chainId: "custom", },
-]
-
+type ApiConfig = Config & {
+  chains: Record<string, ChainConfig & { name: string }>
+}
 export const config = {
   chains: {
     people_polkadot: {
+      name: "People Polkadot",
       descriptor: people_polkadot,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peoplePolkadotChainSpec })),
     },
     people_kusama: {
+      name: "People Kusama",
       descriptor: people_kusama,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleKusamaChainSpec })),
     },
     people_westend: {
+      name: "People Westend",
       descriptor: people_westend,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleWestendChainSpec })),
     },
     polkadot: {
+      name: "Polkadot",
       descriptor: polkadot,
       provider: getSmProvider(smoldot.addChain({ chainSpec: polkadotChainSpec })),
     },
     kusama: {
+      name: "Kusama",
       descriptor: kusama,
       provider: getSmProvider(smoldot.addChain({ chainSpec: kusamaChainSpec })),
     },
     westend: {
+      name: "Westend",
       descriptor: westend,
       provider: getSmProvider(smoldot.addChain({ chainSpec: westendChainSpec })),
     },
@@ -81,4 +83,9 @@ export const config = {
       ],
     }),
   ],
-} as const satisfies Config;
+} as const satisfies ApiConfig;
+
+// Register dot-connect custom elements & configure supported wallets
+registerDotConnect({
+  wallets: config.wallets,
+});
