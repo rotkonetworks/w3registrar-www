@@ -26,6 +26,7 @@
     "@reactive-dot/wallet-walletconnect": "^0.16.5",
     "@unocss/reset": "^0.63.4",
     "bun": "^1.1.30",
+    "dot-connect": "^0.11.0",
     "lit-html": "^3.2.1",
     "polkadot-api": "^1.5.1",
     "react": "^18.3.1",
