@@ -11,6 +11,7 @@ import { getSmProvider } from "polkadot-api/sm-provider";
 import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
+import { registerDotConnect } from "dot-connect";
 
 
 const initWorker = () => startFromWorker(
@@ -82,3 +83,8 @@ export const config = {
     }),
   ],
 } as const satisfies Config;
+
+// Register dot-connect custom elements & configure supported wallets
+registerDotConnect({
+  wallets: config.wallets,
+});
