@@ -22,7 +22,7 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
             className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
             onClick={() => { appState.walletDialogOpen = true }}
           >
-            Connect Account
+            Connect Wallets
           </button>
           <button
             className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
