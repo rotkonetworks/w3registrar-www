@@ -53,7 +53,10 @@ const NetworkDropdown = ({  }) => {
                 type="text"
                 value={_wsUrl}
                 onChange={(e) => _setWsUrl(e.target.value)}
-                onBlur={(e) => setWsUrl(e.target.value)}
+                onBlur={(e) => {
+                  setWsUrl(e.target.value);
+                  setIsOpen(false)
+                }}
                 placeholder="Enter WebSocket URL"
                 className="w-full px-4 py-2 text-sm border-t border-stone-300"
               />
