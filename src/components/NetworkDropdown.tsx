@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
-import { chainNames } from '~/api/config';
+import { config } from '~/api/config';
 import { useRpcWebSocketProvider } from '~/api/WebSocketClient';
 import { appState } from '~/App';
 
 
 const NetworkDropdown = ({  }) => {
   const [isOpen, setIsOpen] = useState(false);
+  // Backing field for typing debounce
+  const [_wsUrl, _setWsUrl] = useState("")
+  // Real value that is actually used to set up WebSocket connection.
   const {wsUrl, setWsUrl} = useRpcWebSocketProvider()
   const appStateSnapshot = useSnapshot(appState)
 
@@ -16,30 +19,40 @@ const NetworkDropdown = ({  }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
       >
-        {appStateSnapshot.chain.name} ▼
+        {!wsUrl ? config.chains[appStateSnapshot.chain].name : "Custom"} ▼
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
-          {chainNames.map((net) => (
+          {Object.entries(config.chains).map(([key, net]) => (
             <button
-              key={net.chainId}
+              key={key}
               className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
               onClick={() => {
-                appState.chain = net
-                if (net.chainId !== "custom") {
-                  setIsOpen(false);
-                }
+                appState.chain = key
+                _setWsUrl("")
+                setWsUrl(null)
+                setIsOpen(false);
               }}
             >
               {net.name}
             </button>
           ))}
-          {appStateSnapshot.chain.chainId === 'custom' && (
+          <button
+            key={"custom"}
+            className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+            onClick={() => {
+              setWsUrl(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+              _setWsUrl(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+            }}
+          >
+            Custom
+          </button>
+          {wsUrl && (
             <>
               <input
                 type="text"
-                value={appStateSnapshot.wsUrl}
-                onChange={(e) => appState.wsUrl = e.target.value}
+                value={_wsUrl}
+                onChange={(e) => _setWsUrl(e.target.value)}
                 onBlur={(e) => setWsUrl(e.target.value)}
                 placeholder="Enter WebSocket URL"
                 className="w-full px-4 py-2 text-sm border-t border-stone-300"

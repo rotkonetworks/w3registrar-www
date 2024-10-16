@@ -3,7 +3,7 @@ import React, { Suspense, createContext } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
-import { chainNames, config } from "./api/config";
+import { config } from "./api/config";
 import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
 import { proxy, useSnapshot } from 'valtio';
 
@@ -39,11 +39,9 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 
 export const appState: {
   chain: string,
-  wsUrl: string | null,
   walletDialogOpen: boolean,
 } = proxy({
   chain: Object.keys(config.chains)[0],
-  wsUrl: null,
   walletDialogOpen: false,
 })
 
@@ -54,12 +52,10 @@ export default function App() {
   useRpcWebSocketProvider()
 
   return (
-    <AppContext.Provider value={proxy({
-      chain: chainNames.find(c => c.chainId === "people_rococo") || chainNames[0]
-    })}>
+    <AppContext.Provider value={proxy({  })}>
       <ReactiveDotProvider config={config}>
         <RpcWebSocketProvider>
-            <ChainProvider chainId={appStateSnapshot.chain.chainId}>
+            <ChainProvider chainId={config[appState.chain]}>
               <div className='dark:bg-black min-h-0px'>
                 <Router>
                   <Routes>

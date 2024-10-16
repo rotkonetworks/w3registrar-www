@@ -12,7 +12,7 @@ type RpcWebSocketContextProps ={
   connect: () => void
 }
 const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
-  wsUrl: import.meta.env.VITE_APP_DEFAULT_WS_URL,
+  wsUrl: null,
   setWsUrl: (v: string | undefined) => void 0,
   isConnected: false,
   basicChainInfo: "",
@@ -21,7 +21,7 @@ const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
 
 export const RpcWebSocketProvider = ({ children }) => {
   const [api, setApi] = useState(null);
-  const {wsUrl, setWsUrl} = useRpcWebSocketProvider()
+  const [wsUrl, setWsUrl] = useState(null)
   const [isConnected, setConnected] = useState(false);
   const [basicChainInfo, setBasicChainInfo] = useState('');
 
