@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,6 +18,12 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
       </button>
       {isOpen && (
         <div className="absolute left-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
+          <button
+            className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+            onClick={() => { appState.walletDialogOpen = true }}
+          >
+            Connect Account
+          </button>
           <button
             className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
             onClick={() => setIsAccountsOpen(!isAccountsOpen)}
