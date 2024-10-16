@@ -1,4 +1,5 @@
 import { useAccounts } from '@reactive-dot/react';
+import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { useState } from 'react';
 import { appState } from '~/App';
 
@@ -57,8 +58,10 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
                 setIsOpen(false);
               }}
             >
-              {name || ""}
+              <PolkadotIdenticon address={address} />
               &nbsp;
+              {name || ""}
+              <br />
               ({address.substring(0,4)}...{address.substring(address.length-4,address.length)})
             </button>
           ))}
