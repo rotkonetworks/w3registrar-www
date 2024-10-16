@@ -1,3 +1,4 @@
+import { useAccounts } from '@reactive-dot/react';
 import React, { useState, useEffect } from 'react';
 import { appState } from '~/App';
 
