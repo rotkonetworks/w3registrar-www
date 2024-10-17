@@ -18,14 +18,14 @@ interface Identity {
 }
 
 interface Props {
-  challenges: Challenges;
   onVerify: (key: string) => void;
   onCancel: () => void;
   onProceed: () => void;
 }
 
-const ChallengeVerification: React.FC<Props> = ({ challenges, onVerify, onCancel, onProceed }) => {
+const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed }) => {
   const appStateSnapshot = useSnapshot(appState)
+  const { challenges } = appStateSnapshot
 
   const fieldNames: { [key: string]: string } = {
     displayName: 'Display Name',
@@ -35,8 +35,8 @@ const ChallengeVerification: React.FC<Props> = ({ challenges, onVerify, onCancel
     twitter: 'Twitter'
   };
 
-  const allVerified = Object.values(challenges).every(challenge =>
-    challenge === true || (challenge as Challenge).verified === true
+  const allVerified = Object.values(challenges).every(_challenge =>
+    (_challenge as Challenge).verified === true
   );
 
   return (

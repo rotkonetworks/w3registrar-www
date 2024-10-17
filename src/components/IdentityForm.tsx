@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { appState } from '~/App';
 
 interface Identity {
   [key: string]: string;
@@ -27,25 +29,20 @@ const IdentityForm: React.FC = () => {
     twitter: true,
   })
 
+  const appStateSnapshot = useSnapshot(appState);
+
   const handleChange = (key: string, value: string) => {
     _setIdentity(prev => ({ ...prev, [key]: value }));
     setErrors(prev => ({ ...prev, [key]: validators[key](value) }));
   };
   const handleSubmitIdentity = () => {
-    if (_identity.displayName.trim() === '') {
-      setError('Display Name is required');
-      return;
-    }
-    setStage(1);
-    setChallenges(prev => ({
-      displayName: true,
-      ...Object.entries(identity).reduce((acc, [key, value]) => {
-        if (key !== 'displayName' && value.trim() !== '') {
-          acc[key] = { value: Math.random().toString(36).substring(2, 10), verified: false };
-        }
+    appState.stage = 1;
+    appState.challenges = {
+      ...Object.entries(appStateSnapshot.identity).reduce((acc, [key, value]) => {
+        acc[key] = { value: Math.random().toString(36).substring(2, 10), verified: false };
         return acc;
-      }, {} as typeof prev)
-    }));
+      }, {})
+    }
   };
 
   const fieldNames: { [key: string]: string } = {
