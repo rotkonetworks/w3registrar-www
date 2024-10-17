@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
+  const [isOpen, setOpen] = useState(false);
+  const [isAccountsOpen, setAccountsOpen] = useState(false);
+
   const handleClose = () => {
     setOpen(false)
     setAccountsOpen(false)
