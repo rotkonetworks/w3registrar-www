@@ -23,7 +23,7 @@ const NetworkDropdown = ({  }) => {
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
-          {Object.entries(config.chains).map(([key, net]) => (
+          {Object.entries(config.chains).filter(([key]) => key.includes("people")).map(([key, net]) => (
             <button
               key={key}
               className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
