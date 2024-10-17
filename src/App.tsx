@@ -40,6 +40,18 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 export const appState: {
   chain: string,
   walletDialogOpen: boolean,
+  account?: {
+    id: string,
+    name: string,
+    address: string,
+  },
+  identity?: {
+    displayName: string,
+    matrix: string,
+    discord: string,
+    email: string,
+    twitter: string,
+  }
 } = proxy({
   chain: Object.keys(config.chains)[0],
   walletDialogOpen: false,
