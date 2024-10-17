@@ -4,11 +4,10 @@ import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
-const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
+const UserDropdown = ({ displayName }) => {
   const [isOpen, setOpen] = useState(false);
   const [isAccountsOpen, setAccountsOpen] = useState(false);
 
-  const wallets = useWallets()
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
 
