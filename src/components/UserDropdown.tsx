@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
-const UserDropdown = ({ displayName }) => {
+const UserDropdown = () => {
   const [isOpen, setOpen] = useState(false);
   const [isAccountsOpen, setAccountsOpen] = useState(false);
 
@@ -30,7 +30,9 @@ const UserDropdown = ({ displayName }) => {
             className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
           >
             {appStateSnapshot.account?.address && <PolkadotIdenticon address={appStateSnapshot.account.address} />}
-            {displayName || appStateSnapshot.account?.name || 'Please choose account'} ▼
+            {appStateSnapshot.identity?.displayName || appStateSnapshot.account?.name 
+              || 'Please choose account'
+            } ▼
           </button>
           {isOpen && (
             <div className="absolute left-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
