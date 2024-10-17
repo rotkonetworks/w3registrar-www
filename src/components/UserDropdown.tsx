@@ -1,6 +1,7 @@
 import { useAccounts, useConnectedWallets, useWalletDisconnector, useWallets } from '@reactive-dot/react';
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { useState } from 'react';
+import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
@@ -10,6 +11,8 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
   const wallets = useWallets()
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
+
+  const appStateSnapshot = useSnapshot(appState)
   
   const handleClose = () => {
     setOpen(false)
