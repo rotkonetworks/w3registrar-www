@@ -40,6 +40,7 @@ export const RpcWebSocketProvider = ({ children }) => {
         api.rpc.system.version(),
       ]);
       console.log({ wsUrl, chain, nodeName, nodeVersion })
+      console.log(`Connected to ${await api.rpc.system.chain()} chain`);
 
       setBasicChainInfo(`${chain} - ${nodeName} v${nodeVersion}`);
     } catch (error) {
