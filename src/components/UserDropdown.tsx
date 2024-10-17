@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAccountsOpen, setIsAccountsOpen] = useState(false);
+  const handleClose = () => {
+    setOpen(false)
+    setAccountsOpen(false)
+  }
 
   // testing for fetched from an API or passed as a prop
   const accounts = useAccounts()
