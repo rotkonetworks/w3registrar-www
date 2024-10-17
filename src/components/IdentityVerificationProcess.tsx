@@ -9,13 +9,6 @@ import CompletionPage from './CompletionPage';
 const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(0);
   
-  const [identity, setIdentity] = useState({
-    displayName: '',
-    matrix: '',
-    email: '',
-    discord: '',
-    twitter: ''
-  });
   const [challenges, setChallenges] = useState({
     displayName: false,
     matrix: { value: '', verified: false },
@@ -24,23 +17,6 @@ const IdentityVerificationProcess = () => {
     twitter: { value: '', verified: false }
   });
   const [error, setError] = useState('');
-
-  const handleSubmitIdentity = () => {
-    if (identity.displayName.trim() === '') {
-      setError('Display Name is required');
-      return;
-    }
-    setStage(1);
-    setChallenges(prev => ({
-      displayName: true,
-      ...Object.entries(identity).reduce((acc, [key, value]) => {
-        if (key !== 'displayName' && value.trim() !== '') {
-          acc[key] = { value: Math.random().toString(36).substring(2, 10), verified: false };
-        }
-        return acc;
-      }, {} as typeof prev)
-    }));
-  };
 
   const handleVerifyChallenge = (key) => {
     setChallenges(prev => ({
@@ -82,16 +58,9 @@ const IdentityVerificationProcess = () => {
   const renderStage = () => {
     switch(stage) {
       case 0:
-        return <IdentityForm
-          identity={identity}
-          setIdentity={setIdentity}
-          onSubmit={handleSubmitIdentity}
-          error={error}
-        />;
+        return <IdentityForm />;
       case 1:
         return <ChallengeVerification
-          identity={identity}
-          challenges={challenges}
           onVerify={handleVerifyChallenge}
           onCancel={handleCancel}
           onProceed={handleProceed}

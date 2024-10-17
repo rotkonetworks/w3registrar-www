@@ -1,5 +1,7 @@
 import React from 'react';
 import CountdownTimer from './CountdownTimer';
+import { useSnapshot } from 'valtio';
+import { appState } from '~/App';
 
 interface Challenge {
   verified: boolean;
@@ -16,7 +18,6 @@ interface Identity {
 }
 
 interface Props {
-  identity: Identity;
   challenges: Challenges;
   onVerify: (key: string) => void;
   onCancel: () => void;
@@ -46,7 +47,7 @@ const ChallengeVerification: React.FC<Props> = ({ challenges, onVerify, onCancel
       </div>
       <div className={`flex items-center space-x-2 px-3 py-2 ${challenges.displayName ? 'bg-stone-200' : 'bg-yellow-100'}`}>
         <span className="w-24 text-sm font-semibold text-stone-700">Display:</span>
-        <span className="flex-grow font-mono text-sm text-stone-800">{identity.displayName}</span>
+        <span className="flex-grow font-mono text-sm text-stone-800">{appStateSnapshot.identity.displayName}</span>
         <span className="text-sm font-medium text-stone-600">
           {challenges.displayName ? 'Verified' : 'Unverified'}
         </span>
