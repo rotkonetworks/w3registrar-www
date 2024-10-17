@@ -11,9 +11,17 @@ interface Props {
   error?: string;
 }
 
-const IdentityForm: React.FC<Props> = ({ identity, setIdentity, onSubmit, error }) => {
+const IdentityForm: React.FC<Props> = ({ onSubmit, error }) => {
+  const [_identity, _setIdentity] = useState({
+    displayName: '',
+    matrix: '',
+    email: '',
+    discord: '',
+    twitter: ''
+  });
+
   const handleChange = (key: string, value: string) => {
-    setIdentity(prev => ({ ...prev, [key]: value }));
+    _setIdentity(prev => ({ ...prev, [key]: value }));
   };
 
   const fieldNames: { [key: string]: string } = {
@@ -35,7 +43,7 @@ const IdentityForm: React.FC<Props> = ({ identity, setIdentity, onSubmit, error 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold mb-4 text-stone-800">Identity</h2>
-      {Object.entries(identity).map(([key, value]) => (
+      {Object.entries(_identity).map(([key, value]) => (
         <div key={key} className="flex flex-col">
           <label className="text-sm text-stone-600 mb-1">{fieldNames[key]}</label>
           <input

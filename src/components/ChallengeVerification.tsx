@@ -23,7 +23,9 @@ interface Props {
   onProceed: () => void;
 }
 
-const ChallengeVerification: React.FC<Props> = ({ identity, challenges, onVerify, onCancel, onProceed }) => {
+const ChallengeVerification: React.FC<Props> = ({ challenges, onVerify, onCancel, onProceed }) => {
+  const appStateSnapshot = useSnapshot(appState)
+
   const fieldNames: { [key: string]: string } = {
     displayName: 'Display Name',
     matrix: 'Matrix',
