@@ -74,12 +74,7 @@ const IdentityVerificationProcess = () => {
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
-      <Header
-        displayName={identity.displayName}
-        onSelectAccount={handleSelectAccount}
-        onRemoveIdentity={handleRemoveIdentity}
-        onLogout={handleLogout}
-      />
+      <Header />
       <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
       {renderStage()}
     </div>

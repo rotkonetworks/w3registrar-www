@@ -4,14 +4,7 @@ interface Identity {
   [key: string]: string;
 }
 
-interface Props {
-  identity: Identity;
-  setIdentity: React.Dispatch<React.SetStateAction<Identity>>;
-  onSubmit: () => void;
-  error?: string;
-}
-
-const IdentityForm: React.FC<Props> = ({ onSubmit, error }) => {
+const IdentityForm: React.FC = () => {
   const [_identity, _setIdentity] = useState({
     displayName: '',
     matrix: '',
