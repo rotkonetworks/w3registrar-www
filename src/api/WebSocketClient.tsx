@@ -2,45 +2,49 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { createContext } from 'react';
 
-
-type RpcWebSocketContextProps ={
+type RpcWebSocketContextProps = {
   api?: ApiPromise,
-  wsUrl: string,
-  setWsUrl: (v: string | undefined) => void,
+  wsUrl: string | null,
+  setWsUrl: (v: string | null) => void,
   isConnected: boolean,
   basicChainInfo: string,
   connect: () => void
 }
+
 const RpcWebSocketContext = createContext<RpcWebSocketContextProps>({
   wsUrl: null,
-  setWsUrl: (v: string | undefined) => void 0,
+  setWsUrl: () => {},
   isConnected: false,
   basicChainInfo: "",
   connect: () => {}
-})
+});
 
-export const RpcWebSocketProvider = ({ children }) => {
-  const [api, setApi] = useState(null);
-  const [wsUrl, setWsUrl] = useState(null)
+export const RpcWebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [api, setApi] = useState<ApiPromise | null>(null);
+  const [wsUrl, setWsUrl] = useState<string | null>(null);
   const [isConnected, setConnected] = useState(false);
   const [basicChainInfo, setBasicChainInfo] = useState('');
 
-  // Connect to the WebSocket and initialize the API
   const connect = async () => {
+    if (!wsUrl) {
+      console.error('No WebSocket URL provided');
+      return;
+    }
+
+    console.log('Attempting to connect to WebSocket:', wsUrl);
     try {
       const provider = new WsProvider(wsUrl);
       const api = await ApiPromise.create({ provider });
+      console.log('API created successfully');
       setApi(api);
       setConnected(true);
 
-      // Fetch chain info once connected
       const [chain, nodeName, nodeVersion] = await Promise.all([
         api.rpc.system.chain(),
         api.rpc.system.name(),
         api.rpc.system.version(),
       ]);
-      console.log({ wsUrl, chain, nodeName, nodeVersion })
-
+      console.log({ wsUrl, chain, nodeName, nodeVersion });
       setBasicChainInfo(`${chain} - ${nodeName} v${nodeVersion}`);
     } catch (error) {
       console.error('Connection failed', error);
@@ -49,27 +53,26 @@ export const RpcWebSocketProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (!wsUrl) {
-      return
+    if (wsUrl) {
+      connect();
     }
-    connect()
-  }, [wsUrl])
-
-  // Disconnect API when component unmounts
-  useEffect(() => {
     return () => {
       if (api) {
+        console.log('Disconnecting API');
         api.disconnect();
       }
     };
-  }, [api]);
+  }, [wsUrl]);
 
-  return <RpcWebSocketContext.Provider value={{ api, wsUrl, setWsUrl, connect, isConnected, basicChainInfo }}>
-    {children}
-  </RpcWebSocketContext.Provider>;
+  console.log('RpcWebSocketProvider render', { api, isConnected, basicChainInfo });
+
+  return (
+    <RpcWebSocketContext.Provider value={{ api, wsUrl, setWsUrl, connect, isConnected, basicChainInfo }}>
+      {children}
+    </RpcWebSocketContext.Provider>
+  );
 };
-export const useRpcWebSocketProvider = () => {
-  const contextData = useContext(RpcWebSocketContext)
 
-  return contextData;
-}
+export const useRpcWebSocketProvider = () => {
+  return useContext(RpcWebSocketContext);
+};

@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { accountStore } from '~/store';
 import Header from './Header';
 import ProgressBar from './ProgressBar';
-import IdentityForm from './IdentityForm';
+import IdentityFormContainer from './IdentityForm';
 import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
 
-
-const IdentityVerificationProcess = () => {
+const IdentityVerificationProcess: React.FC = () => {
   const [stage, setStage] = useState(0);
-  
+  const { selectedAccount } = useSnapshot(accountStore);
+
   const [identity, setIdentity] = useState({
     displayName: '',
     matrix: '',
@@ -23,26 +25,8 @@ const IdentityVerificationProcess = () => {
     discord: { value: '', verified: false },
     twitter: { value: '', verified: false }
   });
-  const [error, setError] = useState('');
 
-  const handleSubmitIdentity = () => {
-    if (identity.displayName.trim() === '') {
-      setError('Display Name is required');
-      return;
-    }
-    setStage(1);
-    setChallenges(prev => ({
-      displayName: true,
-      ...Object.entries(identity).reduce((acc, [key, value]) => {
-        if (key !== 'displayName' && value.trim() !== '') {
-          acc[key] = { value: Math.random().toString(36).substring(2, 10), verified: false };
-        }
-        return acc;
-      }, {} as typeof prev)
-    }));
-  };
-
-  const handleVerifyChallenge = (key) => {
+  const handleVerifyChallenge = (key: string) => {
     setChallenges(prev => ({
       ...prev,
       [key]: { ...prev[key], verified: true }
@@ -64,30 +48,18 @@ const IdentityVerificationProcess = () => {
     setStage(2);
   };
 
-  const handleSelectAccount = (account) => {
-    console.log(`Selected account: ${account}`);
-    // Implement account selection logic here
-  };
-
-  const handleRemoveIdentity = () => {
-    console.log('Removing identity');
-    // Implement identity removal logic here
+  const handleSelectAccount = (account: string) => {
+    accountStore.update(account);
   };
 
   const handleLogout = () => {
-    console.log('Logging out');
-    // Implement logout logic here
+    accountStore.update('');
   };
 
   const renderStage = () => {
     switch(stage) {
       case 0:
-        return <IdentityForm
-          identity={identity}
-          setIdentity={setIdentity}
-          onSubmit={handleSubmitIdentity}
-          error={error}
-        />;
+        return <IdentityFormContainer onNextPage={() => setStage(1)} />;
       case 1:
         return <ChallengeVerification
           identity={identity}
@@ -108,7 +80,6 @@ const IdentityVerificationProcess = () => {
       <Header
         displayName={identity.displayName}
         onSelectAccount={handleSelectAccount}
-        onRemoveIdentity={handleRemoveIdentity}
         onLogout={handleLogout}
       />
       <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
