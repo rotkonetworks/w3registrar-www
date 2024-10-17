@@ -63,6 +63,14 @@ export default function App() {
   const appStateSnapshot = useSnapshot(appState)
   useRpcWebSocketProvider()
 
+  useEffect(() => {
+    const account = localStorage.getItem("account");
+    if (!account) {
+      return;
+    }
+    appState.account = JSON.parse(account)
+  }, [])
+
   return (
     <AppContext.Provider value={proxy({  })}>
       <ReactiveDotProvider config={config}>
