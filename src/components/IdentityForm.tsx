@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface Identity {
   [key: string]: string;
@@ -12,9 +12,24 @@ const IdentityForm: React.FC = () => {
     discord: '',
     twitter: ''
   });
+  const validators = {
+    displayName: (v) => v.length < 3 && "At least 3 characters" , // not required
+    matrix: ((v: string) => !/@[A-Z0-9._=-]+:[A-Z0-9.-]+\.[A-Z]{2,}/i.test(v)),
+    email: (v: string) => !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v),
+    discord: (v: string) => !/^[a-z0-9]+#\d{4}$/.test(v),
+    twitter: (v: string) => !/^@?(\w){1,15}$/.test(v),
+  }
+  const [errors, setErrors] = useState({
+    displayName: "At least 3 characters",
+    matrix: true,
+    email: true,
+    discord: true,
+    twitter: true,
+  })
 
   const handleChange = (key: string, value: string) => {
     _setIdentity(prev => ({ ...prev, [key]: value }));
+    setErrors(prev => ({ ...prev, [key]: validators[key](value) }));
   };
   const handleSubmitIdentity = () => {
     if (_identity.displayName.trim() === '') {
@@ -63,12 +78,16 @@ const IdentityForm: React.FC = () => {
             className="border-b border-stone-400 px-0 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-600 placeholder-stone-400"
             required={key === 'displayName'}
           />
+          {errors[key] && <p className="text-red-700 text-sm">{typeof errors[key] === "boolean"
+            ? <>Invalid format for {fieldNames[key]}</>
+            : errors[key]
+          }</p>}
         </div>
       ))}
-      {error && <p className="text-red-700 text-sm">{error}</p>}
       <button
         onClick={handleSubmitIdentity}
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 text-sm font-semibold transition duration-300"
+        disabled={Object.values(errors).filter(v => v).length > 0}
       >
         Submit
       </button>

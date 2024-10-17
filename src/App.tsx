@@ -51,10 +51,22 @@ export const appState: {
     discord: string,
     email: string,
     twitter: string,
-  }
+  },
+  stage: number,
+  challenges: Record<string, {
+    value: string,
+    verified: boolean,
+  }>
 } = proxy({
   chain: Object.keys(config.chains)[0],
   walletDialogOpen: false,
+  stage: 0,
+  challenges: {
+    matrix: { value: '', verified: false },
+    email: { value: '', verified: false },
+    discord: { value: '', verified: false },
+    twitter: { value: '', verified: false }
+  }
 })
 
 export const AppContext = createContext({})
