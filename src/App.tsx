@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, createContext } from 'react';
+import React, { Suspense, createContext, useEffect } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
