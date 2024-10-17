@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, createContext } from 'react';
+import React, { Suspense, createContext, useEffect } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -40,6 +40,18 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 export const appState: {
   chain: string,
   walletDialogOpen: boolean,
+  account?: {
+    id: string,
+    name: string,
+    address: string,
+  },
+  identity?: {
+    displayName: string,
+    matrix: string,
+    discord: string,
+    email: string,
+    twitter: string,
+  }
 } = proxy({
   chain: Object.keys(config.chains)[0],
   walletDialogOpen: false,
@@ -50,6 +62,14 @@ export const AppContext = createContext({})
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
   useRpcWebSocketProvider()
+
+  useEffect(() => {
+    const account = localStorage.getItem("account");
+    if (!account) {
+      return;
+    }
+    appState.account = JSON.parse(account)
+  }, [])
 
   return (
     <AppContext.Provider value={proxy({  })}>

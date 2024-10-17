@@ -12,6 +12,7 @@ import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
+import { getWsProvider } from "@polkadot-api/ws-provider/web";
 
 
 const initWorker = () => startFromWorker(
@@ -27,17 +28,17 @@ type ApiConfig = Config & {
 export const config = {
   chains: {
     people_polkadot: {
-      name: "People Polkadot",
+      name: "Polkadot",
       descriptor: people_polkadot,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peoplePolkadotChainSpec })),
     },
     people_kusama: {
-      name: "People Kusama",
+      name: "Kusama",
       descriptor: people_kusama,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleKusamaChainSpec })),
     },
     people_westend: {
-      name: "People Westend",
+      name: "Westend",
       descriptor: people_westend,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleWestendChainSpec })),
     },
