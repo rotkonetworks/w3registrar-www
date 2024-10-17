@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useAccounts } from '@reactive-dot/react';
+import { PolkadotIdenticon } from 'dot-identicon/react.js';
+import { useState } from 'react';
 import { appState } from '~/App';
 
 const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => {
@@ -6,7 +8,7 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
   const [isAccountsOpen, setIsAccountsOpen] = useState(false);
 
   // testing for fetched from an API or passed as a prop
-  const accounts = Array.from({ length: 100 }, (_, i) => `Account ${i + 1}`);
+  const accounts = useAccounts()
 
   return (
     <div className="relative">
@@ -22,7 +24,7 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
             className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
             onClick={() => { appState.walletDialogOpen = true }}
           >
-            Connect Account
+            Connect Wallets
           </button>
           <button
             className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
@@ -46,17 +48,21 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
       )}
       {isAccountsOpen && (
         <div className="absolute left-48 top-0 w-48 bg-white border border-stone-300 shadow-lg z-20 max-h-60 overflow-y-auto">
-          {accounts.map((account) => (
+          {accounts.map(({id, name, address}) => (
             <button
-              key={account}
+              key={id}
               className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
               onClick={() => {
-                onSelectAccount(account);
+                onSelectAccount(address);
                 setIsAccountsOpen(false);
                 setIsOpen(false);
               }}
             >
-              {account}
+              <PolkadotIdenticon address={address} />
+              &nbsp;
+              {name || ""}
+              <br />
+              ({address.substring(0,4)}...{address.substring(address.length-4,address.length)})
             </button>
           ))}
         </div>
