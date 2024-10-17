@@ -1,4 +1,4 @@
-import { useAccounts } from '@reactive-dot/react';
+import { useAccounts, useConnectedWallets, useWalletDisconnector, useWallets } from '@reactive-dot/react';
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { useState } from 'react';
 import { appState } from '~/App';
@@ -7,6 +7,10 @@ const UserDropdown = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout
   const [isOpen, setOpen] = useState(false);
   const [isAccountsOpen, setAccountsOpen] = useState(false);
 
+  const wallets = useWallets()
+  const connectedWallets = useConnectedWallets()
+  const [_, disconnectWallet] = useWalletDisconnector()
+  
   const handleClose = () => {
     setOpen(false)
     setAccountsOpen(false)
