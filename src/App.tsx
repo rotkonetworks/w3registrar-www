@@ -4,10 +4,9 @@ import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
 import { config } from "./api/config";
-import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
 import { proxy, useSnapshot } from 'valtio';
 
-import { RpcWebSocketProvider, useRpcWebSocketProvider } from './api/WebSocketClient';
+import { useRpcWebSocketProvider } from './api/WebSocketClient';
 
 import { ConnectionDialog } from "dot-connect/react.js";
 
@@ -83,30 +82,20 @@ export default function App() {
     appState.account = JSON.parse(account)
   }, [])
 
-  return (
-    <AppContext.Provider value={proxy({  })}>
-      <ReactiveDotProvider config={config}>
-        <RpcWebSocketProvider>
-            <ChainProvider chainId={config[appState.chain]}>
-              <div className='dark:bg-black min-h-0px'>
-                <Router>
-                  <Routes>
-                    {routes.map((route) => (
-                      <Route
-                        path={route.path}
-                        key={route.path}
-                        element={<DomTitle route={route} />}
-                      />
-                    ))}
-                  </Routes>
-                </Router>
-                <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
-                  onClose={() => { appState.walletDialogOpen = false }} 
-                />
-              </div>
-            </ChainProvider>
-        </RpcWebSocketProvider>
-      </ReactiveDotProvider>
-    </AppContext.Provider>
-  );
+  return <>
+    <Router>
+      <Routes>
+        {routes.map((route) => (
+          <Route
+            path={route.path}
+            key={route.path}
+            element={<DomTitle route={route} />}
+          />
+        ))}
+      </Routes>
+    </Router>
+    <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
+      onClose={() => { appState.walletDialogOpen = false }} 
+    />
+  </>;
 }
