@@ -112,7 +112,10 @@ const IdentityForm: React.FC = () => {
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 text-sm font-semibold transition duration-300"
         disabled={Object.values(errors).filter(v => v).length > 0}
       >
-        Submit
+        {appStateSnapshot.identity
+          ? <>Change Identity</>
+          : <>Set Identity</>
+        } 
       </button>
     </div>
   );
