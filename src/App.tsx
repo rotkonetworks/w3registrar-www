@@ -90,15 +90,19 @@ export default function App() {
       return;
     }
     api.query.identity.identityOf(appStateSnapshot.account.address).then(response => {
-      const value = response.toJSON();
       function decodeHex(hex: string) {
         return decodeURIComponent('%' + hex.substring(2).match(/.{1,2}/g).join('%'));
       }
-      const identity = Object.entries(value?.[0]?.info).filter(([, value]) => value?.raw)
+      const value = response.toJSON();
+      const identity = Object.entries(value?.[0]?.info || {}).filter(([, value]) => value?.raw)
         .reduce((all, [key, { raw }]) => {
           all[key] = decodeHex(raw);
           return all;
         }, {});
+
+      if (Object.entries(identity).length) {
+        appState.identity = identity
+      }
 
       console.log({ 
         identityOf: value,
