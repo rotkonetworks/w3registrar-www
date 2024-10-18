@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
@@ -30,6 +30,15 @@ const IdentityForm: React.FC = () => {
   })
 
   const appStateSnapshot = useSnapshot(appState);
+  useEffect(() => {
+    if (appStateSnapshot.identity) {
+      _setIdentity(appStateSnapshot.identity)
+      setErrors(() => Object.entries(appStateSnapshot.identity).reduce((acc, [key, value]) => {
+        acc[key] = validators[key](value)
+        return acc
+      }))
+    }
+  }, [appStateSnapshot.identity])
 
   const handleChange = (key: string, value: string) => {
     _setIdentity(prev => ({ ...prev, [key]: value }));
