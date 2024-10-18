@@ -9,6 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { useRpcWebSocketProvider } from './api/WebSocketClient';
 
 import { ConnectionDialog } from "dot-connect/react.js";
+import { IdentityFormFields } from './components/IdentityForm';
 
 
 interface Props {
@@ -101,6 +102,11 @@ export default function App() {
         }, {});
 
       if (Object.entries(identity).length) {
+        IdentityFormFields.forEach(field => {
+          if (!identity[field]) {
+            identity[field] = "";
+          }
+        })
         appState.identity = identity
       }
 

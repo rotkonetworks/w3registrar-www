@@ -5,6 +5,13 @@ import { appState } from '~/App';
 interface Identity {
   [key: string]: string;
 }
+export const IdentityFormFields = [
+  "displayName",
+  "matrix",
+  "email",
+  "discord",
+  "twitter",
+]
 
 const IdentityForm: React.FC = () => {
   const defaultFormData = {
