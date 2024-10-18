@@ -15,6 +15,7 @@
   "dependencies": {
     "@iconify/react": "^5.0.2",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/docgen": "^0.0.8",
     "@polkadot-api/metadata-builders": "^0.8.2",
     "@polkadot-api/substrate-bindings": "^0.9.2",
     "@polkadot-api/utils": "^0.1.2",
@@ -29,7 +30,7 @@
     "dot-connect": "^0.11.0",
     "dot-identicon": "^0.1.0",
     "lit-html": "^3.2.1",
-    "polkadot-api": "^1.5.1",
+    "polkadot-api": "^1.6.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
