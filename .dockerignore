@@ -36,3 +36,4 @@ dist-ssr
 .papi
 .pnpm-store
 .env
+docs

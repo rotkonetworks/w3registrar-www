@@ -23,3 +23,11 @@ To build the App, run
 ```sh
 bun build
 ```
+
+### Chain docs
+Docs can be found at 
+
+You can also generate it via comand
+```sh
+bunx papi-generate-docs --config .papi/polkadot-api.json --output docs/
+```
