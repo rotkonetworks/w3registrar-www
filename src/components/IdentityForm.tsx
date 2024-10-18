@@ -7,13 +7,14 @@ interface Identity {
 }
 
 const IdentityForm: React.FC = () => {
-  const [_identity, _setIdentity] = useState({
+  const defaultFormData = {
     displayName: '',
     matrix: '',
     email: '',
     discord: '',
     twitter: ''
-  });
+  };
+  const [_identity, _setIdentity] = useState(defaultFormData);
   const validators = {
     displayName: (v) => v.length < 3 && "At least 3 characters" , // not required
     matrix: ((v: string) => !/@[A-Z0-9._=-]+:[A-Z0-9.-]+\.[A-Z]{2,}/i.test(v)),
@@ -21,13 +22,19 @@ const IdentityForm: React.FC = () => {
     discord: (v: string) => !/^[a-z0-9]+#\d{4}$/.test(v),
     twitter: (v: string) => !/^@?(\w){1,15}$/.test(v),
   }
-  const [errors, setErrors] = useState({
+  const defaultFormErrors = {
     displayName: "At least 3 characters",
     matrix: true,
     email: true,
     discord: true,
     twitter: true,
-  })
+  };
+  const [errors, setErrors] = useState(defaultFormErrors)
+
+  const handleClean = () => {
+    _setIdentity(defaultFormData)
+    setErrors(defaultFormErrors)
+  }
 
   const appStateSnapshot = useSnapshot(appState);
   useEffect(() => {
@@ -37,6 +44,8 @@ const IdentityForm: React.FC = () => {
         acc[key] = validators[key](value)
         return acc
       }))
+    } else {
+      handleClean()
     }
   }, [appStateSnapshot.identity])
 
