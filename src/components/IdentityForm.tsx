@@ -41,7 +41,7 @@ const IdentityForm: React.FC = () => {
     if (appStateSnapshot.identity) {
       _setIdentity(appStateSnapshot.identity)
       setErrors(() => Object.entries(appStateSnapshot.identity).reduce((acc, [key, value]) => {
-        acc[key] = validators[key](value)
+        acc[key] = validators[key]?.(value) // Nullish if there are fields not present in the form.
         return acc
       }))
     } else {
