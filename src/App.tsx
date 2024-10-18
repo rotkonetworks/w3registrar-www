@@ -4,12 +4,12 @@ import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
 import { config } from "./api/config";
-import { ChainProvider, ReactiveDotProvider } from "@reactive-dot/react";
 import { proxy, useSnapshot } from 'valtio';
 
-import { RpcWebSocketProvider, useRpcWebSocketProvider } from './api/WebSocketClient';
+import { useRpcWebSocketProvider } from './api/WebSocketClient';
 
 import { ConnectionDialog } from "dot-connect/react.js";
+import { IdentityFormFields } from './components/IdentityForm';
 
 
 interface Props {
@@ -83,30 +83,54 @@ export default function App() {
     appState.account = JSON.parse(account)
   }, [])
 
-  return (
-    <AppContext.Provider value={proxy({  })}>
-      <ReactiveDotProvider config={config}>
-        <RpcWebSocketProvider>
-            <ChainProvider chainId={config[appState.chain]}>
-              <div className='dark:bg-black min-h-0px'>
-                <Router>
-                  <Routes>
-                    {routes.map((route) => (
-                      <Route
-                        path={route.path}
-                        key={route.path}
-                        element={<DomTitle route={route} />}
-                      />
-                    ))}
-                  </Routes>
-                </Router>
-                <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
-                  onClose={() => { appState.walletDialogOpen = false }} 
-                />
-              </div>
-            </ChainProvider>
-        </RpcWebSocketProvider>
-      </ReactiveDotProvider>
-    </AppContext.Provider>
-  );
+  const {api} = useRpcWebSocketProvider()
+
+  useEffect(() => {
+    console.log({ api, address: appStateSnapshot.account?.address })
+    if (!appStateSnapshot.account?.address || !api) {
+      return;
+    }
+    api.query.identity.identityOf(appStateSnapshot.account.address).then(response => {
+      function decodeHex(hex: string) {
+        return decodeURIComponent('%' + hex.substring(2).match(/.{1,2}/g).join('%'));
+      }
+      const value = response.toJSON();
+      const identity = Object.entries(value?.[0]?.info || {}).filter(([, value]) => value?.raw)
+        .reduce((all, [key, { raw }]) => {
+          all[key] = decodeHex(raw);
+          return all;
+        }, {});
+
+      if (Object.entries(identity).length) {
+        IdentityFormFields.forEach(field => {
+          if (!identity[field]) {
+            identity[field] = "";
+          }
+        })
+        appState.identity = identity
+      }
+
+      console.log({ 
+        identityOf: value,
+        identity: identity
+      })
+    })
+  }, [appStateSnapshot.account?.address, api])
+
+  return <>
+    <Router>
+      <Routes>
+        {routes.map((route) => (
+          <Route
+            path={route.path}
+            key={route.path}
+            element={<DomTitle route={route} />}
+          />
+        ))}
+      </Routes>
+    </Router>
+    <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
+      onClose={() => { appState.walletDialogOpen = false }} 
+    />
+  </>;
 }
