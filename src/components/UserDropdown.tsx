@@ -69,6 +69,7 @@ const UserDropdown = () => {
                 onClick={() => {
                   connectedWallets.forEach(w => disconnectWallet(w));
                   appState.account = null
+                  appState.identity = null
                   localStorage.removeItem("account")
                   handleClose()
                 }}
