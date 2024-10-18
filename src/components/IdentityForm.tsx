@@ -101,7 +101,7 @@ const IdentityForm: React.FC = () => {
               onChange={(e) => handleChange(key, e.target.value)}
               placeholder={placeholders[key]}
               className="border-b border-stone-400 px-0 py-2 text-sm text-stone-800 focus:outline-none focus:border-stone-600 placeholder-stone-400"
-              required={key === 'displayName'} />
+            />
             {errors[key] && <p className="text-red-700 text-sm">{typeof errors[key] === "boolean"
               ? <>Invalid format for {fieldNames[key]}</>
               : errors[key]}</p>}
