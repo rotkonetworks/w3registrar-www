@@ -82,6 +82,22 @@ export default function App() {
     appState.account = JSON.parse(account)
   }, [])
 
+  const {api} = useRpcWebSocketProvider()
+
+  useEffect(() => {
+    console.log({ api, address: appStateSnapshot.account?.address })
+    if (!appStateSnapshot.account?.address || !api) {
+      return;
+    }
+    api.query.identity.identityOf(appStateSnapshot.account.address).then(response => {
+      const value = response.toJSON();
+      
+      console.log({ 
+        identityOf: value
+      })
+    })
+  }, [appStateSnapshot.account?.address, api])
+
   return <>
     <Router>
       <Routes>
