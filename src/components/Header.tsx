@@ -2,14 +2,9 @@ import UserDropdown from './UserDropdown';
 import NetworkDropdown from './NetworkDropdown';
 
 
-const Header = ({ displayName, onSelectAccount, onRemoveIdentity, onLogout }) => (
+const Header = () => (
   <div className="flex justify-between items-center mb-6">
-    <UserDropdown
-      displayName={displayName}
-      onSelectAccount={onSelectAccount}
-      onRemoveIdentity={onRemoveIdentity}
-      onLogout={onLogout}
-    />
+    <UserDropdown />
     <NetworkDropdown />
   </div>
 );
