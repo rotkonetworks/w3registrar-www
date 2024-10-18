@@ -6,7 +6,7 @@ interface Identity {
   [key: string]: string;
 }
 export const IdentityFormFields = [
-  "displayName",
+  "display",
   "matrix",
   "email",
   "discord",
@@ -15,7 +15,7 @@ export const IdentityFormFields = [
 
 const IdentityForm: React.FC = () => {
   const defaultFormData = {
-    displayName: '',
+    display: '',
     matrix: '',
     email: '',
     discord: '',
@@ -23,14 +23,14 @@ const IdentityForm: React.FC = () => {
   };
   const [_identity, _setIdentity] = useState(defaultFormData);
   const validators = {
-    displayName: (v) => v.length < 3 && "At least 3 characters" , // not required
+    display: (v) => v.length < 3 && "At least 3 characters" , // not required
     matrix: ((v: string) => !/@[A-Z0-9._=-]+:[A-Z0-9.-]+\.[A-Z]{2,}/i.test(v)),
     email: (v: string) => !/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v),
     discord: (v: string) => !/^[a-z0-9]+#\d{4}$/.test(v),
     twitter: (v: string) => !/^@?(\w){1,15}$/.test(v),
   }
   const defaultFormErrors = {
-    displayName: "At least 3 characters",
+    display: "At least 3 characters",
     matrix: true,
     email: true,
     discord: true,
@@ -71,7 +71,7 @@ const IdentityForm: React.FC = () => {
   };
 
   const fieldNames: { [key: string]: string } = {
-    displayName: 'Display Name',
+    display: 'Display Name',
     matrix: 'Matrix',
     email: 'Email',
     discord: 'Discord',
@@ -79,7 +79,7 @@ const IdentityForm: React.FC = () => {
   };
 
   const placeholders: { [key: string]: string } = {
-    displayName: 'Alice',
+    display: 'Alice',
     matrix: '@alice:matrix.org',
     email: 'alice@w3reg.org',
     discord: 'alice#123',
