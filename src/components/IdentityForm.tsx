@@ -95,6 +95,7 @@ const IdentityForm: React.FC = () => {
           <div key={key} className="flex flex-col">
             <label className="text-sm text-stone-600 mb-1">{fieldNames[key]}</label>
             <input
+              name={key}
               type="text"
               value={value}
               onChange={(e) => handleChange(key, e.target.value)}
