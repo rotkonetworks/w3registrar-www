@@ -91,9 +91,18 @@ export default function App() {
     }
     api.query.identity.identityOf(appStateSnapshot.account.address).then(response => {
       const value = response.toJSON();
-      
+      function decodeHex(hex: string) {
+        return decodeURIComponent('%' + hex.substring(2).match(/.{1,2}/g).join('%'));
+      }
+      const identity = Object.entries(value?.[0]?.info).filter(([, value]) => value?.raw)
+        .reduce((all, [key, { raw }]) => {
+          all[key] = decodeHex(raw);
+          return all;
+        }, {});
+
       console.log({ 
-        identityOf: value
+        identityOf: value,
+        identity: identity
       })
     })
   }, [appStateSnapshot.account?.address, api])
