@@ -58,4 +58,5 @@ jobs:
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
           scp -r ./* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           scp -r ./.env.example ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/.env
+          scp -r ./.papi ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/.papi
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "cd ${{ env.DEPLOY_PATH }}/w3registrar-www && docker compose -f docker-compose.yaml up -d"
