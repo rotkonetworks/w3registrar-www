@@ -21,25 +21,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Build for w3registrar-www
-        env:
-          VITE_PROJECT: w3registrar-www
-          # VITE_APP_WALLET_CONNECT_PROJECT_ID: ${{ secrets.VITE_APP_WALLET_CONNECT_PROJECT_ID }}
-          # VITE_APP_DEFAULT_WS_URL: ${{ secrets.VITE_APP_DEFAULT_WS_URL }}
-        run: |
-          cp .env.example .env
-          # echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=$VITE_APP_WALLET_CONNECT_PROJECT_ID" >> .env
-          # echo "VITE_APP_DEFAULT_WS_URL=$VITE_APP_DEFAULT_WS_URL" >> .env
-          yarn buildpub:w3registrar-www
-          mv dist dist-w3registrar-www
+      # - name: Install dependencies
+      #   run: yarn install
+      #
+      # - name: Build for w3registrar-www
+      #   env:
+      #     VITE_PROJECT: w3registrar-www
+      #     # VITE_APP_WALLET_CONNECT_PROJECT_ID: ${{ secrets.VITE_APP_WALLET_CONNECT_PROJECT_ID }}
+      #     # VITE_APP_DEFAULT_WS_URL: ${{ secrets.VITE_APP_DEFAULT_WS_URL }}
+      #   run: |
+      #     cp .env.example .env
+      #     # echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=$VITE_APP_WALLET_CONNECT_PROJECT_ID" >> .env
+      #     # echo "VITE_APP_DEFAULT_WS_URL=$VITE_APP_DEFAULT_WS_URL" >> .env
+      #     yarn buildpub:w3registrar-www
+      #     mv dist dist-w3registrar-www
 
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
@@ -53,6 +53,5 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
-          scp -r ./dist-w3registrar-www/* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
-          scp -r ./deployment/* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "cd ${{ env.DEPLOY_PATH }} && docker compose -f docker-compose.yaml up -d"
+          scp -r ./* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "cd ${{ env.DEPLOY_PATH }}/w3registrar-www && docker compose -f docker-compose.yaml up -d"
