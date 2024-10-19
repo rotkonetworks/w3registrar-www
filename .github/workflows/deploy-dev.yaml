@@ -51,6 +51,7 @@ jobs:
 
       - name: Add SSH Key to Known Hosts
         run: |
+          cp .env.example .env
           echo "$(ssh-keyscan -t rsa ${{ env.SERVER_IP }} 2>/dev/null)" >> ~/.ssh/known_hosts
 
       - name: Deploy to server
