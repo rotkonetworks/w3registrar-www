@@ -1,4 +1,4 @@
-import { polkadot, kusama, westend, people_polkadot, people_kusama, people_westend, people_rococo } from "@polkadot-api/descriptors";
+import { polkadot, kusama, westend, rococo, people_polkadot, people_kusama, people_westend, people_rococo } from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
 import { chainSpec as peoplePolkadotChainSpec } from "polkadot-api/chains/polkadot_people";
@@ -60,11 +60,13 @@ export const config = {
     },
     people_rococo: {
       name: "Rococo",
-      provider: new WsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+      descriptor: people_rococo,
+      provider: () => new WsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
     },
     rococo: {
       name: "Rococo",
-      provider: new WsProvider("wss://dev.rotko.net/rococo")
+      descriptor: rococo,
+      provider: () => new WsProvider("wss://dev.rotko.net/rococo")
     }
   },
   wallets: [
