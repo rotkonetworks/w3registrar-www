@@ -11,6 +11,7 @@ import { useRpcWebSocketProvider } from './api/WebSocketClient';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { IdentityFormFields } from './components/IdentityForm';
 import { useTypedApi } from '@reactive-dot/react';
+import { IdentityData } from '@polkadot-api/descriptors';
 
 
 interface Props {
@@ -74,6 +75,25 @@ export const AppContext = createContext({})
 
 export default function App() {
   const typedApi = useTypedApi({ chainId: "people_rococo" })
+
+  useEffect(() => {
+    if (appState.account?.address) {
+      typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
+        .then(identityOf => {
+          console.log({
+            identityOf,
+            value: Object.fromEntries(Object.entries(identityOf[0].info)
+              .filter(([_, value]) => value?.type?.startsWith("Raw") )
+              .map(([key, value]) => [key, value.value.asText()])
+            )
+          })
+        })
+        .catch(e => {
+          console.error("Couldn't get identityOf")
+          console.error(e)
+        })
+    }
+  }, [appState.account?.address])
 
   const appStateSnapshot = useSnapshot(appState)
   useRpcWebSocketProvider()
