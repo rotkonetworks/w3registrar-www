@@ -88,6 +88,7 @@ const IdentityForm: React.FC = () => {
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
+    console.log({ isValid, identity })
     if (isValid) {
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
@@ -129,6 +130,7 @@ const IdentityForm: React.FC = () => {
       <button
         type="submit"
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
+        onClick={e => handleSubmit(e)}
       >
         Sign
       </button>
