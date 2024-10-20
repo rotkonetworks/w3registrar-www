@@ -7,15 +7,9 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
-import { PolkadotSigner } from 'polkadot-api';
-import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStatuses } from './constants';
-import { useIdentityEncoder } from './hooks/hashers/identity';
-import { IdentityJudgement } from '@polkadot-api/descriptors';
-import { mergeMap } from 'rxjs';
-import { Chains, unstable_getBlockExtrinsics } from '@reactive-dot/core';
+import { IdentityFormFields } from './components/IdentityForm';
+import { IdentityVerificationStatuses } from './constants';
 
-import { useAlerts } from "./hooks/useAlerts"
 
 interface Props {
   route: RouteType;
@@ -123,6 +117,26 @@ interface MainAlerts extends Alert {
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
   /* 
+  const typedApi = useTypedApi({ chainId: "people_rococo" })
+  useEffect(() => {
+    if (appState.account?.address) {
+      typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
+        .then(identityOf => {
+          console.log({
+            identityOf,
+            value: Object.fromEntries(Object.entries(identityOf[0].info)
+              .filter(([_, value]) => value?.type?.startsWith("Raw") )
+              .map(([key, value]) => [key, value.value.asText()])
+            )
+          })
+        })
+        .catch(e => {
+          console.error("Couldn't get identityOf")
+          console.error(e)
+        })
+    }
+  }, [appState.account?.address])
+
   const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
 
   // Osed to keep last identity data from chain
