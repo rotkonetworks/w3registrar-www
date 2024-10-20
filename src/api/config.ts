@@ -1,4 +1,4 @@
-import { polkadot, kusama, westend, people_polkadot, people_kusama, people_westend } from "@polkadot-api/descriptors";
+import { polkadot, kusama, westend, people_polkadot, people_kusama, people_westend, people_rococo } from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
 import { chainSpec as peoplePolkadotChainSpec } from "polkadot-api/chains/polkadot_people";
@@ -13,6 +13,7 @@ import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
+import { WsProvider } from "@polkadot/api";
 
 
 const initWorker = () => startFromWorker(
@@ -57,6 +58,14 @@ export const config = {
       descriptor: westend,
       provider: getSmProvider(smoldot.addChain({ chainSpec: westendChainSpec })),
     },
+    people_rococo: {
+      name: "Rococo",
+      provider: new WsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+    },
+    rococo: {
+      name: "Rococo",
+      provider: new WsProvider("wss://dev.rotko.net/rococo")
+    }
   },
   wallets: [
     new InjectedWalletAggregator(),
