@@ -10,6 +10,7 @@ import { useRpcWebSocketProvider } from './api/WebSocketClient';
 
 import { ConnectionDialog } from "dot-connect/react.js";
 import { IdentityFormFields } from './components/IdentityForm';
+import { useTypedApi } from '@reactive-dot/react';
 
 
 interface Props {
@@ -72,6 +73,8 @@ export const appState: {
 export const AppContext = createContext({})
 
 export default function App() {
+  const typedApi = useTypedApi({ chainId: "people_rococo" })
+
   const appStateSnapshot = useSnapshot(appState)
   useRpcWebSocketProvider()
 
