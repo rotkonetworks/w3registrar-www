@@ -61,12 +61,12 @@ export const config = {
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: () => new WsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
     },
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: () => new WsProvider("wss://dev.rotko.net/rococo")
+      provider: getWsProvider("wss://dev.rotko.net/rococo")
     }
   },
   wallets: [
