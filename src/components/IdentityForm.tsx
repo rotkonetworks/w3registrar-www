@@ -1,3 +1,4 @@
+import { useTypedApi } from '@reactive-dot/react';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
@@ -84,6 +85,20 @@ const IdentityForm: React.FC = () => {
       });
     }, 300);
   }, [validateForm]);
+
+  const typedApi = useTypedApi({ chainId: "people_rococo" });
+  const appStateSnap = useSnapshot(appState)
+
+  useEffect(() => {
+    if (appState.account) {
+      console.log({ 
+        account: appStateSnap.account,
+        signer: appStateSnap.account.polkadotSigner,
+      })
+    }
+  }, [appState.account])
+
+  //const [setIdStatus, submitSetId] = useMutation();
 
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
