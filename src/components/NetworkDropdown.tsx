@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSnapshot } from 'valtio';
 import { config } from '~/api/config';
-import { useRpcWebSocketProvider } from '~/api/WebSocketClient';
 import { appState } from '~/App';
 
 const NetworkDropdown: React.FC = () => {
