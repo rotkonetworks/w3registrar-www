@@ -7,7 +7,7 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useTypedApi } from '@reactive-dot/react';
+import { useAccounts, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 
 
@@ -97,13 +97,17 @@ export default function App() {
 
   const appStateSnapshot = useSnapshot(appState)
 
+  const accounts = useAccounts()
   useEffect(() => {
-    const account = localStorage.getItem("account");
-    if (!account) {
+    let account = localStorage.getItem("account");
+    if (!account || accounts.length < 1) {
       return;
     }
-    appState.account = JSON.parse(account)
-  }, [])
+    account = JSON.parse(account);
+    console.log({ account, })
+    account.polkadotSigner = (accounts.find(ac => account.address === ac.address))?.polkadotSigner
+    appState.account = account
+  }, [accounts])
 
   return <>
     <Router>
