@@ -6,12 +6,8 @@ import { routes } from '~/routes';
 import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
-import { useRpcWebSocketProvider } from './api/WebSocketClient';
-
 import { ConnectionDialog } from "dot-connect/react.js";
-import { IdentityFormFields } from './components/IdentityForm';
 import { useTypedApi } from '@reactive-dot/react';
-import { IdentityData } from '@polkadot-api/descriptors';
 
 
 interface Props {
@@ -105,40 +101,6 @@ export default function App() {
     }
     appState.account = JSON.parse(account)
   }, [])
-
-  const {api} = useRpcWebSocketProvider()
-
-  useEffect(() => {
-    console.log({ api, address: appStateSnapshot.account?.address })
-    if (!appStateSnapshot.account?.address || !api) {
-      return;
-    }
-    api.query.identity.identityOf(appStateSnapshot.account.address).then(response => {
-      function decodeHex(hex: string) {
-        return decodeURIComponent('%' + hex.substring(2).match(/.{1,2}/g).join('%'));
-      }
-      const value = response.toJSON();
-      const identity = Object.entries(value?.[0]?.info || {}).filter(([, value]) => value?.raw)
-        .reduce((all, [key, { raw }]) => {
-          all[key] = decodeHex(raw);
-          return all;
-        }, {});
-
-      if (Object.entries(identity).length) {
-        IdentityFormFields.forEach(field => {
-          if (!identity[field]) {
-            identity[field] = "";
-          }
-        })
-        appState.identity = identity
-      }
-
-      console.log({ 
-        identityOf: value,
-        identity: identity
-      })
-    })
-  }, [appStateSnapshot.account?.address, api])
 
   return <>
     <Router>
