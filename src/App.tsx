@@ -94,7 +94,6 @@ export default function App() {
   }, [appState.account?.address])
 
   const appStateSnapshot = useSnapshot(appState)
-  useRpcWebSocketProvider()
 
   useEffect(() => {
     const account = localStorage.getItem("account");
