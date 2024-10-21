@@ -8,6 +8,7 @@ import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useTypedApi } from '@reactive-dot/react';
+import { PolkadotSigner } from 'polkadot-api';
 
 
 interface Props {
@@ -42,6 +43,7 @@ export const appState: {
     id: string,
     name: string,
     address: string,
+    polkadotSigner: PolkadotSigner;
   },
   identity?: {
     displayName: string,

@@ -80,13 +80,13 @@ const UserDropdown = () => {
           )}
           {isAccountsOpen && (
             <div className="absolute left-48 top-0 w-48 bg-white border border-stone-300 shadow-lg z-20 max-h-60 overflow-y-auto">
-              {accounts.map(({id, name, address}) => (
+              {accounts.map(({id, name, address, ...rest}) => (
                 <button
                   key={id}
                   className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
                   onClick={() => {
                     handleClose()
-                    const account = { id, name, address };
+                    const account = { id, name, address, ...rest };
                     appState.account = account;
                     localStorage.setItem("account", JSON.stringify(account))
                   }}
