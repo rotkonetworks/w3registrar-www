@@ -76,13 +76,15 @@ export default function App() {
     if (appState.account?.address) {
       typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
         .then(identityOf => {
+          const identityData = Object.fromEntries(Object.entries(identityOf[0].info)
+            .filter(([_, value]) => value?.type?.startsWith("Raw"))
+            .map(([key, value]) => [key, value.value.asText()])
+          );
           console.log({
             identityOf,
-            value: Object.fromEntries(Object.entries(identityOf[0].info)
-              .filter(([_, value]) => value?.type?.startsWith("Raw") )
-              .map(([key, value]) => [key, value.value.asText()])
-            )
+            value: identityData
           })
+          appState.identity = identityData
         })
         .catch(e => {
           console.error("Couldn't get identityOf")
