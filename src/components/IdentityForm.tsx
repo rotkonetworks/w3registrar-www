@@ -137,15 +137,6 @@ const IdentityForm: React.FC = () => {
   )
   useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
   
-  /* const [setIdStatus, submitSetId] = useMutation(
-    tx => tx.Identity.set_identity(submitIdData),
-    { chainId: "people_rococo", },
-  ) 
-  useEffect(() => {
-    console.log({ setIdStatus })
-  }, [setIdStatus]) */
- 
-
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
@@ -170,26 +161,7 @@ const IdentityForm: React.FC = () => {
         }
       } 
      
-      /* const resultObserver = (data) => {
-        console.log(data)
-      } 
-      */
       resultObservable.subscribe(resultObserver)
-      /* resultObservable
-        .pipe(data => {
-          console.log({pipedData: data})
-          return data
-        })
-        .forEach(data => {
-          console.log({forEachData: data})
-        }) */
-      //console.log({ setIdCall, result: resultObservable })
-      
-      /* 
-      // Attempt with useSMutation
-      const result = submitSetId({ signer: appStateSnap.account?.polkadotSigner, })
-      console.log({ result }) 
-      */
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
