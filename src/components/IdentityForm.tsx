@@ -114,7 +114,7 @@ const IdentityForm: React.FC = () => {
     () => appStateSnap.identity && ({
       info: {
         ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
-          // TODO If other ID valiues are sett, maybe we shoulld keep thim?
+          const value = appStateSnap.identity[key];
           all[key] = {
             type: `Raw${value.length}`,
             value: Binary.fromText(value),
@@ -122,6 +122,7 @@ const IdentityForm: React.FC = () => {
           return all;
         }, {}),
         ...ALL_IDENTITY_REQUIRED_FIELDS.filter(key => !Object.keys(appState.identity).includes(key))
+          // TODO If other ID valiues are sett, maybe we shoulld keep thim?
           .reduce((all, key) => {
             all[key] = {
               type: "None",
