@@ -109,11 +109,26 @@ const IdentityForm: React.FC = () => {
           };
           return all;
         }, {}),
-        legal: undefined,
-        github: undefined,
-        image: undefined,
-        web: undefined,
-        email: undefined,
+        legal: {
+          type: "Row0",
+          value: undefined,
+        },
+        github: {
+          type: "Row0",
+          value: undefined,
+        },
+        image: {
+          type: "Row0",
+          value: undefined,
+        },
+        web: {
+          type: "Row0",
+          value: undefined,
+        },
+        email: {
+          type: "Row0",
+          value: undefined,
+        },
       }
     }), 
     [appStateSnap.identity]
