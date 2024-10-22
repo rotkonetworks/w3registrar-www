@@ -1,6 +1,6 @@
 import { useMutation, useTypedApi } from '@reactive-dot/react';
 import { Binary } from 'polkadot-api';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
@@ -99,10 +99,10 @@ const IdentityForm: React.FC = () => {
     }
   }, [appState.account])
 
-  const [setIdStatus, submitSetId] = useMutation(
-    tx => tx.Identity.set_identity({
+  const getSubmitData = useCallback(
+    () => ({
       info: {
-        ...Object.entries(appStateIdentity).reduce((all, [key, value]) => {
+        ...Object.entries({...appStateSnap.identity}).reduce((all, [key, value]) => {
           all[key] = {
             type: `Raw${value.length}`,
             value: Binary.fromText(value),
@@ -115,10 +115,8 @@ const IdentityForm: React.FC = () => {
         web: undefined,
         email: undefined,
       }
-    }),
-    { 
-      chainId: "people_rococo",
-    },
+    }), 
+    [appStateSnap.identity]
   )
   useEffect(() => {
     console.log({ setIdStatus })
