@@ -1,6 +1,6 @@
-import { useMutation, useTypedApi } from '@reactive-dot/react';
+import { useTypedApi } from '@reactive-dot/react';
 import { Binary } from 'polkadot-api';
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 
@@ -100,9 +100,11 @@ const IdentityForm: React.FC = () => {
   }, [appState.account])
 
   const getSubmitData = useCallback(
-    () => ({
+    () => appStateSnap.identity && ({
       info: {
-        ...Object.entries({...appStateSnap.identity}).reduce((all, [key, value]) => {
+        ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
+          console.log({ formData: appStateSnap.identity })
+          const value = appStateSnap.identity[key];
           all[key] = {
             type: `Raw${value.length}`,
             value: Binary.fromText(value),
@@ -110,30 +112,30 @@ const IdentityForm: React.FC = () => {
           return all;
         }, {}),
         legal: {
-          type: "Row0",
+          type: "Raw0",
           value: undefined,
         },
         github: {
-          type: "Row0",
+          type: "Raw0",
           value: undefined,
         },
         image: {
-          type: "Row0",
+          type: "Raw0",
           value: undefined,
         },
         web: {
-          type: "Row0",
+          type: "Raw0",
           value: undefined,
         },
         email: {
-          type: "Row0",
+          type: "Raw0",
           value: undefined,
         },
       }
     }), 
     [appStateSnap.identity]
   )
-  //useEffect(() => { console.log({ submitIdData }) }, [submitIdData])
+  useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
   
   /* const [setIdStatus, submitSetId] = useMutation(
     tx => tx.Identity.set_identity(submitIdData),
@@ -193,7 +195,7 @@ const IdentityForm: React.FC = () => {
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
       );
     }
-  }, [validateForm]);
+  }, [validateForm, appState.identity]);
 
   useEffect(() => {
     if (appStateIdentity && formRef.current) {
