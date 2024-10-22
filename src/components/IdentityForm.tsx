@@ -114,8 +114,6 @@ const IdentityForm: React.FC = () => {
     () => appStateSnap.identity && ({
       info: {
         ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
-          console.log({ formData: appStateSnap.identity })
-          const value = appStateSnap.identity[key];
           all[key] = {
             type: `Raw${value.length}`,
             value: Binary.fromText(value),
