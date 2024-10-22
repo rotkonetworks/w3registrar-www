@@ -1,3 +1,4 @@
+import { useMutation, useTypedApi } from '@reactive-dot/react';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
@@ -85,11 +86,81 @@ const IdentityForm: React.FC = () => {
     }, 300);
   }, [validateForm]);
 
+  const typedApi = useTypedApi({ chainId: "people_rococo" });
+  const appStateSnap = useSnapshot(appState)
+
+  useEffect(() => {
+    if (appState.account) {
+      console.log({ 
+        account: appStateSnap.account,
+        signer: appStateSnap.account.polkadotSigner,
+      })
+    }
+  }, [appState.account])
+
+  const [setIdStatus, submitSetId] = useMutation(
+    tx => tx.Identity.set_identity({
+      info: {
+        ...appState.identity,
+        legal: null,
+        github: null,
+        image: null,
+        web: null,
+        email: null,
+      }
+    }),
+    { 
+      chainId: "people_rococo",
+      signer: appStateSnap.account?.polkadotSigner,
+    },
+  )
+  useEffect(() => {
+    console.log({ setIdStatus })
+  }, [setIdStatus])
+
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
     console.log({ isValid, identity })
     if (isValid) {
+      /* const setIdCall = typedApi.tx.Identity.set_identity({
+        info: {...appState.identity,
+          legal: null,
+          github: null,
+          image: null,
+          web: null,
+          email: null,
+        }
+      })
+      const resultObservable = setIdCall.signSubmitAndWatch(
+        appStateSnap.account?.polkadotSigner,
+      ) */
+      /* const resultObserver = {
+        next(data) {
+          console.log(data)
+        },
+        error(e) {
+          console.error(e)
+        },
+        complete() {
+          console.log("request complete")
+        }
+      } */
+      /* const resultObserver = (data) => {
+        console.log(data)
+      } */
+      //resultObservable.subscribe(resultObserver)
+      /* resultObservable
+        .pipe(data => {
+          console.log({pipedData: data})
+          return data
+        })
+        .forEach(data => {
+          console.log({forEachData: data})
+        }) */
+      //console.log({ setIdCall, result: resultObservable })
+      const result = submitSetId()
+      console.log({ result })
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
