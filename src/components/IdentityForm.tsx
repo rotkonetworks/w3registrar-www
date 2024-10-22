@@ -41,6 +41,17 @@ const FIELD_CONFIG: Record<FieldKey, { label: string; placeholder: string; valid
     validate: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
   },
 };
+const ALL_IDENTITY_REQUIRED_FIELDS = [
+  "discord",
+  "display",
+  "email",
+  "github",
+  "image",
+  "legal",
+  "matrix",
+  "twitter",
+  "web",
+]
 
 // Re-export IdentityFormFields if it's still needed elsewhere
 export const IdentityFormFields: FieldKey[] = Object.keys(FIELD_CONFIG) as FieldKey[];
@@ -111,26 +122,14 @@ const IdentityForm: React.FC = () => {
           };
           return all;
         }, {}),
-        legal: {
-          type: "Raw0",
-          value: undefined,
-        },
-        github: {
-          type: "Raw0",
-          value: undefined,
-        },
-        image: {
-          type: "Raw0",
-          value: undefined,
-        },
-        web: {
-          type: "Raw0",
-          value: undefined,
-        },
-        email: {
-          type: "Raw0",
-          value: undefined,
-        },
+        ...ALL_IDENTITY_REQUIRED_FIELDS.filter(key => !Object.keys(appState.identity).includes(key))
+          .reduce((all, key) => {
+            all[key] = {
+              type: "None",
+            }
+            return all
+          }, {})
+        ,
       }
     }), 
     [appStateSnap.identity]
