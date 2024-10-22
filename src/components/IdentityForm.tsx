@@ -118,28 +118,30 @@ const IdentityForm: React.FC = () => {
     }), 
     [appStateSnap.identity]
   )
+  //useEffect(() => { console.log({ submitIdData }) }, [submitIdData])
+  
+  /* const [setIdStatus, submitSetId] = useMutation(
+    tx => tx.Identity.set_identity(submitIdData),
+    { chainId: "people_rococo", },
+  ) 
   useEffect(() => {
     console.log({ setIdStatus })
-  }, [setIdStatus])
+  }, [setIdStatus]) */
+ 
 
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
     console.log({ isValid, identity })
     if (isValid) {
-      /* const setIdCall = typedApi.tx.Identity.set_identity({
-        info: {...appState.identity,
-          legal: null,
-          github: null,
-          image: null,
-          web: null,
-          email: null,
-        }
-      })
+      // Attempt with signSubmitAndWatch
+      const data = getSubmitData();
+      console.log({data})
+      const setIdCall = typedApi.tx.Identity.set_identity(data)
       const resultObservable = setIdCall.signSubmitAndWatch(
         appStateSnap.account?.polkadotSigner,
-      ) */
-      /* const resultObserver = {
+      )
+      const resultObserver = {
         next(data) {
           console.log(data)
         },
@@ -149,11 +151,13 @@ const IdentityForm: React.FC = () => {
         complete() {
           console.log("request complete")
         }
-      } */
+      } 
+     
       /* const resultObserver = (data) => {
         console.log(data)
-      } */
-      //resultObservable.subscribe(resultObserver)
+      } 
+      */
+      resultObservable.subscribe(resultObserver)
       /* resultObservable
         .pipe(data => {
           console.log({pipedData: data})
@@ -163,9 +167,12 @@ const IdentityForm: React.FC = () => {
           console.log({forEachData: data})
         }) */
       //console.log({ setIdCall, result: resultObservable })
+      
+      /* 
       // Attempt with useSMutation
       const result = submitSetId({ signer: appStateSnap.account?.polkadotSigner, })
-      console.log({ result })
+      console.log({ result }) 
+      */
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
