@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSnapshot } from 'valtio';
 import { config } from '~/api/config';
-import { useRpcWebSocketProvider } from '~/api/WebSocketClient';
 import { appState } from '~/App';
 
 const NetworkDropdown: React.FC = () => {
@@ -9,7 +8,7 @@ const NetworkDropdown: React.FC = () => {
   const [customSelected, setCustomSelected] = useState(false);
   const [_wsUrl, _setWsUrl] = useState("");
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
-  const { wsUrl, setWsUrl } = useRpcWebSocketProvider();
+  const { wsUrl, setWsUrl } = useState(import.meta.env.VITE_APP_DEFAULT_WS_URL);  // TODO Delete, as it's only placeholder so dependant code won't break.
   const appStateSnapshot = useSnapshot(appState);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

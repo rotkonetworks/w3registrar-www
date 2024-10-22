@@ -4,6 +4,9 @@ import ProgressBar from './ProgressBar';
 import IdentityForm from './IdentityForm';
 import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
+import { useSnapshot } from 'valtio';
+import { appState } from '~/App';
+import { SignerProvider } from '@reactive-dot/react';
 
 
 const IdentityVerificationProcess = () => {
@@ -72,13 +75,19 @@ const IdentityVerificationProcess = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
-      <Header />
-      <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
-      {renderStage()}
-    </div>
-  );
+  const appStateSnap = useSnapshot(appState)
+  if (appStateSnap.account) {
+    return (
+      <SignerProvider signer={appStateSnap.account?.polkadotSigner}>
+        <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
+          <Header />
+          <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
+          {renderStage()}
+        </div>
+      </SignerProvider>
+    );
+  }
+
 };
 
 export default IdentityVerificationProcess;
