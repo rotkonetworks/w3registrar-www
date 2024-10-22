@@ -1,4 +1,5 @@
 import { useMutation, useTypedApi } from '@reactive-dot/react';
+import { Binary } from 'polkadot-api';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
@@ -101,17 +102,22 @@ const IdentityForm: React.FC = () => {
   const [setIdStatus, submitSetId] = useMutation(
     tx => tx.Identity.set_identity({
       info: {
-        ...appState.identity,
-        legal: null,
-        github: null,
-        image: null,
-        web: null,
-        email: null,
+        ...Object.entries(appStateIdentity).reduce((all, [key, value]) => {
+          all[key] = {
+            type: `Raw${value.length}`,
+            value: Binary.fromText(value),
+          };
+          return all;
+        }, {}),
+        legal: undefined,
+        github: undefined,
+        image: undefined,
+        web: undefined,
+        email: undefined,
       }
     }),
     { 
       chainId: "people_rococo",
-      signer: appStateSnap.account?.polkadotSigner,
     },
   )
   useEffect(() => {
@@ -159,7 +165,8 @@ const IdentityForm: React.FC = () => {
           console.log({forEachData: data})
         }) */
       //console.log({ setIdCall, result: resultObservable })
-      const result = submitSetId()
+      // Attempt with useSMutation
+      const result = submitSetId({ signer: appStateSnap.account?.polkadotSigner, })
       console.log({ result })
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
