@@ -1,4 +1,5 @@
-import { useMutation, useTypedApi } from '@reactive-dot/react';
+import { useTypedApi } from '@reactive-dot/react';
+import { Binary } from 'polkadot-api';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
@@ -40,6 +41,17 @@ const FIELD_CONFIG: Record<FieldKey, { label: string; placeholder: string; valid
     validate: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
   },
 };
+const ALL_IDENTITY_REQUIRED_FIELDS = [
+  "discord",
+  "display",
+  "email",
+  "github",
+  "image",
+  "legal",
+  "matrix",
+  "twitter",
+  "web",
+]
 
 // Re-export IdentityFormFields if it's still needed elsewhere
 export const IdentityFormFields: FieldKey[] = Object.keys(FIELD_CONFIG) as FieldKey[];
@@ -98,44 +110,45 @@ const IdentityForm: React.FC = () => {
     }
   }, [appState.account])
 
-  const [setIdStatus, submitSetId] = useMutation(
-    tx => tx.Identity.set_identity({
+  const getSubmitData = useCallback(
+    () => appStateSnap.identity && ({
       info: {
-        ...appState.identity,
-        legal: null,
-        github: null,
-        image: null,
-        web: null,
-        email: null,
+        ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
+          const value = appStateSnap.identity[key];
+          all[key] = {
+            type: `Raw${value.length}`,
+            value: Binary.fromText(value),
+          };
+          return all;
+        }, {}),
+        ...ALL_IDENTITY_REQUIRED_FIELDS.filter(key => !Object.keys(appState.identity).includes(key))
+          // TODO If other ID valiues are sett, maybe we shoulld keep thim?
+          .reduce((all, key) => {
+            all[key] = {
+              type: "None",
+            }
+            return all
+          }, {})
+        ,
       }
-    }),
-    { 
-      chainId: "people_rococo",
-      signer: appStateSnap.account?.polkadotSigner,
-    },
+    }), 
+    [appStateSnap.identity]
   )
-  useEffect(() => {
-    console.log({ setIdStatus })
-  }, [setIdStatus])
-
+  useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
+  
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
     console.log({ isValid, identity })
     if (isValid) {
-      /* const setIdCall = typedApi.tx.Identity.set_identity({
-        info: {...appState.identity,
-          legal: null,
-          github: null,
-          image: null,
-          web: null,
-          email: null,
-        }
-      })
+      // Attempt with signSubmitAndWatch
+      const data = getSubmitData();
+      console.log({data})
+      const setIdCall = typedApi.tx.Identity.set_identity(data)
       const resultObservable = setIdCall.signSubmitAndWatch(
         appStateSnap.account?.polkadotSigner,
-      ) */
-      /* const resultObserver = {
+      )
+      const resultObserver = {
         next(data) {
           console.log(data)
         },
@@ -145,28 +158,15 @@ const IdentityForm: React.FC = () => {
         complete() {
           console.log("request complete")
         }
-      } */
-      /* const resultObserver = (data) => {
-        console.log(data)
-      } */
-      //resultObservable.subscribe(resultObserver)
-      /* resultObservable
-        .pipe(data => {
-          console.log({pipedData: data})
-          return data
-        })
-        .forEach(data => {
-          console.log({forEachData: data})
-        }) */
-      //console.log({ setIdCall, result: resultObservable })
-      const result = submitSetId()
-      console.log({ result })
+      } 
+     
+      resultObservable.subscribe(resultObserver)
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
       );
     }
-  }, [validateForm]);
+  }, [validateForm, appState.identity]);
 
   useEffect(() => {
     if (appStateIdentity && formRef.current) {
