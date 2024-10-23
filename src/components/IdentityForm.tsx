@@ -1,3 +1,5 @@
+import { useTypedApi } from '@reactive-dot/react';
+import { Binary } from 'polkadot-api';
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
@@ -39,6 +41,17 @@ const FIELD_CONFIG: Record<FieldKey, { label: string; placeholder: string; valid
     validate: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
   },
 };
+const ALL_IDENTITY_REQUIRED_FIELDS = [
+  "discord",
+  "display",
+  "email",
+  "github",
+  "image",
+  "legal",
+  "matrix",
+  "twitter",
+  "web",
+]
 
 // Re-export IdentityFormFields if it's still needed elsewhere
 export const IdentityFormFields: FieldKey[] = Object.keys(FIELD_CONFIG) as FieldKey[];
@@ -85,17 +98,75 @@ const IdentityForm: React.FC = () => {
     }, 300);
   }, [validateForm]);
 
+  const typedApi = useTypedApi({ chainId: "people_rococo" });
+  const appStateSnap = useSnapshot(appState)
+
+  useEffect(() => {
+    if (appState.account) {
+      console.log({ 
+        account: appStateSnap.account,
+        signer: appStateSnap.account.polkadotSigner,
+      })
+    }
+  }, [appState.account])
+
+  const getSubmitData = useCallback(
+    () => appStateSnap.identity && ({
+      info: {
+        ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
+          const value = appStateSnap.identity[key];
+          all[key] = {
+            type: `Raw${value.length}`,
+            value: Binary.fromText(value),
+          };
+          return all;
+        }, {}),
+        ...ALL_IDENTITY_REQUIRED_FIELDS.filter(key => !Object.keys(appState.identity).includes(key))
+          // TODO If other ID valiues are sett, maybe we shoulld keep thim?
+          .reduce((all, key) => {
+            all[key] = {
+              type: "None",
+            }
+            return all
+          }, {})
+        ,
+      }
+    }), 
+    [appStateSnap.identity]
+  )
+  useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
+  
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
     console.log({ isValid, identity })
     if (isValid) {
+      // Attempt with signSubmitAndWatch
+      const data = getSubmitData();
+      console.log({data})
+      const setIdCall = typedApi.tx.Identity.set_identity(data)
+      const resultObservable = setIdCall.signSubmitAndWatch(
+        appStateSnap.account?.polkadotSigner,
+      )
+      const resultObserver = {
+        next(data) {
+          console.log(data)
+        },
+        error(e) {
+          console.error(e)
+        },
+        complete() {
+          console.log("request complete")
+        }
+      } 
+     
+      resultObservable.subscribe(resultObserver)
       appState.stage = 1;
       appState.challenges = Object.fromEntries(
         Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
       );
     }
-  }, [validateForm]);
+  }, [validateForm, appState.identity]);
 
   useEffect(() => {
     if (appStateIdentity && formRef.current) {
