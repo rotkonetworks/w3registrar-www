@@ -66,7 +66,7 @@ export const config = {
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: getWsProvider("wss://dev.rotko.net/rococo")
+      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)
     }
   },
   wallets: [
