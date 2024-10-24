@@ -143,9 +143,18 @@ const IdentityForm: React.FC = () => {
     if (isValid) {
       // Attempt with signSubmitAndWatch
       const data = getSubmitData();
-      console.log({data})
-      const setIdCall = typedApi.tx.Identity.set_identity(data)
-      const resultObservable = setIdCall.signSubmitAndWatch(
+      
+      const batch = typedApi.tx.Utility.batch_all({calls: [
+        {
+          type: "Identity",
+          value: {
+            type: "set_identity",
+            value: data,
+          },
+        },
+      ]})
+      
+      const resultObservable = batch.signSubmitAndWatch(
         appStateSnap.account?.polkadotSigner,
       )
       const resultObserver = {
