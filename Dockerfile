@@ -3,6 +3,8 @@ WORKDIR /app
 
 FROM base AS dependencies
 COPY package.json bun.lockb ./
+COPY .papi .papi
+COPY .env .env
 
 # Install dependencies
 RUN bun install --verbose
