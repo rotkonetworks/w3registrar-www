@@ -152,6 +152,16 @@ const IdentityForm: React.FC = () => {
               value: data,
             },
           },
+          {
+            type: "Identity",
+            value: {
+              type: "request_judgement",
+              value: {
+                max_fee: 0n,
+                reg_index: 0,
+              },
+            },
+          },
         ]})
         
         const resultObservable = batch.signSubmitAndWatch(
