@@ -141,39 +141,43 @@ const IdentityForm: React.FC = () => {
     const { isValid, identity } = validateForm();
     console.log({ isValid, identity })
     if (isValid) {
-      // Attempt with signSubmitAndWatch
-      const data = getSubmitData();
-      
-      const batch = typedApi.tx.Utility.batch_all({calls: [
-        {
-          type: "Identity",
-          value: {
-            type: "set_identity",
-            value: data,
+      (async () => {
+        const data = getSubmitData();
+        
+        const batch = typedApi.tx.Utility.batch_all({calls: [
+          {
+            type: "Identity",
+            value: {
+              type: "set_identity",
+              value: data,
+            },
           },
-        },
-      ]})
-      
-      const resultObservable = batch.signSubmitAndWatch(
-        appStateSnap.account?.polkadotSigner,
-      )
-      const resultObserver = {
-        next(data) {
-          console.log(data)
-        },
-        error(e) {
-          console.error(e)
-        },
-        complete() {
-          console.log("request complete")
-        }
-      } 
-     
-      resultObservable.subscribe(resultObserver)
-      appState.stage = 1;
-      appState.challenges = Object.fromEntries(
-        Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
-      );
+        ]})
+        
+        const resultObservable = batch.signSubmitAndWatch(
+          appStateSnap.account?.polkadotSigner,
+        )
+        console.log({estimatedCosts: {
+          batch: await batch.getEstimatedFees(appState.account.address),
+        }})
+        const resultObserver = {
+          next(data) {
+            console.log(data)
+          },
+          error(e) {
+            console.error(e)
+          },
+          complete() {
+            console.log("request complete")
+          }
+        } 
+        
+        resultObservable.subscribe(resultObserver)
+        appState.stage = 1;
+        appState.challenges = Object.fromEntries(
+          Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
+        );
+      })()
     }
   }, [validateForm, appState.identity]);
 
