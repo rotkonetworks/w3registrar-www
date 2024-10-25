@@ -97,24 +97,28 @@ export default function App() {
   }, [appState.account?.address])
 
   const appStateSnapshot = useSnapshot(appState)
-  
+
   useEffect(() => {
+    let timer;
     if (appStateSnapshot.account) {
-      const timer = setInterval(() => {
-          typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
-            .then(data => {
-              console.log({
-                "System.Account": data
-              })
+      timer = setInterval(() => {
+        typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
+          .then(data => {
+            console.log({
+              "System.Account": data
             })
-          typedApi.constants.Balances.ExistentialDeposit()
-            .then(data => {
-              console.log({
-                "Balances.ExistentialDeposit": data
-              })
+          })
+        typedApi.constants.Balances.ExistentialDeposit()
+          .then(data => {
+            console.log({
+              "Balances.ExistentialDeposit": data
             })
-        return () => clearInterval(timer)
+          })
       }, CHAIN_UPDATE_INTERVAL)
+      return () => {
+        clearInterval(timer);
+        timer = null;
+      }
     }
   }, [appStateSnapshot.account])
 
