@@ -9,6 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
+import { CHAIN_UPDATE_INTERVAL } from './Constantx';
 
 
 interface Props {
@@ -96,6 +97,20 @@ export default function App() {
   }, [appState.account?.address])
 
   const appStateSnapshot = useSnapshot(appState)
+  
+  useEffect(() => {
+    if (appStateSnapshot.account) {
+      const timer = setInterval(() => {
+          typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
+            .then(data => {
+              console.log({
+                "System.Account": data
+              })
+            })
+        return () => clearInterval(timer)
+      }, CHAIN_UPDATE_INTERVAL)
+    }
+  }, [appStateSnapshot.account])
 
   const accounts = useAccounts()
   useEffect(() => {
