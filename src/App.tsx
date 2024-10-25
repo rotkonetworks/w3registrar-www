@@ -129,8 +129,9 @@ export default function App() {
       return;
     }
     account = JSON.parse(account);
+    const _account = accounts.find(ac => account.address === ac.address);
+    account = { ...account, ..._account }
     console.log({ account, })
-    account.polkadotSigner = (accounts.find(ac => account.address === ac.address))?.polkadotSigner
     appState.account = account
   }, [accounts])
 
