@@ -107,6 +107,12 @@ export default function App() {
                 "System.Account": data
               })
             })
+          typedApi.constants.Balances.ExistentialDeposit()
+            .then(data => {
+              console.log({
+                "Balances.ExistentialDeposit": data
+              })
+            })
         return () => clearInterval(timer)
       }, CHAIN_UPDATE_INTERVAL)
     }
