@@ -97,10 +97,12 @@ const IdentityVerificationProcess = () => {
   useEffect(() => {
     if (appStateSnap.identity) {
       const encoded = identityEncoder.encodeFields();
-      console.log({ 
-        encoded: encoded,
-        hash: `0x${Buffer.from(identityEncoder.calculateHash()).toString("hex")}`,
-      })
+      if (import.meta.env.DEV) {
+        console.log({ 
+          encoded: encoded,
+          hash: `0x${Buffer.from(identityEncoder.calculateHash()).toString("hex")}`,
+        })
+      }
     }
   }, [appStateSnap.identity])
 
