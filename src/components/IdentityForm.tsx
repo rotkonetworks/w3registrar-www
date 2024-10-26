@@ -102,7 +102,7 @@ const IdentityForm: React.FC = () => {
   const appStateSnap = useSnapshot(appState)
 
   useEffect(() => {
-    if (appState.account) {
+    if (appState.account && import.meta.env.DEV) {
       console.log({ 
         account: appStateSnap.account,
         signer: appStateSnap.account.polkadotSigner,
@@ -134,12 +134,18 @@ const IdentityForm: React.FC = () => {
     }), 
     [appStateSnap.identity]
   )
-  useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
+  useEffect(() => { 
+    if (import.meta.env.DEV) {
+      console.log({ getSubmitData: getSubmitData() }) 
+    }
+  }, [getSubmitData])
   
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
-    console.log({ isValid, identity })
+    if (import.meta.env.DEV) {
+      console.log({ isValid, identity })
+    }
     if (isValid) {
       (async () => {
         const data = getSubmitData();
@@ -167,18 +173,29 @@ const IdentityForm: React.FC = () => {
         const resultObservable = batch.signSubmitAndWatch(
           appStateSnap.account?.polkadotSigner,
         )
-        console.log({estimatedCosts: {
-          batch: await batch.getEstimatedFees(appState.account.address),
-        }})
+        if (import.meta.env.DEV) {
+          console.log({estimatedCosts: {
+            batch: await batch.getEstimatedFees(appState.account.address),
+          }})
+        }
         const resultObserver = {
           next(data) {
-            console.log(data)
+              if (import.meta.env.DEV) {
+              console.log(data)
+              // TODO...
+            }
           },
           error(e) {
-            console.error(e)
+            if (import.meta.env.DEV) {
+              console.error(e)
+              // TODO...
+            }
           },
           complete() {
-            console.log("request complete")
+            if (import.meta.env.DEV) {
+              console.log("request complete")
+              // TODO...
+            }
           }
         } 
         

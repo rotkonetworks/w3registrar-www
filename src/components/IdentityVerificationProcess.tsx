@@ -84,7 +84,7 @@ const IdentityVerificationProcess = () => {
     }
   }, [appStateSnap.account]) 
   useEffect(() => {
-    if (appStateSnap.account) {
+    if (appStateSnap.account && import.meta.env.DEV) {
       const _ss58Info = getSs58AddressInfo(appStateSnap.account.address);
       console.log({ ss58Info: _ss58Info, })
     }

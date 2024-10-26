@@ -83,15 +83,17 @@ export default function App() {
             .filter(([_, value]) => value?.type?.startsWith("Raw"))
             .map(([key, value]) => [key, value.value.asText()])
           );
-          console.log({
+          import.meta.env.DEV && console.log({
             identityOf,
             value: identityData
           })
           appState.identity = identityData
         })
         .catch(e => {
-          console.error("Couldn't get identityOf")
-          console.error(e)
+          if (import.meta.env.DEV) {
+            console.error("Couldn't get identityOf")
+            console.error(e)
+          }
         })
     }
   }, [appState.account?.address])
@@ -104,13 +106,13 @@ export default function App() {
       timer.current = setInterval(() => {
         typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
           .then(data => {
-            console.log({
+            import.meta.env.DEV && console.log({
               "System.Account": data
             })
           })
         typedApi.constants.Balances.ExistentialDeposit()
           .then(data => {
-            console.log({
+            import.meta.env.DEV && console.log({
               "Balances.ExistentialDeposit": data
             })
           })
@@ -130,7 +132,7 @@ export default function App() {
     account = JSON.parse(account);
     const _account = accounts.find(ac => account.address === ac.address);
     account = { ...account, ..._account }
-    console.log({ account, })
+    import.meta.env.DEV && console.log({ account, })
     appState.account = account
   }, [accounts])
 

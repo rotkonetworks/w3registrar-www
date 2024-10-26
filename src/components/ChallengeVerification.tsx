@@ -44,7 +44,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
     ws.current = socket;
 
     socket.onopen = () => {
-      console.log('WebSocket connection established.');
+      import.meta.env.DEV && console.log('WebSocket connection established.');
 
       // Send SubscribeAccountState message
       const message = {
@@ -61,11 +61,11 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
     };
 
     socket.onclose = (event) => {
-      console.log('WebSocket connection closed:', event.reason);
+      import.meta.env.DEV && console.log('WebSocket connection closed:', event.reason);
     };
 
     socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+      import.meta.env.DEV && console.error('WebSocket error:', error);
     };
 
     // Cleanup on unmount
@@ -84,7 +84,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
           setVerificationState(accountState.verification_state);
         }
       } else if (data.message.Err) {
-        console.error('Error from server:', data.message.Err);
+        import.meta.env.DEV && console.error('Error from server:', data.message.Err);
         // Optionally display error to the user
       }
     } else if (data.type === 'NotifyAccountState') {
@@ -92,7 +92,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
       updateChallenges(notification.pending_challenges);
       setVerificationState(notification.verification_state);
     } else {
-      console.log('Unhandled message type:', data);
+      import.meta.env.DEV && console.log('Unhandled message type:', data);
     }
   };
 
