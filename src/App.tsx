@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, createContext, useEffect } from 'react';
+import React, { Suspense, createContext, useEffect, useRef } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -98,10 +98,10 @@ export default function App() {
 
   const appStateSnapshot = useSnapshot(appState)
 
+  const timer = useRef();
   useEffect(() => {
-    let timer;
     if (appStateSnapshot.account) {
-      timer = setInterval(() => {
+      timer.current = setInterval(() => {
         typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
           .then(data => {
             console.log({
@@ -116,8 +116,7 @@ export default function App() {
           })
       }, CHAIN_UPDATE_INTERVAL)
       return () => {
-        clearInterval(timer);
-        timer = null;
+        clearInterval(timer.current);
       }
     }
   }, [appStateSnapshot.account])
