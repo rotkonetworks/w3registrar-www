@@ -94,18 +94,6 @@ const IdentityVerificationProcess = () => {
     identity: appStateSnap.identity
   })
 
-  useEffect(() => {
-    if (appStateSnap.identity) {
-      const encoded = identityEncoder.encodeFields();
-      if (import.meta.env.DEV) {
-        console.log({ 
-          encoded: encoded,
-          hash: `0x${Buffer.from(identityEncoder.calculateHash()).toString("hex")}`,
-        })
-      }
-    }
-  }, [appStateSnap.identity])
-
   if (appStateSnap.account) {
     return (
       <SignerProvider signer={appStateSnap.account?.polkadotSigner}>
