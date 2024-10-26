@@ -92,7 +92,7 @@ export default function App() {
       const curIdHash = calculateHash();
       import.meta.env.DEV && console.log({ prevIdHash, curIdHash })
       if (curIdHash !== prevIdHash) {
-        appState.bashes = { ...appStateSnapshot.hashes, identity: prevIdHash }
+        appState.hashes = { ...appStateSnapshot.hashes, identity: prevIdHash }
       }
     }
   }, [onChainIdentity, appStateSnapshot.identity])
