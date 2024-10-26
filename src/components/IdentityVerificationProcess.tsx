@@ -75,9 +75,7 @@ const IdentityVerificationProcess = () => {
     }
   }, [appStateSnap.account]) 
 
-  const identityEncoder = useIdentityEncoder({
-    identity: appStateSnap.identity
-  })
+  const identityEncoder = useIdentityEncoder(appStateSnap.identity)
 
   if (appStateSnap.account) {
     return (

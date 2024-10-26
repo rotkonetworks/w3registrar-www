@@ -33,7 +33,7 @@ interface UseIdentityProps {
   identity: IdentityFields;
 }
 
-export function useIdentityEncoder({ identity: identity }: UseIdentityProps) {
+export function useIdentityEncoder(identity: Identity) {
   const IdentityOf = useMemo(() => Storage("Identity")(
     "IdentityOf",
     Struct({
