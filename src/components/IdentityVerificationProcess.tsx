@@ -45,21 +45,6 @@ const IdentityVerificationProcess = () => {
     setStage(2);
   };
 
-  const handleSelectAccount = (account) => {
-    console.log(`Selected account: ${account}`);
-    // Implement account selection logic here
-  };
-
-  const handleRemoveIdentity = () => {
-    console.log('Removing identity');
-    // Implement identity removal logic here
-  };
-
-  const handleLogout = () => {
-    console.log('Logging out');
-    // Implement logout logic here
-  };
-
   const renderStage = () => {
     switch(stage) {
       case 0:
