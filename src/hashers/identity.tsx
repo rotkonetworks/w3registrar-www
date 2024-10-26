@@ -1,22 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Storage, Blake2256, Blake3256Concat, Bytes, Struct, Option, Blake3256 } from "@polkadot-api/substrate-bindings"
-
-const IdentityOf = Storage("Identity")(
-  "IdentityOf",
-  Struct({
-    display: Option(Bytes()),
-    legal: Option(Bytes()),
-    web: Option(Bytes()),
-    matrix: Option(Bytes()),
-    email: Option(Bytes()),
-    pgpFingerprint: Option(Bytes()),
-    image: Option(Bytes()),
-    twitter: Option(Bytes()),
-    discord: Option(Bytes()),
-    additional: Option(Bytes())
-  }),
-  [Bytes(32), Blake3256Concat] as const
-)
 
 // Raw interface for internal state
 interface IdentityInfo {
@@ -55,6 +38,23 @@ interface UseIdentityProps {
 }
 
 export function useIdentity({ accountId, chainHead }: UseIdentityProps) {
+  const IdentityOf = useMemo(() => Storage("Identity")(
+    "IdentityOf",
+    Struct({
+      display: Option(Bytes()),
+      legal: Option(Bytes()),
+      web: Option(Bytes()),
+      matrix: Option(Bytes()),
+      email: Option(Bytes()),
+      pgpFingerprint: Option(Bytes()),
+      image: Option(Bytes()),
+      twitter: Option(Bytes()),
+      discord: Option(Bytes()),
+      additional: Option(Bytes())
+    }),
+    [Bytes(32), Blake3256Concat] as const
+  ), [])
+
   const [identity, setIdentity] = useState<IdentityInfo | null>(null)
   const [originalHash, setOriginalHash] = useState<Uint8Array | null>(null)
   const [loading, setLoading] = useState(false)
