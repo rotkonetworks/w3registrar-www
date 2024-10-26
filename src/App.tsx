@@ -131,8 +131,10 @@ export default function App() {
           })
         })
         .catch(e => {
-          console.error("Couldn't get identityOf")
-          console.error(e)
+          if (import.meta.env.DEV) {
+            console.error("Couldn't get identityOf")
+            console.error(e)
+          }
         })
     }
   }, [appState.account?.address])
