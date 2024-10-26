@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from './Header';
 import ProgressBar from './ProgressBar';
 import IdentityForm from './IdentityForm';
@@ -7,6 +7,8 @@ import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 import { SignerProvider } from '@reactive-dot/react';
+import { useIdentity } from '~/hashers/identity';
+import { getSs58AddressInfo } from 'polkadot-api';
 
 
 const IdentityVerificationProcess = () => {
@@ -74,8 +76,34 @@ const IdentityVerificationProcess = () => {
         return null;
     }
   };
-
+  
   const appStateSnap = useSnapshot(appState)
+  const ss58Info = useMemo(() => {
+    if (appStateSnap.account) {
+      return getSs58AddressInfo(appStateSnap.account.address);
+    }
+  }, [appStateSnap.account]) 
+  useEffect(() => {
+    if (appStateSnap.account) {
+      const _ss58Info = getSs58AddressInfo(appStateSnap.account.address);
+      console.log({ ss58Info: _ss58Info, })
+    }
+  }, [appStateSnap.account]) 
+
+  const identityEncoder = useIdentity({
+    accountId: ss58Info?.publicKey
+  })
+
+  useEffect(() => {
+    if (appStateSnap.identity) {
+      const encoded = identityEncoder.encodeFields(appStateSnap.identity);
+      console.log({ 
+        encoded: encoded,
+        hash: identityEncoder.calculateHash(encoded),
+      })
+    }
+  }, [appStateSnap.identity])
+
   if (appStateSnap.account) {
     return (
       <SignerProvider signer={appStateSnap.account?.polkadotSigner}>
