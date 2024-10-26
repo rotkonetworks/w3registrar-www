@@ -99,7 +99,7 @@ const IdentityVerificationProcess = () => {
       const encoded = identityEncoder.encodeFields(appStateSnap.identity);
       console.log({ 
         encoded: encoded,
-        hash: identityEncoder.calculateHash(encoded),
+        hash: `0x${Buffer.from(identityEncoder.calculateHash(encoded)).toString("hex")}`,
       })
     }
   }, [appStateSnap.identity])
