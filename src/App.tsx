@@ -84,12 +84,18 @@ export default function App() {
 
   // Osed to keep last identity data from chain
   const [onChainIdentity, setOnChainIdentity] = useState()
-  const { calculateHash } = useIdentityEncoder(onChainIdentity)
+  const { calculateHash: calculateHashPrev } = useIdentityEncoder(onChainIdentity)
+  const { calculateHash } = useIdentityEncoder(appStateSnapshot.identity)
   useEffect(() => {
     if (onChainIdentity) {
-      appState.bashes = { ...appStateSnapshot.hashes, identity: calculateHash() }
+      const prevIdHash = calculateHashPrev();
+      const curIdHash = calculateHash();
+      import.meta.env.DEV && console.log({ prevIdHash, curIdHash })
+      if (curIdHash !== prevIdHash) {
+        appState.bashes = { ...appStateSnapshot.hashes, identity: prevIdHash }
+      }
     }
-  }, [onChainIdentity, appStateSnapshot.bashes])
+  }, [onChainIdentity, appStateSnapshot.identity])
 
   useEffect(() => {
     if (appState.account?.address) {
