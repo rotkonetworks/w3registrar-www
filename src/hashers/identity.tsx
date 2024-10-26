@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Storage, Blake2256, Blake2128Concat, Bytes, Struct, Option } from "@polkadot-api/substrate-bindings"
+import { Storage, Blake2256, Blake3256Concat, Bytes, Struct, Option, Blake3256 } from "@polkadot-api/substrate-bindings"
 
 const IdentityOf = Storage("Identity")(
   "IdentityOf",
@@ -15,7 +15,7 @@ const IdentityOf = Storage("Identity")(
     discord: Option(Bytes()),
     additional: Option(Bytes())
   }),
-  [Bytes(32), Blake2128Concat] as const
+  [Bytes(32), Blake3256Concat] as const
 )
 
 // Raw interface for internal state
@@ -79,7 +79,7 @@ export function useIdentity({ accountId, chainHead }: UseIdentityProps) {
 
   const calculateHash = useCallback((info: IdentityInfo): Uint8Array => {
     const encoded = IdentityOf.dec.enc(info)
-    return Blake2256(encoded)
+    return Blake3256(encoded)
   }, [])
 
   const fetchIdentity = useCallback(async () => {
