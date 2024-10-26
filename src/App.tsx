@@ -59,7 +59,7 @@ export const appState: {
     value: string,
     verified: boolean,
   }>,
-  bashes: {
+  hashes: {
     identityOf?: Uint16Array,
   },
 } = proxy({
