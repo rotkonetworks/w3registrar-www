@@ -91,15 +91,15 @@ const IdentityVerificationProcess = () => {
   }, [appStateSnap.account]) 
 
   const identityEncoder = useIdentityEncoder({
-    accountId: ss58Info?.publicKey
+    identity: appStateSnap.identity
   })
 
   useEffect(() => {
     if (appStateSnap.identity) {
-      const encoded = identityEncoder.encodeFields(appStateSnap.identity);
+      const encoded = identityEncoder.encodeFields();
       console.log({ 
         encoded: encoded,
-        hash: `0x${Buffer.from(identityEncoder.calculateHash(encoded)).toString("hex")}`,
+        hash: `0x${Buffer.from(identityEncoder.calculateHash()).toString("hex")}`,
       })
     }
   }, [appStateSnap.identity])

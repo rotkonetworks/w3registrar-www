@@ -30,14 +30,10 @@ interface IdentityFields {
 }
 
 interface UseIdentityProps {
-  accountId?: Uint8Array
-  chainHead: {
-    storage: (blockHash: string, key: string) => Promise<string>
-    latestFinalizedBlockHash: string
-  }
+  identity: IdentityFields;
 }
 
-export function useIdentityEncoder({ accountId, chainHead }: UseIdentityProps) {
+export function useIdentityEncoder({ identity: identity }: UseIdentityProps) {
   const IdentityOf = useMemo(() => Storage("Identity")(
     "IdentityOf",
     Struct({
@@ -55,7 +51,6 @@ export function useIdentityEncoder({ accountId, chainHead }: UseIdentityProps) {
     [Bytes(32), Blake3256Concat] as const
   ), [])
 
-  const [identity, setIdentity] = useState<IdentityInfo | null>(null)
   const [originalHash, setOriginalHash] = useState<Uint8Array | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
@@ -63,67 +58,28 @@ export function useIdentityEncoder({ accountId, chainHead }: UseIdentityProps) {
   const encoder = new TextEncoder()
   const decoder = new TextDecoder()
 
-  const encodeFields = useCallback((fields: Partial<IdentityFields>): IdentityInfo => {
-    return Object.entries(fields).reduce((acc, [key, value]) => ({
-      ...acc,
-      [key]: value ? encoder.encode(value) : undefined
-    }), {}) as IdentityInfo
-  }, [])
+  const encodeFields = useCallback((): IdentityInfo => {
+    if (identity) {
+      return Object.entries(identity).reduce((acc, [key, value]) => ({
+        ...acc,
+        [key]: value ? encoder.encode(value) : undefined
+      }), {}) as IdentityInfo
+    }
+  }, [identity])
 
   const decodeFields = useCallback((info: IdentityInfo): IdentityFields => {
     return Object.entries(info).reduce((acc, [key, value]) => ({
       ...acc,
       [key]: value ? decoder.decode(value) : undefined
     }), {}) as IdentityFields
-  }, [])
+  }, [identity])
 
-  const calculateHash = useCallback((info: IdentityInfo): Uint8Array => {
-    const encoded = IdentityOf.dec.enc(info)
-    return Blake3256(encoded)
-  }, [])
-
-  const fetchIdentity = useCallback(async () => {
-    if (!accountId || !chainHead.latestFinalizedBlockHash) {
-      setIdentity(null)
-      setOriginalHash(null)
-      return
+  const calculateHash = useCallback((): Uint8Array => {
+    if (identity) {
+      const encoded = IdentityOf.dec.enc(encodeFields())
+      return Blake3256(encoded)
     }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const storageKey = IdentityOf.enc(accountId)
-      const result = await chainHead.storage(
-        chainHead.latestFinalizedBlockHash,
-        storageKey
-      )
-
-      if (result) {
-        const decoded = IdentityOf.dec(result)
-        setIdentity(decoded)
-        setOriginalHash(calculateHash(decoded))
-      } else {
-        setIdentity(null)
-        setOriginalHash(null)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to fetch identity'))
-    } finally {
-      setLoading(false)
-    }
-  }, [accountId, chainHead, calculateHash])
-
-  // Update a field with string value (handles encoding)
-  const updateField = useCallback((field: keyof IdentityFields, value?: string) => {
-    setIdentity(prev => {
-      if (!prev) return null
-      return {
-        ...prev,
-        [field]: value ? encoder.encode(value) : undefined
-      }
-    })
-  }, [])
+  }, [identity])
 
   const getCurrentHash = useCallback((): Uint8Array | null => {
     if (!identity) return null
@@ -137,18 +93,14 @@ export function useIdentityEncoder({ accountId, chainHead }: UseIdentityProps) {
   }, [getCurrentHash, originalHash])
 
   return {
-    // Return decoded fields for display
-    identity: identity ? decodeFields(identity) : null,
     // Return raw identity for submission
     rawIdentity: identity,
     loading,
     error,
-    updateField,
     hasChanges: hasChanges(),
     currentHash: getCurrentHash(),
     originalHash,
     //reset,
-    //refetch: fetchIdentity,
     // Utility functions
     encodeFields,
     decodeFields,
