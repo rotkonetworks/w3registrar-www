@@ -1,8 +1,9 @@
 import { useTypedApi } from '@reactive-dot/react';
 import { Binary } from 'polkadot-api';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
+import { useIdentityEncoder } from '~/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
 
@@ -140,6 +141,8 @@ const IdentityForm: React.FC = () => {
     }
   }, [getSubmitData])
   
+  const { calculateHash } = useIdentityEncoder(appStateSnap.identity)
+
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const { isValid, identity } = validateForm();
@@ -220,6 +223,15 @@ const IdentityForm: React.FC = () => {
 
   const actionMessage = appStateIdentity ? "Update your identity" : "Create your identity";
 
+  const hashesAreEqual = useMemo(() => {
+    if (appStateSnap.hashes?.identity && appStateSnap.identity) {
+      const foundUnequalByte = calculateHash().find((byte, index) => byte !== appStateSnap.hashes.identity[index]) === undefined;
+      import.meta.env.DEV && console.log({ hashesAreEqual: foundUnequalByte })
+      return foundUnequalByte
+    }
+    import.meta.env.DEV && console.log({ hashesAreEqual: null, hashes: {...appStateSnap.hashes} })
+  }, [appStateSnap.hashes?.identity, appStateSnap.identity])
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" noValidate>
       <h2 className="text-xl font-bold mb-4 text-stone-800">Identity</h2>
@@ -243,7 +255,10 @@ const IdentityForm: React.FC = () => {
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
         onClick={e => handleSubmit(e)}
       >
-        Sign
+        {hashesAreEqual
+          ? <>Request Judgement</>
+          : <>Set Identity & Request Judgement</>
+        }
       </button>
     </form>
   );
