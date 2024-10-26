@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, createContext, useEffect, useRef } from 'react';
+import React, { Suspense, createContext, useEffect, useRef, useState } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -10,6 +10,7 @@ import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL } from './Constantx';
+import { useIdentityEncoder } from './hashers/identity';
 
 
 interface Props {
@@ -57,7 +58,10 @@ export const appState: {
   challenges: Record<string, {
     value: string,
     verified: boolean,
-  }>
+  }>,
+  bashes: {
+    identityOf?: Uint16Array,
+  },
 } = proxy({
   chain: Object.keys(config.chains)[0],
   walletDialogOpen: false,
@@ -67,13 +71,25 @@ export const appState: {
     email: { value: '', verified: false },
     discord: { value: '', verified: false },
     twitter: { value: '', verified: false }
-  }
+  },
+  hashes: {},
 })
 
 export const AppContext = createContext({})
 
 export default function App() {
   const typedApi = useTypedApi({ chainId: "people_rococo" })
+
+  const appStateSnapshot = useSnapshot(appState)
+
+  // Osed to keep last identity data from chain
+  const [onChainIdentity, setOnChainIdentity] = useState()
+  const { calculateHash } = useIdentityEncoder(onChainIdentity)
+  useEffect(() => {
+    if (onChainIdentity) {
+      appState.bashes = { ...appStateSnapshot.hashes, identity: calculateHash() }
+    }
+  }, [onChainIdentity, appStateSnapshot.bashes])
 
   useEffect(() => {
     if (appState.account?.address) {
@@ -88,6 +104,7 @@ export default function App() {
             value: identityData
           })
           appState.identity = identityData
+          setOnChainIdentity(identityData)
         })
         .catch(e => {
           if (import.meta.env.DEV) {
@@ -97,8 +114,6 @@ export default function App() {
         })
     }
   }, [appState.account?.address])
-
-  const appStateSnapshot = useSnapshot(appState)
 
   const timer = useRef();
   useEffect(() => {
