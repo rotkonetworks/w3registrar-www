@@ -136,16 +136,6 @@ export function useIdentity({ accountId, chainHead }: UseIdentityProps) {
     return !currentHash.every((byte, i) => byte === originalHash[i])
   }, [getCurrentHash, originalHash])
 
-  /* const reset = useCallback(() => {
-    fetchIdentity()
-  }, [fetchIdentity])
-
-  useEffect(() => {
-    fetchIdentity()
-  }, [fetchIdentity]) */
-
-  console.log({ accountId, identity, loading, error })
-
   return {
     // Return decoded fields for display
     identity: identity ? decodeFields(identity) : null,
