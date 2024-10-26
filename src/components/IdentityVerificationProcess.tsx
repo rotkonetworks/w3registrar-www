@@ -63,11 +63,6 @@ const IdentityVerificationProcess = () => {
   };
   
   const appStateSnap = useSnapshot(appState)
-  const ss58Info = useMemo(() => {
-    if (appStateSnap.account) {
-      return getSs58AddressInfo(appStateSnap.account.address);
-    }
-  }, [appStateSnap.account]) 
   useEffect(() => {
     if (appStateSnap.account && import.meta.env.DEV) {
       const _ss58Info = getSs58AddressInfo(appStateSnap.account.address);
