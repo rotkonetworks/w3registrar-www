@@ -37,7 +37,7 @@ interface UseIdentityProps {
   }
 }
 
-export function useIdentity({ accountId, chainHead }: UseIdentityProps) {
+export function useIdentityEncoder({ accountId, chainHead }: UseIdentityProps) {
   const IdentityOf = useMemo(() => Storage("Identity")(
     "IdentityOf",
     Struct({
@@ -164,7 +164,7 @@ export function IdentityEditor({ accountId }: { accountId: Uint8Array }) {
     error,
     updateField,
     hasChanges
-  } = useIdentity({
+  } = useIdentityEncoder({
     accountId,
     chainHead: {
       storage: async () => '', 

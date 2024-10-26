@@ -7,7 +7,7 @@ import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 import { SignerProvider } from '@reactive-dot/react';
-import { useIdentity } from '~/hashers/identity';
+import { useIdentityEncoder } from '~/hashers/identity';
 import { getSs58AddressInfo } from 'polkadot-api';
 
 
@@ -90,7 +90,7 @@ const IdentityVerificationProcess = () => {
     }
   }, [appStateSnap.account]) 
 
-  const identityEncoder = useIdentity({
+  const identityEncoder = useIdentityEncoder({
     accountId: ss58Info?.publicKey
   })
 
