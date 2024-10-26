@@ -100,7 +100,6 @@ export function useIdentityEncoder({ identity: identity }: UseIdentityProps) {
     hasChanges: hasChanges(),
     currentHash: getCurrentHash(),
     originalHash,
-    //reset,
     // Utility functions
     encodeFields,
     decodeFields,
