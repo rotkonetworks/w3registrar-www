@@ -2,6 +2,7 @@ import { useTypedApi } from '@reactive-dot/react';
 import { Binary } from 'polkadot-api';
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
+import { config } from '~/api/config';
 import { appState } from '~/App';
 import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
@@ -153,15 +154,36 @@ const IdentityForm: React.FC = () => {
       (async () => {
         const data = getSubmitData();
         
-              value: judgementRequestData,
+        const judgementRequestData = {
+          max_fee: 0n,
+          reg_index: config.chains.people_rococo.registrarIndex,
+        };
+        const call = !hashesAreEqual 
+          ? typedApi.tx.Utility.batch_all({calls: [
+            {
+              type: "Identity",
+              value: {
+                type: "set_identity",
+                value: data,
               },
+            },
+            {
+              type: "Identity",
+              value: {
+                type: "request_judgement",
+                value: judgementRequestData,
+              },
+            },
+          ]})
+          : typedApi.tx.Identity.request_judgement(judgementRequestData)
+        ;
         
-        const resultObservable = batch.signSubmitAndWatch(
+        const resultObservable = call.signSubmitAndWatch(
           appStateSnap.account?.polkadotSigner,
         )
         if (import.meta.env.DEV) {
           console.log({estimatedCosts: {
-            batch: await batch.getEstimatedFees(appState.account.address),
+            batch: await call.getEstimatedFees(appState.account.address),
           }})
         }
         const resultObserver = {
