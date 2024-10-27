@@ -10,7 +10,7 @@ import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL } from './Constantx';
-import { useIdentityEncoder } from './hashers/identity';
+import { useIdentityEncoder } from './hooks/hashers/identity';
 
 
 interface Props {

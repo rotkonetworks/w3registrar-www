@@ -3,7 +3,7 @@ import { Binary } from 'polkadot-api';
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
-import { useIdentityEncoder } from '~/hashers/identity';
+import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
 
