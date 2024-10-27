@@ -9,7 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
-import { CHAIN_UPDATE_INTERVAL } from './Constantx';
+import { CHAIN_UPDATE_INTERVAL } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 
 
