@@ -153,25 +153,8 @@ const IdentityForm: React.FC = () => {
       (async () => {
         const data = getSubmitData();
         
-        const batch = typedApi.tx.Utility.batch_all({calls: [
-          {
-            type: "Identity",
-            value: {
-              type: "set_identity",
-              value: data,
-            },
-          },
-          {
-            type: "Identity",
-            value: {
-              type: "request_judgement",
-              value: {
-                max_fee: 0n,
-                reg_index: 0,
+              value: judgementRequestData,
               },
-            },
-          },
-        ]})
         
         const resultObservable = batch.signSubmitAndWatch(
           appStateSnap.account?.polkadotSigner,
