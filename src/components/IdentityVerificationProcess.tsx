@@ -7,7 +7,7 @@ import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 import { SignerProvider } from '@reactive-dot/react';
-import { useIdentityEncoder } from '~/hashers/identity';
+import { useIdentityEncoder } from '~/hooks/hashers/identity';
 import { getSs58AddressInfo } from 'polkadot-api';
 
 
