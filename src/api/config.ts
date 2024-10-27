@@ -24,7 +24,10 @@ const initWorker = () => startFromWorker(
 export let smoldot = initWorker();
 
 type ApiConfig = Config & {
-  chains: Record<string, ChainConfig & { name: string }>
+  chains: Record<string, ChainConfig & { 
+    name: string;
+    registrarIndex?: number;
+  }>
 }
 export const config = {
   chains: {
@@ -32,16 +35,19 @@ export const config = {
       name: "Polkadot",
       descriptor: people_polkadot,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peoplePolkadotChainSpec })),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
     people_kusama: {
       name: "Kusama",
       descriptor: people_kusama,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleKusamaChainSpec })),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
     },
     people_westend: {
       name: "Westend",
       descriptor: people_westend,
       provider: getSmProvider(smoldot.addChain({ chainSpec: peopleWestendChainSpec })),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
     polkadot: {
       name: "Polkadot",
@@ -61,7 +67,8 @@ export const config = {
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
     rococo: {
       name: "Rococo",
