@@ -7,7 +7,6 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { IdentityFormFields } from './components/IdentityForm';
 import { IdentityVerificationStatuses } from './constants';
 
 
