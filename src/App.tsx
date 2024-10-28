@@ -108,7 +108,7 @@ export default function App() {
         appState.hashes = { ...appStateSnapshot.hashes, identity: prevIdHash }
       }
     }
-  }, [onChainIdentity, appStateSnapshot.identity])
+  }, [onChainIdentity])
 
   useEffect(() => {
     if (appState.account?.address) {
