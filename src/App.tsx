@@ -42,8 +42,8 @@ export const appState: {
   chain: {
     id: string;
     ss58Format: number;
-    decimalDigits: number;
-    symbol: string;
+    tokenDecimals: number;
+    tokenSymbol: string;
   },
   walletDialogOpen: boolean,
   account?: {
@@ -51,6 +51,12 @@ export const appState: {
     name: string,
     address: string,
     polkadotSigner: PolkadotSigner;
+    balance: {
+      free: bigint;
+      reserved: bigint;
+      frozen: bigint;
+      flags: bigint;
+    };
   },
   identity?: {
     displayName: string,
@@ -134,12 +140,9 @@ export default function App() {
   useEffect(() => {
     (async () => {
       if (appStateSnapshot.chain.id) {
-        import.meta.env.DEV && console.log({
-          chainSpecData: {
-            ss58Prefix: await typedApi.constants.System.SS58Prefix(),
-            decimals: await chainClient._request("system_properties"),
-          },
-        })
+        const chainSpecData = await chainClient._request("system_properties");
+        import.meta.env.DEV && console.log({ chainSpecData, })
+        appState.chain = { ...appStateSnapshot.chain, ...chainSpecData }
       }
     }) ()
   }, [appStateSnapshot.chain.id])
@@ -153,6 +156,7 @@ export default function App() {
           "System.Account": accData,
           "Balances.ExistentialDeposit": existentialDep,
         })
+        appState.account.balance = accData.data
       }, CHAIN_UPDATE_INTERVAL)
       return () => {
         clearInterval(timer.current);
