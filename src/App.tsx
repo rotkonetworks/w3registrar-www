@@ -39,7 +39,12 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 };
 
 export const appState: {
-  chain: string,
+  chain: {
+    id: string;
+    ss58Format: number;
+    decimalDigits: number;
+    symbol: string;
+  },
   walletDialogOpen: boolean,
   account?: {
     id: string,
@@ -63,7 +68,7 @@ export const appState: {
     identityOf?: Uint16Array,
   },
 } = proxy({
-  chain: Object.keys(config.chains)[0],
+  chain: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],,
   walletDialogOpen: false,
   stage: 0,
   challenges: {
