@@ -158,7 +158,7 @@ export default function App() {
         clearInterval(timer.current);
       }
     }
-  }, [appStateSnapshot.account])
+  }, [appStateSnapshot.account, appStateSnapshot.chain.id])
 
   const accounts = useAccounts()
   useEffect(() => {
