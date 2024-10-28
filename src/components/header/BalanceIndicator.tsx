@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js"
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useSnapshot } from "valtio"
 import { appState } from "~/App"
 
@@ -14,8 +14,10 @@ export const BalanceIndicator: React.FC = () => {
       chainData:  {...appStateSnap.chain },
     })
   }, [appStateSnap.account.balance, appStateSnap.chain])
-  const free = BigNumber(appStateSnap.account.balance?.free.toString())
-    .dividedBy(BigNumber(10).pow(appStateSnap.chain.tokenDecimals))
+  const free = useMemo(
+    () => BigNumber(appStateSnap.account.balance?.free.toString())
+      .dividedBy(BigNumber(10).pow(appStateSnap.chain.tokenDecimals)),
+  [appStateSnap.account.balance, appStateSnap.chain])
   
   return <>
     Free: {free.toString()} {appStateSnap.chain.tokenSymbol}
