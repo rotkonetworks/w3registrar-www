@@ -125,14 +125,21 @@ export default function App() {
   
   const timer = useRef();
   useEffect(() => {
-    if (appStateSnapshot.account) {
-      timer.current = setInterval(async () => {
+    (async () => {
+      if (appStateSnapshot.chain) {
         import.meta.env.DEV && console.log({
           chainSpecData: {
             ss58Prefix: await typedApi.constants.System.SS58Prefix(),
             decimals: await chainClient._request("system_properties"),
           },
         })
+      }
+    }) ()
+  }, [appStateSnapshot.chain])
+
+  useEffect(() => {
+    if (appStateSnapshot.account) {
+      timer.current = setInterval(async () => {
         const accData = await typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
         const existentialDep = await typedApi.constants.Balances.ExistentialDeposit()
         import.meta.env.DEV && console.log({
