@@ -74,7 +74,7 @@ const NetworkDropdown: React.FC = () => {
   };
 
   const handleChainSelect = (key: string) => {
-    appState.chain = { ...appState.chain, id: key };
+    appState.chain = { id: key };
     setWsUrl(null);
     setCustomSelected(false);
     setIsOpen(false);
