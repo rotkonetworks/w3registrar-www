@@ -10,7 +10,7 @@ import { config } from './api/config'
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ReactiveDotProvider config={config}>
-      <ChainProvider chainId={config[appState.chain]}>
+      <ChainProvider chainId={config[appState.chain.id]}>
         <div className='dark:bg-black min-h-0px'>
           <App />
         </div>

@@ -100,8 +100,8 @@ const IdentityForm: React.FC = () => {
     }, 300);
   }, [validateForm]);
 
-  const typedApi = useTypedApi({ chainId: "people_rococo" });
   const appStateSnap = useSnapshot(appState)
+  const typedApi = useTypedApi({ chainId: appStateSnap.chain.id });
 
   useEffect(() => {
     if (appState.account && import.meta.env.DEV) {
@@ -156,7 +156,7 @@ const IdentityForm: React.FC = () => {
         
         const judgementRequestData = {
           max_fee: 0n,
-          reg_index: config.chains.people_rococo.registrarIndex,
+          reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
         };
         const call = !hashesAreEqual 
           ? typedApi.tx.Utility.batch_all({calls: [

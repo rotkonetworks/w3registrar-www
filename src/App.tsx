@@ -68,7 +68,9 @@ export const appState: {
     identityOf?: Uint16Array,
   },
 } = proxy({
-  chain: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],,
+  chain: { 
+    id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
+  },
   walletDialogOpen: false,
   stage: 0,
   challenges: {
@@ -83,9 +85,9 @@ export const appState: {
 export const AppContext = createContext({})
 
 export default function App() {
-  const typedApi = useTypedApi({ chainId: "people_rococo" })
-
   const appStateSnapshot = useSnapshot(appState)
+  
+  const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
 
   // Osed to keep last identity data from chain
   const [onChainIdentity, setOnChainIdentity] = useState()
@@ -126,12 +128,12 @@ export default function App() {
     }
   }, [appState.account?.address])
 
-  const chainClient = useClient({ chainId: "people_rococo" })
+  const chainClient = useClient({ chainId: appStateSnapshot.chain.id })
   
   const timer = useRef();
   useEffect(() => {
     (async () => {
-      if (appStateSnapshot.chain) {
+      if (appStateSnapshot.chain.id) {
         import.meta.env.DEV && console.log({
           chainSpecData: {
             ss58Prefix: await typedApi.constants.System.SS58Prefix(),
@@ -140,7 +142,7 @@ export default function App() {
         })
       }
     }) ()
-  }, [appStateSnapshot.chain])
+  }, [appStateSnapshot.chain.id])
 
   useEffect(() => {
     if (appStateSnapshot.account) {

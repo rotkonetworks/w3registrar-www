@@ -74,7 +74,7 @@ const NetworkDropdown: React.FC = () => {
   };
 
   const handleChainSelect = (key: string) => {
-    appState.chain = key;
+    appState.chain = { ...appState.chain, id: key };
     setWsUrl(null);
     setCustomSelected(false);
     setIsOpen(false);
@@ -86,7 +86,7 @@ const NetworkDropdown: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="bg-stone-200 text-stone-800 px-3 py-2 text-sm font-medium border border-stone-400 w-full text-left flex justify-between items-center"
       >
-        <span>{customSelected ? "Custom" : config.chains[appStateSnapshot.chain].name}</span>
+        <span>{customSelected ? "Custom" : config.chains[appStateSnapshot.chain.id].name}</span>
         <span className="ml-2">▼</span>
       </button>
       {isOpen && (
