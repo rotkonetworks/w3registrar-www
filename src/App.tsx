@@ -121,22 +121,17 @@ export default function App() {
     }
   }, [appState.account?.address])
 
+  const chainClient = useClient({ chainId: "people_rococo" })
+  
   const timer = useRef();
   useEffect(() => {
     if (appStateSnapshot.account) {
-      timer.current = setInterval(() => {
-        typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
-          .then(data => {
-            import.meta.env.DEV && console.log({
-              "System.Account": data
-            })
-          })
-        typedApi.constants.Balances.ExistentialDeposit()
-          .then(data => {
-            import.meta.env.DEV && console.log({
-              "Balances.ExistentialDeposit": data
-            })
-          })
+        import.meta.env.DEV && console.log({
+          chainSpecData: {
+            ss58Prefix: await typedApi.constants.System.SS58Prefix(),
+            decimals: await chainClient._request("system_properties"),
+          },
+        })
       }, CHAIN_UPDATE_INTERVAL)
       return () => {
         clearInterval(timer.current);
