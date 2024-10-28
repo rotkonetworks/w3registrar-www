@@ -7,7 +7,7 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useAccounts, useTypedApi } from '@reactive-dot/react';
+import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
@@ -126,11 +126,19 @@ export default function App() {
   const timer = useRef();
   useEffect(() => {
     if (appStateSnapshot.account) {
+      timer.current = setInterval(async () => {
         import.meta.env.DEV && console.log({
           chainSpecData: {
             ss58Prefix: await typedApi.constants.System.SS58Prefix(),
             decimals: await chainClient._request("system_properties"),
           },
+        })
+        import.meta.env.DEV && console.log({ chainData })
+        const accData = await typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
+        const existentialDep = await typedApi.constants.Balances.ExistentialDeposit()
+        import.meta.env.DEV && console.log({
+          "System.Account": accData,
+          "Balances.ExistentialDeposit": existentialDep,
         })
       }, CHAIN_UPDATE_INTERVAL)
       return () => {
