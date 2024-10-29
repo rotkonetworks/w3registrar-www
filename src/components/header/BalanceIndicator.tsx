@@ -28,7 +28,7 @@ export const BalanceIndicator: React.FC = () => {
     <table>
       <tr>
         <th>Free</th>
-        <td className="align-right">{free}</td>
+        <td className="align-right">{formatValue(appStateSnap.account.balance?.free)}</td>
       </tr>
       <tbody>
         {Object.entries({ ...appStateSnap.fees })
