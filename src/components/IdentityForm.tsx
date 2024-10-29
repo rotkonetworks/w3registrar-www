@@ -141,8 +141,44 @@ const IdentityForm: React.FC = () => {
       console.log({ getSubmitData: getSubmitData() }) 
     }
   }, [getSubmitData])
-  
+
   const { calculateHash } = useIdentityEncoder(appStateSnap.identity)
+  const hashesAreEqual = useMemo(() => {
+    if (appStateSnap.hashes?.identity && appStateSnap.identity) {
+      const foundUnequalByte = calculateHash().find((byte, index) => byte !== appStateSnap.hashes.identity[index]) === undefined;
+      import.meta.env.DEV && console.log({ hashesAreEqual: foundUnequalByte })
+      return foundUnequalByte
+    }
+    import.meta.env.DEV && console.log({ hashesAreEqual: null, hashes: {...appStateSnap.hashes} })
+  }, [appStateSnap.hashes?.identity, appStateSnap.identity, appStateSnap.chain.id])
+  
+  const chainCall = useMemo(() => {
+    const data = getSubmitData();
+    const judgementRequestData = {
+      max_fee: 0n,
+      reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
+    };
+    const call = !hashesAreEqual 
+      ? typedApi.tx.Utility.batch_all({calls: [
+        {
+          type: "Identity",
+          value: {
+            type: "set_identity",
+            value: data,
+          },
+        },
+        {
+          type: "Identity",
+          value: {
+            type: "request_judgement",
+            value: judgementRequestData,
+          },
+        },
+      ]})
+      : typedApi.tx.Identity.request_judgement(judgementRequestData)
+    ;
+    return call
+  }, [validateForm, appStateSnap.identity])
 
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -152,31 +188,7 @@ const IdentityForm: React.FC = () => {
     }
     if (isValid) {
       (async () => {
-        const data = getSubmitData();
-        
-        const judgementRequestData = {
-          max_fee: 0n,
-          reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
-        };
-        const call = !hashesAreEqual 
-          ? typedApi.tx.Utility.batch_all({calls: [
-            {
-              type: "Identity",
-              value: {
-                type: "set_identity",
-                value: data,
-              },
-            },
-            {
-              type: "Identity",
-              value: {
-                type: "request_judgement",
-                value: judgementRequestData,
-              },
-            },
-          ]})
-          : typedApi.tx.Identity.request_judgement(judgementRequestData)
-        ;
+        const call = chainCall;
         
         const resultObservable = call.signSubmitAndWatch(
           appStateSnap.account?.polkadotSigner,
