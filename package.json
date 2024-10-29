@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "metadata": "bunx papi update",
-    "postinstall": "bunx papi"
+    "postinstall": "bunx papi update"
   },
   "dependencies": {
     "@iconify/react": "^5.0.2",
