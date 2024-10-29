@@ -23,12 +23,22 @@ export const BalanceIndicator: React.FC = () => {
       chainData:  {...appStateSnap.chain },
     })
   }, [appStateSnap.account.balance, appStateSnap.chain])
-  const free = useMemo(
-    () => BigNumber(appStateSnap.account.balance?.free.toString())
-      .dividedBy(BigNumber(10).pow(appStateSnap.chain.tokenDecimals)),
-  [appStateSnap.account.balance, appStateSnap.chain])
   
   return <>
-    Free: {free.toString()} {appStateSnap.chain.tokenSymbol}
+    <table>
+      <tr>
+        <th>Free</th>
+        <td className="align-right">{free}</td>
+      </tr>
+      <tbody>
+        {Object.entries({ ...appStateSnap.fees })
+          .filter(([key, amount]) => amount)
+          .map(([key, amount]) => <tr>
+            <th>{strings[key]}</th>
+            <td className="align-right">{formatValue(amount)}</td>
+          </tr>)
+        }
+      </tbody>
+    </table>
   </>
 }
