@@ -92,8 +92,6 @@ export const appState: {
   hashes: {},
 })
 
-export const AppContext = createContext({})
-
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
   
