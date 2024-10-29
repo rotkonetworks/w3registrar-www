@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, createContext, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -91,8 +91,6 @@ export const appState: {
   },
   hashes: {},
 })
-
-export const AppContext = createContext({})
 
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
