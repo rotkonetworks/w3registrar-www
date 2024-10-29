@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { config } from '~/api/config';
 import { appState } from '~/App';
+import { CHAIN_UPDATE_INTERVAL } from '~/constants';
 import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
@@ -178,7 +179,31 @@ const IdentityForm: React.FC = () => {
       : typedApi.tx.Identity.request_judgement(judgementRequestData)
     ;
     return call
-  }, [validateForm, appStateSnap.identity])
+  }, [validateForm, appStateSnap.identity, appState.chain.id])
+
+  const timer = useRef()
+  useEffect(() => {
+    timer.curreut = setInterval(async () => {
+      if (import.meta.env.DEV) {
+        const callCost = await chainCall.getEstimatedFees(appState.account.address);
+        const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
+          ? { 
+            requestJdgement: callCost,
+            setIdentityAndRequestJudgement: 0n,
+          }
+          : { 
+            requestJdgement: 0n,
+            setIdentityAndRequestJudgement: callCost,
+          }
+        ) };
+        appState.fees = estimatedCosts;
+        console.log({ estimatedCosts });
+      }
+    }, CHAIN_UPDATE_INTERVAL)
+    return () => {
+      clearInterval(timer.current)
+    }
+  }, [hashesAreEqual, appStateSnap.chain.id])
 
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -193,11 +218,6 @@ const IdentityForm: React.FC = () => {
         const resultObservable = call.signSubmitAndWatch(
           appStateSnap.account?.polkadotSigner,
         )
-        if (import.meta.env.DEV) {
-          console.log({estimatedCosts: {
-            batch: await call.getEstimatedFees(appState.account.address),
-          }})
-        }
         const resultObserver = {
           next(data) {
               if (import.meta.env.DEV) {
@@ -226,7 +246,7 @@ const IdentityForm: React.FC = () => {
         );
       })()
     }
-  }, [validateForm, appState.identity]);
+  }, [validateForm, appStateSnap.identity]);
 
   useEffect(() => {
     if (appStateIdentity && formRef.current) {
@@ -239,15 +259,6 @@ const IdentityForm: React.FC = () => {
   }, [appStateIdentity, handleInput]);
 
   const actionMessage = appStateIdentity ? "Update your identity" : "Create your identity";
-
-  const hashesAreEqual = useMemo(() => {
-    if (appStateSnap.hashes?.identity && appStateSnap.identity) {
-      const foundUnequalByte = calculateHash().find((byte, index) => byte !== appStateSnap.hashes.identity[index]) === undefined;
-      import.meta.env.DEV && console.log({ hashesAreEqual: foundUnequalByte })
-      return foundUnequalByte
-    }
-    import.meta.env.DEV && console.log({ hashesAreEqual: null, hashes: {...appStateSnap.hashes} })
-  }, [appStateSnap.hashes?.identity, appStateSnap.identity])
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4" noValidate>

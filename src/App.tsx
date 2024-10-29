@@ -73,6 +73,10 @@ export const appState: {
   hashes: {
     identityOf?: Uint16Array,
   },
+  fees: {
+    requestJdgement?: bigint,
+    setIdentityAndRequestJudgement?: bigint,
+  },
 } = proxy({
   chain: { 
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
