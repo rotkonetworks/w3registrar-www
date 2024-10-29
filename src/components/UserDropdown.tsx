@@ -88,7 +88,9 @@ const UserDropdown = () => {
                     handleClose()
                     const account = { id, name, address, ...rest };
                     appState.account = account;
-                    localStorage.setItem("account", JSON.stringify(account))
+                    // Needed to prevent circular references for serialization
+                    const accountToLocalStore = { id, name, address };  
+                    localStorage.setItem("account", JSON.stringify(accountToLocalStore))
                   }}
                 >
                   <PolkadotIdenticon address={address} />
