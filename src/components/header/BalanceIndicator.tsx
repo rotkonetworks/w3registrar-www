@@ -35,18 +35,34 @@ export const BalanceIndicator: React.FC = () => {
         <th>Free</th>
         <td className="text-align-right">{formatValue(appStateSnap.account.balance?.free)}</td>
       </tr>
-      <tr>
-        <td colspan={2}>Fees</td>
-      </tr>
-      <tbody>
-        {Object.entries({ ...appStateSnap.fees })
-          .filter(([key, amount]) => amount)
-          .map(([key, amount]) => <tr>
-            <th className="font-size-0.66em">{strings[key]}</th>
-            <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
-          </tr>)
-        }
-      </tbody>
+      {appStateSnap.fees &&
+        <>
+          <tr>
+            <td colspan={2}>Transaction Fees</td>
+          </tr>
+          {Object.entries({ ...appStateSnap.fees })
+            .filter(([key, amount]) => amount)
+            .map(([key, amount]) => <tr>
+              <th className="font-size-0.66em">{strings[key]}</th>
+              <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
+            </tr>)
+          }
+        </>
+      }
+      {appStateSnap.reserves &&
+        <>
+          <tr>
+            <td colspan={2}>Transaction Reserves</td>
+          </tr>
+          {Object.entries({ ...appStateSnap.reserves })
+            .filter(([key, amount]) => amount)
+            .map(([key, amount]) => <tr>
+              <th className="font-size-0.66em">{strings[key]}</th>
+              <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
+            </tr>)
+          }
+        </>
+      }
     </table>
   </div>
 }
