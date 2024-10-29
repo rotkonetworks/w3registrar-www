@@ -29,21 +29,24 @@ export const BalanceIndicator: React.FC = () => {
     })
   }, [appStateSnap.account.balance, appStateSnap.chain])
   
-  return <>
+  return <div>
     <table>
-      <tr>
+      <tr className="font-size-1em">
         <th>Free</th>
-        <td className="align-right">{formatValue(appStateSnap.account.balance?.free)}</td>
+        <td className="text-align-right">{formatValue(appStateSnap.account.balance?.free)}</td>
+      </tr>
+      <tr>
+        <td colspan={2}>Fees</td>
       </tr>
       <tbody>
         {Object.entries({ ...appStateSnap.fees })
           .filter(([key, amount]) => amount)
           .map(([key, amount]) => <tr>
-            <th>{strings[key]}</th>
-            <td className="align-right">{formatValue(amount)}</td>
+            <th className="font-size-0.66em">{strings[key]}</th>
+            <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
           </tr>)
         }
       </tbody>
     </table>
-  </>
+  </div>
 }
