@@ -3,6 +3,11 @@ import { useEffect, useMemo } from "react"
 import { useSnapshot } from "valtio"
 import { appState } from "~/App"
 
+const strings = {
+  requestJdgement: "Request Judgement",
+  setIdentityAndRequestJudgement: "Set id. and req. judg."
+}
+
 export const BalanceIndicator: React.FC = () => {
   const appStateSnap = useSnapshot(appState)
 
