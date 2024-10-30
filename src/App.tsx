@@ -9,7 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
-import { CHAIN_UPDATE_INTERVAL, IDENTITY_VERIFICATION_STATE } from './constants';
+import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
 
@@ -86,7 +86,7 @@ export const appState: {
     setIdentityAndRequestJudgement?: bigint,
   },
   reserves: {},
-  verificationProgress: number,
+  verificationProgress: IdentityVerificationStates,
 } = proxy({
   chain: { 
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
@@ -100,7 +100,7 @@ export const appState: {
     twitter: { value: '', verified: false }
   },
   hashes: {},
-  verificationProgress: IDENTITY_VERIFICATION_STATE.Unknown,
+  verificationProgress: IdentityVerificationStates.Unknown,
 })
 
 export default function App() {
@@ -129,7 +129,7 @@ export default function App() {
         .then((result) => {
           const identityOf = result[0]
           if (!identityOf) {
-            appState.verificationProgress = IDENTITY_VERIFICATION_STATE.NoIdentity
+            appState.verificationProgress = IdentityVerificationStates.NoIdentity
             return;
           }
 
@@ -138,7 +138,7 @@ export default function App() {
             .map(([key, value]) => [key, value.value.asText()])
           );
           appState.identity = identityData
-          appState.verificationProgress = IDENTITY_VERIFICATION_STATE
+          appState.verificationProgress = IdentityVerificationStates.IdentitySet;
           setOnChainIdentity(identityData)
 
           const idJudgementOfId = identityOf.judgements;
@@ -150,6 +150,7 @@ export default function App() {
             fee: judgement[1].value,
           }));
           appState.judgements = judgementData;
+          appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
 
           const idDeposit = identityOf.deposit
           appState.reserves = { ...appStateSnapshot.reserves, identity: idDeposit }
