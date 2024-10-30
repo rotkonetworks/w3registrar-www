@@ -70,12 +70,17 @@ const IdentityVerificationProcess = () => {
   }, [appStateSnap.account]) 
 
   const identityEncoder = useIdentityEncoder(appStateSnap.identity)
+  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStates).length -2) * 100
+  useEffect(() => console.log({ percentage, 
+    value: appStateSnap.verificationProgress,
+    key: IdentityVerificationStates[appStateSnap.verificationProgress],
+  }), [percentage])
 
   return (
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
       <Header />
       {appStateSnap.verificationProgress !== IdentityVerificationStates.Unknown 
-        && <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
+        && <ProgressBar progress={percentage} />
       }
       {appStateSnap.account && renderStage()}
     </div>
