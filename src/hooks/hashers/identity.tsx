@@ -118,39 +118,3 @@ export function useIdentityEncoder(identity: IdentityFields) {
     calculateHash
   }
 }
-
-// Example usage
-export function IdentityEditor({ accountId }: { accountId: Uint8Array }) {
-  const {
-    identity,
-    loading,
-    error,
-    updateField,
-    hasChanges
-  } = useIdentityEncoder({
-    accountId,
-    chainHead: {
-      storage: async () => '', 
-      latestFinalizedBlockHash: '0x...'
-    }
-  })
-
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error.message}</div>
-  if (!identity) return <div>No identity found</div>
-
-  return (
-    <div className="space-y-4">
-      <input
-        type="text"
-        value={identity.display || ''}
-        onChange={e => updateField('display', e.target.value)}
-        placeholder="Display name"
-      />
-      {/* Other fields */}
-      {hasChanges && (
-        <div>Unsaved changes detected!</div>
-      )}
-    </div>
-  )
-}
