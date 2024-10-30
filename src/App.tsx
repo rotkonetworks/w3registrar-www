@@ -141,7 +141,7 @@ export default function App() {
           appState.verificationProgress = IDENTITY_VERIFICATION_STATE
           setOnChainIdentity(identityData)
 
-          const idJudgementOfId = identityOf[0].judgements;
+          const idJudgementOfId = identityOf.judgements;
           const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
             registrar: {
               index: judgement[0],
@@ -151,7 +151,7 @@ export default function App() {
           }));
           appState.judgements = judgementData;
 
-          const idDeposit = identityOf[0].deposit
+          const idDeposit = identityOf.deposit
           appState.reserves = { ...appStateSnapshot.reserves, identity: idDeposit }
 
           import.meta.env.DEV && console.log({
