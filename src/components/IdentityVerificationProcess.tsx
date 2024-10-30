@@ -8,7 +8,7 @@ import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 import { useIdentityEncoder } from '~/hooks/hashers/identity';
 import { getSs58AddressInfo } from 'polkadot-api';
-
+import { IdentityVerificationStates } from '~/constants';
 
 const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(0);
@@ -74,7 +74,9 @@ const IdentityVerificationProcess = () => {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
       <Header />
-      <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
+      {appStateSnap.verificationProgress !== IdentityVerificationStates.Unknown 
+        && <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
+      }
       {appStateSnap.account && renderStage()}
     </div>
   );
