@@ -11,6 +11,7 @@ import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
+import { IdentityJudgement } from '@polkadot-api/descriptors';
 
 
 interface Props {
@@ -65,6 +66,13 @@ export const appState: {
     email: string,
     twitter: string,
   },
+  judgements?: Array<{
+    registrar: {
+      index: number
+    },
+    state: IdentityJudgement,
+    fee: bigint,
+  }>
   stage: number,
   challenges: Record<string, {
     value: string,
@@ -121,12 +129,28 @@ export default function App() {
             .filter(([_, value]) => value?.type?.startsWith("Raw"))
             .map(([key, value]) => [key, value.value.asText()])
           );
-          import.meta.env.DEV && console.log({
-            identityOf,
-            value: identityData
-          })
           appState.identity = identityData
           setOnChainIdentity(identityData)
+
+          const idJudgementOfId = identityOf[0].judgements;
+          const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
+            registrar: {
+              index: judgement[0],
+            },
+            state: judgement[1].type,
+            fee: judgement[1].value,
+          }));
+          appState.judgements = judgementData;
+
+          const idDeposit = identityOf[0].deposit
+          appState.reserves = { ...appStateSnapshot.reserves, identity: idDeposit }
+
+          import.meta.env.DEV && console.log({
+            identityOf,
+            identityData,
+            judgementData,
+            idDeposit,
+          })
         })
         .catch(e => {
           if (import.meta.env.DEV) {
