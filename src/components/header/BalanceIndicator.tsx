@@ -10,7 +10,7 @@ const strings = {
 export const BalanceIndicator: React.FC = () => {
   const appStateSnap = useSnapshot(appState)
 
-  const formatValue = (amount: bigint | undefined): string => {
+  const formatValue = (amount: bigint | BigNumber | undefined): string => {
     if (!amount) {
       return "...";
     }
