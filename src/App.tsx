@@ -151,9 +151,16 @@ export default function App() {
           }));
           appState.judgements = judgementData;
           appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
+          
+          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid)) {
+            appState.verificationProgress = IdentityVerificationStates.FeePaid;
+          }
+          if (judgementData.find(j => [IdentityJudgement.Reasonable, IdentityJudgement.KnownGood].includes(j.state))) {
+            appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
+          }
 
           const idDeposit = identityOf.deposit
-          appState.reserves = { ...appStateSnapshot.reserves, identity: idDeposit }
+          // TODO  Compue approximate reserve
 
           import.meta.env.DEV && console.log({
             identityOf,
