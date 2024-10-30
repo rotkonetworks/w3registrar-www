@@ -42,12 +42,12 @@ export const BalanceIndicator: React.FC = () => {
       {appStateSnap.reserves &&
         <>
           <tr>
-            <td colspan={2}>Transaction Reserves</td>
+            <td colSpan={2}>Transaction Reserves</td>
           </tr>
           {Object.entries({ ...appStateSnap.reserves })
             .filter(([key, amount]) => amount)
             .map(([key, amount]) => <tr>
-              <th className="font-size-0.66em">{strings[key]}</th>
+              <th className="font-size-0.66em">{strings[key] || key}</th>
               <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
             </tr>)
           }
