@@ -127,11 +127,11 @@ export default function App() {
     if (appState.account?.address) {
       typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
         .then((result) => {
-          const identityOf = result[0]
-          if (!identityOf) {
+          if (!result) {
             appState.verificationProgress = IdentityVerificationStates.NoIdentity
             return;
           }
+          const identityOf = result[0]
 
           const identityData = Object.fromEntries(Object.entries(identityOf.info)
             .filter(([_, value]) => value?.type?.startsWith("Raw"))
