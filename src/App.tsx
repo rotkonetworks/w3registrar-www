@@ -9,7 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
-import { CHAIN_UPDATE_INTERVAL } from './constants';
+import { CHAIN_UPDATE_INTERVAL, IDENTITY_VERIFICATION_STATE } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
 
@@ -86,6 +86,7 @@ export const appState: {
     setIdentityAndRequestJudgement?: bigint,
   },
   reserves: {},
+  verificationProgress: number,
 } = proxy({
   chain: { 
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
@@ -99,6 +100,7 @@ export const appState: {
     twitter: { value: '', verified: false }
   },
   hashes: {},
+  verificationProgress: IDENTITY_VERIFICATION_STATE.Unknown,
 })
 
 export default function App() {
@@ -124,12 +126,19 @@ export default function App() {
   useEffect(() => {
     if (appState.account?.address) {
       typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
-        .then(identityOf => {
-          const identityData = Object.fromEntries(Object.entries(identityOf[0].info)
+        .then((result) => {
+          const identityOf = result[0]
+          if (!identityOf) {
+            appState.verificationProgress = IDENTITY_VERIFICATION_STATE.NoIdentity
+            return;
+          }
+
+          const identityData = Object.fromEntries(Object.entries(identityOf.info)
             .filter(([_, value]) => value?.type?.startsWith("Raw"))
             .map(([key, value]) => [key, value.value.asText()])
           );
           appState.identity = identityData
+          appState.verificationProgress = IDENTITY_VERIFICATION_STATE
           setOnChainIdentity(identityData)
 
           const idJudgementOfId = identityOf[0].judgements;
