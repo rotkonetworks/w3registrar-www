@@ -70,7 +70,7 @@ export const appState: {
     registrar: {
       index: number
     },
-    state: IdentityJudgement,
+    state: keyof IdentityJudgement,
     fee: bigint,
   }>
   stage: number,
@@ -152,10 +152,13 @@ export default function App() {
           appState.judgements = judgementData;
           appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
           
-          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid)) {
+          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
             appState.verificationProgress = IdentityVerificationStates.FeePaid;
           }
-          if (judgementData.find(j => [IdentityJudgement.Reasonable, IdentityJudgement.KnownGood].includes(j.state))) {
+          if (judgementData.find(j => [
+            IdentityJudgement.Reasonable().type, 
+            IdentityJudgement.KnownGood().type,
+          ].includes(j.state))) {
             appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
           }
 

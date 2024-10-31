@@ -45,16 +45,19 @@ const IdentityVerificationProcess = () => {
   };
 
   const renderStage = () => {
-    switch(stage) {
-      case 0:
+    switch(appState.verificationProgress) {
+      case IdentityVerificationStates.Unknown:
+      case IdentityVerificationStates.NoIdentity:
+      case IdentityVerificationStates.IdentitySet:
+      case IdentityVerificationStates.JudgementRequested:
         return <IdentityForm />;
-      case 1:
+      case IdentityVerificationStates.FeePaid:
         return <ChallengeVerification
           onVerify={handleVerifyChallenge}
           onCancel={handleCancel}
           onProceed={handleProceed}
         />;
-      case 2:
+      case IdentityVerificationStates.IdentityVerifid:
         return <CompletionPage />;
       default:
         return null;
@@ -70,7 +73,7 @@ const IdentityVerificationProcess = () => {
   }, [appStateSnap.account]) 
 
   const identityEncoder = useIdentityEncoder(appStateSnap.identity)
-  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStates).length -2) * 100
+  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStates).length / 2 -2) * 100
   useEffect(() => console.log({ percentage, 
     value: appStateSnap.verificationProgress,
     key: IdentityVerificationStates[appStateSnap.verificationProgress],
