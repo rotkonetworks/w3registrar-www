@@ -10,8 +10,34 @@ import { useIdentityEncoder } from '~/hooks/hashers/identity';
 import { getSs58AddressInfo } from 'polkadot-api';
 import { IdentityVerificationStates } from '~/constants';
 
+enum Stages {
+  SetIdentityForm = 0,
+  Challenges = 1,
+  Congrats = 2,
+}
+
 const IdentityVerificationProcess = () => {
-  const [stage, setStage] = useState(0);
+  const appStateSnap = useSnapshot(appState)
+
+  const [stage, setStage] = useState(null);
+  useEffect(() => {
+    switch(appState.verificationProgress) {
+      case IdentityVerificationStates.NoIdentity:
+      case IdentityVerificationStates.IdentitySet:
+        setStage(Stages.SetIdentityForm);
+        return;
+      case IdentityVerificationStates.JudgementRequested:
+      case IdentityVerificationStates.FeePaid:
+        setStage(Stages.Challenges);
+        return;
+      case IdentityVerificationStates.IdentityVerifid:
+        setStage(Stages.Congrats);
+        return;
+      default:
+        setStage(null);
+        return;
+    }
+  }, [appState.verificationProgress]);
   
   const [challenges, setChallenges] = useState({
     displayName: false,
@@ -30,7 +56,7 @@ const IdentityVerificationProcess = () => {
   };
 
   const handleCancel = () => {
-    setStage(0);
+    setStage(Stages.SetIdentityForm);
     setChallenges({
       displayName: false,
       matrix: { value: '', verified: false },
@@ -40,31 +66,27 @@ const IdentityVerificationProcess = () => {
     });
   };
 
-  const handleProceed = () => {
-    setStage(2);
-  };
 
-  const renderStage = () => {
-    switch(appState.verificationProgress) {
-      case IdentityVerificationStates.Unknown:
-      case IdentityVerificationStates.NoIdentity:
-      case IdentityVerificationStates.IdentitySet:
-      case IdentityVerificationStates.JudgementRequested:
+  const handleBack = () => { setStage(n => n > 0 ? n - 1 : n); };
+  const handleProceed = () => { setStage(n => n < 2 ? n + 1 : n); };
+
+  const StageContent = () => {
+    switch(stage) {
+      case Stages.SetIdentityForm:
         return <IdentityForm />;
-      case IdentityVerificationStates.FeePaid:
+      case Stages.Challenges:
         return <ChallengeVerification
           onVerify={handleVerifyChallenge}
           onCancel={handleCancel}
           onProceed={handleProceed}
         />;
-      case IdentityVerificationStates.IdentityVerifid:
+      case Stages.Congrats:
         return <CompletionPage />;
       default:
         return null;
     }
   };
   
-  const appStateSnap = useSnapshot(appState)
   useEffect(() => {
     if (appStateSnap.account && import.meta.env.DEV) {
       const _ss58Info = getSs58AddressInfo(appStateSnap.account.address);
