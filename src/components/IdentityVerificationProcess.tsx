@@ -46,7 +46,6 @@ const IdentityVerificationProcess = () => {
     discord: { value: '', verified: false },
     twitter: { value: '', verified: false }
   });
-  const [error, setError] = useState('');
 
   const handleVerifyChallenge = (key) => {
     setChallenges(prev => ({
@@ -94,7 +93,6 @@ const IdentityVerificationProcess = () => {
     }
   }, [appStateSnap.account]) 
 
-  const identityEncoder = useIdentityEncoder(appStateSnap.identity)
   const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStates).length / 2 -2) * 100
   useEffect(() => console.log({ percentage, 
     value: appStateSnap.verificationProgress,
