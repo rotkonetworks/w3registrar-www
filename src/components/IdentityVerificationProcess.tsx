@@ -72,7 +72,7 @@ const IdentityVerificationProcess = () => {
   const StageContent = () => {
     switch(stage) {
       case Stages.SetIdentityForm:
-        return <IdentityForm />;
+        return <IdentityForm handleProceed={handleProceed} />;
       case Stages.Challenges:
         return <ChallengeVerification
           onVerify={handleVerifyChallenge}

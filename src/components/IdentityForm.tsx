@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { config } from '~/api/config';
 import { appState } from '~/App';
-import { CHAIN_UPDATE_INTERVAL } from '~/constants';
+import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from '~/constants';
 import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
@@ -59,7 +59,11 @@ const ALL_IDENTITY_REQUIRED_FIELDS = [
 // Re-export IdentityFormFields if it's still needed elsewhere
 export const IdentityFormFields: FieldKey[] = Object.keys(FIELD_CONFIG) as FieldKey[];
 
-const IdentityForm: React.FC = () => {
+interface Props {
+  handleProceed: () => void;
+}
+
+const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   const formRef = useRef<HTMLFormElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { identity: appStateIdentity } = useSnapshot(appState);
@@ -207,6 +211,11 @@ const IdentityForm: React.FC = () => {
 
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (appStateSnap.verificationProgress >= IdentityVerificationStates.JudgementRequested) {
+      handleProceed();
+      return;
+    }
     const { isValid, identity } = validateForm();
     if (import.meta.env.DEV) {
       console.log({ isValid, identity })
@@ -240,10 +249,6 @@ const IdentityForm: React.FC = () => {
         } 
         
         resultObservable.subscribe(resultObserver)
-        appState.stage = 1;
-        appState.challenges = Object.fromEntries(
-          Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
-        );
       })()
     }
   }, [validateForm, appStateSnap.identity]);
@@ -283,9 +288,12 @@ const IdentityForm: React.FC = () => {
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
         onClick={e => handleSubmit(e)}
       >
-        {hashesAreEqual
-          ? <>Request Judgement</>
-          : <>Set Identity & Request Judgement</>
+        {appStateSnap.verificationProgress < IdentityVerificationStates.JudgementRequested
+          ? (hashesAreEqual
+            ? <>Request Judgement</>
+            : <>Set Identity & Request Judgement</>
+          )
+          : <>Next</>
         }
       </button>
     </form>
