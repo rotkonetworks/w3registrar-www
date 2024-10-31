@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Storage, Blake2256, Blake3256Concat, Bytes, Struct, Option, Blake3256 } from "@polkadot-api/substrate-bindings"
+import { Storage, Blake2256, Bytes, Struct, Option, } from "@polkadot-api/substrate-bindings"
 
 // Raw interface for internal state
 interface IdentityInfo {
-  display?: Uint8Array
-  legal?: Uint8Array
-  web?: Uint8Array
-  matrix?: Uint8Array
-  email?: Uint8Array
-  pgpFingerprint?: Uint8Array
-  image?: Uint8Array
-  twitter?: Uint8Array
-  discord?: Uint8Array
-  additional?: Uint8Array
+  display?: Uint8Array;
+  legal?: Uint8Array;
+  web?: Uint8Array;
+  matrix?: Uint8Array;
+  email?: Uint8Array;
+  pgpFingerprint?: Uint8Array;
+  image?: Uint8Array;
+  twitter?: Uint8Array;
+  discord?: Uint8Array;
+  additional?: Uint8Array;
 }
 
 // User-friendly interface for external use
@@ -48,7 +48,7 @@ export function useIdentityEncoder(identity: IdentityFields) {
       discord: Option(Bytes()),
       additional: Option(Bytes())
     }),
-    [Bytes(32), Blake3256Concat] as const
+    [Bytes(32), Blake2256] as const
   ), [])
 
   const [originalHash, setOriginalHash] = useState<Uint8Array | null>(null)
@@ -77,7 +77,7 @@ export function useIdentityEncoder(identity: IdentityFields) {
   const calculateHash = useCallback((): Uint8Array => {
     if (identity) {
       const encoded = IdentityOf.dec.enc(encodeFields())
-      return Blake3256(encoded)
+      return Blake2256(encoded)
     }
   }, [identity])
 
