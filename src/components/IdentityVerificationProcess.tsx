@@ -101,13 +101,39 @@ const IdentityVerificationProcess = () => {
     key: IdentityVerificationStates[appStateSnap.verificationProgress],
   }), [percentage])
 
+  const canProceed = useMemo((() => 
+    (stage <= Stages.SetIdentityForm 
+      && appStateSnap.verificationProgress >= IdentityVerificationStates.JudgementRequested
+    )
+    || (stage <= Stages.Challenges 
+      && appStateSnap.verificationProgress >= IdentityVerificationStates.IdentityVerifid  
+    )
+  ),
+  [appStateSnap.verificationProgress, stage])
+
   return (
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
       <Header />
-      {appStateSnap.verificationProgress !== IdentityVerificationStates.Unknown 
-        && <ProgressBar progress={percentage} />
-      }
-      {appStateSnap.account && renderStage()}
+      {appStateSnap.account && appStateSnap.verificationProgress !== IdentityVerificationStates.Unknown  && <>
+        <ProgressBar progress={percentage} />
+        <div className="flex flex-row justify-between">
+          <button
+            className="bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
+            onClick={handleBack}
+            disabled={stage <= 0}
+          >
+            &lt; Previous
+          </button>
+          <button
+            className="bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
+            onClick={handleProceed}
+            disabled={stage >= 2 || !canProceed}
+          >
+            Next &gt;
+          </button>
+        </div>
+        <StageContent />
+      </>}
     </div>
   );
 
