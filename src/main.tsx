@@ -5,7 +5,7 @@ import 'uno.css'
 import '@unocss/reset/tailwind-compat.css'
 import { ChainProvider, ReactiveDotProvider } from '@reactive-dot/react'
 import { config } from './api/config'
-
+import { useSnapshot } from 'valtio'
 
 const Main: React.FC = () => {
   const appStateSnap = useSnapshot(appState)
