@@ -14,6 +14,7 @@ import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { WsProvider } from "@polkadot/api";
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 
 const initWorker = () => startFromWorker(
@@ -67,13 +68,13 @@ export const config = {
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
     }
   },
   wallets: [
