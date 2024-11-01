@@ -232,24 +232,15 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
         )
         const resultObserver = {
           next(data) {
-              if (import.meta.env.DEV) {
-              console.log(data)
-              // TODO...
-            }
+            import.meta.env.DEV && console.log({data, source: "observer",})
           },
-          error(e) {
-            if (import.meta.env.DEV) {
-              console.error(e)
-              // TODO...
-            }
+          error(error) {
+            import.meta.env.DEV && console.error(error)
           },
           complete() {
-            if (import.meta.env.DEV) {
-              console.log("request complete")
-              // TODO...
-            }
+            import.meta.env.DEV && console.log("request complete")
           }
-        } 
+        }
         
         resultObservable.subscribe(resultObserver)
       })()
