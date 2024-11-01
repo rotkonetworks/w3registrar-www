@@ -7,11 +7,12 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
+import { useAccounts, useClient, useQueryLoader, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
+import { mergeMap } from 'rxjs';
 
 
 interface Props {
@@ -182,7 +183,73 @@ export default function App() {
   }, [appState.account?.address])
 
   const chainClient = useClient({ chainId: appStateSnapshot.chain.id })
+
+  const loadQuery = useQueryLoader();
   
+  useEffect(() => {
+    const getEventObserver = (type) => ({
+      next(blocks) {
+        import.meta.env.DEV && console.log({ blocks, callback: "next", type })
+      },
+      error(error) {
+        import.meta.env.DEV && console.error({ error: error.message, callback: "error", type })
+        import.meta.env.DEV && console.error(error)
+      },
+      complete(data) {
+        import.meta.env.DEV && console.log({ data, callback: "next", type })
+      }
+    })
+
+    const IdSetSub = typedApi.event.Identity.IdentitySet.watch()
+      .subscribe(getEventObserver("Identity.IdentitySet"))
+    const IdClearedSub = typedApi.event.Identity.IdentityCleared.watch()
+      .subscribe(getEventObserver("Identity.IdentityCleared"))
+    return () => {
+      IdSetSub.unsubbcribe?.()
+      IdClearedSub.unsubbcribe?.()
+    }
+  }, [appStateSnapshot.chain.id])
+
+  useEffect(() => {
+    let subscription: Subscription;
+
+    const startSubscription = () => {
+      subscription = chainClient.bestBlocks$
+        .pipe(
+          mergeMap((blocks) =>
+            Promise.all(
+              blocks.map((block) =>
+                unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
+                  (extrinsics) => ({ ...block, extrinsics }),
+                ),
+              ),
+            ),
+          ),
+        )
+        .subscribe({
+          next: (blocks) => {
+            const newBlocks = new Map(blocks);
+
+            for (const block of blocks) {
+              if (block.extrinsics !== undefined) {
+                newBlocks.set(block.hash, block.extrinsics);
+              }
+            }
+
+            console.log({newBlocks});
+          },
+          error: (error) => {
+            console.error("block error", error);
+            return startSubscription();
+          },
+        });
+    };
+
+    startSubscription();
+
+    return () => subscription.unsubscribe();
+  }, [appStateSnapshot.chain.id]);
+
   const timer = useRef();
   useEffect(() => {
     (async () => {
