@@ -74,7 +74,6 @@ export const appState: {
     state: keyof IdentityJudgement,
     fee: bigint,
   }>
-  stage: number,
   challenges: Record<string, {
     value: string,
     verified: boolean,
@@ -93,7 +92,6 @@ export const appState: {
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
   },
   walletDialogOpen: false,
-  stage: 0,
   challenges: {
     matrix: { value: '', verified: false },
     email: { value: '', verified: false },
