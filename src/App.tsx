@@ -202,9 +202,15 @@ export default function App() {
       .subscribe(getEventObserver("Identity.IdentitySet"))
     const IdClearedSub = typedApi.event.Identity.IdentityCleared.watch()
       .subscribe(getEventObserver("Identity.IdentityCleared"))
+    const JudgememtRequestedSub = typedApi.event.Identity.JudgementRequested.watch()
+      .subscribe(getEventObserver("Identity.JudgementRequested"))
+    const JudgememtGivenSub = typedApi.event.Identity.JudgementGiven.watch()
+      .subscribe(getEventObserver("Identity.JudgementGiven"))
     return () => {
       IdSetSub.unsubbcribe?.()
       IdClearedSub.unsubbcribe?.()
+      JudgememtRequestedSub.unsubbcribe?.()
+      JudgememtGivenSub.unsubbcribe?.()
     }
   }, [appStateSnapshot.chain.id])
 
