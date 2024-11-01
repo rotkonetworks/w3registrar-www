@@ -163,10 +163,12 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
       max_fee: 0n,
       reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
     };
-    const call = !hashesAreEqual 
-      ? typedApi.tx.Utility.batch_all({calls: [
+    
+    let call;
+    if (!hashesAreEqual) {
+      call = typedApi.tx.Utility.batch_all({calls: [
         {
-          type: "Identity",
+          type: "Identity", 
           value: {
             type: "set_identity",
             value: data,
@@ -175,13 +177,14 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
         {
           type: "Identity",
           value: {
-            type: "request_judgement",
+            type: "request_judgement", 
             value: judgementRequestData,
           },
         },
-      ]})
-      : typedApi.tx.Identity.request_judgement(judgementRequestData)
-    ;
+      ]});
+    } else {
+      call = typedApi.tx.Identity.request_judgement(judgementRequestData);
+    }
     return call
   }, [validateForm, appStateSnap.identity, appState.chain.id])
 
