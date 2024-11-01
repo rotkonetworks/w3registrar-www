@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './Header';
 import ProgressBar from './ProgressBar';
 import IdentityForm from './IdentityForm';
@@ -38,7 +38,7 @@ const IdentityVerificationProcess = () => {
         return;
     }
   }, [appState.verificationProgress]);
-  
+
   const [challenges, setChallenges] = useState({
     displayName: false,
     matrix: { value: '', verified: false },
