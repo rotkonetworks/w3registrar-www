@@ -191,21 +191,19 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   const timer = useRef()
   useEffect(() => {
     timer.curreut = setInterval(async () => {
-      if (import.meta.env.DEV) {
-        const callCost = await chainCall.getEstimatedFees(appState.account.address);
-        const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
-          ? { 
-            requestJdgement: callCost,
-            setIdentityAndRequestJudgement: 0n,
-          }
-          : { 
-            requestJdgement: 0n,
-            setIdentityAndRequestJudgement: callCost,
-          }
-        ) };
-        appState.fees = estimatedCosts;
-        console.log({ estimatedCosts });
-      }
+      const callCost = await chainCall.getEstimatedFees(appState.account.address);
+      const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
+        ? { 
+          requestJdgement: callCost,
+          setIdentityAndRequestJudgement: 0n,
+        }
+        : { 
+          requestJdgement: 0n,
+          setIdentityAndRequestJudgement: callCost,
+        }
+      ) };
+      appState.fees = estimatedCosts;
+      import.meta.env.DEV && console.log({ estimatedCosts });
     }, CHAIN_UPDATE_INTERVAL)
     return () => {
       clearInterval(timer.current)
