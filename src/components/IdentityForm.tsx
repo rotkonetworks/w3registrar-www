@@ -118,6 +118,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   }, [appState.account])
 
   const getSubmitData = useCallback(
+    // TODO Review so it gets all the fiends that are present and sets default values othervise
     () => appStateSnap.identity && ({
       info: {
         ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
@@ -163,7 +164,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
       max_fee: 0n,
       reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
     };
-    
+
     let call;
     if (!hashesAreEqual) {
       call = typedApi.tx.Utility.batch_all({calls: [
@@ -225,9 +226,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
       (async () => {
         const call = chainCall;
         
-        const resultObservable = call.signSubmitAndWatch(
-          appStateSnap.account?.polkadotSigner,
-        )
+        const resultObservable = call.signSubmitAndWatch(appStateSnap.account?.polkadotSigner)
         const resultObserver = {
           next(data) {
             import.meta.env.DEV && console.log({data, source: "observer",})
