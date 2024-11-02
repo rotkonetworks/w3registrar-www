@@ -13,6 +13,7 @@ import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
+import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
 
 interface Props {
@@ -182,8 +183,6 @@ export default function App() {
 
   const chainClient = useClient({ chainId: appStateSnapshot.chain.id })
 
-  const loadQuery = useQueryLoader();
-  
   useEffect(() => {
     const getEventObserver = (type) => ({
       next(blocks) {
@@ -215,7 +214,7 @@ export default function App() {
   }, [appStateSnapshot.chain.id])
 
   useEffect(() => {
-    let subscription: Subscription;
+    let subscription: PushSubscription;
 
     const startSubscription = () => {
       subscription = chainClient.bestBlocks$
