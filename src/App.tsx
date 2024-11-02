@@ -205,15 +205,7 @@ export default function App() {
       .subscribe(getEventObserver("Identity.JudgementRequested"))
     const JudgememtGivenSub = typedApi.event.Identity.JudgementGiven.watch()
       .subscribe(getEventObserver("Identity.JudgementGiven"))
-    return () => {
-      IdSetSub.unsubbcribe?.()
-      IdClearedSub.unsubbcribe?.()
-      JudgememtRequestedSub.unsubbcribe?.()
-      JudgememtGivenSub.unsubbcribe?.()
-    }
-  }, [appStateSnapshot.chain.id])
 
-  useEffect(() => {
     let subscription: PushSubscription;
 
     const startSubscription = () => {
@@ -249,9 +241,15 @@ export default function App() {
     };
 
     startSubscription();
-
-    return () => subscription.unsubscribe();
-  }, [appStateSnapshot.chain.id]);
+    
+    return () => {
+      IdSetSub.unsubbcribe?.()
+      IdClearedSub.unsubbcribe?.()
+      JudgememtRequestedSub.unsubbcribe?.()
+      JudgememtGivenSub.unsubbcribe?.()
+      subscription.unsubscribe();
+    }
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account])
 
   const timer = useRef();
   useEffect(() => {
