@@ -197,18 +197,19 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
     timer.curreut = setInterval(async () => {
       try {
         const callCost = await chainCall.getEstimatedFees(appState.account.address);
-        const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
-          ? { 
-            requestJdgement: callCost,
-            setIdentityAndRequestJudgement: 0n,
-          }
-          : { 
-            requestJdgement: 0n,
-            setIdentityAndRequestJudgement: callCost,
-          }
-        ) };
-        appState.fees = estimatedCosts;
-        import.meta.env.DEV && console.log({ estimatedCosts });
+        const estimatedFees = {...appState.fees};
+        if (appStateSnap.verificationProgress < IdentityVerificationStates.FeePaid) {
+          if (hashesAreEqual) {
+            estimatedFees.requestJdgement = callCost;
+            estimatedFees.setIdentityAndRequestJudgement = 0n;
+          } else {
+            estimatedFees.requestJdgement = 0n;
+            estimatedFees.setIdentityAndRequestJudgement = callCost;
+          }        
+        }
+        appState.fees = estimatedFees;
+
+        import.meta.env.DEV && console.log({ estimatedFees });
       } catch (error) {
         const errorToSuppress = "Cannot read properties of undefined (reading 'info')";
         // Happens when account has no identity, so we suppress it so it won't pollute console.
