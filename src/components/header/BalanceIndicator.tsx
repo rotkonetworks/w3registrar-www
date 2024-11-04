@@ -32,7 +32,7 @@ export const BalanceIndicator: React.FC = () => {
           </tr>
           {Object.entries({ ...appStateSnap.fees })
             .filter(([key, amount]) => amount)
-            .map(([key, amount]) => <tr>
+            .map(([key, amount]) => <tr key={key}>
               <th className="font-size-0.66em">{strings[key]}</th>
               <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
             </tr>)
@@ -46,7 +46,7 @@ export const BalanceIndicator: React.FC = () => {
           </tr>
           {Object.entries({ ...appStateSnap.reserves })
             .filter(([key, amount]) => amount)
-            .map(([key, amount]) => <tr>
+            .map(([key, amount]) => <tr key={key}>
               <th className="font-size-0.66em">{strings[key] || key}</th>
               <td className="text-align-right font-size-0.66em">{formatValue(-amount)}</td>
             </tr>)
