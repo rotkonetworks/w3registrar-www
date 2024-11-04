@@ -6,7 +6,6 @@ import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
-import { useIdentityEncoder } from '~/hooks/hashers/identity';
 import { getSs58AddressInfo } from 'polkadot-api';
 import { IdentityVerificationStates } from '~/constants';
 
