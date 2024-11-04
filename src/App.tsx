@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -183,10 +183,19 @@ export default function App() {
 
   const chainClient = useClient({ chainId: appStateSnapshot.chain.id })
 
+  //const [relevantBlocks, setRelevantBlocks] = useState([])
+  const relevantBlocks = useRef([])
+  
+  const processBlock = useCallback((block) => {
+
+  }, [])
   useEffect(() => {
     const getEventObserver = (type) => ({
-      next(blocks) {
-        import.meta.env.DEV && console.log({ blocks, callback: "next", type })
+      next(block) {
+        const blockData = { block, callback: "next", type };
+        import.meta.env.DEV && console.log(blockData)
+        relevantBlocks.current.push(block)
+        processBlock(blockData)
       },
       error(error) {
         import.meta.env.DEV && console.error({ error: error.message, callback: "error", type })
@@ -215,7 +224,7 @@ export default function App() {
             Promise.all(
               blocks.map((block) =>
                 unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
-                  (extrinsics) => ({ ...block, extrinsics }),
+                  (extrinsics) => ({ block, extrinsics }),
                 ),
               ),
             ),
@@ -226,15 +235,23 @@ export default function App() {
             const newBlocks = new Map(blocks);
 
             for (const block of blocks) {
-              if (block.extrinsics !== undefined) {
-                newBlocks.set(block.hash, block.extrinsics);
+              if (block.extrinsics && block.block.hash) {
+                newBlocks.set(block.block.hash, block.extrinsics);
               }
+              const _block = relevantBlocks.current.find(
+                (__block) => block.block.hash === __block.meta.block.hash
+              );
+              if (_block) {
+                _block.extrinsics = block.extrinsics
+                processBlock({ block: _block, type: "extrinsics" });
+              }
+              import.meta.env.DEV && console.log({_block, block});
             }
 
-            console.log({newBlocks});
+            import.meta.env.DEV && console.log({newBlocks});
           },
           error: (error) => {
-            console.error("block error", error);
+            import.meta.env.DEV && console.error("block error", error);
             return startSubscription();
           },
         });
@@ -249,7 +266,7 @@ export default function App() {
       JudgememtGivenSub.unsubbcribe?.()
       subscription.unsubscribe();
     }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account])
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account, processBlock])
 
   const timer = useRef();
   useEffect(() => {
