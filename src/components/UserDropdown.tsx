@@ -1,4 +1,4 @@
-import { useAccounts, useConnectedWallets, useWalletDisconnector, useWallets } from '@reactive-dot/react';
+import { useAccounts, useConnectedWallets, useTypedApi, useWalletDisconnector } from '@reactive-dot/react';
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
@@ -20,6 +20,8 @@ const UserDropdown = () => {
 
   // testing for fetched from an API or passed as a prop
   const accounts = useAccounts()
+
+  const typedApi = useTypedApi()
 
   return (
     <div className="relative">
@@ -57,7 +59,9 @@ const UserDropdown = () => {
                 && <button
                   className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
                   onClick={() => {
-                    appState.identity = null
+                    typedApi.tx.Identity.clear_identity().signAndSubmit(
+                      appStateSnapshot.account?.polkadotSigner
+                    )
                     handleClose()
                   }}
                 >
