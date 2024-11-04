@@ -190,6 +190,9 @@ export default function App() {
 
   }, [])
   useEffect(() => {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account) {
+      return
+    }
     const getEventObserver = (type) => ({
       next(block) {
         const blockData = { block, callback: "next", type };
@@ -202,7 +205,7 @@ export default function App() {
         import.meta.env.DEV && console.error(error)
       },
       complete(data) {
-        import.meta.env.DEV && console.log({ data, callback: "next", type })
+        import.meta.env.DEV && console.log({ data, callback: "complete", type })
       }
     })
 
@@ -215,10 +218,10 @@ export default function App() {
     const JudgememtGivenSub = typedApi.event.Identity.JudgementGiven.watch()
       .subscribe(getEventObserver("Identity.JudgementGiven"))
 
-    let subscription: PushSubscription;
+    let extrinsicsSubscription: PushSubscription;
 
     const startSubscription = () => {
-      subscription = chainClient.bestBlocks$
+      extrinsicsSubscription = chainClient.bestBlocks$
         .pipe(
           mergeMap((blocks) =>
             Promise.all(
@@ -244,8 +247,8 @@ export default function App() {
               if (_block) {
                 _block.extrinsics = block.extrinsics
                 processBlock({ block: _block, type: "extrinsics" });
+                import.meta.env.DEV && console.log({_block, block, relevantBlocks});
               }
-              import.meta.env.DEV && console.log({_block, block});
             }
 
             import.meta.env.DEV && console.log({newBlocks});
@@ -259,12 +262,16 @@ export default function App() {
 
     startSubscription();
     
+    import.meta.env.DEV && console.log("Chain events subscription")
+    
     return () => {
-      IdSetSub.unsubbcribe?.()
-      IdClearedSub.unsubbcribe?.()
-      JudgememtRequestedSub.unsubbcribe?.()
-      JudgememtGivenSub.unsubbcribe?.()
-      subscription.unsubscribe();
+      IdSetSub.unsubscribe()
+      IdClearedSub.unsubscribe()
+      JudgememtRequestedSub.unsubscribe()
+      JudgememtGivenSub.unsubscribe()
+      extrinsicsSubscription.unsubscribe();
+      
+      import.meta.env.DEV && console.log("Chain events unsubscription")
     }
   }, [appStateSnapshot.chain.id, appStateSnapshot.account, processBlock])
 
