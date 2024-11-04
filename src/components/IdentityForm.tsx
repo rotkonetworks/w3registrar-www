@@ -191,20 +191,31 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
 
   const timer = useRef()
   useEffect(() => {
+    if (!appState.account) {
+      return
+    }
     timer.curreut = setInterval(async () => {
-      const callCost = await chainCall.getEstimatedFees(appState.account.address);
-      const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
-        ? { 
-          requestJdgement: callCost,
-          setIdentityAndRequestJudgement: 0n,
-        }
-        : { 
-          requestJdgement: 0n,
-          setIdentityAndRequestJudgement: callCost,
-        }
-      ) };
-      appState.fees = estimatedCosts;
-      import.meta.env.DEV && console.log({ estimatedCosts });
+      try {
+        const callCost = await chainCall.getEstimatedFees(appState.account.address);
+        const estimatedCosts = { ...appStateSnap.fees, ...(hashesAreEqual
+          ? { 
+            requestJdgement: callCost,
+            setIdentityAndRequestJudgement: 0n,
+          }
+          : { 
+            requestJdgement: 0n,
+            setIdentityAndRequestJudgement: callCost,
+          }
+        ) };
+        appState.fees = estimatedCosts;
+        import.meta.env.DEV && console.log({ estimatedCosts });
+      } catch (error) {
+        const errorToSuppress = "Cannot read properties of undefined (reading 'info')";
+        // Happens when account has no identity, so we suppress it so it won't pollute console.
+        if (error.message === errorToSuppress)
+          return
+        import.meta.env.DEV && console.error(error);
+      }
     }, CHAIN_UPDATE_INTERVAL)
     return () => {
       clearInterval(timer.current)
