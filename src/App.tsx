@@ -185,6 +185,14 @@ export default function App() {
 
   //const [relevantBlocks, setRelevantBlocks] = useState([])
   const relevantBlocks = useRef([])
+
+  const eventSubs = {
+    idSet: useRef(),
+    idCleared: useRef(),
+    judgRequested: useRef(),
+    judgGiven: useRef(),
+    extrinsics: useRef(),
+  }
   
   const processBlock = useCallback((block) => {
 
@@ -209,19 +217,25 @@ export default function App() {
       }
     })
 
-    const IdSetSub = typedApi.event.Identity.IdentitySet.watch()
-      .subscribe(getEventObserver("Identity.IdentitySet"))
-    const IdClearedSub = typedApi.event.Identity.IdentityCleared.watch()
-      .subscribe(getEventObserver("Identity.IdentityCleared"))
-    const JudgememtRequestedSub = typedApi.event.Identity.JudgementRequested.watch()
-      .subscribe(getEventObserver("Identity.JudgementRequested"))
-    const JudgememtGivenSub = typedApi.event.Identity.JudgementGiven.watch()
-      .subscribe(getEventObserver("Identity.JudgementGiven"))
-
-    let extrinsicsSubscription: PushSubscription;
+    if (!eventSubs.idSet.current || eventSubs.idSet.current.closed) {
+      eventSubs.idSet.current = typedApi.event.Identity.IdentitySet.watch()
+        .subscribe(getEventObserver("Identity.IdentitySet"))
+    }
+    if (!eventSubs.idCleared.current || eventSubs.idCleared.current.closed) {
+      eventSubs.idCleared.current = typedApi.event.Identity.IdentityCleared.watch()
+        .subscribe(getEventObserver("Identity.IdentityCleared"))
+    }
+    if (!eventSubs.judgRequested.current || eventSubs.judgRequested.current.closed) {
+      eventSubs.judgRequested.current = typedApi.event.Identity.JudgementRequested.watch()
+        .subscribe(getEventObserver("Identity.JudgementRequested"))
+    }
+    if (!eventSubs.judgGiven.current || eventSubs.judgGiven.current.closed) {
+      eventSubs.judgGiven.current = typedApi.event.Identity.JudgementGiven.watch()
+        .subscribe(getEventObserver("Identity.JudgementGiven"))
+    }
 
     const startSubscription = () => {
-      extrinsicsSubscription = chainClient.bestBlocks$
+      eventSubs.extrinsics.current = chainClient.bestBlocks$
         .pipe(
           mergeMap((blocks) =>
             Promise.all(
@@ -260,16 +274,18 @@ export default function App() {
         });
     };
 
-    startSubscription();
+    if (!eventSubs.extrinsics.current || eventSubs.extrinsics.current.closed) {
+      startSubscription();
+    }
     
     import.meta.env.DEV && console.log("Chain events subscription")
     
     return () => {
-      IdSetSub.unsubscribe()
-      IdClearedSub.unsubscribe()
-      JudgememtRequestedSub.unsubscribe()
-      JudgememtGivenSub.unsubscribe()
-      extrinsicsSubscription.unsubscribe();
+      eventSubs.idSet.current?.unsubscribe()
+      eventSubs.idCleared.current?.unsubscribe()
+      eventSubs.judgRequested.current?.unsubscribe()
+      eventSubs.judgGiven.current?.unsubscribe()
+      eventSubs.extrinsics.current?.unsubscribe()
       
       import.meta.env.DEV && console.log("Chain events unsubscription")
     }
