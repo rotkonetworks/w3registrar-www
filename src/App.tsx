@@ -7,7 +7,7 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useAccounts, useClient, useQueryLoader, useTypedApi } from '@reactive-dot/react';
+import { useAccounts, useChainSpecData, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
@@ -276,11 +276,11 @@ export default function App() {
   }, [appStateSnapshot.chain.id, appStateSnapshot.account, processBlock])
 
   const timer = useRef();
+  const chainSpecData = useChainSpecData()
   useEffect(() => {
     (async () => {
       if (appStateSnapshot.chain.id) {
-        const chainSpecData = await chainClient._request("system_properties");
-        import.meta.env.DEV && console.log({ chainSpecData, })
+        import.meta.env.DEV && console.log({ chainSpecData: chainSpecData.properties, })
         appState.chain = { ...appStateSnapshot.chain, ...chainSpecData }
       }
     }) ()
@@ -297,9 +297,9 @@ export default function App() {
         })
         appState.account.balance = accData.data
       }, CHAIN_UPDATE_INTERVAL)
-      return () => {
-        clearInterval(timer.current);
-      }
+    }
+    return () => {
+      clearInterval(timer.current);
     }
   }, [appStateSnapshot.account, appStateSnapshot.chain.id])
 
