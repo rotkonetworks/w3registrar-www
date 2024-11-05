@@ -212,25 +212,67 @@ export default function App() {
       import.meta.env.DEV && console.log({ data, callback: "complete", type })
     }
   })
+
   useEffect(() => {
     if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
       return
     }
 
     setEventSubs(es => {
-      es = {...es}
       if (!es.idSet || es.idSet.closed) {
         es.idSet = typedApi.event.Identity.IdentitySet.watch()
           .subscribe(getEventObserver("Identity.IdentitySet"))
       }
+      return ({ ...es, });
+    })
+
+    return () => {
+      eventSubs.idSet?.unsubscribe()
+    }
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.idSet])
+
+  useEffect(() => {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
+      return
+    }
+
+    setEventSubs(es => {
       if (!es.idCleared || es.idCleared.closed) {
         es.idCleared = typedApi.event.Identity.IdentityCleared.watch()
           .subscribe(getEventObserver("Identity.IdentityCleared"))
       }
+      return ({ ...es, });
+    })
+
+    return () => {
+      eventSubs.idCleared?.unsubscribe()
+    }
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address], eventSubs.idCleared)
+
+  useEffect(() => {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
+      return
+    }
+
+    setEventSubs(es => {
       if (!es.judgRequested || eventSubs.judgRequested.closed) {
         es.judgRequested = typedApi.event.Identity.JudgementRequested.watch()
           .subscribe(getEventObserver("Identity.JudgementRequested"))
       }
+      return ({ ...es, });
+    })
+
+    return () => {
+      eventSubs.judgRequested?.unsubscribe()
+    }
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.judgRequested])
+
+  useEffect(() => {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
+      return
+    }
+
+    setEventSubs(es => {
       if (!es.judgGiven || es.judgGiven.closed) {
         es.judgGiven = typedApi.event.Identity.JudgementGiven.watch()
           .subscribe(getEventObserver("Identity.JudgementGiven"))
@@ -238,87 +280,77 @@ export default function App() {
       return es;
     })
 
-    const startSubscription = () => {
-      setEventSubs(es => {
-        es = {...es}
-        if (!es.extrinsics || es.extrinsics.close) {
-          es.extrinsics = chainClient.bestBlocks$
-            .pipe(
-              mergeMap((blocks) =>
-                Promise.all(
-                  blocks.map((block) =>
-                    unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
-                      (extrinsics) => ({ block, extrinsics }),
-                    ),
+    return () => {
+      eventSubs.judgGiven?.unsubscribe()
+    }
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.judgGiven])
+
+  const startExtrinsicsSub = () => {
+    setEventSubs(es => {
+      if (!es.extrinsics || es.extrinsics.close) {
+        es.extrinsics = chainClient.bestBlocks$
+          .pipe(
+            mergeMap((blocks) =>
+              Promise.all(
+                blocks.map((block) =>
+                  unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
+                    (extrinsics) => ({ block, extrinsics }),
                   ),
                 ),
               ),
-            )
-            .subscribe({
-              ...getEventObserver("extrinsics"),
-              next: (blocks) => {
-                const newBlocks = new Map(blocks);
-    
-                for (const block of blocks) {
-                  if (block.extrinsics && block.block.hash) {
-                    newBlocks.set(block.block.hash, block.extrinsics);
-                  }
-                  const matchingBlock = relevantBlocks.current.find(
-                    (__block) => block.block.hash === __block.meta.block.hash
-                  );
-                  if (matchingBlock) {
-                    matchingBlock.extrinsics = block.extrinsics
-                    processBlock({ block: matchingBlock, type: "extrinsics" });
-                    import.meta.env.DEV && console.log({ matchingBlock, block, relevantBlocks });
-                  }
+            ),
+          )
+          .subscribe({
+            ...getEventObserver("extrinsics"),
+            next: (blocks) => {
+              const newBlocks = new Map(blocks);
+  
+              for (const block of blocks) {
+                if (block.extrinsics && block.block.hash) {
+                  newBlocks.set(block.block.hash, block.extrinsics);
                 }
-    
-                import.meta.env.DEV && console.log({newBlocks});
-              },
-              error: (error) => {
-                import.meta.env.DEV && console.error("block error", error);
-                return startSubscription();
-              },
-            });
-        }
-      })
-    };
+                const matchingBlock = relevantBlocks.current.find(
+                  (__block) => block.block.hash === __block.meta.block.hash
+                );
+                if (matchingBlock) {
+                  matchingBlock.extrinsics = block.extrinsics
+                  processBlock({ block: matchingBlock, type: "extrinsics" });
+                  import.meta.env.DEV && console.log({ matchingBlock, block, relevantBlocks });
+                }
+              }
+  
+              import.meta.env.DEV && console.log({newBlocks});
+            },
+            error: (error) => {
+              import.meta.env.DEV && console.error("block error", error);
+              return startExtrinsicsSub();
+            },
+          });
+      }
+      return ({ ...es, });
+    })
+  };
+  useEffect(() => {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
+      return
+    }
 
-    startSubscription();
-    
-    import.meta.env.DEV && console.log("Chain events subscription")
-    import.meta.env.DEV && console.log({ eventSubs })
+    startExtrinsicsSub();
     
     return () => {
-      import.meta.env.DEV && console.log({ eventSubs })
-      setEventSubs(es => {
-        es = {...es}
-        for (let key in es) {
-          es[key].unsubscribe();
-          es[key] = null;
-        }
-        return es
-      })
-      
-      import.meta.env.DEV && console.log("Chain events unsubscription")
+      eventSubs.extrinsics?.unsubscribe()
     }
-  }, [
-    appStateSnapshot.chain.id, appStateSnapshot.account?.address, processBlock,
-    eventSubs?.idSet,
-    eventSubs?.idCleared,
-    eventSubs?.judgRequested,
-    eventSubs?.judgGiven,
-    eventSubs?.extrinsics,
-  ])
-
+  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.extrinsics])
+  
   useEffect(() => {
     (async () => {
       if (appStateSnapshot.chain.id) {
-        import.meta.env.DEV && console.log({ chainSpecData: chainSpecData.properties, })
+        const chainSpecData = await chainClient._request("system_properties");
+        import.meta.env.DEV && console.log({ chainSpecData, })
         appState.chain = { ...appStateSnapshot.chain, ...chainSpecData }
       }
     }) ()
-  }, [appStateSnapshot.chain.id,])
+  }, [appStateSnapshot.chain.id])
   
   // TODO Subscribe to events instead
   const timer = useRef();
