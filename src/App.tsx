@@ -213,8 +213,12 @@ export default function App() {
     const type = `${pallet}.${call}`;
     typedApi.event[pallet][call].pull()
       .then(data => {
-        onEvent(data)
-        console.log({ data, type, })
+        data.filter(item => item.payload.who === appStateSnapshot.account?.address)
+          .forEach(item => {
+            onEvent(item)
+            console.log({ data: item, type, })
+          }
+        )
       })
       .catch(error => {
         onError(error)
