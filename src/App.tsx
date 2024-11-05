@@ -186,113 +186,131 @@ export default function App() {
   //const [relevantBlocks, setRelevantBlocks] = useState([])
   const relevantBlocks = useRef([])
 
-  const eventSubs = {
-    idSet: useRef<Subscription>(),
-    idCleared: useRef<Subscription>(),
-    judgRequested: useRef<Subscription>(),
-    judgGiven: useRef<Subscription>(),
-    extrinsics: useRef<Subscription>(),
-  }
+  const [eventSubs, setEventSubs] = useState({
+    idSet: null,
+    idCleared: null,
+    judgRequested: null,
+    judgGiven: null,
+    extrinsics: null,
+  })
   
   const processBlock = useCallback((block) => {
 
   }, [])
+  const getEventObserver = (type) => ({
+    next(block) {
+      const blockData = { block, callback: "next", type };
+      import.meta.env.DEV && console.log(blockData)
+      relevantBlocks.current.push(block)
+      processBlock(blockData)
+    },
+    error(error) {
+      import.meta.env.DEV && console.error({ error: error.message, callback: "error", type })
+      import.meta.env.DEV && console.error(error)
+    },
+    complete(data) {
+      import.meta.env.DEV && console.log({ data, callback: "complete", type })
+    }
+  })
   useEffect(() => {
-    if (!appStateSnapshot.chain.id || !appStateSnapshot.account) {
+    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
       return
     }
-    const getEventObserver = (type) => ({
-      next(block) {
-        const blockData = { block, callback: "next", type };
-        import.meta.env.DEV && console.log(blockData)
-        relevantBlocks.current.push(block)
-        processBlock(blockData)
-      },
-      error(error) {
-        import.meta.env.DEV && console.error({ error: error.message, callback: "error", type })
-        import.meta.env.DEV && console.error(error)
-      },
-      complete(data) {
-        import.meta.env.DEV && console.log({ data, callback: "complete", type })
+
+    setEventSubs(es => {
+      es = {...es}
+      if (!es.idSet || es.idSet.closed) {
+        es.idSet = typedApi.event.Identity.IdentitySet.watch()
+          .subscribe(getEventObserver("Identity.IdentitySet"))
       }
+      if (!es.idCleared || es.idCleared.closed) {
+        es.idCleared = typedApi.event.Identity.IdentityCleared.watch()
+          .subscribe(getEventObserver("Identity.IdentityCleared"))
+      }
+      if (!es.judgRequested || eventSubs.judgRequested.closed) {
+        es.judgRequested = typedApi.event.Identity.JudgementRequested.watch()
+          .subscribe(getEventObserver("Identity.JudgementRequested"))
+      }
+      if (!es.judgGiven || es.judgGiven.closed) {
+        es.judgGiven = typedApi.event.Identity.JudgementGiven.watch()
+          .subscribe(getEventObserver("Identity.JudgementGiven"))
+      }
+      return es;
     })
 
-    if (!eventSubs.idSet.current || eventSubs.idSet.current.closed) {
-      eventSubs.idSet.current = typedApi.event.Identity.IdentitySet.watch()
-        .subscribe(getEventObserver("Identity.IdentitySet"))
-    }
-    if (!eventSubs.idCleared.current || eventSubs.idCleared.current.closed) {
-      eventSubs.idCleared.current = typedApi.event.Identity.IdentityCleared.watch()
-        .subscribe(getEventObserver("Identity.IdentityCleared"))
-    }
-    if (!eventSubs.judgRequested.current || eventSubs.judgRequested.current.closed) {
-      eventSubs.judgRequested.current = typedApi.event.Identity.JudgementRequested.watch()
-        .subscribe(getEventObserver("Identity.JudgementRequested"))
-    }
-    if (!eventSubs.judgGiven.current || eventSubs.judgGiven.current.closed) {
-      eventSubs.judgGiven.current = typedApi.event.Identity.JudgementGiven.watch()
-        .subscribe(getEventObserver("Identity.JudgementGiven"))
-    }
-
     const startSubscription = () => {
-      eventSubs.extrinsics.current = chainClient.bestBlocks$
-        .pipe(
-          mergeMap((blocks) =>
-            Promise.all(
-              blocks.map((block) =>
-                unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
-                  (extrinsics) => ({ block, extrinsics }),
+      setEventSubs(es => {
+        es = {...es}
+        if (!es.extrinsics || es.extrinsics.close) {
+          es.extrinsics = chainClient.bestBlocks$
+            .pipe(
+              mergeMap((blocks) =>
+                Promise.all(
+                  blocks.map((block) =>
+                    unstable_getBlockExtrinsics(chainClient, typedApi, block.hash).then(
+                      (extrinsics) => ({ block, extrinsics }),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        )
-        .subscribe({
-          next: (blocks) => {
-            const newBlocks = new Map(blocks);
-
-            for (const block of blocks) {
-              if (block.extrinsics && block.block.hash) {
-                newBlocks.set(block.block.hash, block.extrinsics);
-              }
-              const _block = relevantBlocks.current.find(
-                (__block) => block.block.hash === __block.meta.block.hash
-              );
-              if (_block) {
-                _block.extrinsics = block.extrinsics
-                processBlock({ block: _block, type: "extrinsics" });
-                import.meta.env.DEV && console.log({_block, block, relevantBlocks});
-              }
-            }
-
-            import.meta.env.DEV && console.log({newBlocks});
-          },
-          error: (error) => {
-            import.meta.env.DEV && console.error("block error", error);
-            return startSubscription();
-          },
-        });
+            )
+            .subscribe({
+              ...getEventObserver("extrinsics"),
+              next: (blocks) => {
+                const newBlocks = new Map(blocks);
+    
+                for (const block of blocks) {
+                  if (block.extrinsics && block.block.hash) {
+                    newBlocks.set(block.block.hash, block.extrinsics);
+                  }
+                  const matchingBlock = relevantBlocks.current.find(
+                    (__block) => block.block.hash === __block.meta.block.hash
+                  );
+                  if (matchingBlock) {
+                    matchingBlock.extrinsics = block.extrinsics
+                    processBlock({ block: matchingBlock, type: "extrinsics" });
+                    import.meta.env.DEV && console.log({ matchingBlock, block, relevantBlocks });
+                  }
+                }
+    
+                import.meta.env.DEV && console.log({newBlocks});
+              },
+              error: (error) => {
+                import.meta.env.DEV && console.error("block error", error);
+                return startSubscription();
+              },
+            });
+        }
+      })
     };
 
-    if (!eventSubs.extrinsics.current || eventSubs.extrinsics.current.closed) {
-      startSubscription();
-    }
+    startSubscription();
     
     import.meta.env.DEV && console.log("Chain events subscription")
+    import.meta.env.DEV && console.log({ eventSubs })
     
     return () => {
-      eventSubs.idSet.current?.unsubscribe()
-      eventSubs.idCleared.current?.unsubscribe()
-      eventSubs.judgRequested.current?.unsubscribe()
-      eventSubs.judgGiven.current?.unsubscribe()
-      eventSubs.extrinsics.current?.unsubscribe()
+      import.meta.env.DEV && console.log({ eventSubs })
+      setEventSubs(es => {
+        es = {...es}
+        for (let key in es) {
+          es[key].unsubscribe();
+          es[key] = null;
+        }
+        return es
+      })
       
       import.meta.env.DEV && console.log("Chain events unsubscription")
     }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account, processBlock])
+  }, [
+    appStateSnapshot.chain.id, appStateSnapshot.account?.address, processBlock,
+    eventSubs?.idSet,
+    eventSubs?.idCleared,
+    eventSubs?.judgRequested,
+    eventSubs?.judgGiven,
+    eventSubs?.extrinsics,
+  ])
 
-  const timer = useRef();
-  const chainSpecData = useChainSpecData()
   useEffect(() => {
     (async () => {
       if (appStateSnapshot.chain.id) {
