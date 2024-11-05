@@ -68,13 +68,13 @@ export const config = {
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+      provider: () => getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+      provider: () => getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY),
     }
   },
   wallets: [

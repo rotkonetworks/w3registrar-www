@@ -21,7 +21,7 @@ const UserDropdown = () => {
   // testing for fetched from an API or passed as a prop
   const accounts = useAccounts()
 
-  const typedApi = useTypedApi()
+  const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
 
   return (
     <div className="relative">

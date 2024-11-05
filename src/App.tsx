@@ -318,8 +318,10 @@ export default function App() {
         appState.chain = { ...appStateSnapshot.chain, ...chainSpecData }
       }
     }) ()
-  }, [appStateSnapshot.chain.id])
-
+  }, [appStateSnapshot.chain.id,])
+  
+  // TODO Subscribe to events instead
+  const timer = useRef();
   useEffect(() => {
     if (appStateSnapshot.account) {
       timer.current = setInterval(async () => {

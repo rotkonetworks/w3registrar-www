@@ -14,11 +14,9 @@ const Main: React.FC = () => {
     <React.StrictMode>
       <ReactiveDotProvider config={config}>
         {appStateSnap.chain.id &&
-          <ChainProvider chainId={appStateSnap.chain.id}>
-            <div className='dark:bg-black min-h-0px'>
-              <App />
-            </div>
-          </ChainProvider>
+          <div className='dark:bg-black min-h-0px'>
+            <App />
+          </div>
         }
       </ReactiveDotProvider>
     </React.StrictMode>
