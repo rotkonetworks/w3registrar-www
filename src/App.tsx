@@ -239,25 +239,67 @@ export default function App() {
   }
 
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentitySet" }, id: "idSet",
-    onEvent: data => {},
+    onEvent: data => {
+      appState.verificationProgress = 
+        // As we do batch calls, we need to know if judgeent is already awaiting
+        appStateSnapshot.verificationProgress === IdentityVerificationStates.NoIdentity
+          ? IdentityVerificationStates.IdentitySet
+          : appStateSnapshot.verificationProgress
+    },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentityCleared" }, 
     id: "idCleared",
-    onEvent: data => {},
+    onEvent: data => {
+      appState.verificationProgress = IdentityVerificationStates.NoIdentity
+    },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementRequested" }, 
     id: "judgRequested",
-    onEvent: data => {},
+    onEvent: data => {
+      appState.verificationProgress = IdentityVerificationStates.JudgementRequested
+    },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementGiven" }, 
     id: "judgRequested",
-    onEvent: data => {},
+    onEvent: data => {
+      typedApi.query.Identity.IdentityOf.getValue(appStateSnapshot.account.address)
+        .then((result) => {
+          if (!result) {
+            return;
+          }
+
+          const idJudgementOfId = result[0].judgements;
+          const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
+            registrar: {
+              index: judgement[0],
+            },
+            state: judgement[1].type,
+            fee: judgement[1].value,
+          }));
+          
+          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+            appState.verificationProgress = IdentityVerificationStates.FeePaid;
+          }
+          if (judgementData.find(j => [
+            IdentityJudgement.Reasonable().type, 
+            IdentityJudgement.KnownGood().type,
+          ].includes(j.state))) {
+            appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
+          }
+        })
+        .catch(e => {
+          if (import.meta.env.DEV) {
+            console.error("Couldn't get identityOf")
+            console.error(e)
+          }
+        })
+    },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
 
