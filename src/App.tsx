@@ -12,7 +12,7 @@ import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
-import { mergeMap } from 'rxjs';
+import { mergeMap, Subscription } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
 
@@ -187,11 +187,11 @@ export default function App() {
   const relevantBlocks = useRef([])
 
   const eventSubs = {
-    idSet: useRef(),
-    idCleared: useRef(),
-    judgRequested: useRef(),
-    judgGiven: useRef(),
-    extrinsics: useRef(),
+    idSet: useRef<Subscription>(),
+    idCleared: useRef<Subscription>(),
+    judgRequested: useRef<Subscription>(),
+    judgGiven: useRef<Subscription>(),
+    extrinsics: useRef<Subscription>(),
   }
   
   const processBlock = useCallback((block) => {
