@@ -194,10 +194,7 @@ export default function App() {
     extrinsics: null,
   })
   
-  const processBlock = useCallback((block) => {
-
-  }, [])
-  const getEventObserver = (type) => ({
+  const getEventObserver = (type, id) => ({
     next(block) {
       const blockData = { block, callback: "next", type };
       import.meta.env.DEV && console.log(blockData)
@@ -212,78 +209,53 @@ export default function App() {
       import.meta.env.DEV && console.log({ data, callback: "complete", type })
     }
   })
-
-  useEffect(() => {
-    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
-      return
-    }
-
-    setEventSubs(es => {
-      if (!es.idSet || es.idSet.closed) {
-        es.idSet = typedApi.event.Identity.IdentitySet.watch()
-          .subscribe(getEventObserver("Identity.IdentitySet"))
-      }
-      return ({ ...es, });
-    })
-
+  const handleChainEvent = ({type: { pallet, call }, onEvent, onError, id}) => {
+    const type = `${pallet}.${call}`;
+    typedApi.event[pallet][call].pull()
+      .then(data => {
+        onEvent(data)
+        console.log({ data, type, })
+      })
+      .catch(error => {
+        onError(error)
+        console.error({ message: error.message, type, })
+        console.error(error)
+      })
+  }
+  const getEffectCallback = ({type: { pallet, call }, onEvent, onError, id}) => {
     return () => {
-      eventSubs.idSet?.unsubscribe()
-    }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.idSet])
-
-  useEffect(() => {
-    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
-      return
-    }
-
-    setEventSubs(es => {
-      if (!es.idCleared || es.idCleared.closed) {
-        es.idCleared = typedApi.event.Identity.IdentityCleared.watch()
-          .subscribe(getEventObserver("Identity.IdentityCleared"))
+      if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
+        return
       }
-      return ({ ...es, });
-    })
-
-    return () => {
-      eventSubs.idCleared?.unsubscribe()
+      const timer = setInterval(() => {
+        handleChainEvent({ type: { pallet, call }, id, onEvent, onError, })
+      }, CHAIN_UPDATE_INTERVAL)
+      return () => clearInterval(timer)
     }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address], eventSubs.idCleared)
+  }
 
-  useEffect(() => {
-    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
-      return
-    }
-
-    setEventSubs(es => {
-      if (!es.judgRequested || eventSubs.judgRequested.closed) {
-        es.judgRequested = typedApi.event.Identity.JudgementRequested.watch()
-          .subscribe(getEventObserver("Identity.JudgementRequested"))
-      }
-      return ({ ...es, });
-    })
-
-    return () => {
-      eventSubs.judgRequested?.unsubscribe()
-    }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.judgRequested])
-
-  useEffect(() => {
-    if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
-      return
-    }
-
-    setEventSubs(es => {
-      if (!es.judgGiven || es.judgGiven.closed) {
-        es.judgGiven = typedApi.event.Identity.JudgementGiven.watch()
-          .subscribe(getEventObserver("Identity.JudgementGiven"))
-      }
-      return ({ ...es, });
-    })
-
-    return () => {
-      eventSubs.judgGiven?.unsubscribe()
-    }
-  }, [appStateSnapshot.chain.id, appStateSnapshot.account?.address, eventSubs.judgGiven])
+  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentitySet" }, id: "idSet",
+    onEvent: data => {},
+    onError: error => {},
+  }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
+  
+  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentityCleared" }, 
+    id: "idCleared",
+    onEvent: data => {},
+    onError: error => {},
+  }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
+  
+  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementRequested" }, 
+    id: "judgRequested",
+    onEvent: data => {},
+    onError: error => {},
+  }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
+  
+  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementGiven" }, 
+    id: "judgRequested",
+    onEvent: data => {},
+    onError: error => {},
+  }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
 
   const startExtrinsicsSub = () => {
     setEventSubs(es => {
@@ -327,7 +299,7 @@ export default function App() {
             },
           });
       }
-      return ({ ...es, });
+      return es;
     })
   };
   useEffect(() => {
