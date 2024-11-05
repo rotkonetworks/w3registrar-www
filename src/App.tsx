@@ -277,7 +277,7 @@ export default function App() {
         es.judgGiven = typedApi.event.Identity.JudgementGiven.watch()
           .subscribe(getEventObserver("Identity.JudgementGiven"))
       }
-      return es;
+      return ({ ...es, });
     })
 
     return () => {
