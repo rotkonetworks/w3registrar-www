@@ -13,8 +13,6 @@ import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { WsProvider } from "@polkadot/api";
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 
 const initWorker = () => startFromWorker(
