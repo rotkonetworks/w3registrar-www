@@ -132,61 +132,62 @@ export default function App() {
     }
   }, [onChainIdentity])
 
+  const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
+    .getValue(appState.account?.address)
+    .then((result) => {
+      if (!result) {
+        appState.verificationProgress = IdentityVerificationStates.NoIdentity;
+        return;
+      }
+      const identityOf = result[0];
+
+      const identityData = Object.fromEntries(Object.entries(identityOf.info)
+        .filter(([_, value]) => value?.type?.startsWith("Raw"))
+        .map(([key, value]) => [key, value.value.asText()])
+      );
+      appState.identity = identityData;
+      appState.verificationProgress = IdentityVerificationStates.IdentitySet;
+      setOnChainIdentity(identityData);
+
+      const idJudgementOfId = identityOf.judgements;
+      const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
+        registrar: {
+          index: judgement[0],
+        },
+        state: judgement[1].type,
+        fee: judgement[1].value,
+      }));
+      appState.judgements = judgementData;
+      appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
+
+      if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+        appState.verificationProgress = IdentityVerificationStates.FeePaid;
+      }
+      if (judgementData.find(j => [
+        IdentityJudgement.Reasonable().type,
+        IdentityJudgement.KnownGood().type,
+      ].includes(j.state))) {
+        appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
+      }
+
+      const idDeposit = identityOf.deposit;
+      // TODO  Compue approximate reserve
+      import.meta.env.DEV && console.log({
+        identityOf,
+        identityData,
+        judgementData,
+        idDeposit,
+      });
+    })
+    .catch(e => {
+      if (import.meta.env.DEV) {
+        console.error("Couldn't get identityOf");
+        console.error(e);
+      }
+    });
   useEffect(() => {
     if (appState.account?.address) {
-      typedApi.query.Identity.IdentityOf.getValue(appState.account?.address)
-        .then((result) => {
-          if (!result) {
-            appState.verificationProgress = IdentityVerificationStates.NoIdentity
-            return;
-          }
-          const identityOf = result[0]
-
-          const identityData = Object.fromEntries(Object.entries(identityOf.info)
-            .filter(([_, value]) => value?.type?.startsWith("Raw"))
-            .map(([key, value]) => [key, value.value.asText()])
-          );
-          appState.identity = identityData
-          appState.verificationProgress = IdentityVerificationStates.IdentitySet;
-          setOnChainIdentity(identityData)
-
-          const idJudgementOfId = identityOf.judgements;
-          const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
-            registrar: {
-              index: judgement[0],
-            },
-            state: judgement[1].type,
-            fee: judgement[1].value,
-          }));
-          appState.judgements = judgementData;
-          appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
-          
-          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-            appState.verificationProgress = IdentityVerificationStates.FeePaid;
-          }
-          if (judgementData.find(j => [
-            IdentityJudgement.Reasonable().type, 
-            IdentityJudgement.KnownGood().type,
-          ].includes(j.state))) {
-            appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
-          }
-
-          const idDeposit = identityOf.deposit
-          // TODO  Compue approximate reserve
-
-          import.meta.env.DEV && console.log({
-            identityOf,
-            identityData,
-            judgementData,
-            idDeposit,
-          })
-        })
-        .catch(e => {
-          if (import.meta.env.DEV) {
-            console.error("Couldn't get identityOf")
-            console.error(e)
-          }
-        })
+      getIdAndJudgement()
     }
   }, [appState.account?.address])
 
@@ -278,38 +279,7 @@ export default function App() {
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementGiven" }, 
     id: "judgRequested",
     onEvent: data => {
-      typedApi.query.Identity.IdentityOf.getValue(appStateSnapshot.account.address)
-        .then((result) => {
-          import.meta.env.DEV && console.log({result, type: "Ideitity.JudgementGiven"})
-          if (!result) {
-            return;
-          }
-
-          const idJudgementOfId = result[0].judgements;
-          const judgementData: typeof appState.judgements = idJudgementOfId.map((judgement) => ({
-            registrar: {
-              index: judgement[0],
-            },
-            state: judgement[1].type,
-            fee: judgement[1].value,
-          }));
-          
-          if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-            appState.verificationProgress = IdentityVerificationStates.FeePaid;
-          }
-          if (judgementData.find(j => [
-            IdentityJudgement.Reasonable().type, 
-            IdentityJudgement.KnownGood().type,
-          ].includes(j.state))) {
-            appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
-          }
-        })
-        .catch(e => {
-          if (import.meta.env.DEV) {
-            console.error("Couldn't get identityOf")
-            console.error(e)
-          }
-        })
+      getIdAndJudgement()
     },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
