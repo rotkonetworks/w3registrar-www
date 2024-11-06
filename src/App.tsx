@@ -225,14 +225,14 @@ export default function App() {
         data.filter(item => item.payload.who === appStateSnapshot.account?.address)
           .forEach(item => {
             onEvent(item)
-            console.log({ data: item, type, })
+            import.meta.env.DEV && console.log({ data: item, type, })
           }
         )
       })
       .catch(error => {
         onError(error)
-        console.error({ message: error.message, type, })
-        console.error(error)
+        import.meta.env.DEV && console.error({ message: error.message, type, })
+        import.meta.env.DEV && console.error(error)
       })
   }
   const getEffectCallback = ({type: { pallet, call }, onEvent, onError, id}) => {
@@ -279,6 +279,7 @@ export default function App() {
     onEvent: data => {
       typedApi.query.Identity.IdentityOf.getValue(appStateSnapshot.account.address)
         .then((result) => {
+          import.meta.env.DEV && console.log({result, type: "Ideitity.JudgementGiven"})
           if (!result) {
             return;
           }
