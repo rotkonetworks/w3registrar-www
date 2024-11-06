@@ -261,7 +261,8 @@ export default function App() {
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentityCleared" }, 
     id: "idCleared",
     onEvent: data => {
-      appState.verificationProgress = IdentityVerificationStates.NoIdentity
+      appState.verificationProgress = IdentityVerificationStates.NoIdentity;
+      appState.identity = null;
     },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
