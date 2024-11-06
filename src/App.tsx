@@ -222,7 +222,7 @@ export default function App() {
     const type = `${pallet}.${call}`;
     typedApi.event[pallet][call].pull()
       .then(data => {
-        data.filter(item => item.payload.who === appStateSnapshot.account?.address)
+        data.filter(item => [item.payload.who, item.payload.target].includes(appStateSnapshot.account?.address))
           .forEach(item => {
             onEvent(item)
             import.meta.env.DEV && console.log({ data: item, type, })
