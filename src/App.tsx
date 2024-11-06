@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -7,14 +7,17 @@ import { config } from "./api/config";
 import { proxy, useSnapshot } from 'valtio';
 
 import { ConnectionDialog } from "dot-connect/react.js";
-import { useAccounts, useChainSpecData, useClient, useTypedApi } from '@reactive-dot/react';
+import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
 import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
-import { mergeMap, Subscription } from 'rxjs';
+import { mergeMap } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
+import { useAlerts } from "./hooks/useAlerts"
+import { Alert } from './hooks/useAlerts';
+import { AlertCanvas } from './components/AlertCanvas';
 
 interface Props {
   route: RouteType;
@@ -88,6 +91,7 @@ export const appState: {
   },
   reserves: {},
   verificationProgress: IdentityVerificationStates,
+  alerts: Record<string, Alert>
 } = proxy({
   chain: { 
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
@@ -101,7 +105,12 @@ export const appState: {
   },
   hashes: {},
   verificationProgress: IdentityVerificationStates.Unknown,
+  alerts: [],
 })
+
+interface MainAlerts extends Alert {
+  closable?: boolean;
+}
 
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
@@ -402,6 +411,8 @@ export default function App() {
     appState.account = account
   }, [accounts])
 
+  const { push, remove } = useAlerts(proxy(appState.alerts))
+
   return <>
     <Router>
       <Routes>
@@ -417,5 +428,6 @@ export default function App() {
     <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
       onClose={() => { appState.walletDialogOpen = false }} 
     />
+    <AlertCanvas />
   </>;
 }
