@@ -400,6 +400,6 @@ export default function App() {
     <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
       onClose={() => { appState.walletDialogOpen = false }} 
     />
-    <AlertCanvas />
+    <AlertCanvas context={appState.alerts} />
   </>;
 }

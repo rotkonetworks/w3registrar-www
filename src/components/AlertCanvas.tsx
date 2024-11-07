@@ -1,6 +1,12 @@
-import { AlertProps } from "~/hooks/useAlerts";
+import { AlertProps, useAlerts } from "~/hooks/useAlerts";
 
-export const AlertCanvas = () => {
+interface AlertCanvasProps {
+  context: Record<string, AlertProps>,
+}
+
+export const AlertCanvas = ({context}: AlertCanvasProps) => {
+  const { alerts, remove } = useAlerts(context)
+
   return <>
     <div className="pos-fixed bottom-10 right-10 border-rounded-3 p2 flex flex-col justify-center text-2xl items-start">
       <Alert 
