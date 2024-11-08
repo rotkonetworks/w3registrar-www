@@ -246,7 +246,7 @@ export function IdentityVerification() {
     requestVerification,
     verifyIdentity
   } = useIdentityWebSocket({
-    url: 'ws://localhost:8080',
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY',
     onNotification: (notification) => {
       console.log('Received notification:', notification);
