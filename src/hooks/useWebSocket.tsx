@@ -160,7 +160,6 @@ export const useIdentityWebSocket = ({
 
   // Set up WebSocket connection
   useEffect(() => {
-    console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current) {
       return;
     }
@@ -188,14 +187,9 @@ export const useIdentityWebSocket = ({
     ws.current.onclose = () => {
       //console.log({ callBack: "onclose" })
       setIsConnected(false);
-      ws.current = null;
-      // Attempt to reconnect after 3 seconds
-      //setTimeout(connect, 3000);
     };
 
     ws.current.onerror = (error) => {
-      //console.error({ callBack: "onerror" })
-      //console.error(error)
       setError('WebSocket error occurred');
     };
 
@@ -206,7 +200,7 @@ export const useIdentityWebSocket = ({
         ws.current.close();
       }
     };
-  }, [url, account, handleMessage, sendMessage]);
+  }, [url, account, handleMessage, sendMessage, ws.current]);
 
   const requestVerification = useCallback(async (field: string): Promise<string> => {
     const response = await sendMessage({
