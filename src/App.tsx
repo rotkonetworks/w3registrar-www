@@ -18,6 +18,7 @@ import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 import { useAlerts } from "./hooks/useAlerts"
 import { Alert } from './hooks/useAlerts';
 import { AlertCanvas } from './components/AlertCanvas';
+import { IdentityVerification } from './hooks/useWebSocket';
 
 interface Props {
   route: RouteType;
@@ -400,6 +401,6 @@ export default function App() {
     <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
       onClose={() => { appState.walletDialogOpen = false }} 
     />
-    <AlertCanvas context={appState.alerts} />
+    <IdentityVerification />
   </>;
 }

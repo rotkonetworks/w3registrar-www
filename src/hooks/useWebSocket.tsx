@@ -160,34 +160,47 @@ export const useIdentityWebSocket = ({
 
   // Set up WebSocket connection
   useEffect(() => {
-    const connect = () => {
-      ws.current = new WebSocket(url);
+    console.log({ ws: ws.current, state: ws.current?.readyState })
+    if (ws.current) {
+      return;
+    }
+    if (ws.current?.readyState === WebSocket.CONNECTING) {
+      setIsConnected(false)
+      return;
+    }
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      setIsConnected(true)
+      return;
+    }
+    ws.current = new WebSocket(url);
 
-      ws.current.onopen = () => {
-        setIsConnected(true);
-        setError(null);
-        // Subscribe to account state on connection
-        sendMessage({
-          type: 'SubscribeAccountState',
-          payload: account
-        }).catch(err => setError(err.message));
-      };
-
-      ws.current.onclose = () => {
-        setIsConnected(false);
-        // Attempt to reconnect after 3 seconds
-        setTimeout(connect, 3000);
-      };
-
-      ws.current.onerror = () => {
-        setError('WebSocket error occurred');
-      };
-
-      ws.current.onmessage = handleMessage;
+    ws.current.onopen = () => {
+      //console.log({ callBack: "onopen" })
+      setIsConnected(true);
+      setError(null);
+      // Subscribe to account state on connection
+      sendMessage({
+        type: 'SubscribeAccountState',
+        payload: account
+      }).catch(err => setError(err.message));
     };
 
-    connect();
+    ws.current.onclose = () => {
+      //console.log({ callBack: "onclose" })
+      setIsConnected(false);
+      ws.current = null;
+      // Attempt to reconnect after 3 seconds
+      //setTimeout(connect, 3000);
+    };
 
+    ws.current.onerror = (error) => {
+      //console.error({ callBack: "onerror" })
+      //console.error(error)
+      setError('WebSocket error occurred');
+    };
+
+    ws.current.onmessage = handleMessage;
+    
     return () => {
       if (ws.current) {
         ws.current.close();
@@ -231,7 +244,7 @@ export const useIdentityWebSocket = ({
 
 
 
-function IdentityVerification() {
+export function IdentityVerification() {
   const {
     isConnected,
     error,
