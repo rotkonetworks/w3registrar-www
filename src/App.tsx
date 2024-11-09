@@ -18,7 +18,7 @@ import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 import { useAlerts } from "./hooks/useAlerts"
 import { Alert } from './hooks/useAlerts';
 import { AlertCanvas } from './components/AlertCanvas';
-import { IdentityVerification } from './hooks/useWebSocket';
+import { IdentityVerification, useIdentityWebSocket } from './hooks/useIdentityWebSocket';
 
 interface Props {
   route: RouteType;
@@ -386,6 +386,20 @@ export default function App() {
 
   const { push, remove } = useAlerts(proxy(appState.alerts))
 
+  const { 
+    isConnected, error, accountState, requestVerification, verifyIdentity 
+  } = useIdentityWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
+    account: appState.account?.address,
+    onNotification: (notification) => {
+      console.log('Received notification:', notification);
+    }
+  });
+  const identityWebSocket = ({ isConnected, error, accountState, requestVerification, verifyIdentity, })
+  useEffect(() => {
+    console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
+  }, [identityWebSocket])
+
   return <>
     <Router>
       <Routes>
@@ -401,6 +415,5 @@ export default function App() {
     <ConnectionDialog open={appStateSnapshot.walletDialogOpen} 
       onClose={() => { appState.walletDialogOpen = false }} 
     />
-    <IdentityVerification />
   </>;
 }
