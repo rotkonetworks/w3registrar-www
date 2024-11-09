@@ -15,7 +15,7 @@ import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
-import { useAlerts } from "./hooks/useAlerts"
+import { AlertProps, useAlerts } from "./hooks/useAlerts"
 import { useIdentityWebSocket } from './hooks/useIdentityWebSocket';
 
 interface Props {
@@ -91,6 +91,10 @@ interface Fees {
   setIdentityAndRequestJudgement?: bigint;
 }
 
+interface AlertProps {
+  closable: boolean;
+}
+
 interface AppState {
   chain: ChainInfo;
   walletDialogOpen: boolean;
@@ -104,7 +108,7 @@ interface AppState {
   fees: Fees;
   reserves: {};
   verificationProgress: IdentityVerificationStates;
-  alerts: Record<string, Alert>;
+  alerts: Record<string, AlertProps>;
 }
 
 export const appState: AppState = proxy({
