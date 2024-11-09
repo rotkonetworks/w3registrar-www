@@ -16,12 +16,6 @@ interface VerificationState {
   fields: { [key: string]: boolean };
 }
 
-interface ResponseAccountState {
-  account: string;
-  hashed_info: string;
-  verification_state: VerificationState;
-  pending_challenges: [string, string][];
-}
 
 interface Props {
   onVerify: (key: string) => void;
@@ -34,78 +28,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
   const { accountId } = appStateSnapshot;
   const [challenges, setChallenges] = useState<Challenges>({});
   const [verificationState, setVerificationState] = useState<VerificationState>({ fields: {} });
-  const ws = useRef<WebSocket | null>(null);
 
-  useEffect(() => {
-    if (!accountId) return;
-
-    // Initialize WebSocket connection
-    const socket = new WebSocket('ws://your-server-address:8081'); // Replace with your server address
-    ws.current = socket;
-
-    socket.onopen = () => {
-      import.meta.env.DEV && console.log('WebSocket connection established.');
-
-      // Send SubscribeAccountState message
-      const message = {
-        version: '1.0',
-        type: 'SubscribeAccountState',
-        payload: accountId,
-      };
-      socket.send(JSON.stringify(message));
-    };
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      handleMessage(data);
-    };
-
-    socket.onclose = (event) => {
-      import.meta.env.DEV && console.log('WebSocket connection closed:', event.reason);
-    };
-
-    socket.onerror = (error) => {
-      import.meta.env.DEV && console.error('WebSocket error:', error);
-    };
-
-    // Cleanup on unmount
-    return () => {
-      socket.close();
-    };
-  }, [accountId]);
-
-  const handleMessage = (data: any) => {
-    if (data.type === 'JsonResult') {
-      if (data.message.Ok) {
-        const payload = data.message.Ok;
-        if (payload.AccountState) {
-          const accountState: ResponseAccountState = payload.AccountState;
-          updateChallenges(accountState.pending_challenges);
-          setVerificationState(accountState.verification_state);
-        }
-      } else if (data.message.Err) {
-        import.meta.env.DEV && console.error('Error from server:', data.message.Err);
-        // Optionally display error to the user
-      }
-    } else if (data.type === 'NotifyAccountState') {
-      const notification = data.payload as ResponseAccountState;
-      updateChallenges(notification.pending_challenges);
-      setVerificationState(notification.verification_state);
-    } else {
-      import.meta.env.DEV && console.log('Unhandled message type:', data);
-    }
-  };
-
-  const updateChallenges = (pendingChallenges: [string, string][]) => {
-    const newChallenges: Challenges = {};
-    pendingChallenges.forEach(([field, secret]) => {
-      newChallenges[field] = {
-        verified: false,
-        value: secret,
-      };
-    });
-    setChallenges(newChallenges);
-  };
 
   const fieldNames: { [key: string]: string } = {
     displayName: 'Display Name',
