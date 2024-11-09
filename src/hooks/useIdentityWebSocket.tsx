@@ -197,11 +197,6 @@ export const useIdentityWebSocket = ({
       console.log({ callBack: "onopen" })
       setIsConnected(true);
       setError(null);
-      // Subscribe to account state on connection
-      sendMessage({
-        type: 'SubscribeAccountState',
-        payload: account
-      }).catch(err => setError(err.message));
     };
 
     ws.current.onclose = (event) => {
@@ -224,7 +219,18 @@ export const useIdentityWebSocket = ({
         ws.current.close();
       }
     };
-  }, [url, account, handleMessage, sendMessage, ws.current]);
+  }, [url, handleMessage, sendMessage, ws.current]);
+
+  useEffect(() => {
+    if (ws.current?.readyState === WebSocket.OPEN && account) {
+      console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
+      // Subscribe to account state on connection
+      sendMessage({
+        type: 'SubscribeAccountState',
+        payload: account,
+      }).catch(err => setError(err.message));
+    }
+  }, [account, sendMessage, ws.current?.readyState])
 
   const requestVerification = useCallback(async (field: string): Promise<string> => {
     const response = await sendMessage({
