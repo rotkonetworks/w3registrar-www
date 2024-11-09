@@ -129,6 +129,7 @@ export const useIdentityWebSocket = ({
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const message = JSON.parse(event.data) as WebSocketMessage;
+      console.log({message})
       
       switch (message.type) {
         case 'JsonResult':
