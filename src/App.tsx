@@ -17,8 +17,7 @@ import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
 import { useAlerts } from "./hooks/useAlerts"
 import { Alert } from './hooks/useAlerts';
-import { AlertCanvas } from './components/AlertCanvas';
-import { IdentityVerification, useIdentityWebSocket } from './hooks/useIdentityWebSocket';
+import { useIdentityWebSocket } from './hooks/useIdentityWebSocket';
 
 interface Props {
   route: RouteType;
