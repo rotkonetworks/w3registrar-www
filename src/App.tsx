@@ -412,12 +412,12 @@ export default function App() {
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: appState.account?.address,
     onNotification: (notification) => {
-      console.log('Received notification:', notification);
+      import.meta.env.DEV && console.log('Received notification:', notification);
     }
   });
-  const identityWebSocket = ({ isConnected, error, accountState, requestVerification, verifyIdentity, })
+  const identityWebSocket = ({ isConnected, error, accountState, })
   useEffect(() => {
-    console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
+    import.meta.env.DEV && console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
   }, [identityWebSocket])
 
   return <>
