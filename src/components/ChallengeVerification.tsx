@@ -25,13 +25,11 @@ interface Props {
 
 const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed }) => {
   const appStateSnapshot = useSnapshot(appState);
-  const { accountId } = appStateSnapshot;
-  const [challenges, setChallenges] = useState<Challenges>({});
   const [verificationState, setVerificationState] = useState<VerificationState>({ fields: {} });
 
 
   const fieldNames: { [key: string]: string } = {
-    displayName: 'Display Name',
+    display: 'Display Name',
     matrix: 'Matrix',
     email: 'Email',
     discord: 'Discord',
@@ -48,7 +46,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
         <h2 className="text-xl font-bold text-stone-800">Challenge Verification</h2>
         <CountdownTimer />
       </div>
-      {Object.entries(challenges).map(([key, challenge]) => {
+      {Object.entries(appStateSnapshot.challenges).map(([key, challenge]) => {
         const isVerified = verificationState.fields[key] || false;
         return (
           <div
