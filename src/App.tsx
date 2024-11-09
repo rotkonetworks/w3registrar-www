@@ -43,56 +43,72 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   );
 };
 
-export const appState: {
-  chain: {
-    id: string;
-    ss58Format: number;
-    tokenDecimals: number;
-    tokenSymbol: string;
-  },
-  walletDialogOpen: boolean,
-  account?: {
-    id: string,
-    name: string,
-    address: string,
-    polkadotSigner: PolkadotSigner;
-    balance: {
-      free: bigint;
-      reserved: bigint;
-      frozen: bigint;
-      flags: bigint;
-    };
-  },
-  identity?: {
-    displayName: string,
-    matrix: string,
-    discord: string,
-    email: string,
-    twitter: string,
-  },
-  judgements?: Array<{
-    registrar: {
-      index: number
-    },
-    state: keyof IdentityJudgement,
-    fee: bigint,
-  }>
-  challenges: Record<string, {
-    value: string,
-    verified: boolean,
-  }>,
+interface ChainInfo {
+  id: string;
+  ss58Format: number;
+  tokenDecimals: number;
+  tokenSymbol: string;
+}
+
+interface AccountBalance {
+  free: bigint;
+  reserved: bigint;
+  frozen: bigint;
+  flags: bigint;
+}
+
+interface Account {
+  id: string;
+  name: string;
+  address: string;
+  polkadotSigner: PolkadotSigner;
+  balance: AccountBalance;
+}
+
+interface Identity {
+  displayName: string;
+  matrix: string;
+  discord: string;
+  email: string;
+  twitter: string;
+}
+
+interface Judgement {
+  registrar: {
+    index: number;
+  };
+  state: keyof IdentityJudgement;
+  fee: bigint;
+}
+
+interface Challenge {
+  value: string;
+  verified: boolean;
+}
+
+interface Fees {
+  requestJdgement?: bigint;
+  setIdentityAndRequestJudgement?: bigint;
+}
+
+interface AppState {
+  chain: ChainInfo;
+  walletDialogOpen: boolean;
+  account?: Account;
+  identity?: Identity;
+  judgements?: Array<Judgement>;
+  challenges: Record<string, Challenge>;
   hashes: {
-    identityOf?: Uint16Array,
-  },
-  fees: {
-    requestJdgement?: bigint,
-    setIdentityAndRequestJudgement?: bigint,
-  },
-  reserves: {},
-  verificationProgress: IdentityVerificationStates,
-  alerts: Record<string, Alert>
-} = proxy({
-  chain: { 
+    identityOf?: Uint16Array;
+  };
+  fees: Fees;
+  reserves: {};
+  verificationProgress: IdentityVerificationStates;
+  alerts: Record<string, Alert>;
+}
+
+export const appState: AppState = proxy({
+  chain: {
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
   },
   walletDialogOpen: false,
