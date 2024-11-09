@@ -160,6 +160,7 @@ export const useIdentityWebSocket = ({
 
   // Set up WebSocket connection
   useEffect(() => {
+    console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current) {
       return;
     }
@@ -174,7 +175,7 @@ export const useIdentityWebSocket = ({
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
-      //console.log({ callBack: "onopen" })
+      console.log({ callBack: "onopen" })
       setIsConnected(true);
       setError(null);
       // Subscribe to account state on connection
@@ -183,20 +184,24 @@ export const useIdentityWebSocket = ({
         payload: account
       }).catch(err => setError(err.message));
     };
-
-    ws.current.onclose = () => {
-      //console.log({ callBack: "onclose" })
+<
+    ws.current.onclose = (event) => {
+      console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
+      ws.current = null;  // So hook is forced to reconnect
     };
 
     ws.current.onerror = (error) => {
+      console.error(error)
       setError('WebSocket error occurred');
     };
 
     ws.current.onmessage = handleMessage;
     
     return () => {
-      if (ws.current) {
+      // Important. Socket explicitly checked if open. so it won't get closed even before 
+      //  connecting. ws.current in dependency array ensures updating on unmount.
+      if (ws.current?.readyState === WebSocket.OPEN) {
         ws.current.close();
       }
     };
