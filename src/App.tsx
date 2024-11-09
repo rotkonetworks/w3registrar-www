@@ -419,6 +419,28 @@ export default function App() {
   useEffect(() => {
     import.meta.env.DEV && console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
   }, [identityWebSocket])
+  useEffect(() => {
+    if (accountState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = accountState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const challenges: Record<string, Challenge> = {};
+      Object.entries(verifyState).forEach(([key, value]) => challenges[key] = {
+        verified: value,
+        value: pendingChallenges[key],
+      })
+      appState.challenges = challenges;
+
+      import.meta.env.DEV && console.log({ origin: "accountState", 
+        pendingChallenges,
+        verifyState,
+        challenges,
+      })
+    }
+  }, [accountState])
 
   return <>
     <Router>
