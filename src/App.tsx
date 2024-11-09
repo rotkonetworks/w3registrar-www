@@ -45,9 +45,9 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 
 interface ChainInfo {
   id: string;
-  ss58Format: number;
-  tokenDecimals: number;
-  tokenSymbol: string;
+  ss58Format?: number;
+  tokenDecimals?: number;
+  tokenSymbol?: string;
 }
 
 interface AccountBalance {
@@ -123,8 +123,10 @@ export const appState: AppState = proxy({
     twitter: { value: '', verified: false }
   },
   hashes: {},
+  fees: {},
+  reserves: {},
   verificationProgress: IdentityVerificationStates.Unknown,
-  alerts: [],
+  alerts: {},
 })
 
 interface MainAlerts extends Alert {
