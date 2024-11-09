@@ -184,7 +184,7 @@ export const useIdentityWebSocket = ({
         payload: account
       }).catch(err => setError(err.message));
     };
-<
+
     ws.current.onclose = (event) => {
       console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
