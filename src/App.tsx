@@ -16,7 +16,6 @@ import { mergeMap } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
 import { useAlerts } from "./hooks/useAlerts"
-import { Alert } from './hooks/useAlerts';
 import { useIdentityWebSocket } from './hooks/useIdentityWebSocket';
 
 interface Props {
