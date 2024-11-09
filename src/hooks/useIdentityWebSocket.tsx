@@ -180,9 +180,6 @@ export const useIdentityWebSocket = ({
   // Set up WebSocket connection
   useEffect(() => {
     console.log({ ws: ws.current, state: ws.current?.readyState })
-    if (ws.current) {
-      return;
-    }
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
       return;
