@@ -38,7 +38,9 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
     twitter: 'Twitter',
   };
 
-  const allVerified = Object.keys(verificationState.fields).length > 0 && Object.values(verificationState.fields).every((verified) => verified);
+  const allVerified = Object.keys(verificationState.fields).length > 0 
+    && Object.values(verificationState.fields).every((verified) => verified)
+  ;
 
   return (
     <div className="space-y-3">
