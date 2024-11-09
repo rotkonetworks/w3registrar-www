@@ -53,12 +53,28 @@ type ResponsePayload = {
   VerificationResult: boolean;
 };
 
-type WebSocketMessage = 
-  | { type: 'SubscribeAccountState'; payload: string }
-  | { type: 'NotifyAccountState'; payload: NotifyAccountState }
-  | { type: 'RequestVerificationSecret'; payload: RequestVerificationSecret }
-  | { type: 'VerifyIdentity'; payload: VerifyIdentity }
-  | { type: 'JsonResult'; payload: { Ok: ResponsePayload } | { Err: string } };
+type WebSocketMessage = { 
+    type: 'SubscribeAccountState'; 
+    payload: string 
+  } | { 
+    type: 'NotifyAccountState'; 
+    payload: NotifyAccountState 
+  } | { 
+    type: 'RequestVerificationSecret'; 
+    payload: RequestVerificationSecret 
+  } | { 
+    type: 'VerifyIdentity'; 
+    payload: VerifyIdentity 
+  } | { 
+    type: 'JsonResult'; 
+    payload: { 
+      type: "ok", 
+      message: ResponsePayload 
+    } | { 
+      type: "err", 
+      message: string 
+    } 
+  };
 
 interface VersionedMessage {
   version: string;
@@ -105,6 +121,7 @@ export const useIdentityWebSocket = ({
         reject(new Error('WebSocket is not connected'));
         return;
       }
+      console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
       const versionedMessage: VersionedMessage = {
@@ -130,16 +147,17 @@ export const useIdentityWebSocket = ({
     try {
       const message = JSON.parse(event.data) as WebSocketMessage;
       console.log({message})
-      
+
       switch (message.type) {
         case 'JsonResult':
-          if ('Ok' in message.payload) {
-            const response = message.payload.Ok;
-            if ('AccountState' in response) {
-              setAccountState(response.AccountState);
+          if ('ok' === message.payload.type) {
+            const response = message.payload.message.AccountState;
+            if (response) {
+              console.log({ response })
+              setAccountState(response);
             }
           } else {
-            setError(message.payload.Err);
+            setError(message.payload.message);
           }
           break;
           
