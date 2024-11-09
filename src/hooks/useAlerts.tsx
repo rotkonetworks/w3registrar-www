@@ -7,7 +7,6 @@ export interface AlertProps {
   title: string;
   message: string;
   key: string;
-  [extraProps: string]: any;
 }
 
 export const useAlerts = (context: Record<string, AlertProps>) => {

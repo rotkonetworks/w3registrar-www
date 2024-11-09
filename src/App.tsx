@@ -15,7 +15,7 @@ import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
-import { AlertProps, useAlerts } from "./hooks/useAlerts"
+import { AlertProps as OriginalAlertProps, useAlerts } from "./hooks/useAlerts"
 import { useIdentityWebSocket } from './hooks/useIdentityWebSocket';
 
 interface Props {
