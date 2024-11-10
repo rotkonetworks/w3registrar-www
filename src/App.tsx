@@ -407,7 +407,7 @@ export default function App() {
   const { push, remove } = useAlerts(proxy(appState.alerts))
 
   const { 
-    isConnected, error, accountState, requestVerification, verifyIdentity 
+    isConnected, error, accountState, requestVerificationSecret, verifyIdentity 
   } = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: appState.account?.address,
@@ -415,10 +415,12 @@ export default function App() {
       import.meta.env.DEV && console.log('Received notification:', notification);
     }
   });
+
   const identityWebSocket = ({ isConnected, error, accountState, })
   useEffect(() => {
     import.meta.env.DEV && console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
   }, [identityWebSocket])
+  
   useEffect(() => {
     if (accountState) {
       const {

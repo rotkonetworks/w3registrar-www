@@ -92,7 +92,7 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   accountState: ResponseAccountState | null;
-  requestVerification: (field: string) => Promise<string>;
+  requestVerificationSecret: (field: string) => Promise<string>;
   verifyIdentity: (field: string, secret: string) => Promise<boolean>;
 }
 
@@ -229,7 +229,7 @@ export const useIdentityWebSocket = ({
     }
   }, [account, sendMessage, ws.current?.readyState])
 
-  const requestVerification = useCallback(async (field: string): Promise<string> => {
+  const requestVerificationSecret = useCallback(async (field: string): Promise<string> => {
     const response = await sendMessage({
       type: 'RequestVerificationSecret',
       payload: { account, field }
@@ -257,7 +257,7 @@ export const useIdentityWebSocket = ({
     isConnected,
     error,
     accountState,
-    requestVerification,
+    requestVerificationSecret,
     verifyIdentity
   };
 };
