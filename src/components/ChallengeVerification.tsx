@@ -55,14 +55,20 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
           >
             <span className="w-24 text-sm font-semibold text-stone-700">{fieldNames[key]}:</span>
             <span className="flex-grow font-mono text-sm text-stone-800">{challenge.value}</span>
-            {!isVerified ? (
+            {!isVerified ? <>
               <button
                 onClick={() => onVerify(key)}
                 className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
               >
                 Verify
               </button>
-            ) : (
+              <button
+                onClick={() => null}
+                className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
+              >
+                New Challenge
+              </button>
+            </> : (
               <span className="text-green-700 font-semibold text-sm">Verified</span>
             )}
           </div>
