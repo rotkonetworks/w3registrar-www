@@ -235,8 +235,8 @@ export const useIdentityWebSocket = ({
       payload: { account, field }
     });
 
-    if (response.type === 'JsonResult' && 'Ok' in response.payload) {
-      return response.payload.Ok.Secret;
+    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
+      return response.payload.message.Secret;
     }
     throw new Error('Failed to get verification secret');
   }, [account, sendMessage]);
