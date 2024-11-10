@@ -25,8 +25,6 @@ interface Props {
 
 const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed }) => {
   const appStateSnapshot = useSnapshot(appState);
-  const [verificationState, setVerificationState] = useState<VerificationState>({ fields: {} });
-
 
   const fieldNames: { [key: string]: string } = {
     display: 'Display Name',
@@ -36,8 +34,8 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
     twitter: 'Twitter',
   };
 
-  const allVerified = Object.keys(verificationState.fields).length > 0 
-    && Object.values(verificationState.fields).every((verified) => verified)
+  const allVerified = Object.keys(appStateSnapshot.challenges).length > 0 
+    && Object.values(appStateSnapshot.challenges).every((verified) => verified)
   ;
 
   return (
@@ -47,7 +45,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
         <CountdownTimer />
       </div>
       {Object.entries(appStateSnapshot.challenges).map(([key, challenge]) => {
-        const isVerified = verificationState.fields[key] || false;
+        const isVerified = appStateSnapshot.challenges[key].verified || false;
         return (
           <div
             key={key}
