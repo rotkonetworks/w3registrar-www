@@ -96,13 +96,13 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
             <span className="flex-grow font-mono text-sm text-stone-800">{challenge.value}</span>
             {!isVerified ? <>
               <button
-                onClick={() => onVerify(key)}
+                onClick={() => verifyIdentity(key, challenge.value)}
                 className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
               >
                 Verify
               </button>
               <button
-                onClick={() => null}
+                onClick={() => requestVerificationSecret(key)}
                 className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
               >
                 New Challenge
