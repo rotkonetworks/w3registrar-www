@@ -102,7 +102,15 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
                 Verify
               </button>
               <button
-                onClick={() => requestVerificationSecret(key)}
+                onClick={() => requestVerificationSecret(key)
+                  .then(message => {
+                    appState.challenges[key].value = message
+                    return import.meta.env.DEV && console.log({
+                      message,
+                      callback: "verifyIdentity.then"
+                    });
+                  })
+                }
                 className="text-stone-600 hover:text-stone-800 font-semibold text-sm"
               >
                 New Challenge
