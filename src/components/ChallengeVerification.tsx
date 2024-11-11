@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import CountdownTimer from './CountdownTimer';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
+import { useIdentityWebSocket } from '~/hooks/useIdentityWebSocket';
 
 interface Challenge {
   verified: boolean;
@@ -25,6 +26,44 @@ interface Props {
 
 const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed }) => {
   const appStateSnapshot = useSnapshot(appState);
+
+  const { 
+    isConnected, error, accountState, requestVerificationSecret, verifyIdentity 
+  } = useIdentityWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
+    account: appState.account?.address,
+    onNotification: (notification) => {
+      import.meta.env.DEV && console.log('Received notification:', notification);
+    }
+  });
+
+  const identityWebSocket = ({ isConnected, error, accountState, })
+  useEffect(() => {
+    import.meta.env.DEV && console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
+  }, [identityWebSocket])
+  
+  useEffect(() => {
+    if (accountState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = accountState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const challenges: Record<string, Challenge> = {};
+      Object.entries(verifyState).forEach(([key, value]) => challenges[key] = {
+        verified: value,
+        value: pendingChallenges[key],
+      })
+      appState.challenges = challenges;
+
+      import.meta.env.DEV && console.log({ origin: "accountState", 
+        pendingChallenges,
+        verifyState,
+        challenges,
+      })
+    }
+  }, [accountState])
 
   const fieldNames: { [key: string]: string } = {
     display: 'Display Name',

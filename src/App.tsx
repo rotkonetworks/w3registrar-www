@@ -15,8 +15,7 @@ import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
 import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
-import { AlertProps as OriginalAlertProps, useAlerts } from "./hooks/useAlerts"
-import { useIdentityWebSocket } from './hooks/useIdentityWebSocket';
+import { useAlerts } from "./hooks/useAlerts"
 
 interface Props {
   route: RouteType;
@@ -405,44 +404,6 @@ export default function App() {
   }, [accounts])
 
   const { push, remove } = useAlerts(proxy(appState.alerts))
-
-  const { 
-    isConnected, error, accountState, requestVerificationSecret, verifyIdentity 
-  } = useIdentityWebSocket({
-    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: appState.account?.address,
-    onNotification: (notification) => {
-      import.meta.env.DEV && console.log('Received notification:', notification);
-    }
-  });
-
-  const identityWebSocket = ({ isConnected, error, accountState, })
-  useEffect(() => {
-    import.meta.env.DEV && console.log({ ...identityWebSocket, origin: "useIdentityWebSocket", })
-  }, [identityWebSocket])
-  
-  useEffect(() => {
-    if (accountState) {
-      const {
-        pending_challenges,
-        verification_state: { fields: verifyState },
-      } = accountState;
-      const pendingChallenges = Object.fromEntries(pending_challenges)
-
-      const challenges: Record<string, Challenge> = {};
-      Object.entries(verifyState).forEach(([key, value]) => challenges[key] = {
-        verified: value,
-        value: pendingChallenges[key],
-      })
-      appState.challenges = challenges;
-
-      import.meta.env.DEV && console.log({ origin: "accountState", 
-        pendingChallenges,
-        verifyState,
-        challenges,
-      })
-    }
-  }, [accountState])
 
   return <>
     <Router>
