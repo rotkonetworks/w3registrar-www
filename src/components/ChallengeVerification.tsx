@@ -53,7 +53,7 @@ const ChallengeVerification: React.FC<Props> = ({ onVerify, onCancel, onProceed 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState).forEach(([key, value]) => challenges[key] = {
         verified: value,
-        value: pendingChallenges[key],
+        value: !value && pendingChallenges[key],
       })
       appState.challenges = challenges;
 
