@@ -163,6 +163,9 @@ export const useIdentityWebSocket = ({
           
         case 'NotifyAccountState':
           onNotification?.(message.payload);
+          setAccountState(prev => ({ ...prev,
+            verification_state: message.payload.verification_state,
+          }))
           break;
       }
 
