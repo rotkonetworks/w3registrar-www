@@ -115,12 +115,7 @@ export const appState: AppState = proxy({
     id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
   },
   walletDialogOpen: false,
-  challenges: {
-    matrix: { value: '', verified: false },
-    email: { value: '', verified: false },
-    discord: { value: '', verified: false },
-    twitter: { value: '', verified: false }
-  },
+  challenges: {},
   hashes: {},
   fees: {},
   reserves: {},
