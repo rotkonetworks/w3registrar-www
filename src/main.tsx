@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import App, { appState } from './App'
 import 'uno.css'
 import '@unocss/reset/tailwind-compat.css'
-import { ChainProvider, ReactiveDotProvider } from '@reactive-dot/react'
+import { ReactiveDotProvider } from '@reactive-dot/react'
 import { config } from './api/config'
 import { useSnapshot } from 'valtio'
 
@@ -23,4 +23,8 @@ const Main: React.FC = () => {
   </>
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<Main />)
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <Suspense>
+    <Main />
+  </Suspense>
+)
