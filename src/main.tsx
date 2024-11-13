@@ -7,6 +7,8 @@ import { ReactiveDotProvider } from '@reactive-dot/react'
 import { config } from './api/config'
 import { useSnapshot } from 'valtio'
 
+import "./css/tailwind.css"
+
 const Main: React.FC = () => {
   const appStateSnap = useSnapshot(appState)
   
