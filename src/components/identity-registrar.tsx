@@ -60,7 +60,7 @@ export function IdentityRegistrarComponent() {
   }
 
   const checkOnChainIdentity = () => {
-    setTimeout(() => {
+    window.setTimeout(() => {
       const statuses = ['none', 'set', 'requested'] as const
       const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
       setOnChainIdentity(randomStatus)

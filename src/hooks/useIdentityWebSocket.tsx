@@ -130,7 +130,7 @@ export const useIdentityWebSocket = ({
       };
 
       // Set up timeout for response
-      const timeout = setTimeout(() => {
+      const timeout = window.setTimeout(() => {
         const request = pendingRequests.current.get(requestId);
         if (request) {
           request.reject(new Error('Request timeout'));

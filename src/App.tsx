@@ -256,10 +256,10 @@ export default function App() {
       if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
         return
       }
-      const timer = setInterval(() => {
+      const timer = window.setInterval(() => {
         handleChainEvent({ type: { pallet, call }, id, onEvent, onError, })
       }, CHAIN_UPDATE_INTERVAL)
-      return () => clearInterval(timer)
+      return () => window.clearInterval(timer)
     }
   }
 
@@ -367,10 +367,10 @@ export default function App() {
   }, [appStateSnapshot.chain.id])
   
   // TODO Subscribe to events instead
-  const timer = useRef();
+  const timer = useRef<number>();
   useEffect(() => {
     if (appStateSnapshot.account) {
-      timer.current = setInterval(async () => {
+      timer.current = window.setInterval(async () => {
         const accData = await typedApi.query.System.Account.getValue(appStateSnapshot.account.address)
         const existentialDep = await typedApi.constants.Balances.ExistentialDeposit()
         import.meta.env.DEV && console.log({
@@ -381,7 +381,7 @@ export default function App() {
       }, CHAIN_UPDATE_INTERVAL)
     }
     return () => {
-      clearInterval(timer.current);
+      window.clearInterval(timer.current);
     }
   }, [appStateSnapshot.account, appStateSnapshot.chain.id])
 

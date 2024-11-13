@@ -65,7 +65,7 @@ interface Props {
 
 const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   const formRef = useRef<HTMLFormElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number>(null);
   const { identity: appStateIdentity } = useSnapshot(appState);
 
   const validateForm = useCallback(() => {
@@ -90,7 +90,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
 
   const handleInput = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       const { isValid, errors, identity } = validateForm();
       if (isValid) {
         appState.identity = identity as Identity;
@@ -189,12 +189,12 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
     return call
   }, [validateForm, appStateSnap.identity, appState.chain.id])
 
-  const timer = useRef()
+  const timer = useRef<number>()
   useEffect(() => {
     if (!appState.account) {
       return
     }
-    timer.curreut = setInterval(async () => {
+    timer.current = window.setInterval(async () => {
       try {
         const callCost = await chainCall.getEstimatedFees(appState.account.address);
         const estimatedFees = {...appState.fees};
@@ -219,7 +219,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
       }
     }, CHAIN_UPDATE_INTERVAL)
     return () => {
-      clearInterval(timer.current)
+      window.clearInterval(timer.current)
     }
   }, [hashesAreEqual, appStateSnap.chain.id])
 
