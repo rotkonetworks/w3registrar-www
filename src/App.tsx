@@ -13,7 +13,7 @@ import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
-import { unstable_getBlockExtrinsics } from '@reactive-dot/core';
+import { Chains, unstable_getBlockExtrinsics } from '@reactive-dot/core';
 
 import { useAlerts } from "./hooks/useAlerts"
 
@@ -43,7 +43,7 @@ const DomTitle: React.FC<Props> = ({ route }) => {
 };
 
 interface ChainInfo {
-  id: string;
+  id: keyof Chains;
   ss58Format?: number;
   tokenDecimals?: number;
   tokenSymbol?: string;
