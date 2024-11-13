@@ -9,7 +9,7 @@ import { proxy, useSnapshot } from 'valtio';
 import { ConnectionDialog } from "dot-connect/react.js";
 import { useAccounts, useClient, useTypedApi } from '@reactive-dot/react';
 import { PolkadotSigner } from 'polkadot-api';
-import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from './constants';
+import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStatuses } from './constants';
 import { useIdentityEncoder } from './hooks/hashers/identity';
 import { IdentityJudgement } from '@polkadot-api/descriptors';
 import { mergeMap } from 'rxjs';
@@ -106,7 +106,7 @@ interface AppState {
   };
   fees: Fees;
   reserves: {};
-  verificationProgress: IdentityVerificationStates;
+  verificationProgress: IdentityVerificationStatuses;
   alerts: Record<string, AlertProps>;
 }
 
@@ -119,7 +119,7 @@ export const appState: AppState = proxy({
   hashes: {},
   fees: {},
   reserves: {},
-  verificationProgress: IdentityVerificationStates.Unknown,
+  verificationProgress: IdentityVerificationStatuses.Unknown,
   alerts: {},
 })
 
@@ -151,7 +151,7 @@ export default function App() {
     .getValue(appState.account?.address)
     .then((result) => {
       if (!result) {
-        appState.verificationProgress = IdentityVerificationStates.NoIdentity;
+        appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
         return;
       }
       const identityOf = result[0];
@@ -161,7 +161,7 @@ export default function App() {
         .map(([key, value]) => [key, value.value.asText()])
       );
       appState.identity = identityData;
-      appState.verificationProgress = IdentityVerificationStates.IdentitySet;
+      appState.verificationProgress = IdentityVerificationStatuses.IdentitySet;
       setOnChainIdentity(identityData);
 
       const idJudgementOfId = identityOf.judgements;
@@ -173,16 +173,16 @@ export default function App() {
         fee: judgement[1].value,
       }));
       appState.judgements = judgementData;
-      appState.verificationProgress = IdentityVerificationStates.JudgementRequested;
+      appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested;
 
       if (judgementData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-        appState.verificationProgress = IdentityVerificationStates.FeePaid;
+        appState.verificationProgress = IdentityVerificationStatuses.FeePaid;
       }
       if (judgementData.find(j => [
         IdentityJudgement.Reasonable().type,
         IdentityJudgement.KnownGood().type,
       ].includes(j.state))) {
-        appState.verificationProgress = IdentityVerificationStates.IdentityVerifid;
+        appState.verificationProgress = IdentityVerificationStatuses.IdentityVerified;
       }
 
       const idDeposit = identityOf.deposit;
@@ -267,8 +267,8 @@ export default function App() {
     onEvent: data => {
       appState.verificationProgress = 
         // As we do batch calls, we need to know if judgeent is already awaiting
-        appStateSnapshot.verificationProgress === IdentityVerificationStates.NoIdentity
-          ? IdentityVerificationStates.IdentitySet
+        appStateSnapshot.verificationProgress === IdentityVerificationStatuses.NoIdentity
+          ? IdentityVerificationStatuses.IdentitySet
           : appStateSnapshot.verificationProgress
     },
     onError: error => {},
@@ -277,7 +277,7 @@ export default function App() {
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentityCleared" }, 
     id: "idCleared",
     onEvent: data => {
-      appState.verificationProgress = IdentityVerificationStates.NoIdentity;
+      appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
       appState.identity = null;
     },
     onError: error => {},
@@ -286,7 +286,7 @@ export default function App() {
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementRequested" }, 
     id: "judgRequested",
     onEvent: data => {
-      appState.verificationProgress = IdentityVerificationStates.JudgementRequested
+      appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
     },
     onError: error => {},
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
 import { config } from '~/api/config';
 import { appState } from '~/App';
-import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStates } from '~/constants';
+import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStatuses } from '~/constants';
 import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
@@ -198,7 +198,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
       try {
         const callCost = await chainCall.getEstimatedFees(appState.account.address);
         const estimatedFees = {...appState.fees};
-        if (appStateSnap.verificationProgress < IdentityVerificationStates.FeePaid) {
+        if (appStateSnap.verificationProgress < IdentityVerificationStatuses.FeePaid) {
           if (hashesAreEqual) {
             estimatedFees.requestJdgement = callCost;
             estimatedFees.setIdentityAndRequestJudgement = 0n;
@@ -226,7 +226,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (appStateSnap.verificationProgress >= IdentityVerificationStates.JudgementRequested) {
+    if (appStateSnap.verificationProgress >= IdentityVerificationStatuses.JudgementRequested) {
       handleProceed();
       return;
     }
@@ -291,7 +291,7 @@ const IdentityForm: React.FC = ({ handleProceed }: Props) => {
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
         onClick={e => handleSubmit(e)}
       >
-        {appStateSnap.verificationProgress < IdentityVerificationStates.JudgementRequested
+        {appStateSnap.verificationProgress < IdentityVerificationStatuses.JudgementRequested
           ? (hashesAreEqual
             ? <>Request Judgement</>
             : <>Set Identity & Request Judgement</>

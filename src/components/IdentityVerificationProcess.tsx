@@ -7,7 +7,7 @@ import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
 import { getSs58AddressInfo } from 'polkadot-api';
-import { IdentityVerificationStates } from '~/constants';
+import { IdentityVerificationStatuses } from '~/constants';
 
 enum VerificationStates {
   SetIdentityForm = 0,
@@ -21,15 +21,15 @@ const IdentityVerificationProcess = () => {
   const [stage, setStage] = useState(null);
   useEffect(() => {
     switch(appState.verificationProgress) {
-      case IdentityVerificationStates.NoIdentity:
-      case IdentityVerificationStates.IdentitySet:
+      case IdentityVerificationStatuses.NoIdentity:
+      case IdentityVerificationStatuses.IdentitySet:
         setStage(VerificationStates.SetIdentityForm);
         return;
-      case IdentityVerificationStates.JudgementRequested:
-      case IdentityVerificationStates.FeePaid:
+      case IdentityVerificationStatuses.JudgementRequested:
+      case IdentityVerificationStatuses.FeePaid:
         setStage(VerificationStates.Challenges);
         return;
-      case IdentityVerificationStates.IdentityVerifid:
+      case IdentityVerificationStatuses.IdentityVerified:
         setStage(VerificationStates.Complete);
         return;
       default:
@@ -92,18 +92,18 @@ const IdentityVerificationProcess = () => {
     }
   }, [appStateSnap.account]) 
 
-  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStates).length / 2 -2) * 100
+  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStatuses).length / 2 -2) * 100
   useEffect(() => console.log({ percentage, 
     value: appStateSnap.verificationProgress,
-    key: IdentityVerificationStates[appStateSnap.verificationProgress],
+    key: IdentityVerificationStatuses[appStateSnap.verificationProgress],
   }), [percentage])
 
   const canProceed = useMemo((() => 
     (stage <= VerificationStates.SetIdentityForm 
-      && appStateSnap.verificationProgress >= IdentityVerificationStates.JudgementRequested
+      && appStateSnap.verificationProgress >= IdentityVerificationStatuses.JudgementRequested
     )
     || (stage <= VerificationStates.Challenges 
-      && appStateSnap.verificationProgress >= IdentityVerificationStates.IdentityVerifid  
+      && appStateSnap.verificationProgress >= IdentityVerificationStatuses.IdentityVerified  
     )
   ),
   [appStateSnap.verificationProgress, stage])
@@ -111,7 +111,7 @@ const IdentityVerificationProcess = () => {
   return (
     <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
       <Header />
-      {appStateSnap.account && appStateSnap.verificationProgress !== IdentityVerificationStates.Unknown  && <>
+      {appStateSnap.account && appStateSnap.verificationProgress !== IdentityVerificationStatuses.Unknown  && <>
         <ProgressBar progress={percentage} />
         <div className="flex flex-row justify-between">
           <button
