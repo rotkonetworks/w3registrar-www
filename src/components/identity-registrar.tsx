@@ -601,7 +601,9 @@ function StatusPage({
           <div className="mt-4">
             <strong>Field Statuses:</strong>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {Object.entries(identityStatus.fields).map(([field, status]) => (
+              {Object.entries(identityStatus.fields).map(([field, status]: 
+                [string, "Verified" | "Unverified"]
+              ) => (
                 <div key={field} className="flex justify-between items-center">
                   <span className="flex items-center gap-2">
                     {getIcon(field)}
