@@ -9,10 +9,10 @@ import { appState } from '~/App';
 import { getSs58AddressInfo } from 'polkadot-api';
 import { IdentityVerificationStates } from '~/constants';
 
-enum Stages {
+enum VerificationStates {
   SetIdentityForm = 0,
   Challenges = 1,
-  Congrats = 2,
+  Complete = 2,
 }
 
 const IdentityVerificationProcess = () => {
@@ -23,14 +23,14 @@ const IdentityVerificationProcess = () => {
     switch(appState.verificationProgress) {
       case IdentityVerificationStates.NoIdentity:
       case IdentityVerificationStates.IdentitySet:
-        setStage(Stages.SetIdentityForm);
+        setStage(VerificationStates.SetIdentityForm);
         return;
       case IdentityVerificationStates.JudgementRequested:
       case IdentityVerificationStates.FeePaid:
-        setStage(Stages.Challenges);
+        setStage(VerificationStates.Challenges);
         return;
       case IdentityVerificationStates.IdentityVerifid:
-        setStage(Stages.Congrats);
+        setStage(VerificationStates.Complete);
         return;
       default:
         setStage(null);
@@ -54,7 +54,7 @@ const IdentityVerificationProcess = () => {
   };
 
   const handleCancel = () => {
-    setStage(Stages.SetIdentityForm);
+    setStage(VerificationStates.SetIdentityForm);
     setChallenges({
       displayName: false,
       matrix: { value: '', verified: false },
@@ -70,15 +70,15 @@ const IdentityVerificationProcess = () => {
 
   const StageContent = () => {
     switch(stage) {
-      case Stages.SetIdentityForm:
+      case VerificationStates.SetIdentityForm:
         return <IdentityForm handleProceed={handleProceed} />;
-      case Stages.Challenges:
+      case VerificationStates.Challenges:
         return <ChallengeVerification
           onVerify={handleVerifyChallenge}
           onCancel={handleCancel}
           onProceed={handleProceed}
         />;
-      case Stages.Congrats:
+      case VerificationStates.Complete:
         return <CompletionPage />;
       default:
         return null;
@@ -99,10 +99,10 @@ const IdentityVerificationProcess = () => {
   }), [percentage])
 
   const canProceed = useMemo((() => 
-    (stage <= Stages.SetIdentityForm 
+    (stage <= VerificationStates.SetIdentityForm 
       && appStateSnap.verificationProgress >= IdentityVerificationStates.JudgementRequested
     )
-    || (stage <= Stages.Challenges 
+    || (stage <= VerificationStates.Challenges 
       && appStateSnap.verificationProgress >= IdentityVerificationStates.IdentityVerifid  
     )
   ),
