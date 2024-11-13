@@ -609,7 +609,12 @@ function StatusPage({
                     {getIcon(field)}
                     {field.charAt(0).toUpperCase() + field.slice(1)}:
                   </span>
-                  <Badge variant={status === "Verified" ? "success" : "secondary"} className={status === "Verified" ? "bg-[#E6007A] text-[#FFFFFF]" : "bg-[#706D6D] text-[#FFFFFF]"}>
+                  <Badge variant={status === "Verified" ? "success" : "secondary"} 
+                    className={status === "Verified" 
+                      ? "bg-[#E6007A] text-[#FFFFFF]" 
+                      : "bg-[#706D6D] text-[#FFFFFF]"
+                    }
+                  >
                     {status}
                   </Badge>
                 </div>
