@@ -65,7 +65,7 @@ interface Account {
 }
 
 interface Identity {
-  displayName: string;
+  display: string;
   matrix: string;
   discord: string;
   email: string;

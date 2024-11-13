@@ -34,7 +34,7 @@ const UserDropdown = () => {
             {appStateSnapshot.account?.address && <PolkadotIdenticon 
               address={appStateSnapshot.account.address} 
             />}
-            {appStateSnapshot.identity?.displayName || appStateSnapshot.account?.name 
+            {appStateSnapshot.identity?.display || appStateSnapshot.account?.name 
               || 'Please choose account'
             } ▼
           </button>
