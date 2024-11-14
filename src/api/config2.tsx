@@ -178,7 +178,6 @@ export const ConfigProvider = ({ children }) => {
     config, 
     worker, 
     initWorker, 
-    api, 
     validateUrl, 
     setCustoNetEndponit 
   }}>
