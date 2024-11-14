@@ -122,7 +122,7 @@ interface MainAlerts extends Alert {
 
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
-  
+  /* 
   const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
 
   // Osed to keep last identity data from chain
@@ -201,7 +201,6 @@ export default function App() {
 
   const chainClient = useClient({ chainId: appStateSnapshot.chain.id })
 
-  //const [relevantBlocks, setRelevantBlocks] = useState([])
   const relevantBlocks = useRef([])
 
   const [eventSubs, setEventSubs] = useState({
@@ -392,7 +391,7 @@ export default function App() {
   }, [accounts])
 
   const { push, remove } = useAlerts(proxy(appState.alerts))
-
+ */
   return <>
     <Router>
       <Routes>
