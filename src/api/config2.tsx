@@ -34,7 +34,6 @@ type ConfigContextProps = {
   config: ApiConfig;
   worker: Worker;
   initWorker: () => void;
-  api: TypedApi;
   validateUrl: (url: string) => { isValid: boolean; message: string };
   setCustoNetEndponit: (wsUrl: string) => void;
 }
@@ -42,7 +41,6 @@ export const ConfigContext = createContext<ConfigContextProps>({} as ConfigConte
 export const ConfigProvider = ({ children }) => {
   const [config, setConfig] = useState(createConfig())
   const [worker, setWorker] = useState(null)
-  const api = useTypedApi()
 
   const initWorker = () => {
     const _worker = startFromWorker(
