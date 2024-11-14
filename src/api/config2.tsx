@@ -48,7 +48,7 @@ export const ConfigProvider = ({ children }) => {
         type: "module",
       })
     );
-    
+
     if (worker) {
       import.meta.env.DEV && console.log("Stopping smoldot worker")
       worker.terminate()
