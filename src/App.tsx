@@ -42,13 +42,6 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   );
 };
 
-interface ChainInfo {
-  id: keyof Chains;
-  ss58Format?: number;
-  tokenDecimals?: number;
-  tokenSymbol?: string;
-}
-
 interface AccountBalance {
   free: bigint;
   reserved: bigint;
