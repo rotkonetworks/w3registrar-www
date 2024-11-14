@@ -1,5 +1,6 @@
 import { 
-  polkadot, kusama, westend, people_polkadot, people_kusama, people_westend 
+  polkadot, kusama, westend, people_polkadot, people_kusama, people_westend, 
+  rococo
 } from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
@@ -15,7 +16,7 @@ import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 
 import { people_rococo } from "@polkadot-api/descriptors";
-import { WsProvider } from "@polkadot/api";
+import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useState } from "react";
 
 
