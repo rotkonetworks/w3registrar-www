@@ -1,4 +1,6 @@
-import { polkadot, kusama, westend, people_polkadot, people_kusama, people_westend } from "@polkadot-api/descriptors";
+import { 
+  polkadot, kusama, westend, people_polkadot, people_kusama, people_westend 
+} from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
 import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
 import { chainSpec as peoplePolkadotChainSpec } from "polkadot-api/chains/polkadot_people";
@@ -16,6 +18,7 @@ import { people_rococo } from "@polkadot-api/descriptors";
 import { WsProvider } from "@polkadot/api";
 import { createContext, useContext, useState } from "react";
 import { useTypedApi } from "@reactive-dot/react";
+import { TypedApi } from "polkadot-api";
 
 
 export type ApiConfig = Config & {
@@ -25,13 +28,16 @@ export type ApiConfig = Config & {
 type ConfigContextProps = {
   config: ApiConfig;
   worker: Worker;
+  initWorker: () => void;
+  api: TypedApi;
+  validateUrl: (url: string) => { isValid: boolean; message: string };
+  setCustoNetEndponit: (wsUrl: string) => void;
 }
-export const ConfigContext = createContext<ConfigContextProps>({});
+export const ConfigContext = createContext<ConfigContextProps>({} as ConfigContextProps);
 export const ConfigProvider = ({ children }) => {
-  const [config, setConfig] = useState()
-  const [worker, setWorker] = useState()
-  //const [api, setApi] = useState()
-  const api = useTypedApi(config)
+  const [config, setConfig] = useState(createConfig())
+  const [worker, setWorker] = useState(null)
+  const api = useTypedApi()
 
   const initWorker = () => {
     const _worker = startFromWorker(
@@ -51,10 +57,46 @@ export const ConfigProvider = ({ children }) => {
     import.meta.env.DEV && console.log("Starting smoldot worker")
   }
 
-  return (<ConfigContext.Provider value={{ config, worker, initWorker, api }}>
+  const validateUrl = (url: string): { isValid: boolean; message: string } => {
+    if (!url.trim()) return { isValid: false, message: "URL cannot be empty" };
+    try {
+      new URL(url);
+      if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+        return { isValid: false, message: "URL must start with ws:// or wss://" };
+      }
+      return { isValid: true, message: "Valid WebSocket URL" };
+    } catch {
+      return { isValid: false, message: "Invalid URL format" };
+    }
+  };
+
+  const setCustoNetEndponit = (wsUrl: string) => {
+    const urlValidateResolt = validateUrl(wsUrl);
+    if (!urlValidateResolt.isValid) {
+      throw new Error(urlValidateResolt.message)
+    }
+
+    try {
+      worker?.terminate()
+      setConfig(createConfigWithCustomEndpoint("people_rococo", wsUrl))
+    } catch {
+    } finally {
+      initWorker()
+    }
+  }
+
+  return <ConfigContext.Provider value={{ 
+    config, 
+    worker, 
+    initWorker, 
+    api, 
+    validateUrl, 
+    setCustoNetEndponit 
+  }}>
     {children}
-  </ConfigContext.Provider>)
+  </ConfigContext.Provider>
 }
+
 export const useConfig = () => {
   const context = useContext(ConfigContext)
 
@@ -64,9 +106,7 @@ export const useConfig = () => {
   return context;
 }
 
-//initWorker();
-
-export function createConfig() {
+export function createConfig(): ApiConfig {
   return {
     chains: {
       people_polkadot: {
