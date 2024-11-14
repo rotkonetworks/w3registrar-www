@@ -17,13 +17,17 @@ import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { people_rococo } from "@polkadot-api/descriptors";
 import { WsProvider } from "@polkadot/api";
 import { createContext, useContext, useState } from "react";
-import { useTypedApi } from "@reactive-dot/react";
-import { TypedApi } from "polkadot-api";
 
 
-export type ApiConfig = Config & {
-  config: Record<string, ChainConfig & { name: string }>
-}
+type ApiConfig = Config & {
+  chains: Record<
+    string,
+    ChainConfig & {
+      name: string;
+      registrarIndex?: number;
+    }
+  >;
+};
 
 type ConfigContextProps = {
   config: ApiConfig;
