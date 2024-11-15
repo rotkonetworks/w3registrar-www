@@ -39,7 +39,7 @@ type ConfigContextProps = {
 }
 export const ConfigContext = createContext<ConfigContextProps>({} as ConfigContextProps);
 export const ConfigProvider = ({ children }) => {
-  const [config, setConfig] = useState(createConfig())
+  const [config, setConfig] = useState<ApiConfig | null>()
   const [worker, setWorker] = useState(null)
 
   const initWorker = () => {
