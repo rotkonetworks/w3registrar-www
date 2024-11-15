@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
 
@@ -103,10 +103,6 @@ interface AppState {
   alerts: Record<string, AlertProps>;
 }
 
-export const appState: AppState = proxy({
-  chain: {
-    id: import.meta.env.VITE_APP_DEFAULT_CHAIN || Object.keys(config.chains)[0],
-  },
 interface AccountBalance {
   free: bigint;
   reserved: bigint;
@@ -181,30 +177,10 @@ export const appState: AppState = proxy({
   alerts: {},
 })
 
-interface MainAlerts extends Alert {
-  closable?: boolean;
-}
-  challenges: {},
-  hashes: {},
-  fees: {},
-  reserves: {},
-  verificationProgress: IdentityVerificationStatuses.Unknown,
-  alerts: {},
-})
-
-interface MainAlerts extends Alert {
-  closable?: boolean;
-}
-
 export default function App() {
-  const appStateSnapshot = useSnapshot(appState)
-  
-  const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
-
   // Osed to keep last identity data from chain
   const [onChainIdentity, setOnChainIdentity] = useState()
   const { calculateHash: calculateHashPrev } = useIdentityEncoder(onChainIdentity)
-  const { calculateHash } = useIdentityEncoder(appStateSnapshot.identity)
   const appStateSnapshot = useSnapshot(appState)
   /* 
   const typedApi = useTypedApi({ chainId: "people_rococo" })
