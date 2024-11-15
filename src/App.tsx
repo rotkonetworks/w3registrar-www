@@ -42,13 +42,6 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   );
 };
 
-interface ChainInfo {
-  id: keyof Chains;
-  ss58Format?: number;
-  tokenDecimals?: number;
-  tokenSymbol?: string;
-}
-
 interface AccountBalance {
   free: bigint;
   reserved: bigint;
@@ -129,7 +122,7 @@ interface MainAlerts extends Alert {
 
 export default function App() {
   const appStateSnapshot = useSnapshot(appState)
-  
+  /* 
   const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
 
   // Osed to keep last identity data from chain
@@ -395,7 +388,7 @@ export default function App() {
   }, [accounts])
 
   const { push, remove } = useAlerts(proxy(appState.alerts))
-
+ */
   return <>
     <Router>
       <Routes>
