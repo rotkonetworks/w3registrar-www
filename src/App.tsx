@@ -179,7 +179,6 @@ export const appState: AppState = proxy({
 
 export default function App() {
   // Osed to keep last identity data from chain
-  const [onChainIdentity, setOnChainIdentity] = useState()
   const appStateSnapshot = useSnapshot(appState)
   /* 
   const typedApi = useTypedApi({ chainId: "people_rococo" })
