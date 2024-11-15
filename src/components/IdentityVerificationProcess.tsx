@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './Header';
 import ProgressBar from './ProgressBar';
 import IdentityForm from './IdentityForm';
@@ -6,12 +6,38 @@ import ChallengeVerification from './ChallengeVerification';
 import CompletionPage from './CompletionPage';
 import { useSnapshot } from 'valtio';
 import { appState } from '~/App';
-import { SignerProvider } from '@reactive-dot/react';
+import { getSs58AddressInfo } from 'polkadot-api';
+import { IdentityVerificationStatuses } from '~/constants';
 
+enum VerificationStates {
+  SetIdentityForm = 0,
+  Challenges = 1,
+  Complete = 2,
+}
 
 const IdentityVerificationProcess = () => {
-  const [stage, setStage] = useState(0);
-  
+  const appStateSnap = useSnapshot(appState)
+
+  const [stage, setStage] = useState(null);
+  useEffect(() => {
+    switch(appState.verificationProgress) {
+      case IdentityVerificationStatuses.NoIdentity:
+      case IdentityVerificationStatuses.IdentitySet:
+        setStage(VerificationStates.SetIdentityForm);
+        return;
+      case IdentityVerificationStatuses.JudgementRequested:
+      case IdentityVerificationStatuses.FeePaid:
+        setStage(VerificationStates.Challenges);
+        return;
+      case IdentityVerificationStatuses.IdentityVerified:
+        setStage(VerificationStates.Complete);
+        return;
+      default:
+        setStage(null);
+        return;
+    }
+  }, [appState.verificationProgress]);
+
   const [challenges, setChallenges] = useState({
     displayName: false,
     matrix: { value: '', verified: false },
@@ -19,7 +45,6 @@ const IdentityVerificationProcess = () => {
     discord: { value: '', verified: false },
     twitter: { value: '', verified: false }
   });
-  const [error, setError] = useState('');
 
   const handleVerifyChallenge = (key) => {
     setChallenges(prev => ({
@@ -29,7 +54,7 @@ const IdentityVerificationProcess = () => {
   };
 
   const handleCancel = () => {
-    setStage(0);
+    setStage(VerificationStates.SetIdentityForm);
     setChallenges({
       displayName: false,
       matrix: { value: '', verified: false },
@@ -39,54 +64,75 @@ const IdentityVerificationProcess = () => {
     });
   };
 
-  const handleProceed = () => {
-    setStage(2);
-  };
 
-  const handleSelectAccount = (account) => {
-    console.log(`Selected account: ${account}`);
-    // Implement account selection logic here
-  };
+  const handleBack = () => { setStage(n => n > 0 ? n - 1 : n); };
+  const handleProceed = () => { setStage(n => n < 2 ? n + 1 : n); };
 
-  const handleRemoveIdentity = () => {
-    console.log('Removing identity');
-    // Implement identity removal logic here
-  };
-
-  const handleLogout = () => {
-    console.log('Logging out');
-    // Implement logout logic here
-  };
-
-  const renderStage = () => {
+  const StageContent = () => {
     switch(stage) {
-      case 0:
-        return <IdentityForm />;
-      case 1:
+      case VerificationStates.SetIdentityForm:
+        return <IdentityForm handleProceed={handleProceed} />;
+      case VerificationStates.Challenges:
         return <ChallengeVerification
           onVerify={handleVerifyChallenge}
           onCancel={handleCancel}
           onProceed={handleProceed}
         />;
-      case 2:
+      case VerificationStates.Complete:
         return <CompletionPage />;
       default:
         return null;
     }
   };
+  
+  useEffect(() => {
+    if (appStateSnap.account && import.meta.env.DEV) {
+      const _ss58Info = getSs58AddressInfo(appStateSnap.account.address);
+      console.log({ ss58Info: _ss58Info, })
+    }
+  }, [appStateSnap.account]) 
 
-  const appStateSnap = useSnapshot(appState)
-  if (appStateSnap.account) {
-    return (
-      <SignerProvider signer={appStateSnap.account?.polkadotSigner}>
-        <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
-          <Header />
-          <ProgressBar progress={stage === 0 ? 0 : stage === 1 ? 50 : 100} />
-          {renderStage()}
+  const percentage = appStateSnap.verificationProgress / (Object.keys(IdentityVerificationStatuses).length / 2 -2) * 100
+  useEffect(() => console.log({ percentage, 
+    value: appStateSnap.verificationProgress,
+    key: IdentityVerificationStatuses[appStateSnap.verificationProgress],
+  }), [percentage])
+
+  const canProceed = useMemo((() => 
+    (stage <= VerificationStates.SetIdentityForm 
+      && appStateSnap.verificationProgress >= IdentityVerificationStatuses.JudgementRequested
+    )
+    || (stage <= VerificationStates.Challenges 
+      && appStateSnap.verificationProgress >= IdentityVerificationStatuses.IdentityVerified  
+    )
+  ),
+  [appStateSnap.verificationProgress, stage])
+
+  return (
+    <div className="w-full max-w-3xl mx-auto p-6 bg-white border border-stone-300">
+      <Header />
+      {appStateSnap.account && appStateSnap.verificationProgress !== IdentityVerificationStatuses.Unknown  && <>
+        <ProgressBar progress={percentage} />
+        <div className="flex flex-row justify-between">
+          <button
+            className="bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
+            onClick={handleBack}
+            disabled={stage <= 0}
+          >
+            &lt; Previous
+          </button>
+          <button
+            className="bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
+            onClick={handleProceed}
+            disabled={stage >= 2 || !canProceed}
+          >
+            Next &gt;
+          </button>
         </div>
-      </SignerProvider>
-    );
-  }
+        <StageContent />
+      </>}
+    </div>
+  );
 
 };
 

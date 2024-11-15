@@ -1,4 +1,4 @@
-import { useAccounts, useConnectedWallets, useWalletDisconnector, useWallets } from '@reactive-dot/react';
+import { useAccounts, useConnectedWallets, useTypedApi, useWalletDisconnector } from '@reactive-dot/react';
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { useState } from 'react';
 import { useSnapshot } from 'valtio';
@@ -21,6 +21,8 @@ const UserDropdown = () => {
   // testing for fetched from an API or passed as a prop
   const accounts = useAccounts()
 
+  const typedApi = useTypedApi({ chainId: appStateSnapshot.chain.id })
+
   return (
     <div className="relative">
       {connectedWallets.length > 0 
@@ -29,8 +31,10 @@ const UserDropdown = () => {
             onClick={() => setOpen(!isOpen)} 
             className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
           >
-            {appStateSnapshot.account?.address && <PolkadotIdenticon address={appStateSnapshot.account.address} />}
-            {appStateSnapshot.identity?.displayName || appStateSnapshot.account?.name 
+            {appStateSnapshot.account?.address && <PolkadotIdenticon 
+              address={appStateSnapshot.account.address} 
+            />}
+            {appStateSnapshot.identity?.display || appStateSnapshot.account?.name 
               || 'Please choose account'
             } ▼
           </button>
@@ -57,7 +61,9 @@ const UserDropdown = () => {
                 && <button
                   className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
                   onClick={() => {
-                    appState.identity = null
+                    typedApi.tx.Identity.clear_identity().signAndSubmit(
+                      appStateSnapshot.account?.polkadotSigner
+                    )
                     handleClose()
                   }}
                 >
@@ -88,7 +94,9 @@ const UserDropdown = () => {
                     handleClose()
                     const account = { id, name, address, ...rest };
                     appState.account = account;
-                    localStorage.setItem("account", JSON.stringify(account))
+                    // Needed to prevent circular references for serialization
+                    const accountToLocalStore = { id, name, address };  
+                    localStorage.setItem("account", JSON.stringify(accountToLocalStore))
                   }}
                 >
                   <PolkadotIdenticon address={address} />

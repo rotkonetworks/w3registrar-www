@@ -1,8 +1,11 @@
 import { useTypedApi } from '@reactive-dot/react';
 import { Binary } from 'polkadot-api';
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnapshot } from 'valtio';
+import { config } from '~/api/config';
 import { appState } from '~/App';
+import { CHAIN_UPDATE_INTERVAL, IdentityVerificationStatuses } from '~/constants';
+import { useIdentityEncoder } from '~/hooks/hashers/identity';
 
 type FieldKey = 'display' | 'matrix' | 'email' | 'discord' | 'twitter';
 
@@ -56,9 +59,13 @@ const ALL_IDENTITY_REQUIRED_FIELDS = [
 // Re-export IdentityFormFields if it's still needed elsewhere
 export const IdentityFormFields: FieldKey[] = Object.keys(FIELD_CONFIG) as FieldKey[];
 
-const IdentityForm: React.FC = () => {
+interface Props {
+  handleProceed: () => void;
+}
+
+const IdentityForm: React.FC = ({ handleProceed }: Props) => {
   const formRef = useRef<HTMLFormElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number>(null);
   const { identity: appStateIdentity } = useSnapshot(appState);
 
   const validateForm = useCallback(() => {
@@ -83,7 +90,7 @@ const IdentityForm: React.FC = () => {
 
   const handleInput = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = window.setTimeout(() => {
       const { isValid, errors, identity } = validateForm();
       if (isValid) {
         appState.identity = identity as Identity;
@@ -98,11 +105,11 @@ const IdentityForm: React.FC = () => {
     }, 300);
   }, [validateForm]);
 
-  const typedApi = useTypedApi({ chainId: "people_rococo" });
   const appStateSnap = useSnapshot(appState)
+  const typedApi = useTypedApi({ chainId: appStateSnap.chain.id });
 
   useEffect(() => {
-    if (appState.account) {
+    if (appState.account && import.meta.env.DEV) {
       console.log({ 
         account: appStateSnap.account,
         signer: appStateSnap.account.polkadotSigner,
@@ -111,6 +118,7 @@ const IdentityForm: React.FC = () => {
   }, [appState.account])
 
   const getSubmitData = useCallback(
+    // TODO Review so it gets all the fiends that are present and sets default values othervise
     () => appStateSnap.identity && ({
       info: {
         ...Object.entries(FIELD_CONFIG).reduce((all, [key]) => {
@@ -134,39 +142,119 @@ const IdentityForm: React.FC = () => {
     }), 
     [appStateSnap.identity]
   )
-  useEffect(() => { console.log({ getSubmitData: getSubmitData() }) }, [getSubmitData])
+  useEffect(() => { 
+    if (import.meta.env.DEV) {
+      console.log({ getSubmitData: getSubmitData() }) 
+    }
+  }, [getSubmitData])
+
+  const { calculateHash } = useIdentityEncoder(appStateSnap.identity)
+  const hashesAreEqual = useMemo(() => {
+    if (appStateSnap.hashes?.identity && appStateSnap.identity) {
+      const foundUnequalByte = calculateHash().find((byte, index) => byte !== appStateSnap.hashes.identity[index]) === undefined;
+      import.meta.env.DEV && console.log({ hashesAreEqual: foundUnequalByte })
+      return foundUnequalByte
+    }
+    import.meta.env.DEV && console.log({ hashesAreEqual: null, hashes: {...appStateSnap.hashes} })
+  }, [appStateSnap.hashes?.identity, appStateSnap.identity, appStateSnap.chain.id])
   
+  const chainCall = useMemo(() => {
+    const data = getSubmitData();
+    const judgementRequestData = {
+      max_fee: 0n,
+      reg_index: config.chains[appStateSnap.chain.id].registrarIndex,
+    };
+
+    let call;
+    if (!hashesAreEqual) {
+      call = typedApi.tx.Utility.batch_all({calls: [
+        {
+          type: "Identity", 
+          value: {
+            type: "set_identity",
+            value: data,
+          },
+        },
+        {
+          type: "Identity",
+          value: {
+            type: "request_judgement", 
+            value: judgementRequestData,
+          },
+        },
+      ]});
+    } else {
+      call = typedApi.tx.Identity.request_judgement(judgementRequestData);
+    }
+    return call
+  }, [validateForm, appStateSnap.identity, appState.chain.id])
+
+  const timer = useRef<number>()
+  useEffect(() => {
+    if (!appState.account) {
+      return
+    }
+    timer.current = window.setInterval(async () => {
+      try {
+        const callCost = await chainCall.getEstimatedFees(appState.account.address);
+        const estimatedFees = {...appState.fees};
+        if (appStateSnap.verificationProgress < IdentityVerificationStatuses.FeePaid) {
+          if (hashesAreEqual) {
+            estimatedFees.requestJdgement = callCost;
+            estimatedFees.setIdentityAndRequestJudgement = 0n;
+          } else {
+            estimatedFees.requestJdgement = 0n;
+            estimatedFees.setIdentityAndRequestJudgement = callCost;
+          }        
+        }
+        appState.fees = estimatedFees;
+
+        import.meta.env.DEV && console.log({ estimatedFees });
+      } catch (error) {
+        const errorToSuppress = "Cannot read properties of undefined (reading 'info')";
+        // Happens when account has no identity, so we suppress it so it won't pollute console.
+        if (error.message === errorToSuppress)
+          return
+        import.meta.env.DEV && console.error(error);
+      }
+    }, CHAIN_UPDATE_INTERVAL)
+    return () => {
+      window.clearInterval(timer.current)
+    }
+  }, [hashesAreEqual, appStateSnap.chain.id])
+
   const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { isValid, identity } = validateForm();
-    console.log({ isValid, identity })
-    if (isValid) {
-      // Attempt with signSubmitAndWatch
-      const data = getSubmitData();
-      console.log({data})
-      const setIdCall = typedApi.tx.Identity.set_identity(data)
-      const resultObservable = setIdCall.signSubmitAndWatch(
-        appStateSnap.account?.polkadotSigner,
-      )
-      const resultObserver = {
-        next(data) {
-          console.log(data)
-        },
-        error(e) {
-          console.error(e)
-        },
-        complete() {
-          console.log("request complete")
-        }
-      } 
-     
-      resultObservable.subscribe(resultObserver)
-      appState.stage = 1;
-      appState.challenges = Object.fromEntries(
-        Object.keys(identity).map(key => [key, { value: crypto.randomUUID(), verified: false }])
-      );
+
+    if (appStateSnap.verificationProgress >= IdentityVerificationStatuses.JudgementRequested) {
+      handleProceed();
+      return;
     }
-  }, [validateForm, appState.identity]);
+    const { isValid, identity } = validateForm();
+    if (import.meta.env.DEV) {
+      console.log({ isValid, identity })
+    }
+    if (isValid) {
+      (async () => {
+        const call = chainCall;
+        
+        const resultObservable = call.signSubmitAndWatch(appStateSnap.account?.polkadotSigner)
+        const resultObserver = {
+          next(data) {
+            import.meta.env.DEV && console.log({data, source: "observer",})
+          },
+          error(error) {
+            import.meta.env.DEV && console.error(error)
+          },
+          complete() {
+            import.meta.env.DEV && console.log("request complete")
+          }
+        }
+        
+        resultObservable.subscribe(resultObserver)
+      })()
+    }
+  }, [validateForm, appStateSnap.identity]);
 
   useEffect(() => {
     if (appStateIdentity && formRef.current) {
@@ -203,7 +291,13 @@ const IdentityForm: React.FC = () => {
         className="mt-6 w-full bg-stone-700 hover:bg-stone-800 text-white py-2 px-4 text-sm font-semibold transition duration-300 disabled:bg-stone-400 disabled:cursor-not-allowed rounded border-none outline-none"
         onClick={e => handleSubmit(e)}
       >
-        Sign
+        {appStateSnap.verificationProgress < IdentityVerificationStatuses.JudgementRequested
+          ? (hashesAreEqual
+            ? <>Request Judgement</>
+            : <>Set Identity & Request Judgement</>
+          )
+          : <>Next</>
+        }
       </button>
     </form>
   );

@@ -4,10 +4,10 @@ const CountdownTimer = () => {
     const [time, setTime] = useState(5 * 3600 + 45 * 60 + 15); // use valtio
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       setTime((prevTime) => (prevTime > 0 ? prevTime - 1 : 0));
     }, 1000);
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, []);
 
   const formatTime = (seconds) => {

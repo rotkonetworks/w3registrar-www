@@ -41,14 +41,14 @@ export const ConfigProvider = ({ children }) => {
     );
     
     if (worker) {
-      console.log("Stopping smoldot worker")
+      import.meta.env.DEV && console.log("Stopping smoldot worker")
       worker.terminate()
     }
     if (!config) {
       setConfig(createConfig())
     }
     setWorker(_worker)
-    console.log("Starting smoldot worker")
+    import.meta.env.DEV && console.log("Starting smoldot worker")
   }
 
   return (<ConfigContext.Provider value={{ config, worker, initWorker, api }}>
