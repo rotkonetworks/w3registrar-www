@@ -53,9 +53,6 @@ export const ConfigProvider = ({ children }) => {
       import.meta.env.DEV && console.log("Stopping smoldot worker")
       worker.terminate()
     }
-    if (!config) {
-      setConfig(createConfig())
-    }
     setWorker(_worker)
     import.meta.env.DEV && console.log("Starting smoldot worker")
   }
@@ -123,7 +120,7 @@ export const ConfigProvider = ({ children }) => {
     } as const satisfies ApiConfig;
   }
 
-  function createConfigWithCustomEndpoint(chainId: string, endpoint: string): ApiConfig {
+  function createConfigWithCustomEndpoint(endpoint: string): ApiConfig {
     const newConfig = createConfig();
 
     return {
