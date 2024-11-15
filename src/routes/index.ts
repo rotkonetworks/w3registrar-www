@@ -1,6 +1,6 @@
 import type React from 'react'
 import { lazy } from 'react'
-import Home from '~/pages/home'
+import { IdentityRegistrarComponent } from '~/components/identity-registrar'
 
 const ErrorPage = lazy(() => import('~/pages/error-page'))
 
@@ -15,7 +15,7 @@ export interface RouteType {
 const routes: RouteType[] = [
   {
     path: '/',
-    element: Home,
+    element: IdentityRegistrarComponent,
     meta: {
       title: 'Home'
     }
