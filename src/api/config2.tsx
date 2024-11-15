@@ -17,7 +17,7 @@ import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 
 import { people_rococo } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 
 type ApiConfig = Config & {
@@ -165,14 +165,21 @@ export const ConfigProvider = ({ children }) => {
       throw new Error(urlValidateResolt.message)
     }
 
-    try {
-      worker?.terminate()
-      setConfig(createConfigWithCustomEndpoint("people_rococo", wsUrl))
-    } catch {
-    } finally {
+    worker?.terminate()
+    setConfig(createConfigWithCustomEndpoint(wsUrl))
+  }
+
+  useEffect(() => {
+    if (!worker) {
       initWorker()
     }
-  }
+  }, [])
+  useEffect(() => {
+    console.log({ worker, config })
+    if (worker && !config) {
+      setConfig(createConfig())
+    }
+  }, [worker, config])
 
   return <ConfigContext.Provider value={{ 
     config, 
