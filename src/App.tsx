@@ -226,7 +226,7 @@ export default function App() {
       import.meta.env.DEV && console.log({ data, callback: "complete", type })
     }
   })
-  const handleChainEvent = ({type: { pallet, call }, onEvent, onError, id}) => {
+  const handleChainEvent = ({ type: { pallet, call }, onEvent, onError }) => {
     const type = `${pallet}.${call}`;
     typedApi.event[pallet][call].pull()
       .then(data => {
@@ -243,19 +243,19 @@ export default function App() {
         import.meta.env.DEV && console.error(error)
       })
   }
-  const getEffectCallback = ({type: { pallet, call }, onEvent, onError, id}) => {
+  const getEffectCallback = ({ type: { pallet, call }, onEvent, onError }) => {
     return () => {
       if (!appStateSnapshot.chain.id || !appStateSnapshot.account?.address) {
         return
       }
       const timer = window.setInterval(() => {
-        handleChainEvent({ type: { pallet, call }, id, onEvent, onError, })
+        handleChainEvent({ type: { pallet, call }, onEvent, onError })
       }, CHAIN_UPDATE_INTERVAL)
       return () => window.clearInterval(timer)
     }
   }
 
-  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentitySet" }, id: "idSet",
+  useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentitySet" },
     onEvent: data => {
       appState.verificationProgress = 
         // As we do batch calls, we need to know if judgeent is already awaiting
@@ -267,7 +267,6 @@ export default function App() {
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "IdentityCleared" }, 
-    id: "idCleared",
     onEvent: data => {
       appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
       appState.identity = null;
@@ -276,7 +275,6 @@ export default function App() {
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementRequested" }, 
-    id: "judgRequested",
     onEvent: data => {
       appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
     },
@@ -284,7 +282,6 @@ export default function App() {
   }), [appStateSnapshot.chain.id, appStateSnapshot.account?.address,])
   
   useEffect(getEffectCallback({ type: { pallet: "Identity", call: "JudgementGiven" }, 
-    id: "judgRequested",
     onEvent: data => {
       getIdAndJudgement()
     },
@@ -391,7 +388,8 @@ export default function App() {
   }, [accounts])
 
   const { push, remove } = useAlerts(proxy(appState.alerts))
- */
+  */
+ 
   return <>
     <Router>
       <Routes>
