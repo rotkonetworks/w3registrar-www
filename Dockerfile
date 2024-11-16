@@ -8,12 +8,16 @@ COPY .env .env
 
 # Install dependencies
 RUN bun install --verbose
-
-RUN bunx papi update
+# Post install scripts will update polkadot API metadata for different chains
 
 FROM dependencies AS builder
 COPY . .
-RUN bun run build
+RUN echo "\
+const vite = require('vite');\
+\
+vite.build();\
+" > ./build.js
+RUN bun ./build.js
 
 FROM base AS production
 COPY --from=builder /app/dist /app/dist
