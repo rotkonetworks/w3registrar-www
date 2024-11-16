@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, 
 } from "@/components/ui/dialog"
+import { ConnectionDialog } from "dot-connect/react.js"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -73,7 +74,12 @@ export function IdentityRegistrarComponent() {
     }
   }, [account, network])
 
-  return (
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false);
+
+  return <>
+    <ConnectionDialog open={walletDialogOpen} 
+      onClose={() => { setWalletDialogOpen(false) }} 
+    />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -211,7 +217,7 @@ export function IdentityRegistrarComponent() {
         </div>
       </div>
     </div>
-  )
+  </>
 }
 
 function IdentityForm({ 
