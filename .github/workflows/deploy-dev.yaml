@@ -39,6 +39,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+          echo ${{ secrets.VITE_BUILD_ENV }} > .env
           docker compose up -d web
           docker compose cp web:/app/dist ./dist
           docker compose down
