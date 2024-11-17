@@ -46,9 +46,6 @@ jobs:
           docker compose cp web:/app/dist ./dist
           docker compose down
       
-      - name: Compress the dist folder
-        run: zip -r dist.zip dist
-      
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -60,7 +57,7 @@ jobs:
           scp -o "StrictHostKeyChecking no" -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/dist
           ssh -o "StrictHostKeyChecking no" ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
-            unzip dist.zip
+            killall screen
             screen -d -m bunx serve --single dist
           EOF
 
