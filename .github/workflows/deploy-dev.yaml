@@ -54,10 +54,9 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -o "StrictHostKeyChecking no" ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
-          scp -o "StrictHostKeyChecking no" -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/dist
+          scp -o "StrictHostKeyChecking no" -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           ssh -o "StrictHostKeyChecking no" ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
-            ls -A dist
             pkill -f "bunx serve --single dist"
             screen -d -m bunx serve --single dist
           EOF
