@@ -43,8 +43,9 @@ jobs:
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
           echo BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
           BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
+          sleep 10
           docker compose exec web ls /app/dist
-          docker compose cp web:dist ./dist
+          docker compose cp web:/app/dist ./dist
           docker compose down
       
       - name: Compress the dist folder
