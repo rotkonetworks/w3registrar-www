@@ -9,20 +9,36 @@ COPY .env .env
 # Install dependencies
 RUN bun install --verbose
 
-# Use bunx to run 'papi' commands without full paths
-RUN bunx papi add -n polkadot_people people_polkadot
-RUN bunx papi add -n ksmcc3_people people_kusama
-RUN bunx papi add -n westend2_people people_westend
-RUN bunx papi add -n rococo_v2_2_people people_rococo
-
 FROM dependencies AS builder
 COPY . .
-RUN bun run build
+
+# Following dependencies require patching, otherwise, will produce following error:
+#    Cannot find module "../data/patch.json" from "undefined"    
+# Ref: https://github.com/oven-sh/bun/issues/13076#issuecomment-2451515462
+RUN echo -e '\
+import * as patch from "../data/patch.json"\n\
+\n\
+export default patch;\n\
+' > ./node_modules/css-tree/lib/data-patch.js
+RUN echo -e '\
+export { version } from "../package.json";\n\
+' > ./node_modules/css-tree/lib/version.js
+
+# vite build will fail with 
+#   error during build:
+#   undefined
+# So this script is required to get actual error message:
+RUN echo -e "\
+const vite = require('vite');\n\
+\n\
+vite.build();\n\
+" > ./build.js
+RUN bun ./build.js
 
 FROM base AS production
 COPY --from=builder /app/dist /app/dist
 RUN bun add serve
-CMD ["bun", "run", "serve", "--single", "dist"]
+CMD ["bunx", "serve", "--single", "dist"]
 
 FROM dependencies AS development
 COPY . .

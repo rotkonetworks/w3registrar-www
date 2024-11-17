@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: ${BUILD_TARGET:-development}
+    container_name: web
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - VITE_APP_WALLET_CONNECT_PROJECT_ID=${VITE_APP_WALLET_CONNECT_PROJECT_ID}

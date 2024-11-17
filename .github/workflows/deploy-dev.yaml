@@ -6,6 +6,7 @@ env:
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
+  BUILD_TARGET: 'production'
 
 on:
   pull_request:
@@ -14,36 +15,23 @@ on:
   push:
     branches:
       - main
-
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    environment: production
-    continue-on-error: true
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # - name: Set up Node.js
-      #   uses: actions/setup-node@v2
-      #   with:
-      #     node-version: ${{ env.NODE_VERSION }}
-
-      # - name: Install dependencies
-      #   run: yarn install
-      #
-      # - name: Build for w3registrar-www
-      #   env:
-      #     VITE_PROJECT: w3registrar-www
-      #     # VITE_APP_WALLET_CONNECT_PROJECT_ID: ${{ secrets.VITE_APP_WALLET_CONNECT_PROJECT_ID }}
-      #     # VITE_APP_DEFAULT_WS_URL: ${{ secrets.VITE_APP_DEFAULT_WS_URL }}
-      #   run: |
-      #     cp .env.example .env
-      #     # echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=$VITE_APP_WALLET_CONNECT_PROJECT_ID" >> .env
-      #     # echo "VITE_APP_DEFAULT_WS_URL=$VITE_APP_DEFAULT_WS_URL" >> .env
-      #     yarn buildpub:w3registrar-www
-      #     mv dist dist-w3registrar-www
-
+      - uses: actions/checkout@v3
+      #- name: Checkout repository
+      #  uses: actions/checkout@v2
+      
+      - name: Build the Vite app
+        run: |
+          docker-compose up -d --rm web
+          docker-compose cp web:/app/dist ./dist
+          docker-compose down
+      
+      - name: Compress the dist folder
+        run: zip -r dist.zip dist
+      
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -56,7 +44,16 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
-          scp -r ./* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
-          scp -r ./.env.example ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/.env
-          scp -r ./.papi ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/.papi
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "cd ${{ env.DEPLOY_PATH }}/w3registrar-www && docker compose -f docker-compose.yaml up -d"
+          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/dist
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            unzip dist.zip
+            screen -d -m bunx serve --single dist
+          EOF
+
+#jobs:
+#  build-and-deploy:
+#    runs-on: ubuntu-latest
+#    environment: production
+#    continue-on-error: true
+#    steps:
