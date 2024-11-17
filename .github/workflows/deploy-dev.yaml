@@ -58,7 +58,7 @@ jobs:
           ssh -o "StrictHostKeyChecking no" ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
             pkill -f "bunx serve --single dist"
-            screen -d -m bunx serve --single dist
+            screen -d -m ~/.bun/bin/bunx serve --single dist
           EOF
 
 #jobs:
