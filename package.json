@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "postinstall": "bunx papi update"
   },
   "dependencies": {
     "@iconify/react": "^5.0.2",
