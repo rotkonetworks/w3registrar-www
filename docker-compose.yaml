@@ -11,8 +11,5 @@ services:
       - VITE_APP_DEFAULT_WS_URL=${VITE_APP_DEFAULT_WS_URL}
     ports:
       - "${PORT:-3000}:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     env_file:
       - .env
