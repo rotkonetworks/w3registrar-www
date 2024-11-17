@@ -6,7 +6,6 @@ env:
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
-  BUILD_TARGET: 'production'
 
 on:
   pull_request:
@@ -24,6 +23,8 @@ jobs:
       #  uses: actions/checkout@v2
       
       - name: Build the Vite app
+        env:
+          BUILD_TARGET: 'production'
         run: |
           sudo apt-get update
           sudo apt-get install ca-certificates curl
@@ -40,7 +41,7 @@ jobs:
           sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
-          docker compose up -d web
+          BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
           docker compose exec web ls /app
           docker compose cp web:dist ./dist
           docker compose down
