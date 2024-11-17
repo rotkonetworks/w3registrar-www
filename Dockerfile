@@ -7,7 +7,7 @@ COPY .papi .papi
 COPY .env .env
 
 # Install dependencies
-RUN bun install --verbose
+RUN bun install
 
 FROM dependencies AS builder
 COPY . .
