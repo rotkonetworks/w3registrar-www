@@ -42,7 +42,7 @@ jobs:
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
           docker compose up -d web
           docker compose exec web ls /app
-          docker compose cp web:/app/dist ./dist
+          docker compose cp web:dist ./dist
           docker compose down
       
       - name: Compress the dist folder
