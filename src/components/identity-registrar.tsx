@@ -5,7 +5,6 @@ import {
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
@@ -16,13 +15,16 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, 
 } from "@/components/ui/dialog"
 import { ConnectionDialog } from "dot-connect/react.js"
+import Header from "./Header"
+import { appStore } from "~/store"
+import { useSnapshot } from "valtio"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
   const [account, setAccount] = useState("")
   const [network, setNetwork] = useState("")
   const [notifications, setNotifications] = useState<Array<{ type: 'error' | 'info', message: string }>>([])
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { isDarkMode } = useSnapshot(appStore)
   const [errorMessage, setErrorMessage] = useState("")
   const [identityStatus, setIdentityStatus] = useState({
     displayName: "",
@@ -82,40 +84,7 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-          <div className="flex gap-2 w-full sm:w-auto">
-            <div className="flex-1 min-w-[140px]">
-              <Select onValueChange={setAccount}>
-                <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-                  <SelectValue placeholder="Account" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="account1">Account 1</SelectItem>
-                  <SelectItem value="account2">Account 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 min-w-[140px]">
-              <Select onValueChange={setNetwork}>
-                <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-                  <SelectValue placeholder="Network" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="polkadot">Polkadot</SelectItem>
-                  <SelectItem value="kusama">Kusama</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={() => addNotification('info', 'Notification test')} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => setIsDarkMode(!isDarkMode)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
+        <Header />
 
         {errorMessage && (
           <Alert variant="destructive" className="mb-4 bg-[#FFCCCB] border-[#E6007A] text-[#670D35]">

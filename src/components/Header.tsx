@@ -1,20 +1,47 @@
-import UserDropdown from './UserDropdown';
-import NetworkDropdown from './NetworkDropdown';
-import { BalanceIndicator } from './header/BalanceIndicator';
-import { useSnapshot } from 'valtio';
-import { appState } from '~/App';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Bell, Sun, Moon } from "lucide-react";
+import { appStore as _appStore } from "~/store";
+import { useProxy } from "valtio/utils";
 
 const Header = () => {
-  const appStateSnap = useSnapshot(appState)
+  const appStore = useProxy(_appStore);
+  const isDarkMode = appStore.isDarkMode;
 
-  return (
-    <div className="flex justify-between items-center mb-6">
-      <UserDropdown />
-      {appStateSnap.account && <BalanceIndicator />}
-      <NetworkDropdown />
+  return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+    <div className="flex gap-2 w-full sm:w-auto">
+      <div className="flex-1 min-w-[140px]">
+        <Select onValueChange={() => { } }>
+          <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
+            <SelectValue placeholder="Account" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="account1">Account 1</SelectItem>
+            <SelectItem value="account2">Account 2</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex-1 min-w-[140px]">
+        <Select onValueChange={() => { } }>
+          <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
+            <SelectValue placeholder="Network" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="polkadot">Polkadot</SelectItem>
+            <SelectItem value="kusama">Kusama</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
-  );
-};
+    <div className="flex gap-2">
+      <Button variant="outline" size="icon" onClick={() => addNotification('info', 'Notification test')} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+        <Bell className="h-4 w-4" />
+      </Button>
+      <Button variant="outline" size="icon" onClick={() => appStore.isDarkMode = !appStore.isDarkMode} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+        {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </Button>
+    </div>
+  </div>;
+}
 
 export default Header;
