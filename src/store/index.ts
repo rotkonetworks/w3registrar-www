@@ -31,3 +31,19 @@ export const appStore = proxy<AppStore>({
   isTest: import.meta.env.MODE === 'test',
   isDevTest: import.meta.env.MODE === 'development',
 })
+
+export interface AlertProps {
+  type: "success" | "error" | "info" | "loading";
+  title: string;
+  message: string;
+  key: string;
+  closable: boolean;
+  duration: number;
+}
+export const AlertsStore = proxy<Record<string, AlertProps>>({  })
+export const pushAlert = (alert: AlertProps) => {
+  AlertsStore[alert.key] = alert;
+}
+export const removeAlert = (key: string) => {
+  delete AlertsStore[key];
+}
