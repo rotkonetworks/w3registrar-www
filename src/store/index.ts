@@ -1,5 +1,6 @@
 import { Chains } from '@reactive-dot/core';
 import { proxy } from 'valtio'
+import { proxyMap } from "valtio/utils"
 import { config } from '~/api/config';
 
 export * from './userSore'
@@ -34,16 +35,16 @@ export const appStore = proxy<AppStore>({
 
 export interface AlertProps {
   type: "success" | "error" | "info" | "loading";
-  title: string;
+  title?: string;
   message: string;
   key: string;
-  closable: boolean;
-  duration: number;
+  closable?: boolean;
+  duration?: number;
 }
-export const AlertsStore = proxy<Record<string, AlertProps>>({  })
+export const alertsStore = proxyMap<string, AlertProps>();  // Map to ensure insertion order
 export const pushAlert = (alert: AlertProps) => {
-  AlertsStore[alert.key] = alert;
+  alertsStore.set(alert.key, alert);
 }
 export const removeAlert = (key: string) => {
-  delete AlertsStore[key];
+  alertsStore.delete(key);
 }
