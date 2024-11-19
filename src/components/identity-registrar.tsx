@@ -144,7 +144,7 @@ export function IdentityRegistrarComponent() {
             <StatusPage 
               identityStore={identityStore}
               addNotification={addNotification}
-              challengesStore={challengeStore}
+              challengeStore={challengeStore}
             />
           </TabsContent>
         </Tabs>
@@ -469,11 +469,11 @@ function ChallengePage({
 
 function StatusPage({
   identityStore,
-  challengesStore,
+  challengeStore,
   addNotification,
 }: {
   identityStore: IdentityStore,
-  challengesStore: ChallengeStore,
+  challengeStore: ChallengeStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
 }) {
   const getIcon = (field: string) => {
@@ -489,7 +489,6 @@ function StatusPage({
     }
   }
 
-  const identityStore = useSnapshot(_identityStore)
   const onChainIdentity = identityStore.status
 
   return (
@@ -539,8 +538,8 @@ function StatusPage({
           <div className="mt-4">
             <strong>Field Statuses:</strong>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {Object.entries(identityStatus.fields).map(([field, status]: 
-                [string, "Verified" | "Unverified"]
+              {Object.entries(challengeStore).map(([field, { status, code }]: 
+                [string, Challenge]
               ) => (
                 <div key={field} className="flex justify-between items-center">
                   <span className="flex items-center gap-2">
