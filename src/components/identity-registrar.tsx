@@ -208,7 +208,7 @@ function IdentityForm({
   }
 
   const updateIdentityStatus = (newStatus: Partial<typeof identityStatus>) => {
-    setIdentityStatus(prev => ({ ...prev, ...newStatus }))
+    // TODO identityStore.status = verifiyStatuses.IdentitySet
     addNotification({
       key: (new Date()).toISOString(),
       type: 'info',
