@@ -133,8 +133,7 @@ export function IdentityRegistrarComponent() {
           <TabsContent value={pages[1].name}>
             <ChallengePage 
               addNotification={addNotification}
-              removeNotification={removeNotification}
-            />
+              />
           </TabsContent>
           <TabsContent value={pages[2].name}>
             <StatusPage 
@@ -565,7 +564,6 @@ function StatusPage({
               type: 'info', 
               message: 'Identity cleared successfully', 
             })
-            setErrorMessage("")
           }} className="bg-[#670D35] text-[#FFFFFF] hover:bg-[#91094c] flex-1">
             <Trash2 className="mr-2 h-4 w-4" />
             Clear Identity
@@ -576,7 +574,6 @@ function StatusPage({
                 type: 'info', 
                 message: 'Judgement cleared successfully', 
               })
-              setErrorMessage("")
             }} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
             disabled={onChainIdentity !== verifiyStatuses.IdentityVerified}
