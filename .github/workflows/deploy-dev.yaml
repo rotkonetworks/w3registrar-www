@@ -48,10 +48,11 @@ jobs:
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
+          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
-            pkill -f "bunx serve --single dist"
-            screen -d -m ~/.bun/bin/bunx serve --single dist
+            docker compose up -d web-nginx
           EOF
 
 #jobs:
