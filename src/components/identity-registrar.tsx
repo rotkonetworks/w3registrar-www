@@ -207,41 +207,13 @@ function IdentityForm({
     setShowCostModal(true);
   }
 
-  const updateIdentityStatus = (newStatus: Partial<typeof identityStatus>) => {
-    // TODO identityStore.status = verifiyStatuses.IdentitySet
-    addNotification({
-      key: (new Date()).toISOString(),
-      type: 'info',
-      message: 'Identity status updated'
-    })
-  }
-
   const confirmAction = () => {
     if (actionType === "judgement") {
-      updateIdentityStatus({
-        display: formData.display,
-        deposit: "1.5 DOT",
-        fields: {
-          matrix: formData.matrix ? "Pending" : "Not Set",
-          email: formData.email ? "Pending" : "Not Set",
-          discord: formData.discord ? "Pending" : "Not Set",
-        }
-      })
       addNotification({
         type: 'info', 
         message: 'Judgement requested successfully', 
       })
     } else {
-      updateIdentityStatus({ 
-        verified: false, 
-        judgement: "None",
-        display: formData.display || "Not Set",
-        fields: {
-          matrix: formData.matrix ? "Set" : "Not Set",
-          email: formData.email ? "Set" : "Not Set",
-          discord: formData.discord ? "Set" : "Not Set",
-        }
-      })
       addNotification({
         type: 'info', 
         message: 'Identity set successfully', 
@@ -480,8 +452,6 @@ function ChallengePage({
             type: 'info', 
             message: 'Challenges verified successfully', 
           })
-          setErrorMessage("")
-          updateIdentityStatus({ verified: true, judgement: "Reasonable" })
         }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full">
           <CheckCircle className="mr-2 h-4 w-4" />
           Verify Challenges
@@ -591,17 +561,6 @@ function StatusPage({
         </Alert>
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="destructive" onClick={() => {
-            updateIdentityStatus({
-              display: "",
-              verified: false,
-              judgement: "None",
-              deposit: "0 DOT",
-              fields: {
-                matrix: "Not Set",
-                email: "Not Set",
-                discord: "Not Set",
-              }
-            })
             addNotification({
               type: 'info', 
               message: 'Identity cleared successfully', 
@@ -613,7 +572,6 @@ function StatusPage({
           </Button>
           <Button variant="outline" 
             onClick={() => {
-              updateIdentityStatus({ verified: false, judgement: "None" })
               addNotification({
                 type: 'info', 
                 message: 'Judgement cleared successfully', 
