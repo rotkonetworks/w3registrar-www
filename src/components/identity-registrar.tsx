@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dialog"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { alertsStore as _alertsStore, appStore, pushAlert, removeAlert, AlertProps } from "~/store"
+import { appStore } from "~/store"
+import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 

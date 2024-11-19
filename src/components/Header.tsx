@@ -1,7 +1,8 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Bell, Sun, Moon } from "lucide-react";
-import { appStore as _appStore, pushAlert } from "~/store";
+import { appStore as _appStore } from "~/store";
+import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
 
 const Header = () => {
