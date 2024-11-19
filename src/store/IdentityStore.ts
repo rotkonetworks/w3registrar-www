@@ -58,6 +58,7 @@ export interface IdentityStore {
   judgement?: Judgement;
   status: verifiyStatuses;
   hash?: Uint16Array;
+  deposit?: bigint;
 }
 
 export const identityStore = proxy<IdentityStore>({
