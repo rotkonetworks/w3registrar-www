@@ -9,3 +9,10 @@ services:
       - "${PORT:-3000}:3000"
     env_file:
       - .env
+  web-nginx:
+    image: nginx
+    ports:
+      - 127.0.0.1:63999:80
+    volumes:
+      - ./dist/:/app:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
