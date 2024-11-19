@@ -2,7 +2,7 @@ import { IdentityData, IdentityJudgement } from "@polkadot-api/descriptors";
 import { Binary, FixedSizeBinary, SS58String, StorageDescriptor } from "polkadot-api";
 import { proxy } from "valtio";
 
-interface IdentityFormData {
+export interface IdentityFormData {
   discord?: string;
   display?: string;
   email?: string;
@@ -45,7 +45,7 @@ export enum verifiyStatuses {
   IdentityVerified = 4, // Judgement is deemed Reasonable, KnownGood, or any other afformative state
 }
 
-interface Judgement {
+export interface Judgement {
   registrar: {
     index: number;
   };
@@ -53,7 +53,7 @@ interface Judgement {
   fee: bigint;
 }
 
-interface IdentityStore {
+export interface IdentityStore {
   info?: IdentityFormData;
   judgement?: Judgement;
   status: verifiyStatuses;
