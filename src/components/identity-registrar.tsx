@@ -138,7 +138,6 @@ export function IdentityRegistrarComponent() {
           <TabsContent value={pages[2].name}>
             <StatusPage 
               addNotification={addNotification}
-              removeNotification={removeNotification}
             />
           </TabsContent>
         </Tabs>
