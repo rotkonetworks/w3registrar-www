@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { alertsStore as _alertsStore, appStore, removeAlert } from "~/store"
+import { alertsStore as _alertsStore, appStore, pushAlert, removeAlert, AlertProps } from "~/store"
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 
@@ -51,17 +51,21 @@ export function IdentityRegistrarComponent() {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
 
-  const addNotification = (type: 'error' | 'info', message: string) => {
-    setNotifications(prev => [...prev, { type, message }])
+  const addNotification = (alert: AlertProps) => {
+    pushAlert(alert);
   }
 
-  const removeNotification = (index: number) => {
-    setNotifications(prev => prev.filter((_, i) => i !== index))
+  const removeNotification = (key: string) => {
+    removeAlert(key)
   }
 
   const updateIdentityStatus = (newStatus: Partial<typeof identityStatus>) => {
     setIdentityStatus(prev => ({ ...prev, ...newStatus }))
-    addNotification('info', 'Identity status updated')
+    addNotification({ 
+      key: (new Date()).toISOString(), 
+      type: 'info', 
+      message: 'Identity status updated' 
+    })
   }
 
   const checkOnChainIdentity = () => {
@@ -113,7 +117,7 @@ export function IdentityRegistrarComponent() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => alertsStore.delete(alert.key)} 
+                onClick={() => removeNotification(alert.key)} 
                 className={`${
                   isDarkMode 
                     ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
