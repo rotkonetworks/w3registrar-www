@@ -63,3 +63,6 @@ interface IdentityStore {
 export const identityStore = proxy<IdentityStore>({
   status: verifiyStatuses.Unknown,
 });
+export const updateIdentity = (info: IdentityFormData) => {
+  identityStore.info = info
+}
