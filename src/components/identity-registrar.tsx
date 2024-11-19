@@ -532,7 +532,7 @@ function StatusPage({
                 <Coins className="h-4 w-4" />
                 Deposit:
               </strong> 
-              <span>{identityStatus.deposit}</span>
+              <span>{identityStore.deposit?.toString() || "Unknown"}</span>
             </div>
           </div>
           <div className="mt-4">
