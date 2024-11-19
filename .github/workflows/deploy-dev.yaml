@@ -25,7 +25,9 @@ jobs:
         env:
           BUILD_TARGET: 'production'
         run: |
-          curl -fsSL https://bun.sh/install | bash -s "bun-canary"
+          curl -fsSL https://bun.sh/install | bash -s "canary"
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH=$BUN_INSTALL/bin:$PATH
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
           bash scripts/build.sh
           echo BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
