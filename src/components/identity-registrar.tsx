@@ -49,15 +49,6 @@ export function IdentityRegistrarComponent() {
     removeAlert(key)
   }
 
-  const updateIdentityStatus = (newStatus: Partial<typeof identityStatus>) => {
-    setIdentityStatus(prev => ({ ...prev, ...newStatus }))
-    addNotification({ 
-      key: (new Date()).toISOString(), 
-      type: 'info', 
-      message: 'Identity status updated' 
-    })
-  }
-
   const checkOnChainIdentity = () => {
     window.setTimeout(() => {
       const statuses = ['none', 'set', 'requested'] as const
