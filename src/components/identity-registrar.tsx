@@ -41,8 +41,9 @@ export function IdentityRegistrarComponent() {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
 
-  const addNotification = (alert: AlertProps) => {
-    pushAlert(alert);
+  const addNotification = (alert: Omit<AlertProps, "key">) => {
+    const key = alert.key || (new Date()).toISOString();
+    pushAlert({ ...alert, key });
   }
 
   const removeNotification = (key: string) => {
@@ -167,7 +168,7 @@ export function IdentityRegistrarComponent() {
 function IdentityForm({ 
   addNotification, 
 }: {
-  addNotification: (alert: AlertProps) => void,
+  addNotification: (alert: Omit<AlertProps, "key">) => void,
 }) {
   const [formData, setFormData] = useState({
     display: "",
@@ -226,7 +227,10 @@ function IdentityForm({
           discord: formData.discord ? "Pending" : "Not Set",
         }
       })
-      addNotification('info', 'Judgement requested successfully')
+      addNotification({
+        type: 'info', 
+        message: 'Judgement requested successfully', 
+      })
     } else {
       updateIdentityStatus({ 
         verified: false, 
@@ -238,7 +242,10 @@ function IdentityForm({
           discord: formData.discord ? "Set" : "Not Set",
         }
       })
-      addNotification('info', 'Identity set successfully')
+      addNotification({
+        type: 'info', 
+        message: 'Identity set successfully', 
+      })
     }
     setShowCostModal(false)
     setErrorMessage("")
@@ -392,7 +399,7 @@ function ChallengePage({
   addNotification,
   removeNotification
 }: {
-  addNotification: (alert: AlertProps) => void,
+  addNotification: (alert: Omit<AlertProps, "key">) => void,
   removeNotification: (key: string) => void
 }) {
   const [challenges, setChallenges] = useState({
@@ -403,7 +410,10 @@ function ChallengePage({
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    addNotification('info', 'Challenge code copied to clipboard')
+    addNotification({
+      type: 'info', 
+      message: 'Challenge code copied to clipboard', 
+    })
   }
 
   const getStatusBadge = (status: string) => {
@@ -466,7 +476,10 @@ function ChallengePage({
           ))}
         </div>
         <Button onClick={() => {
-          addNotification('info', 'Challenges verified successfully')
+          addNotification({
+            type: 'info', 
+            message: 'Challenges verified successfully', 
+          })
           setErrorMessage("")
           updateIdentityStatus({ verified: true, judgement: "Reasonable" })
         }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full">
@@ -481,7 +494,7 @@ function ChallengePage({
 function StatusPage({
   addNotification,
 }: {
-  addNotification: (alert: AlertProps) => void,
+  addNotification: (alert: Omit<AlertProps, "key">) => void,
 }) {
   const getIcon = (field: string) => {
     switch (field) {
@@ -589,7 +602,10 @@ function StatusPage({
                 discord: "Not Set",
               }
             })
-            addNotification('info', 'Identity cleared successfully')
+            addNotification({
+              type: 'info', 
+              message: 'Identity cleared successfully', 
+            })
             setErrorMessage("")
           }} className="bg-[#670D35] text-[#FFFFFF] hover:bg-[#91094c] flex-1">
             <Trash2 className="mr-2 h-4 w-4" />
@@ -598,7 +614,10 @@ function StatusPage({
           <Button variant="outline" 
             onClick={() => {
               updateIdentityStatus({ verified: false, judgement: "None" })
-              addNotification('info', 'Judgement cleared successfully')
+              addNotification({
+                type: 'info', 
+                message: 'Judgement cleared successfully', 
+              })
               setErrorMessage("")
             }} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
