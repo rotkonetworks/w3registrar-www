@@ -428,7 +428,7 @@ function ChallengePage({
               Display Name
             </Label>
             <div className="flex justify-between items-center">
-              <span>{identityStore.info.display || "Not Set"}</span>
+              <span>{identityStore.info?.display || "Not Set"}</span>
               {identityStore.status === verifiyStatuses.IdentityVerified && (
                 <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
               )}
