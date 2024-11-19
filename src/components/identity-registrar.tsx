@@ -94,21 +94,21 @@ export function IdentityRegistrarComponent() {
           </Alert>
         )}
 
-        {[...alertsStore.entries()].map(([key, notification], index) => (
+        {[...alertsStore.entries()].map(([key, alert]) => (
           <Alert 
-            key={index} 
-            variant={notification.type === 'error' ? "destructive" : "default"} 
+            key={alert.key} 
+            variant={alert.type === 'error' ? "destructive" : "default"} 
             className={`mb-4 ${
-              notification.type === 'error' 
+              alert.type === 'error' 
                 ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
                 : isDarkMode 
                   ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
                   : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
             }`}
           >
-            <AlertTitle>{notification.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+            <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
             <AlertDescription className="flex justify-between items-center">
-              {notification.message}
+              {alert.message}
               <Button 
                 variant="ghost" 
                 size="sm" 
