@@ -41,8 +41,8 @@ export function IdentityRegistrarComponent() {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
 
-  const addNotification = (alert: Omit<AlertProps, "key">) => {
-    const key = alert.key || (new Date()).toISOString();
+  const addNotification = (alert: AlertProps | Omit<AlertProps, "key">) => {
+    const key = (alert as AlertProps).key || (new Date()).toISOString();
     pushAlert({ ...alert, key });
   }
 
@@ -168,7 +168,7 @@ export function IdentityRegistrarComponent() {
 function IdentityForm({ 
   addNotification, 
 }: {
-  addNotification: (alert: Omit<AlertProps, "key">) => void,
+  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
 }) {
   const [formData, setFormData] = useState({
     display: "",
@@ -399,7 +399,7 @@ function ChallengePage({
   addNotification,
   removeNotification
 }: {
-  addNotification: (alert: Omit<AlertProps, "key">) => void,
+  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   removeNotification: (key: string) => void
 }) {
   const [challenges, setChallenges] = useState({
@@ -494,7 +494,7 @@ function ChallengePage({
 function StatusPage({
   addNotification,
 }: {
-  addNotification: (alert: Omit<AlertProps, "key">) => void,
+  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
 }) {
   const getIcon = (field: string) => {
     switch (field) {
