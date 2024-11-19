@@ -525,7 +525,7 @@ function StatusPage({
                 <AlertCircle className="h-4 w-4" />
                 Judgement:
               </strong> 
-              <span>{identityStatus.judgement}</span>
+              <span>{verifiyStatuses[identityStore.status]}</span>
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
