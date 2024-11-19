@@ -20,7 +20,8 @@ import { appStore } from "~/store"
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { challengeStore as _challengeStore, Challenge, ChallengeStatus, challengeStore, ChallengeStore } from "~/store/challengesStore"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -65,6 +66,9 @@ export function IdentityRegistrarComponent() {
   }, [account, network])
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
+
+  const identityStore = useProxy(_identityStore);
+  const challengeStore = useProxy(_challengeStore);
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -132,12 +136,15 @@ export function IdentityRegistrarComponent() {
           </TabsContent>
           <TabsContent value={pages[1].name}>
             <ChallengePage 
+              identityStore={identityStore}
               addNotification={addNotification}
               />
           </TabsContent>
           <TabsContent value={pages[2].name}>
             <StatusPage 
+              identityStore={identityStore}
               addNotification={addNotification}
+              challengesStore={challengeStore}
             />
           </TabsContent>
         </Tabs>
@@ -368,10 +375,10 @@ function IdentityForm({
 
 function ChallengePage({
   addNotification,
-  removeNotification
+  identityStore,
 }: {
+  identityStore: IdentityStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  removeNotification: (key: string) => void
 }) {
   const [challenges, setChallenges] = useState({
     matrix: { code: "234567", status: "pending" },
@@ -461,8 +468,12 @@ function ChallengePage({
 }
 
 function StatusPage({
+  identityStore,
+  challengesStore,
   addNotification,
 }: {
+  identityStore: IdentityStore,
+  challengesStore: ChallengeStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
 }) {
   const getIcon = (field: string) => {
