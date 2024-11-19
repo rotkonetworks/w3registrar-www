@@ -21,7 +21,7 @@ import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from 
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, Challenge, ChallengeStatus, challengeStore, ChallengeStore } from "~/store/challengesStore"
+import { challengeStore as _challengeStore, Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -546,10 +546,15 @@ function StatusPage({
                     {getIcon(field)}
                     {field.charAt(0).toUpperCase() + field.slice(1)}:
                   </span>
-                  <Badge variant={status === "Verified" ? "success" : "secondary"} 
-                    className={status === "Verified" 
-                      ? "bg-[#E6007A] text-[#FFFFFF]" 
-                      : "bg-[#706D6D] text-[#FFFFFF]"
+                  <Badge 
+                    variant={
+                      status === ChallengeStatus.Passed ? "success" 
+                      : status === ChallengeStatus.Failed ? "destructive" : "secondary"
+                    }
+                    className={
+                      status === ChallengeStatus.Passed ? "bg-[#E6007A] text-[#FFFFFF]" 
+                      : status === ChallengeStatus.Failed ? "bg-[#670D35] text-[#FFFFFF]"
+                      : "text-[#FFFFFF]"
                     }
                   >
                     {status}
