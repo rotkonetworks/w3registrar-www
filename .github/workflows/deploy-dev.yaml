@@ -29,10 +29,6 @@ jobs:
           export PATH=$BUN_INSTALL/bin:$PATH
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
           bash scripts/build.sh
-          echo BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
-          BUILD_TARGET=${{ env.BUILD_TARGET }} docker compose up -d web
-          docker compose cp web:/app/dist ./dist
-          docker compose down
       
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
