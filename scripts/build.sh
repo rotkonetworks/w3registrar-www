@@ -18,8 +18,6 @@ for var in $(compgen -e); do
     esac
 done
 
-export PATH="/usr/local/bin:/usr/bin:/bin"
-
 readonly REQUIRED_VARS=(
     VITE_APP_WALLET_CONNECT_PROJECT_ID
     VITE_APP_DEFAULT_WS_URL
@@ -37,6 +35,8 @@ for var in "${REQUIRED_VARS[@]}"; do
         exit 1
     fi
 done
+
+bun install
 
 cat << EOF > ./node_modules/css-tree/lib/data-patch.js
 import * as patch from "../data/patch.json"
