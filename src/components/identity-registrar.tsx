@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { appStore } from "~/store"
+import { alertsStore as _alertsStore, appStore, removeAlert } from "~/store"
 import { useSnapshot } from "valtio"
 
 export function IdentityRegistrarComponent() {
@@ -24,6 +24,7 @@ export function IdentityRegistrarComponent() {
   const [account, setAccount] = useState("")
   const [network, setNetwork] = useState("")
   const [notifications, setNotifications] = useState<Array<{ type: 'error' | 'info', message: string }>>([])
+  const alertsStore = useSnapshot(_alertsStore);
   const { isDarkMode } = useSnapshot(appStore)
   const [errorMessage, setErrorMessage] = useState("")
   const [identityStatus, setIdentityStatus] = useState({
@@ -93,7 +94,7 @@ export function IdentityRegistrarComponent() {
           </Alert>
         )}
 
-        {notifications.map((notification, index) => (
+        {[...alertsStore.entries()].map(([key, notification], index) => (
           <Alert 
             key={index} 
             variant={notification.type === 'error' ? "destructive" : "default"} 

@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Bell, Sun, Moon } from "lucide-react";
-import { appStore as _appStore } from "~/store";
+import { appStore as _appStore, pushAlert } from "~/store";
 import { useProxy } from "valtio/utils";
 
 const Header = () => {
@@ -34,7 +34,14 @@ const Header = () => {
       </div>
     </div>
     <div className="flex gap-2">
-      <Button variant="outline" size="icon" onClick={() => addNotification('info', 'Notification test')} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+      <Button variant="outline" size="icon" 
+        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+        onClick={() => pushAlert({
+          key: (new Date()).toISOString(),
+          type: 'info', 
+          message: 'Notification test',
+        })}
+      >
         <Bell className="h-4 w-4" />
       </Button>
       <Button variant="outline" size="icon" onClick={() => appStore.isDarkMode = !appStore.isDarkMode} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
