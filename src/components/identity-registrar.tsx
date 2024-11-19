@@ -26,21 +26,9 @@ export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
   const [account, setAccount] = useState("")
   const [network, setNetwork] = useState("")
-  const [notifications, setNotifications] = useState<Array<{ type: 'error' | 'info', message: string }>>([])
   const alertsStore = useProxy(_alertsStore);
   const { isDarkMode } = useSnapshot(appStore)
   const [errorMessage, setErrorMessage] = useState("")
-  const [identityStatus, setIdentityStatus] = useState({
-    displayName: "",
-    verified: false,
-    judgement: "None",
-    deposit: "0 DOT",
-    fields: {
-      matrix: "Not Set",
-      email: "Not Set",
-      discord: "Not Set",
-    }
-  })
   const [onChainIdentity, setOnChainIdentity] = useState<'none' | 'set' | 'requested'>('none')
 
   const pages = [
