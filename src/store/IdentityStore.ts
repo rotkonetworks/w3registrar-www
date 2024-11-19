@@ -54,7 +54,7 @@ interface Judgement {
 }
 
 interface IdentityStore {
-  identity?: IdentityFormData;
+  info?: IdentityFormData;
   judgement?: Judgement;
   status: verifiyStatuses;
   hash?: Uint16Array;

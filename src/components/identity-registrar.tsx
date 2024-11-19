@@ -20,6 +20,7 @@ import { appStore } from "~/store"
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
+import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -201,6 +202,10 @@ function IdentityForm() {
     return errors
   }
 
+  const [errorMessage, setErrorMessage] = useState("")
+  const identityStore = useSnapshot(_identityStore)
+  const onChainIdentity = identityStore.status
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const errors = validateForm()
@@ -208,8 +213,7 @@ function IdentityForm() {
       setErrorMessage(errors.join(". "))
       return
     }
-    setShowCostModal(true)
-    setActionType(onChainIdentity === 'none' ? "identity" : "judgement")
+    setShowCostModal(true);
   }
 
   const confirmAction = () => {
@@ -314,21 +318,25 @@ function IdentityForm() {
               <Info className="h-4 w-4" />
               <AlertTitle>On-chain Identity Status</AlertTitle>
               <AlertDescription>
-                {onChainIdentity === 'none' && "No identity set. You need to set your identity before requesting judgement."}
-                {onChainIdentity === 'set' && "Identity already set. You can update your identity or request judgement."}
-                {onChainIdentity === 'requested' && "Judgement already requested. You can update your identity while waiting for judgement."}
+                {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set. You need to set your identity before requesting judgement."}
+                {onChainIdentity === verifiyStatuses.IdentitySet && "Identity already set. You can update your identity or request judgement."}
+                {onChainIdentity === verifiyStatuses.JudgementRequested && "Judgement already requested. You can update your identity while waiting for judgement."}
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Button type="submit" className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1">
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === 'none' ? 'Set Identity' : 'Update Identity'}
+                {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity !== 'none' && (
-                <Button type="button" variant="outline" onClick={() => {
-                  setShowCostModal(true)
-                  setActionType("judgement")
-                }} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" disabled={onChainIdentity === 'requested'}>
+              {onChainIdentity !== verifiyStatuses.NoIdentity && (
+                <Button type="button" variant="outline" 
+                  onClick={() => {
+                    setShowCostModal(true)
+                    setActionType("judgement")
+                  }} 
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
+                  disabled={onChainIdentity === verifiyStatuses.JudgementRequested}
+                >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
                 </Button>
@@ -427,8 +435,8 @@ function ChallengePage() {
               Display Name
             </Label>
             <div className="flex justify-between items-center">
-              <span>{identityStatus.displayName || "Not Set"}</span>
-              {identityStatus.verified && (
+              <span>{identityStore.info.display || "Not Set"}</span>
+              {identityStore.status === verifiyStatuses.IdentityVerified && (
                 <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
               )}
             </div>
@@ -479,6 +487,9 @@ function StatusPage() {
     }
   }
 
+  const identityStore = useSnapshot(_identityStore)
+  const onChainIdentity = identityStore.status
+
   return (
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)] overflow-x-auto">
       <CardHeader>
@@ -496,14 +507,14 @@ function StatusPage() {
                 <UserCircle className="h-4 w-4" />
                 Display Name:
               </strong> 
-              <span>{identityStatus.displayName || "Not Set"}</span>
+              <span>{identityStore.info.display || "Not Set"}</span>
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4" />
                 Verification:
               </strong> 
-              {identityStatus.verified ? 
+              {identityStore.status == verifiyStatuses.IdentityVerified ? 
                 <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge> : 
                 <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Not Verified</Badge>
               }
@@ -551,9 +562,9 @@ function StatusPage() {
           <Info className="h-4 w-4" />
           <AlertTitle>On-chain Identity Status</AlertTitle>
           <AlertDescription>
-            {onChainIdentity === 'none' && "No identity set on-chain."}
-            {onChainIdentity === 'set' && "Identity set on-chain."}
-            {onChainIdentity === 'requested' && "Judgement requested and pending."}
+            {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set on-chain."}
+            {onChainIdentity === verifiyStatuses.IdentitySet && "Identity set on-chain."}
+            {onChainIdentity === verifiyStatuses.IdentityVerified && "Judgement requested and pending."}
           </AlertDescription>
         </Alert>
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
@@ -575,11 +586,15 @@ function StatusPage() {
             <Trash2 className="mr-2 h-4 w-4" />
             Clear Identity
           </Button>
-          <Button variant="outline" onClick={() => {
-            updateIdentityStatus({ verified: false, judgement: "None" })
-            addNotification('info', 'Judgement cleared successfully')
-            setErrorMessage("")
-          }} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" disabled={onChainIdentity !== 'requested'}>
+          <Button variant="outline" 
+            onClick={() => {
+              updateIdentityStatus({ verified: false, judgement: "None" })
+              addNotification('info', 'Judgement cleared successfully')
+              setErrorMessage("")
+            }} 
+            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
+            disabled={onChainIdentity !== verifiyStatuses.IdentityVerified}
+          >
             <RefreshCcw className="mr-2 h-4 w-4" />
             Clear Judgement
           </Button>
