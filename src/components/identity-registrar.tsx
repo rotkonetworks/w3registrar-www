@@ -144,32 +144,13 @@ export function IdentityRegistrarComponent() {
             ))}
           </TabsList>
           <TabsContent value={pages[0].name}>
-            <IdentityForm 
-              addNotification={addNotification} 
-              updateIdentityStatus={updateIdentityStatus} 
-              isDarkMode={isDarkMode} 
-              setErrorMessage={setErrorMessage}
-              onChainIdentity={onChainIdentity}
-            />
+            <IdentityForm />
           </TabsContent>
           <TabsContent value={pages[1].name}>
-            <ChallengePage 
-              addNotification={addNotification} 
-              updateIdentityStatus={updateIdentityStatus} 
-              isDarkMode={isDarkMode} 
-              setErrorMessage={setErrorMessage}
-              identityStatus={identityStatus}
-            />
+            <ChallengePage />
           </TabsContent>
           <TabsContent value={pages[2].name}>
-            <StatusPage 
-              addNotification={addNotification} 
-              identityStatus={identityStatus} 
-              updateIdentityStatus={updateIdentityStatus} 
-              isDarkMode={isDarkMode} 
-              setErrorMessage={setErrorMessage}
-              onChainIdentity={onChainIdentity}
-            />
+            <StatusPage />
           </TabsContent>
         </Tabs>
 
@@ -195,19 +176,7 @@ export function IdentityRegistrarComponent() {
   </>
 }
 
-function IdentityForm({ 
-  addNotification, 
-  updateIdentityStatus,
-  isDarkMode,
-  setErrorMessage,
-  onChainIdentity
-}: { 
-  addNotification: (type: 'error' | 'info', message: string) => void,
-  updateIdentityStatus: (newStatus: any) => void,
-  isDarkMode: boolean,
-  setErrorMessage: (message: string) => void,
-  onChainIdentity: 'none' | 'set' | 'requested'
-}) {
+function IdentityForm() {
   const [formData, setFormData] = useState({
     displayName: "",
     matrix: "",
@@ -411,19 +380,7 @@ function IdentityForm({
   )
 }
 
-function ChallengePage({ 
-  addNotification, 
-  updateIdentityStatus,
-  isDarkMode,
-  setErrorMessage,
-  identityStatus
-}: { 
-  addNotification: (type: 'error' | 'info', message: string) => void,
-  updateIdentityStatus: (newStatus: any) => void,
-  isDarkMode: boolean,
-  setErrorMessage: (message: string) => void,
-  identityStatus: any
-}) {
+function ChallengePage() {
   const [challenges, setChallenges] = useState({
     matrix: { code: "234567", status: "pending" },
     email: { code: "345678", status: "verified" },
@@ -507,21 +464,7 @@ function ChallengePage({
   )
 }
 
-function StatusPage({ 
-  addNotification, 
-  identityStatus,
-  updateIdentityStatus,
-  isDarkMode,
-  setErrorMessage,
-  onChainIdentity
-}: { 
-  addNotification: (type: 'error' | 'info', message: string) => void,
-  identityStatus: any,
-  updateIdentityStatus: (newStatus: any) => void,
-  isDarkMode: boolean,
-  setErrorMessage: (message: string) => void,
-  onChainIdentity: 'none' | 'set' | 'requested'
-}) {
+function StatusPage() {
   const getIcon = (field: string) => {
     switch (field) {
       case "matrix":
