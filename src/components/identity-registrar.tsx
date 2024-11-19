@@ -134,13 +134,21 @@ export function IdentityRegistrarComponent() {
             ))}
           </TabsList>
           <TabsContent value={pages[0].name}>
-            <IdentityForm />
+            <IdentityForm 
+              addNotification={addNotification}
+            />
           </TabsContent>
           <TabsContent value={pages[1].name}>
-            <ChallengePage />
+            <ChallengePage 
+              addNotification={addNotification}
+              removeNotification={removeNotification}
+            />
           </TabsContent>
           <TabsContent value={pages[2].name}>
-            <StatusPage />
+            <StatusPage 
+              addNotification={addNotification}
+              removeNotification={removeNotification}
+            />
           </TabsContent>
         </Tabs>
 
@@ -166,7 +174,11 @@ export function IdentityRegistrarComponent() {
   </>
 }
 
-function IdentityForm() {
+function IdentityForm({ 
+  addNotification, 
+}: {
+  addNotification: (alert: AlertProps) => void,
+}) {
   const [formData, setFormData] = useState({
     displayName: "",
     matrix: "",
@@ -202,6 +214,15 @@ function IdentityForm() {
       return
     }
     setShowCostModal(true);
+  }
+
+  const updateIdentityStatus = (newStatus: Partial<typeof identityStatus>) => {
+    setIdentityStatus(prev => ({ ...prev, ...newStatus }))
+    addNotification({
+      key: (new Date()).toISOString(),
+      type: 'info',
+      message: 'Identity status updated'
+    })
   }
 
   const confirmAction = () => {
@@ -377,7 +398,13 @@ function IdentityForm() {
   )
 }
 
-function ChallengePage() {
+function ChallengePage({
+  addNotification,
+  removeNotification
+}: {
+  addNotification: (alert: AlertProps) => void,
+  removeNotification: (key: string) => void
+}) {
   const [challenges, setChallenges] = useState({
     matrix: { code: "234567", status: "pending" },
     email: { code: "345678", status: "verified" },
@@ -461,7 +488,11 @@ function ChallengePage() {
   )
 }
 
-function StatusPage() {
+function StatusPage({
+  addNotification,
+}: {
+  addNotification: (alert: AlertProps) => void,
+}) {
   const getIcon = (field: string) => {
     switch (field) {
       case "matrix":
