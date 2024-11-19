@@ -18,13 +18,14 @@ import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { alertsStore as _alertsStore, appStore, removeAlert } from "~/store"
 import { useSnapshot } from "valtio"
+import { useProxy } from "valtio/utils"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
   const [account, setAccount] = useState("")
   const [network, setNetwork] = useState("")
   const [notifications, setNotifications] = useState<Array<{ type: 'error' | 'info', message: string }>>([])
-  const alertsStore = useSnapshot(_alertsStore);
+  const alertsStore = useProxy(_alertsStore);
   const { isDarkMode } = useSnapshot(appStore)
   const [errorMessage, setErrorMessage] = useState("")
   const [identityStatus, setIdentityStatus] = useState({
@@ -112,7 +113,7 @@ export function IdentityRegistrarComponent() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => removeNotification(index)} 
+                onClick={() => alertsStore.delete(alert.key)} 
                 className={`${
                   isDarkMode 
                     ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
