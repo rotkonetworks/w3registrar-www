@@ -170,7 +170,7 @@ function IdentityForm({
   addNotification: (alert: AlertProps) => void,
 }) {
   const [formData, setFormData] = useState({
-    displayName: "",
+    display: "",
     matrix: "",
     email: "",
     discord: ""
@@ -185,7 +185,7 @@ function IdentityForm({
 
   const validateForm = () => {
     const errors: string[] = []
-    if (!formData.displayName && !formData.matrix && !formData.email && !formData.discord) {
+    if (!formData.display && !formData.matrix && !formData.email && !formData.discord) {
       errors.push("At least one field must be filled to set identity")
     }
     setFormErrors(errors)
@@ -218,7 +218,7 @@ function IdentityForm({
   const confirmAction = () => {
     if (actionType === "judgement") {
       updateIdentityStatus({
-        displayName: formData.displayName || "Not Set",
+        display: formData.display,
         deposit: "1.5 DOT",
         fields: {
           matrix: formData.matrix ? "Pending" : "Not Set",
@@ -231,7 +231,7 @@ function IdentityForm({
       updateIdentityStatus({ 
         verified: false, 
         judgement: "None",
-        displayName: formData.displayName || "Not Set",
+        display: formData.display || "Not Set",
         fields: {
           matrix: formData.matrix ? "Set" : "Not Set",
           email: formData.email ? "Set" : "Not Set",
@@ -256,8 +256,8 @@ function IdentityForm({
               </Label>
               <Input 
                 id="display-name" 
-                name="displayName" 
-                value={formData.displayName}
+                name="display" 
+                value={formData.display}
                 onChange={handleInputChange}
                 placeholder="Alice" 
                 className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
@@ -579,7 +579,7 @@ function StatusPage({
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="destructive" onClick={() => {
             updateIdentityStatus({
-              displayName: "",
+              display: "",
               verified: false,
               judgement: "None",
               deposit: "0 DOT",
