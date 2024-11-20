@@ -45,6 +45,8 @@ jobs:
       - name: Deploy to server
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            set -euo pipefail
+            docker compose -f ${{ env.DEPLOY_PATH }}/w3registrar-www/dock -compose.yaml down
             rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www
             mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
           EOF
