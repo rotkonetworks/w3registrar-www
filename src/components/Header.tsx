@@ -4,10 +4,14 @@ import { Bell, Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from "~/store";
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
+import { ApiConfig } from "~/api/config2";
+import { useEffect } from "react";
 
-const Header = () => {
+const Header = ({ chainConfig }: { chainConfig: ApiConfig }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
+
+  useEffect(() => import.meta.env.DEV && console.log({ chainConfig }), [chainConfig])
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
@@ -23,13 +27,21 @@ const Header = () => {
         </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
-        <Select onValueChange={() => { } }>
+        <Select onValueChange={() => {  }}>
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder="Network" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="polkadot">Polkadot</SelectItem>
-            <SelectItem value="kusama">Kusama</SelectItem>
+            {Object.entries(chainConfig?.chains)
+              .filter(([key]) => key.includes("people"))
+              .map(([key, net]) => (
+                <SelectItem key={key} value={key} 
+                  onClick={() => handleChainSelect(key)}
+                >
+                  {net.name}
+                </SelectItem>
+              ))
+            }
           </SelectContent>
         </Select>
       </div>

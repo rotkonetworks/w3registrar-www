@@ -22,6 +22,7 @@ import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
+import { useConfig } from "~/api/config2"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -69,6 +70,7 @@ export function IdentityRegistrarComponent() {
 
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
+  const { config } = useConfig()
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -76,7 +78,7 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header />
+        <Header chainConfig={config} />
 
         {errorMessage && (
           <Alert variant="destructive" className="mb-4 bg-[#FFCCCB] border-[#E6007A] text-[#670D35]">
