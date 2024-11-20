@@ -18,7 +18,8 @@ for var in $(compgen -e); do
     esac
 done
 
-source .env
+cat .emv
+env | grep VITE_
 
 readonly REQUIRED_VARS=(
     VITE_APP_WALLET_CONNECT_PROJECT_ID
