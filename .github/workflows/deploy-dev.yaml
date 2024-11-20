@@ -46,8 +46,8 @@ jobs:
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             set -euo pipefail
-            docker compose -f ${{ env.DEPLOY_PATH }}/w3registrar-www/docker-compose.yaml down
-            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www
+            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/nginx || true
+            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/dist || true
             mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
           EOF
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
