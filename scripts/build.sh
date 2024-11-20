@@ -57,7 +57,7 @@ const vite = require('vite');
 
 vite.build();
 EOF
-RUN bun ./build.js
+bun ./build.js
 
 if command -v bun &> /dev/null; then
     echo "Using Bun for build"
