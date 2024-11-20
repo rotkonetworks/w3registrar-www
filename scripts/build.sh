@@ -59,20 +59,8 @@ vite.build();
 EOF
 bun ./build.js
 
-if command -v bun &> /dev/null; then
-    echo "Using Bun for build"
-    if ! bun ./index.js; then
-        echo "Error: 'bun run build' failed." >&2
-        exit 1
-    fi
-elif command -v npm &> /dev/null; then
-    echo "Using npm for build"
-    if ! npm ./index.js; then
-        echo "Error: 'npm run build' failed." >&2
-        exit 1
-    fi
-else
-    echo "Error: Neither Bun nor npm is available. Please install one of these package managers." >&2
+if ! bun ./build.js; then
+    echo "Error: 'bun run build' failed." >&2
     exit 1
 fi
 
