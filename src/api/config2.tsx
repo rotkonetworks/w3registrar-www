@@ -20,7 +20,7 @@ import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useEffect, useState } from "react";
 
 
-type ApiConfig = Config & {
+export type ApiConfig = Config & {
   chains: Record<
     string,
     ChainConfig & {
