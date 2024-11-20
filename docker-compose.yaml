@@ -11,6 +11,7 @@ services:
     image: nginx
     ports:
       - 127.0.0.1:63999:80
+    restart: unless-stopped
     volumes:
       - ./dist/:/app:ro
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
