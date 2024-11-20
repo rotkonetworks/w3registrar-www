@@ -18,6 +18,8 @@ for var in $(compgen -e); do
     esac
 done
 
+source .env
+
 readonly REQUIRED_VARS=(
     VITE_APP_WALLET_CONNECT_PROJECT_ID
     VITE_APP_DEFAULT_WS_URL
