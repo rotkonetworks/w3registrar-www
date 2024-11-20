@@ -47,11 +47,10 @@ jobs:
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             set -euo pipefail
             rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/nginx || true
-            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/dist || true
             mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
           EOF
-          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
+          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/nginx
           scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             set -euo pipefail
