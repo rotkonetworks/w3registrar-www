@@ -174,7 +174,11 @@ export const ConfigProvider = ({ children }) => {
   useEffect(() => {
     console.log({ worker, config })
     if (worker && !config) {
-      setConfig(createConfig())
+      if (import.meta.env.VITE_APP_DEFAULT_WS_URL) {
+        setConfig(createConfigWithCustomEndpoint(import.meta.env.VITE_APP_DEFAULT_WS_URL))
+      } else {
+        setConfig(createConfig())
+      }
     }
   }, [worker, config])
 
