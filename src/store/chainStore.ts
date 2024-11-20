@@ -1,7 +1,8 @@
 import { proxy } from "valtio";
 
-interface ChainStore {
+export interface ChainStore {
   id: string;
+  name?: string;
   ss58Format?: number;
   tokenDecimals?: number;
   tokenSymbol?: string;
