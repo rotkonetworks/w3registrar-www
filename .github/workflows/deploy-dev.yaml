@@ -44,7 +44,10 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} "mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www"
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www
+            mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
+          EOF
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
           scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
