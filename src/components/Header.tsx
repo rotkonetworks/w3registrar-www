@@ -6,8 +6,12 @@ import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
 import { ApiConfig } from "~/api/config2";
 import { useEffect } from "react";
+import { ChainStore } from "~/store/chainStore";
 
-const Header = ({ chainConfig }: { chainConfig: ApiConfig }) => {
+const Header = ({ chainConfig, chainStore }: { 
+  chainConfig: ApiConfig;
+  chainStore: ChainStore;
+}) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
