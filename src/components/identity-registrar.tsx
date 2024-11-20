@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { appStore } from "~/store"
+import { appStore, chainStore as _chainStore } from "~/store"
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
@@ -70,7 +70,19 @@ export function IdentityRegistrarComponent() {
 
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
-  const { config } = useConfig()
+  const { config } = useConfig();
+  // TODO const typedApi
+
+  const chainStore = useProxy(_chainStore);
+
+  useEffect(() => {
+    if (chainStore.id) {
+      const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainState.id;
+      import.meta.env.DEV && console.log({ id, chain: config.chains[id] })
+      const name = config.chains[id].name;
+      Object.assign(chainStore, { id, name })
+    }
+  }, [chainStore.id])
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
