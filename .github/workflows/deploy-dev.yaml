@@ -28,6 +28,7 @@ jobs:
           export BUN_INSTALL="$HOME/.bun"
           export PATH=$BUN_INSTALL/bin:$PATH
           echo ${{ secrets.VITE_BUILD_ENV }} > .env
+          cat .env | wc -l
           bash scripts/build.sh
       
       - name: Set up SSH agent
