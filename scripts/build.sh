@@ -18,11 +18,6 @@ for var in $(compgen -e); do
     esac
 done
 
-echo "cat .env"
-cat .env
-echo "env | grep VITE_"
-env | grep VITE_
-
 readonly REQUIRED_VARS=(
     VITE_APP_WALLET_CONNECT_PROJECT_ID
     VITE_APP_DEFAULT_WS_URL
