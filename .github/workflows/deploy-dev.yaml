@@ -28,7 +28,7 @@ jobs:
           curl -fsSL https://bun.sh/install | bash -s "canary"
           export BUN_INSTALL="$HOME/.bun"
           export PATH=$BUN_INSTALL/bin:$PATH
-          echo ${VITE_BUILD_ENV} > .env
+          echo -e ${VITE_BUILD_ENV} > .env
           cat .env | wc -l
           bash scripts/build.sh
       
