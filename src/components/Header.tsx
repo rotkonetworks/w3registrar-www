@@ -17,6 +17,10 @@ const Header = ({ chainConfig, chainStore }: {
 
   useEffect(() => import.meta.env.DEV && console.log({ chainConfig }), [chainConfig])
 
+  const handleChainSelect = (chainId: string) => {
+    chainStore.id = chainId;
+  }
+
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[140px]">
@@ -33,7 +37,7 @@ const Header = ({ chainConfig, chainStore }: {
       <div className="flex-1 min-w-[140px]">
         <Select onValueChange={() => {  }}>
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            <SelectValue placeholder="Network" />
+            <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(chainConfig?.chains)
