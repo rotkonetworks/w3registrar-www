@@ -7,8 +7,6 @@ services:
     container_name: web
     ports:
       - "${PORT:-3000}:3000"
-    env_file:
-      - .env
   web-nginx:
     image: nginx
     ports:
