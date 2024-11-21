@@ -19,7 +19,6 @@ import { people_rococo } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useEffect, useState } from "react";
 
-
 export type ApiConfig = Config & {
   chains: Record<
     string,
