@@ -7,6 +7,8 @@ import { useProxy } from "valtio/utils";
 import { ApiConfig } from "~/api/config2";
 import { useEffect, useRef, useState } from "react";
 import { ChainStore } from "~/store/chainStore";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
 
 const Header = ({ chainConfig, chainStore }: { 
   chainConfig: ApiConfig;
@@ -107,14 +109,17 @@ const Header = ({ chainConfig, chainStore }: {
             }
             {chainStore.id === "people_rococo" && (
               <div className="p-4 border-t border-stone-300">
-                <input ref={inputRef} type="text" value={_wsUrl} onChange={handleUrlChange}
-                  placeholder="wss://example.com/ws" aria-invalid={!urlValidation.isValid}
-                  aria-describedby="url-validation-message" 
+                <Label htmlFor="wsUrl" className="text-inherit flex items-center gap-2">
+                  <Link className="h-4 w-4" />
+                  WebSocket URL
+                </Label>
+                <Input ref={inputRef} id="wsUrl" name="wsUrl" type="url" value={_wsUrl} 
+                  className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
+                  placeholder="wss://example.com/ws" 
+                  onChange={handleUrlChange}
                   onKeyPress={(e) => e.key === 'Enter' && handleUrlSubmit()}
-                  className={`w-full px-3 py-2 text-sm border rounded mb-2 ${urlValidation.isValid 
-                    ? 'border-stone-300' 
-                    : 'border-red-500' 
-                  }`}
+                  //aria-invalid={!urlValidation.isValid}
+                  //aria-describedby="url-validation-message" 
                 />
                 <p id="url-validation-message"
                   className={`text-xs mb-2 ${urlValidation.isValid 
@@ -124,13 +129,14 @@ const Header = ({ chainConfig, chainStore }: {
                 >
                   {urlValidation.message}
                 </p>
-                <button
+                <Button type="submit" 
                   onClick={handleUrlSubmit}
                   disabled={!urlValidation.isValid}
-                  className="w-full bg-stone-600 text-white py-2 text-sm font-medium rounded hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed"
+                  className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
                 >
+                  <CheckCircle className="mr-2 h-4 w-4" />
                   Connect
-                </button>
+                </Button>
               </div>
             )}
           </SelectContent>
