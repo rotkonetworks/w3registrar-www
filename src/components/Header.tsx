@@ -27,14 +27,12 @@ const Header = ({ chainContext, chainStore }: {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (wsUrl) {
-      setCustomSelected(true);
-      _setWsUrl(wsUrl);
+    if (defaultWsUrl && chainContext.id === "people_rococo") {
+      _setWsUrl(defaultWsUrl);
     } else {
-      setCustomSelected(false);
       _setWsUrl("");
     }
-  }, [wsUrl]);
+  }, [defaultWsUrl]);
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
 
@@ -51,8 +49,7 @@ const Header = ({ chainContext, chainStore }: {
     }
   };
   const handleCustomSelect = () => {
-    setCustomSelected(true);
-    const defaultUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL || "";
+    const defaultUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL;
     _setWsUrl(defaultUrl);
     setUrlValidation(validateUrl(defaultUrl));
     setNetDropdownOpen(true);
@@ -67,7 +64,6 @@ const Header = ({ chainContext, chainStore }: {
   const handleUrlSubmit = () => {
     const validation = validateUrl(_wsUrl);
     if (validation.isValid) {
-      setWsUrl(_wsUrl);
       setNetDropdownOpen(false);
     } else {
       setUrlValidation(validation);
