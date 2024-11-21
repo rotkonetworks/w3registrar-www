@@ -5,7 +5,7 @@ import { appStore as _appStore } from "~/store";
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
 import { ApiConfig } from "~/api/config2";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChainStore } from "~/store/chainStore";
 
 const Header = ({ chainConfig, chainStore }: { 
@@ -15,7 +15,62 @@ const Header = ({ chainConfig, chainStore }: {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
-  useEffect(() => import.meta.env.DEV && console.log({ chainConfig }), [chainConfig])
+  useEffect(() => import.meta.env.DEV && console.log({ chainConfig }), [chainConfig]);
+
+  const [customSelected, setCustomSelected] = useState(false);
+  const [_wsUrl, _setWsUrl] = useState("");
+  const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
+  const [wsUrl, setWsUrl] = useState<string>(import.meta.env.VITE_APP_DEFAULT_WS_URL);  // TODO Delete, as it's only placeholder so dependant code won't break.
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (wsUrl) {
+      setCustomSelected(true);
+      _setWsUrl(wsUrl);
+    } else {
+      setCustomSelected(false);
+      _setWsUrl("");
+    }
+  }, [wsUrl]);
+
+  const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
+
+  const validateUrl = (url: string): { isValid: boolean; message: string } => {
+    if (!url.trim()) return { isValid: false, message: "URL cannot be empty" };
+    try {
+      new URL(url);
+      if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+        return { isValid: false, message: "URL must start with ws:// or wss://" };
+      }
+      return { isValid: true, message: "Valid WebSocket URL" };
+    } catch {
+      return { isValid: false, message: "Invalid URL format" };
+    }
+  };
+  const handleCustomSelect = () => {
+    setCustomSelected(true);
+    const defaultUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL || "";
+    _setWsUrl(defaultUrl);
+    setUrlValidation(validateUrl(defaultUrl));
+    setNetDropdownOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUrl = e.target.value;
+    _setWsUrl(newUrl);
+    setUrlValidation(validateUrl(newUrl));
+  };
+
+  const handleUrlSubmit = () => {
+    const validation = validateUrl(_wsUrl);
+    if (validation.isValid) {
+      setWsUrl(_wsUrl);
+      setNetDropdownOpen(false);
+    } else {
+      setUrlValidation(validation);
+    }
+  };
 
   const handleChainSelect = (chainId: string) => {
     chainStore.id = chainId;
@@ -35,7 +90,7 @@ const Header = ({ chainConfig, chainStore }: {
         </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
-        <Select onValueChange={() => {  }}>
+        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {  }}>
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
@@ -50,6 +105,34 @@ const Header = ({ chainConfig, chainStore }: {
                 </SelectItem>
               ))
             }
+            {chainStore.id === "people_rococo" && (
+              <div className="p-4 border-t border-stone-300">
+                <input ref={inputRef} type="text" value={_wsUrl} onChange={handleUrlChange}
+                  placeholder="wss://example.com/ws" aria-invalid={!urlValidation.isValid}
+                  aria-describedby="url-validation-message" 
+                  onKeyPress={(e) => e.key === 'Enter' && handleUrlSubmit()}
+                  className={`w-full px-3 py-2 text-sm border rounded mb-2 ${urlValidation.isValid 
+                    ? 'border-stone-300' 
+                    : 'border-red-500' 
+                  }`}
+                />
+                <p id="url-validation-message"
+                  className={`text-xs mb-2 ${urlValidation.isValid 
+                    ? 'text-green-600' 
+                    : 'text-red-500'
+                  }`}
+                >
+                  {urlValidation.message}
+                </p>
+                <button
+                  onClick={handleUrlSubmit}
+                  disabled={!urlValidation.isValid}
+                  className="w-full bg-stone-600 text-white py-2 text-sm font-medium rounded hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed"
+                >
+                  Connect
+                </button>
+              </div>
+            )}
           </SelectContent>
         </Select>
       </div>
