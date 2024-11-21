@@ -76,12 +76,10 @@ export function IdentityRegistrarComponent() {
   const chainStore = useProxy(_chainStore);
 
   useEffect(() => {
-    if (chainStore.id) {
-      const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainState.id;
-      import.meta.env.DEV && console.log({ id, chain: config.chains[id] })
-      const name = config.chains[id].name;
-      Object.assign(chainStore, { id, name })
-    }
+    const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
+    import.meta.env.DEV && console.log({ id, chain: config.chains[id] })
+    const name = config.chains[id].name;
+    Object.assign(chainStore, { name })
   }, [chainStore.id])
 
   return <>
