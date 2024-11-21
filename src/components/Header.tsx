@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChainStore } from "~/store/chainStore";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
+import { ConfigContextProps } from "~/api/config2";
 
 const Header = ({ chainContext, chainStore }: { 
   chainContext: ConfigContextProps;

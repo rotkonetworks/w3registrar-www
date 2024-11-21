@@ -29,7 +29,7 @@ export type ApiConfig = Config & {
   >;
 };
 
-type ConfigContextProps = {
+export type ConfigContextProps = {
   config: ApiConfig;
   worker: Worker;
   initWorker: () => void;
