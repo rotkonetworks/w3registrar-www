@@ -19,10 +19,9 @@ const Header = ({ chainContext, chainStore }: {
 
   useEffect(() => import.meta.env.DEV && console.log({ chainContext }), [chainContext]);
 
-  const [customSelected, setCustomSelected] = useState(false);
   const [_wsUrl, _setWsUrl] = useState("");
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
-  const [wsUrl, setWsUrl] = useState<string>(import.meta.env.VITE_APP_DEFAULT_WS_URL);  // TODO Delete, as it's only placeholder so dependant code won't break.
+  const defaultWsUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,13 +47,7 @@ const Header = ({ chainContext, chainStore }: {
       return { isValid: false, message: "Invalid URL format" };
     }
   };
-  const handleCustomSelect = () => {
-    const defaultUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL;
-    _setWsUrl(defaultUrl);
-    setUrlValidation(validateUrl(defaultUrl));
-    setNetDropdownOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
+
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     _setWsUrl(newUrl);
