@@ -1,23 +1,22 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Bell, Sun, Moon } from "lucide-react";
+import { Bell, Sun, Moon, Link, CheckCircle } from "lucide-react";
 import { appStore as _appStore } from "~/store";
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
-import { ApiConfig } from "~/api/config2";
 import { useEffect, useRef, useState } from "react";
 import { ChainStore } from "~/store/chainStore";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 
-const Header = ({ chainConfig, chainStore }: { 
-  chainConfig: ApiConfig;
+const Header = ({ chainContext, chainStore }: { 
+  chainContext: ConfigContextProps;
   chainStore: ChainStore;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
-  useEffect(() => import.meta.env.DEV && console.log({ chainConfig }), [chainConfig]);
+  useEffect(() => import.meta.env.DEV && console.log({ chainContext }), [chainContext]);
 
   const [customSelected, setCustomSelected] = useState(false);
   const [_wsUrl, _setWsUrl] = useState("");
@@ -97,7 +96,7 @@ const Header = ({ chainConfig, chainStore }: {
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(chainConfig?.chains)
+            {Object.entries(chainContext.config.chains)
               .filter(([key]) => key.includes("people"))
               .map(([key, net]) => (
                 <SelectItem key={key} value={key} 
