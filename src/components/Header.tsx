@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Bell, Sun, Moon, Link, CheckCircle, FolderSync } from "lucide-react";
-import { appStore as _appStore } from "~/store";
+import { appStore as _appStore } from '~/store/AppStore';
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
 import { useEffect, useRef, useState } from "react";
