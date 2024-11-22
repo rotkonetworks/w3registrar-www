@@ -23,7 +23,6 @@ const Header = ({ chainContext, chainStore }: {
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
   const defaultWsUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (defaultWsUrl && chainStore.id === "people_rococo") {
