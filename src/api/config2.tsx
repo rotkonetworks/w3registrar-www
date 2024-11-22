@@ -18,6 +18,7 @@ import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { people_rococo } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useEffect, useState } from "react";
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 export type ApiConfig = Config & {
   chains: Record<
@@ -129,14 +130,17 @@ export const ConfigProvider = ({ children }) => {
         people_rococo: {
           name: "Rococo",
           descriptor: people_rococo,
-          provider: () => getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
+          provider: () => withPolkadotSdkCompat((
+            getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
+          )),
           registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
         },
         rococo: {
           name: "Rococo",
           descriptor: rococo,
-          provider: () =>
-            getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY),
+          provider: () => withPolkadotSdkCompat((
+            getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)
+          )),
         },
       },
     };
