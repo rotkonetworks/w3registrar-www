@@ -161,8 +161,7 @@ export const ConfigProvider = ({ children }) => {
       throw new Error(urlValidateResolt.message)
     }
 
-    worker?.terminate()
-    setConfig(createConfigWithCustomEndpoint(wsUrl))
+    setConfig(createConfigWithCustomEndpoint(wsUrl));
   }
 
   useEffect(() => {

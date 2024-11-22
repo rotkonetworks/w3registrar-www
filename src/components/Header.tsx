@@ -58,6 +58,7 @@ const Header = ({ chainContext, chainStore }: {
     const validation = validateUrl(_wsUrl);
     if (validation.isValid) {
       setNetDropdownOpen(false);
+      chainContext.setCustoNetEndponit(_wsUrl)
     } else {
       setUrlValidation(validation);
     }
