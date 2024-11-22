@@ -9,6 +9,7 @@ import { ChainStore } from "~/store/chainStore";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { ConfigContextProps } from "~/api/config2";
+import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
 
 const Header = ({ chainContext, chainStore }: { 
   chainContext: ConfigContextProps;
@@ -19,6 +20,7 @@ const Header = ({ chainContext, chainStore }: {
 
   useEffect(() => import.meta.env.DEV && console.log({ chainContext }), [chainContext]);
 
+  //# region NetDropdown
   const [_wsUrl, _setWsUrl] = useState("");
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
   const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
@@ -67,6 +69,23 @@ const Header = ({ chainContext, chainStore }: {
   const handleChainSelect = (chainId: string) => {
     chainStore.id = chainId;
   }
+  //# endregion NetDropdown
+
+  //#region userDropdown
+  const [isOpen, setOpen] = useState(false);
+  const [isAccountsOpen, setAccountsOpen] = useState(false);
+
+  const connectedWallets = useConnectedWallets()
+  const [_, disconnectWallet] = useWalletDisconnector()
+
+  const handleClose = () => {
+    setOpen(false)
+    setAccountsOpen(false)
+  }
+
+  const accounts = useAccounts()
+
+  //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
