@@ -25,6 +25,8 @@ import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from 
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useTypedApi } from "@reactive-dot/react"
+import { accountStore as _accountStore } from "~/store/AccountStore"
+import { IdentityForm } from "./tabs/IdentityForm"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -78,13 +80,16 @@ export function IdentityRegistrarComponent() {
   const typedApi = useTypedApi({ chainId: chainStore.id })
   //# region Chains
 
-
   useEffect(() => {
     const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
     import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
     const name = chainContext.config.chains[id].name;
     Object.assign(chainStore, { name })
   }, [chainStore.id])
+
+  //#region accounts
+  const accountStore = useProxy(_accountStore)
+  //#endregion accounts
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 

@@ -10,10 +10,12 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { ConfigContextProps } from "~/api/config2";
 import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
+import { AccountStore } from "~/store/accountStore";
 
 const Header = ({ chainContext, chainStore }: { 
   chainContext: ConfigContextProps;
   chainStore: ChainStore;
+  accountStore: AccountStore;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
