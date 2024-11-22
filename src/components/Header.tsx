@@ -26,7 +26,7 @@ const Header = ({ chainContext, chainStore }: {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (defaultWsUrl && chainContext.id === "people_rococo") {
+    if (defaultWsUrl && chainStore.id === "people_rococo") {
       _setWsUrl(defaultWsUrl);
     } else {
       _setWsUrl("");
