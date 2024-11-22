@@ -23,6 +23,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
+import { useTypedApi } from "@reactive-dot/react"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -68,12 +69,14 @@ export function IdentityRegistrarComponent() {
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
+  //# region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
   const chainContext = useConfig();
-  // TODO const typedApi
-
   const chainStore = useProxy(_chainStore);
+  const typedApi = useTypedApi({ chainId: chainStore.id })
+  //# region Chains
+
 
   useEffect(() => {
     const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
@@ -240,6 +243,9 @@ function IdentityForm({
     setShowCostModal(false)
     setErrorMessage("")
   }
+
+  //#region accounts
+  //#endregion accounts
 
   return (
     <>
