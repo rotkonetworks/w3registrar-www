@@ -171,9 +171,10 @@ export const ConfigProvider = ({ children }) => {
   }, [])
   useEffect(() => {
     console.log({ worker, config })
+    const defaultWeUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL;
     if (worker && !config) {
-      if (import.meta.env.VITE_APP_DEFAULT_WS_URL) {
-        setConfig(createConfigWithCustomEndpoint(import.meta.env.VITE_APP_DEFAULT_WS_URL))
+      if (defaultWeUrl) {
+        setConfig(createConfigWithCustomEndpoint(defaultWeUrl));
       } else {
         setConfig(createConfig())
       }

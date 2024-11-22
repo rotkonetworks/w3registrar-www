@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Bell, Sun, Moon, Link, CheckCircle } from "lucide-react";
+import { Bell, Sun, Moon, Link, CheckCircle, FolderSync } from "lucide-react";
 import { appStore as _appStore } from "~/store";
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
@@ -21,7 +21,7 @@ const Header = ({ chainContext, chainStore }: {
 
   const [_wsUrl, _setWsUrl] = useState("");
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
-  const defaultWsUrl = import.meta.env.VITE_APP_DEFAULT_WS_URL
+  const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
 
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -57,7 +57,8 @@ const Header = ({ chainContext, chainStore }: {
     const validation = validateUrl(_wsUrl);
     if (validation.isValid) {
       setNetDropdownOpen(false);
-      chainContext.setCustoNetEndponit(_wsUrl)
+      localStorage.setItem("wsUrl", _wsUrl);
+      document.location.reload();
     } else {
       setUrlValidation(validation);
     }
@@ -96,7 +97,7 @@ const Header = ({ chainContext, chainStore }: {
                 </SelectItem>
               ))
             }
-            {chainStore.id === "people_rococo" && (
+            {(defaultWsUrl && chainStore.id === "people_rococo") && (
               <div className="p-4 border-t border-stone-300">
                 <Label htmlFor="wsUrl" className="text-inherit flex items-center gap-2">
                   <Link className="h-4 w-4" />
@@ -123,8 +124,8 @@ const Header = ({ chainContext, chainStore }: {
                   disabled={!urlValidation.isValid}
                   className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
                 >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Connect
+                  <FolderSync className="mr-2 h-4 w-4" />
+                  Reload
                 </Button>
               </div>
             )}
