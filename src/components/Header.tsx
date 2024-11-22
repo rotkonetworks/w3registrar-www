@@ -10,12 +10,12 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { ConfigContextProps } from "~/api/config2";
 import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
-import { AccountStore } from "~/store/accountStore";
+import { Account } from "~/store/AccountStore";
 
 const Header = ({ chainContext, chainStore }: { 
   chainContext: ConfigContextProps;
   chainStore: ChainStore;
-  accountStore: AccountStore;
+  accountStore: Account;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -92,6 +92,100 @@ const Header = ({ chainContext, chainStore }: {
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[140px]">
+        {connectedWallets.length > 0
+          ? <>
+            <button
+              onClick={() => setOpen(!isOpen)}
+              className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
+            >
+              {accountStore.address && <PolkadotIdenticon
+                address={accountStore.address}
+              />}
+              {identityStore.identity?.display || accountStore?.name
+                || 'Please choose account'
+              } ▼
+            </button>
+            {isOpen && (
+              <div className="absolute left-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
+                <button
+                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+                  onClick={() => {
+                    appState.walletDialogOpen = true
+                    handleClose()
+                  }}
+                >
+                  Connect Wallets ({connectedWallets.length} connected)
+                </button>
+                <button
+                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+                  onClick={() => {
+                    setAccountsOpen(!isAccountsOpen);
+                  }}
+                >
+                  Choose Account ▶
+                </button>
+                {appStateSnapshot.identity
+                  && <button
+                    className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+                    onClick={() => {
+                      typedApi.tx.Identity.clear_identity().signAndSubmit(
+                        accountStore?.polkadotSigner
+                      )
+                      handleClose()
+                    }}
+                  >
+                    Remove Identity
+                  </button>
+                }
+                <button
+                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+                  onClick={() => {
+                    connectedWallets.forEach(w => disconnectWallet(w));
+                    appState.account = null
+                    appState.identity = null
+                    localStorage.removeItem("account")
+                    handleClose()
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+            {isAccountsOpen && (
+              <div className="absolute left-48 top-0 w-48 bg-white border border-stone-300 shadow-lg z-20 max-h-60 overflow-y-auto">
+                {accounts.map(({ id, name, address, ...rest }) => (
+                  <button
+                    key={id}
+                    className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
+                    onClick={() => {
+                      handleClose()
+                      const account = { id, name, address, ...rest };
+                      appState.account = account;
+                      // Needed to prevent circular references for serialization
+                      const accountToLocalStore = { id, name, address };
+                      localStorage.setItem("account", JSON.stringify(accountToLocalStore))
+                    }}
+                  >
+                    <PolkadotIdenticon address={address} />
+                    &nbsp;
+                    {name}
+                    <br />
+                    ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+          : <button
+            onClick={() => {
+              appState.walletDialogOpen = true;
+              handleClose()
+            }}
+            className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
+          >
+            Log In
+          </button>
+        }
         <Select onValueChange={() => { } }>
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder="Account" />
