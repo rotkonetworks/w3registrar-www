@@ -15,8 +15,8 @@ import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
+import { identityStore as _identityStore } from "~/store/IdentityStore"
+import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"

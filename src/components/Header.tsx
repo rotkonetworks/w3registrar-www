@@ -10,12 +10,20 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { ConfigContextProps } from "~/api/config2";
 import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
-import { Account } from "~/store/AccountStore";
+import { Account, AccountData, accountStore } from "~/store/AccountStore";
+import { PolkadotIdenticon } from 'dot-identicon/react.js';
+import { ChainInfo } from "~/store/ChainStore";
+import { Chains } from "@reactive-dot/core";
+import { IdentityStore } from "~/store/IdentityStore";
 
-const Header = ({ chainContext, chainStore }: { 
+const Header = ({ 
+  chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore 
+}: { 
   chainContext: ConfigContextProps;
-  chainStore: ChainStore;
+  chainStore: ChainInfo;
   accountStore: Account;
+  onRequestWalletConnections: () => void;
+  identityStore: IdentityStore;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -68,7 +76,7 @@ const Header = ({ chainContext, chainStore }: {
     }
   };
 
-  const handleChainSelect = (chainId: string) => {
+  const handleChainSelect = (chainId: keyof Chains) => {
     chainStore.id = chainId;
   }
   //# endregion NetDropdown

@@ -7,13 +7,13 @@ export interface AccountBalance {
   frozen: bigint;
   flags: bigint;
 }
-export type Account = {
+export type AccountData = {
   id: string;
   name: string;
   address: string;
   polkadotSigner: PolkadotSigner;
-  balance: AccountBalance;
-} | {  }
-
+  balance?: AccountBalance;
+}
+export type Account = AccountData | {}
 
 export const accountStore = proxy<Account>({  })
