@@ -5,7 +5,6 @@ import { appStore as _appStore } from '~/store/AppStore';
 import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
 import { useEffect, useRef, useState } from "react";
-import { ChainStore } from "~/store/chainStore";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { ConfigContextProps } from "~/api/config2";
@@ -80,36 +79,65 @@ const Header = ({
     chainStore.id = chainId;
   }
   //# endregion NetDropdown
-
+  
   //#region userDropdown
   const [isOpen, setOpen] = useState(false);
   const [isAccountsOpen, setAccountsOpen] = useState(false);
-
+  
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
-
+  
   const handleClose = () => {
     setOpen(false)
     setAccountsOpen(false)
   }
-
+  
   const accounts = useAccounts()
-
+  
+  const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
   //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[140px]">
+        <Select onValueChange={() => { }} open={isUserDropdownOpen}
+          onOpenChange={(event) => {
+            if (connectedWallets.length < 1) {
+              setUserDropdownOpen(false)
+              onRequestWalletConnections()
+            }
+          }}
+        >
+          <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
+            {connectedWallets.length > 0
+              ? <span>Connect Wallet</span>
+              : (accountStore as AccountData).address 
+                ? <>
+                  {(accountStore as AccountData).name}
+                  <span className="text-xs text-stone-400 ml-2">
+                    <PolkadotIdenticon address={(accountStore as AccountData).address} />
+                    {(accountStore as AccountData).address.slice(0, 4)}...{(accountStore as AccountData).address.slice(-4)}
+                  </span>
+                </>
+                : <span>Pick account</span>
+              
+            }
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="account1">Account 1</SelectItem>
+            <SelectItem value="account2">Account 2</SelectItem>
+          </SelectContent>
+        </Select>
         {connectedWallets.length > 0
           ? <>
             <button
               onClick={() => setOpen(!isOpen)}
               className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
             >
-              {accountStore.address && <PolkadotIdenticon
-                address={accountStore.address}
+              {(accountStore as AccountData).address && <PolkadotIdenticon
+                address={(accountStore as AccountData).address}
               />}
-              {identityStore.identity?.display || accountStore?.name
+              {identityStore.info?.display || (accountStore as AccountData).name
                 || 'Please choose account'
               } ▼
             </button>
@@ -194,15 +222,6 @@ const Header = ({
             Log In
           </button>
         }
-        <Select onValueChange={() => { } }>
-          <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            <SelectValue placeholder="Account" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="account1">Account 1</SelectItem>
-            <SelectItem value="account2">Account 2</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
         <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {  }}>
