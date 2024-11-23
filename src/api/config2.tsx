@@ -19,6 +19,7 @@ import { people_rococo } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useEffect, useState } from "react";
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
+import { registerDotConnect } from "dot-connect";
 
 export type ApiConfig = Config & {
   chains: Record<
@@ -159,13 +160,20 @@ export const ConfigProvider = ({ children }) => {
     }
   };
 
+  const updateConfig = (config: ApiConfig) => {
+    setConfig(config);
+    registerDotConnect({
+      wallets: config.wallets,
+    });
+  } 
+
   const setCustoNetEndponit = (wsUrl: string) => {
     const urlValidateResolt = validateUrl(wsUrl);
     if (!urlValidateResolt.isValid) {
       throw new Error(urlValidateResolt.message)
     }
 
-    setConfig(createConfigWithCustomEndpoint(wsUrl));
+    updateConfig(createConfigWithCustomEndpoint(wsUrl));
   }
 
   useEffect(() => {
@@ -177,11 +185,8 @@ export const ConfigProvider = ({ children }) => {
     const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL;
     import.meta.env.DEV && console.log({ worker, config, defaultWeUrl: defaultWsUrl })
     if (worker && !config) {
-      if (defaultWsUrl) {
-        setConfig(createConfigWithCustomEndpoint(defaultWsUrl));
-      } else {
-        setConfig(createConfig())
-      }
+      const newConfig = defaultWsUrl ? createConfigWithCustomEndpoint(defaultWsUrl) : createConfig()
+      updateConfig(newConfig)
     }
   }, [worker, config])
 
