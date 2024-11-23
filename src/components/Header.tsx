@@ -102,7 +102,8 @@ const Header = ({
       <div className="flex-1 min-w-[140px]">
         <Select onValueChange={() => { }} open={isUserDropdownOpen}
           onOpenChange={(event) => {
-            if (connectedWallets.length < 1) {
+            if (connectedWallets.length < 0) {
+            } else {
               setUserDropdownOpen(false)
               onRequestWalletConnections()
             }
