@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react"
-import { 
-  ChevronLeft, ChevronRight, Bell, Sun, Moon, UserCircle, Shield, FileCheck, Copy, AtSign, Mail, 
-  MessageSquare, CheckCircle, AlertCircle, Coins, Trash2, RefreshCcw, Info 
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
