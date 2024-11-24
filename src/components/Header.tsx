@@ -96,11 +96,18 @@ const Header = ({
   const accounts = useAccounts()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
+  const updateAccount = () => {
+    const account = { id, name, address, ...rest };
+    Object.assign(accountStore, account);
+    // Needed to prevent circular references for serialization
+    const accountToLocalStore = { id, name, address };
+    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
+  };
   //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
-      <div className="flex-1 min-w-[140px]">
+      <div className="flex-1 min-w-[240px]">
         <Select onValueChange={() => { }} open={isUserDropdownOpen}
           onOpenChange={() => {
             if (connectedWallets.length > 0) {
@@ -132,8 +139,6 @@ const Header = ({
                 onClick={() => {
                   connectedWallets.forEach(w => disconnectWallet(w));
                   Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                  identityStore.identity = null
-                  localStorage.removeItem("account")
                 }}
               >
                 Disconnect
@@ -157,8 +162,15 @@ const Header = ({
                 ?<>
                   <SelectGroup>
                     <SelectLabel>Accounts</SelectLabel>
-                    <SelectItem value="Wallet1">Account 1</SelectItem>
-                    <SelectItem value="Wallet2">Account 2</SelectItem>
+                    {accounts.map(({ id, name, address, ...rest }) => (
+                      <SelectItem key={id} value={address} onClick={updateAccount}>
+                        <PolkadotIdenticon address={address} />
+                        &nbsp;
+                        {name}
+                        <br />
+                        ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </>
                 :<>
@@ -168,43 +180,6 @@ const Header = ({
             </>}
           </SelectContent>
         </Select>
-        {connectedWallets.length > 0
-          ? <>
-            {isAccountsOpen && (
-              <div className="absolute left-48 top-0 w-48 bg-white border border-stone-300 shadow-lg z-20 max-h-60 overflow-y-auto">
-                {accounts.map(({ id, name, address, ...rest }) => (
-                  <button
-                    key={id}
-                    className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-                    onClick={() => {
-                      handleClose()
-                      const account = { id, name, address, ...rest };
-                      appState.account = account;
-                      // Needed to prevent circular references for serialization
-                      const accountToLocalStore = { id, name, address };
-                      localStorage.setItem("account", JSON.stringify(accountToLocalStore))
-                    }}
-                  >
-                    <PolkadotIdenticon address={address} />
-                    &nbsp;
-                    {name}
-                    <br />
-                    ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
-                  </button>
-                ))}
-              </div>
-            )}
-          </>
-          : <button
-            onClick={() => {
-              appState.walletDialogOpen = true;
-              handleClose()
-            }}
-            className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
-          >
-            Log In
-          </button>
-        }
       </div>
       <div className="flex-1 min-w-[140px]">
         <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {  }}>
