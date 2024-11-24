@@ -14,6 +14,7 @@ import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { ChainInfo } from "~/store/ChainStore";
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
+import { SelectLabel } from "@radix-ui/react-select";
 
 const Header = ({ 
   chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore 
@@ -126,70 +127,49 @@ const Header = ({
           </SelectTrigger>
           <SelectContent>
             {connectedWallets.length > 0 && <>
-              <SelectItem value="Account">Accouht</SelectItem>
-              <SelectItem value="Wallets">Wallets</SelectItem>
+              <SelectItem value="Wallets">Connect Wallets</SelectItem>
+              <SelectItem value="Disconnect"
+                onClick={() => {
+                  connectedWallets.forEach(w => disconnectWallet(w));
+                  Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+                  identityStore.identity = null
+                  localStorage.removeItem("account")
+                }}
+              >
+                Disconnect
+              </SelectItem>
+              {identityStore.identity && <>
+                <SelectItem value="RemoveIdentity"
+                  onClick={() => {
+                    typedApi.tx.Identity.clear_identity().signAndSubmit(
+                      accountStore?.polkadotSigner
+                    );
+                  }}
+                >
+                  Remove Identity
+                </SelectItem>
+              </>}
+              {(accountStore as AccountData).address && <>
+                <SelectItem value="Teleport">Teleport</SelectItem>
+              </>}
+              <SelectSeparator />
+              {accounts.length > 0 
+                ?<>
+                  <SelectGroup>
+                    <SelectLabel>Accounts</SelectLabel>
+                    <SelectItem value="Wallet1">Account 1</SelectItem>
+                    <SelectItem value="Wallet2">Account 2</SelectItem>
+                  </SelectGroup>
+                </>
+                :<>
+                  <SelectLabel>No accounts found</SelectLabel>
+                </>
+              }
             </>}
           </SelectContent>
         </Select>
         {connectedWallets.length > 0
           ? <>
-            <button
-              onClick={() => setOpen(!isOpen)}
-              className="bg-stone-200 text-stone-800 px-3 py-1 text-sm font-medium border border-stone-400 w-full text-left"
-            >
-              {(accountStore as AccountData).address && <PolkadotIdenticon
-                address={(accountStore as AccountData).address}
-              />}
-              {identityStore.info?.display || (accountStore as AccountData).name
-                || 'Please choose account'
-              } ▼
-            </button>
-            {isOpen && (
-              <div className="absolute left-0 mt-1 w-48 bg-white border border-stone-300 shadow-lg z-10">
-                <button
-                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-                  onClick={() => {
-                    appState.walletDialogOpen = true
-                    handleClose()
-                  }}
-                >
-                  Connect Wallets ({connectedWallets.length} connected)
-                </button>
-                <button
-                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-                  onClick={() => {
-                    setAccountsOpen(!isAccountsOpen);
-                  }}
-                >
-                  Choose Account ▶
-                </button>
-                {appStateSnapshot.identity
-                  && <button
-                    className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-                    onClick={() => {
-                      typedApi.tx.Identity.clear_identity().signAndSubmit(
-                        accountStore?.polkadotSigner
-                      )
-                      handleClose()
-                    }}
-                  >
-                    Remove Identity
-                  </button>
-                }
-                <button
-                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-100"
-                  onClick={() => {
-                    connectedWallets.forEach(w => disconnectWallet(w));
-                    appState.account = null
-                    appState.identity = null
-                    localStorage.removeItem("account")
-                    handleClose()
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-            )}
             {isAccountsOpen && (
               <div className="absolute left-48 top-0 w-48 bg-white border border-stone-300 shadow-lg z-20 max-h-60 overflow-y-auto">
                 {accounts.map(({ id, name, address, ...rest }) => (
