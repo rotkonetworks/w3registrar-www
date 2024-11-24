@@ -112,7 +112,7 @@ const Header = ({
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             {connectedWallets.length > 0
-              ? <span>Connect Wallet</span>
+              ? <span>Pick account</span>
               : (accountStore as AccountData).address 
                 ? <>
                   {(accountStore as AccountData).name}
@@ -121,13 +121,14 @@ const Header = ({
                     {(accountStore as AccountData).address.slice(0, 4)}...{(accountStore as AccountData).address.slice(-4)}
                   </span>
                 </>
-                : <span>Pick account</span>
-              
+                : <span>Connect wallet</span>
             }
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="account1">Account 1</SelectItem>
-            <SelectItem value="account2">Account 2</SelectItem>
+            {connectedWallets.length > 0 && <>
+              <SelectItem value="Account">Accouht</SelectItem>
+              <SelectItem value="Wallets">Wallets</SelectItem>
+            </>}
           </SelectContent>
         </Select>
         {connectedWallets.length > 0
