@@ -6,9 +6,26 @@ frontend to submit setIdentity + requestJudgement on polkadot-sdk chains using p
 
 ### Development
 
-Just run and visit http://localhost:3333
+First of all, make sure you set up your environment correctly. Those versons are recommended to prevent issues on debug or building. Please make sure you
+
+```sh
+curl -fsSL https://bun.sh/install | bash -s "bun-v1.1.35"
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+nvm install 22
+```
+
+Then, just run and visit http://localhost:3333
 ```sh
 bun install
+```
+
+Before debugging or building, make sure to have the `.env` file:
+```sh
+cp .env.example .env
+```
+You might edit it to set your endpoints. If debugging, Vite will restart on edit.
+
+```sh
 bun dev
 ```
 
