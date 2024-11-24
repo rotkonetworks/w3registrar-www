@@ -55,12 +55,5 @@ jobs:
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
-            docker compose up -d web-nginx
+            docker compose up --build -d web-nginx
           EOF
-
-#jobs:
-#  build-and-deploy:
-#    runs-on: ubuntu-latest
-#    environment: production
-#    continue-on-error: true
-#    steps:
