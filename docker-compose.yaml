@@ -4,14 +4,11 @@ services:
       context: .
       dockerfile: Dockerfile
       target: ${BUILD_TARGET:-development}
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - VITE_APP_WALLET_CONNECT_PROJECT_ID=${VITE_APP_WALLET_CONNECT_PROJECT_ID}
-      - VITE_APP_DEFAULT_WS_URL=${VITE_APP_DEFAULT_WS_URL}
+    container_name: web
     ports:
       - "${PORT:-3000}:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    env_file:
-      - .env
+  web-nginx:
+    build: ./nginx
+    ports:
+      - 127.0.0.1:63999:80
+    restart: unless-stopped
