@@ -24,12 +24,11 @@ jobs:
       - name: Build the Vite app
         env:
           BUILD_TARGET: 'production'
-          VITE_BUILD_ENV: ${{ secrets.VITE_BUILD_ENV }}
         run: |
           curl -fsSL https://bun.sh/install | bash -s "canary"
           export BUN_INSTALL="$HOME/.bun"
           export PATH=$BUN_INSTALL/bin:$PATH
-          echo -e ${VITE_BUILD_ENV} > .env
+          cat .env.example | grep -v "#" > .env
           cat .env | wc -l
           bash scripts/build.sh
       
