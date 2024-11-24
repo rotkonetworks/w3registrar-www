@@ -101,8 +101,9 @@ const Header = ({
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[140px]">
         <Select onValueChange={() => { }} open={isUserDropdownOpen}
-          onOpenChange={(event) => {
-            if (connectedWallets.length < 0) {
+          onOpenChange={() => {
+            if (connectedWallets.length > 0) {
+              setUserDropdownOpen(open => !open)
             } else {
               setUserDropdownOpen(false)
               onRequestWalletConnections()
