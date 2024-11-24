@@ -117,7 +117,7 @@ const Header = ({
               : (accountStore as AccountData).address 
                 ? <>
                   {(accountStore as AccountData).name}
-                  <span className="text-xs text-stone-400 ml-2">
+                  <span className="text-xs text-stone-400">
                     <PolkadotIdenticon address={(accountStore as AccountData).address} />
                     {(accountStore as AccountData).address.slice(0, 4)}...{(accountStore as AccountData).address.slice(-4)}
                   </span>
