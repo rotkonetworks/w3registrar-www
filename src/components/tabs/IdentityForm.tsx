@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useSnapshot } from 'valtio'
 import { AlertProps } from '@/store/AlertStore'
 import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
 import {
