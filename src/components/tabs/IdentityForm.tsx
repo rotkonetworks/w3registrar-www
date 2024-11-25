@@ -24,8 +24,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
 
-export function IdentityForm({ 
-  addNotification, 
+export function IdentityForm({
+  addNotification,
   identityStore,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
@@ -35,7 +35,8 @@ export function IdentityForm({
     display: "",
     matrix: "",
     email: "",
-    discord: ""
+    discord: "",
+    twitter: "",
   })
   const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
@@ -70,17 +71,55 @@ export function IdentityForm({
   const confirmAction = () => {
     if (actionType === "judgement") {
       addNotification({
-        type: 'info', 
-        message: 'Judgement requested successfully', 
+        type: 'info',
+        message: 'Judgement requested successfully',
       })
     } else {
       addNotification({
-        type: 'info', 
-        message: 'Identity set successfully', 
+        type: 'info',
+        message: 'Identity set successfully',
       })
     }
     setShowCostModal(false)
     setErrorMessage("")
+  }
+
+  const identityFormFields = {
+    display: {
+      label: "Display Name",
+      icon: <UserCircle className="h-4 w-4" />,
+      key: "display",
+      placeholder: 'Alice',
+      validate: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+    },
+    matrix: {
+      label: "Matrix",
+      icon: <AtSign className="h-4 w-4" />,
+      key: "matrix",
+      placeholder: '@alice:matrix.org',
+      validate: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+    },
+    email: {
+      label: "Email",
+      icon: <Mail className="h-4 w-4" />,
+      key: "email",
+      placeholder: 'alice@example.org',
+      validate: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+    },
+    discord: {
+      label: "Discord",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "discord",
+      placeholder: 'alice#1234',
+      validate: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
+    },
+    twitter: {
+      label: "Twitter",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "twitter",
+      placeholder: '@alice',
+      validate: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+    },
   }
 
   return (
@@ -88,63 +127,24 @@ export function IdentityForm({
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
         <CardContent className="space-y-6 p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
-                <UserCircle className="h-4 w-4" />
-                Display Name
-              </Label>
-              <Input 
-                id="display-name" 
-                name="display" 
-                value={formData.display}
-                onChange={handleInputChange}
-                placeholder="Alice" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="matrix" className="text-inherit flex items-center gap-2">
-                <AtSign className="h-4 w-4" />
-                Matrix
-              </Label>
-              <Input 
-                id="matrix" 
-                name="matrix" 
-                value={formData.matrix}
-                onChange={handleInputChange}
-                placeholder="@alice:matrix.w3reg.org" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-inherit flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="alice@w3reg.org" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="discord" className="text-inherit flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Discord
-              </Label>
-              <Input 
-                id="discord" 
-                name="discord" 
-                value={formData.discord}
-                onChange={handleInputChange}
-                placeholder="alice#1234" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
+            {Object.entries(identityFormFields).map(([key, props]) =>
+              <div className="space-y-2">
+                <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
+                  {props.icon}
+                  {props.label}
+                </Label>
+                <Input
+                  id={props.key}
+                  name={props.key}
+                  value={formData[key].value}
+                  onChange={newValue => setFormData(_formData => {
+                    _formData[key].value = newValue;
+                  })}
+                  placeholder={props.placeholder}
+                  className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
+                />
+              </div>
+            )}
             {formErrors.length > 0 && (
               <div className="text-[#E6007A] text-sm mt-2">
                 {formErrors.map((error, index) => (
@@ -167,12 +167,12 @@ export function IdentityForm({
                 {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
               {onChainIdentity !== verifiyStatuses.NoIdentity && (
-                <Button type="button" variant="outline" 
+                <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)
                     setActionType("judgement")
-                  }} 
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
+                  }}
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
                   disabled={onChainIdentity === verifiyStatuses.JudgementRequested}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
