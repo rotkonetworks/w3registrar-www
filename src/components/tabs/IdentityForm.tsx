@@ -166,6 +166,11 @@ export function IdentityForm({
                   placeholder={props.placeholder}
                   className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
                 />
+                {formData[key].error && (
+                  <div className="text-[#E6007A] text-sm mt-1">
+                    <p>{formData[key].error}</p>
+                  </div>
+                )}
               </div>
             )}
             {formErrors.length > 0 && (
