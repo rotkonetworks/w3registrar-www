@@ -147,7 +147,7 @@ export function IdentityForm({
         <CardContent className="space-y-6 p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries(identityFormFields).map(([key, props]) =>
-              <div className="space-y-2">
+              <div className="space-y-2" key={props.key}>
                 <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
                   {props.icon}
                   {props.label}
