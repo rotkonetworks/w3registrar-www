@@ -32,11 +32,26 @@ export function IdentityForm({
   identityStore: IdentityStore,
 }) {
   const [formData, setFormData] = useState({
-    display: "",
-    matrix: "",
-    email: "",
-    discord: "",
-    twitter: "",
+    display: {
+      value: "",
+      error: null,
+    },
+    matrix: {
+      value: "",
+      error: null,
+    },
+    email: {
+      value: "",
+      error: null,
+    },
+    discord: {
+      value: "",
+      error: null,
+    },
+    twitter: {
+      value: "",
+      error: null,
+    },
   })
   const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
@@ -90,35 +105,35 @@ export function IdentityForm({
       icon: <UserCircle className="h-4 w-4" />,
       key: "display",
       placeholder: 'Alice',
-      validate: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+      checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
     },
     matrix: {
       label: "Matrix",
       icon: <AtSign className="h-4 w-4" />,
       key: "matrix",
       placeholder: '@alice:matrix.org',
-      validate: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
     },
     email: {
       label: "Email",
       icon: <Mail className="h-4 w-4" />,
       key: "email",
       placeholder: 'alice@example.org',
-      validate: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
     },
     discord: {
       label: "Discord",
       icon: <MessageSquare className="h-4 w-4" />,
       key: "discord",
       placeholder: 'alice#1234',
-      validate: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
     },
     twitter: {
       label: "Twitter",
       icon: <MessageSquare className="h-4 w-4" />,
       key: "twitter",
       placeholder: '@alice',
-      validate: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
     },
   }
 
@@ -137,8 +152,13 @@ export function IdentityForm({
                   id={props.key}
                   name={props.key}
                   value={formData[key].value}
-                  onChange={newValue => setFormData(_formData => {
+                  onChange={event => setFormData(_formData => {
+                    const newValue = event.target.value
+                    _formData = { ..._formData }
+                    _formData[key] = { ..._formData[key] }
                     _formData[key].value = newValue;
+                    _formData[key].error = props.checkForErrors(newValue);
+                    return _formData;
                   })}
                   placeholder={props.placeholder}
                   className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
