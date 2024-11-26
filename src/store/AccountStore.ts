@@ -8,12 +8,13 @@ export interface AccountBalance {
   flags: bigint;
 }
 export type AccountData = {
-  id: string;
-  name: string;
-  address: string;
-  polkadotSigner: PolkadotSigner;
+  id?: string;
+  name?: string;
+  address?: string;
+  polkadotSigner?: PolkadotSigner;
   balance?: AccountBalance;
 }
-export type Account = AccountData | {}
+export type Account = AccountData
 
 export const accountStore = proxy<Account>({  })
+Object.assign(accountStore, JSON.parse(window.localStorage.account))

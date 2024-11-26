@@ -15,7 +15,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
-import { useTypedApi } from "@reactive-dot/react"
+import { useAccounts, useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -78,6 +78,13 @@ export function IdentityRegistrarComponent() {
   const accountStore = useProxy(_accountStore)
   useEffect(() => {
     import.meta.env.DEV && console.log({accountStore})
+  }, [accountStore])
+
+  const accounts = useAccounts()
+  useEffect(() => {
+    if (accountStore.address) {
+      Object.assign(accountStore, accounts.find(account => account.address === accountStore.address))
+    }
   }, [accountStore])
   //#endregion accounts
 
