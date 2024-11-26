@@ -124,10 +124,8 @@ const Header = ({
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
                 break;
               case "Teleport":
-                identityStore.teleport();
                 break;
               case "RemoveIdentity":
-                identityStore.removeIdentity();
                 break;
               case "account":
                 updateAccount({ ...newValue.account });
