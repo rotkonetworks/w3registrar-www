@@ -122,6 +122,7 @@ const Header = ({
               case "Disconnect":
                 connectedWallets.forEach(w => disconnectWallet(w));
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+                delete window.localStorage.account;
                 break;
               case "Teleport":
                 break;
