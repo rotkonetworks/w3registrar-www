@@ -12,14 +12,15 @@ import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore } from "~/store/IdentityStore"
+import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useTypedApi } from "@reactive-dot/react"
-import { accountStore as _accountStore } from "~/store/AccountStore"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
+import { IdentityJudgement } from "@polkadot-api/descriptors"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -71,7 +72,70 @@ export function IdentityRegistrarComponent() {
   const chainContext = useConfig();
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id })
-  //# region Chains
+  //# endregion Chains
+  
+  //#region accounts
+  const accountStore = useProxy(_accountStore)
+  useEffect(() => {
+    import.meta.env.DEV && console.log({accountStore})
+  }, [accountStore])
+  //#endregion accounts
+
+  //# region identity
+  const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
+    .getValue((accountStore as AccountData).address)
+    .then((result) => {
+      if (!result) {
+        identityStore.status = verifiyStatuses.NoIdentity;
+        return;
+      }
+      const identityOf = result[0];
+      const identityData = Object.fromEntries(Object.entries(identityOf.info)
+        .filter(([_, value]) => value?.type?.startsWith("Raw"))
+        .map(([key, value]) => [key, value.value.asText()])
+      );
+      identityStore.info = identityData;
+      identityStore.status = verifiyStatuses.IdentitySet;
+      const idJudgementOfId = identityOf.judgements;
+      const judgementsData: typeof identityStore.judgement = idJudgementOfId.map((judgement) => ({
+        registrar: {
+          index: judgement[0],
+        },
+        state: judgement[1].type,
+        fee: judgement[1].value,
+      }));
+      identityStore.judgements = judgementsData;
+      identityStore.status = verifiyStatuses.JudgementRequested;
+      if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+        identityStore.status = verifiyStatuses.FeePaid;
+      }
+      if (judgementsData.find(j => [
+        IdentityJudgement.Reasonable().type,
+        IdentityJudgement.KnownGood().type,
+      ].includes(j.state))) {
+        identityStore.status = verifiyStatuses.IdentityVerified;
+      }
+      const idDeposit = identityOf.deposit;
+      // TODO Compute approximate reserve
+      import.meta.env.DEV && console.log({
+        identityOf,
+        identityData,
+        judgementsData,
+        idDeposit,
+      });
+    })
+    .catch(e => {
+      if (import.meta.env.DEV) {
+        console.error("Couldn't get identityOf");
+        console.error(e);
+      }
+    });
+  useEffect(() => {
+    if (accountStore.address) {
+      getIdAndJudgement();
+    }
+  }, [accountStore.address, typedApi])
+  //# endregion identity
 
   useEffect(() => {
     const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
