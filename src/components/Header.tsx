@@ -101,6 +101,7 @@ const Header = ({
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
   const updateAccount = ({ id, name, address, ...rest }) => {
     const account = { id, name, address, ...rest };
+    import.meta.env.DEV && console.log({ account });
     Object.assign(accountStore, account);
     // Needed to prevent circular references for serialization
     const accountToLocalStore = { id, name, address };
@@ -176,7 +177,7 @@ const Header = ({
                   Remove Identity
                 </SelectItem>
               </>}
-              {(accountStore as AccountData).address && <>
+              {accountStore.address && <>
                 <SelectItem value="Teleport">Teleport</SelectItem>
               </>}
               <SelectSeparator />
