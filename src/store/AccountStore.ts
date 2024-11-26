@@ -17,4 +17,5 @@ export type AccountData = {
 export type Account = AccountData
 
 export const accountStore = proxy<Account>({  })
-Object.assign(accountStore, JSON.parse(window.localStorage.account))
+
+Object.assign(accountStore, JSON.parse(window.localStorage.account || "{}"))
