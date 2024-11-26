@@ -144,10 +144,6 @@ export function IdentityRegistrarComponent() {
     Object.assign(chainStore, { name })
   }, [chainStore.id])
 
-  //#region accounts
-  const accountStore = useProxy(_accountStore)
-  //#endregion accounts
-
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
