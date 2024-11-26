@@ -57,7 +57,7 @@ export function IdentityForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (buttonsDisabled) {
+    if (forbiddenSubmission) {
       return
     }
     setShowCostModal(true);
@@ -125,7 +125,7 @@ export function IdentityForm({
     import.meta.env.DEV && console.log({ formData })
   }, [formData])
 
-  const buttonsDisabled = useMemo(() => {
+  const forbiddenSubmission = useMemo(() => {
     return Object.entries(formData).some(([key, field]) => field.error !== null 
       || (identityFormFields[key].required && field.value === "")
     )
@@ -167,7 +167,7 @@ export function IdentityForm({
                 )}
               </div>
             )}
-            {buttonsDisabled && (
+            {forbiddenSubmission && (
               <div className="text-[#E6007A] text-sm mt-5">
                 <p>Fill the correctly before proceeding</p>
               </div>
@@ -182,7 +182,7 @@ export function IdentityForm({
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button type="submit" disabled={buttonsDisabled}
+              <Button type="submit" disabled={forbiddenSubmission}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
@@ -195,7 +195,7 @@ export function IdentityForm({
                     setActionType("judgement")
                   }}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
-                  disabled={buttonsDisabled}
+                  disabled={forbiddenSubmission}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
