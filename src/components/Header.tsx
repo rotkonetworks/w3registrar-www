@@ -91,7 +91,7 @@ const Header = ({
   const accounts = useAccounts()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
-  const updateAccount = () => {
+  const updateAccount = ({ id, name, address, ...rest }) => {
     const account = { id, name, address, ...rest };
     Object.assign(accountStore, account);
     // Needed to prevent circular references for serialization
