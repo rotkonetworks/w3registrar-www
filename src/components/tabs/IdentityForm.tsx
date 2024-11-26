@@ -143,6 +143,10 @@ export function IdentityForm({
     import.meta.env.DEV && console.log({ formData })
   }, [formData])
 
+  const buttonsDisabled = useMemo(() => {
+    return Object.values(formData).some(field => field.error !== null)
+  }, [formData])
+
   return (
     <>
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
