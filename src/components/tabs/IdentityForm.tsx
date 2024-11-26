@@ -58,15 +58,6 @@ export function IdentityForm({
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const validateForm = () => {
-    const errors: string[] = []
-    if (!formData.display && !formData.matrix && !formData.email && !formData.discord) {
-      errors.push("At least one field must be filled to set identity")
-    }
-    setFormErrors(errors)
-    return errors
-  }
-
   const [errorMessage, setErrorMessage] = useState("")
   const onChainIdentity = identityStore.status
 
@@ -144,7 +135,9 @@ export function IdentityForm({
   }, [formData])
 
   const buttonsDisabled = useMemo(() => {
-    return Object.values(formData).some(field => field.error !== null)
+    return Object.entries(formData).some(([key, field]) => field.error !== null 
+      || (identityFormFields[key].required && field.value === "")
+    )
   }, [formData])
 
   return (
@@ -168,6 +161,9 @@ export function IdentityForm({
                     _formData[key] = { ..._formData[key] }
                     _formData[key].value = newValue;
                     _formData[key].error = props.checkForErrors(newValue);
+                    if (identityFormFields[key].required && _formData[key].value === "") {
+                      _formData[key].error = "Required";
+                    }
                     return _formData;
                   })}
                   placeholder={props.placeholder}
@@ -197,7 +193,9 @@ export function IdentityForm({
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button type="submit" className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1">
+              <Button type="submit" disabled={buttonsDisabled}
+                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
+              >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
@@ -208,7 +206,7 @@ export function IdentityForm({
                     setActionType("judgement")
                   }}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
-                  disabled={onChainIdentity === verifiyStatuses.JudgementRequested}
+                  disabled={buttonsDisabled}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
