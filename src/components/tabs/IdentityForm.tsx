@@ -52,20 +52,12 @@ export function IdentityForm({
   })
   const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
-  const [formErrors, setFormErrors] = useState<string[]>([])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
-  const [errorMessage, setErrorMessage] = useState("")
   const onChainIdentity = identityStore.status
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const errors = validateForm()
-    if (errors.length > 0) {
-      setErrorMessage(errors.join(". "))
+    if (buttonsDisabled) {
       return
     }
     setShowCostModal(true);
@@ -84,7 +76,6 @@ export function IdentityForm({
       })
     }
     setShowCostModal(false)
-    setErrorMessage("")
   }
 
   const identityFormFields = {
@@ -176,11 +167,9 @@ export function IdentityForm({
                 )}
               </div>
             )}
-            {formErrors.length > 0 && (
-              <div className="text-[#E6007A] text-sm mt-2">
-                {formErrors.map((error, index) => (
-                  <p key={index}>{error}</p>
-                ))}
+            {buttonsDisabled && (
+              <div className="text-[#E6007A] text-sm mt-5">
+                <p>Fill the correctly before proceeding</p>
               </div>
             )}
             <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
