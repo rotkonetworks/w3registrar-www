@@ -103,6 +103,7 @@ export function IdentityForm({
       key: "display",
       placeholder: 'Alice',
       checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+      required: true,
     },
     matrix: {
       label: "Matrix",
@@ -110,6 +111,7 @@ export function IdentityForm({
       key: "matrix",
       placeholder: '@alice:matrix.org',
       checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+      required: true,
     },
     email: {
       label: "Email",
@@ -117,6 +119,7 @@ export function IdentityForm({
       key: "email",
       placeholder: 'alice@example.org',
       checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      required: true,
     },
     discord: {
       label: "Discord",
@@ -124,6 +127,7 @@ export function IdentityForm({
       key: "discord",
       placeholder: 'alice#1234',
       checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
+      required: true,
     },
     twitter: {
       label: "Twitter",
@@ -131,6 +135,7 @@ export function IdentityForm({
       key: "twitter",
       placeholder: '@alice',
       checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+      required: true,
     },
   }
 
