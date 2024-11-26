@@ -199,7 +199,7 @@ export function IdentityForm({
                 <CheckCircle className="mr-2 h-4 w-4" />
                 {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity !== verifiyStatuses.NoIdentity && (
+              {onChainIdentity === verifiyStatuses.IdentitySet && (
                 <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)
