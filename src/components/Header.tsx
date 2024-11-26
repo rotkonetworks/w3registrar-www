@@ -88,11 +88,6 @@ const Header = ({
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
   
-  const handleClose = () => {
-    setOpen(false)
-    setAccountsOpen(false)
-  }
-  
   const accounts = useAccounts()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
