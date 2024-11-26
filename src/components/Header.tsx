@@ -16,6 +16,14 @@ import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
 
+const AccountListing = ({ address, name }) => <>
+  <PolkadotIdenticon address={address} />
+  &nbsp;
+  {name}
+  &nbsp;
+  ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
+</>
+
 const Header = ({ 
   chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore 
 }: { 
@@ -138,16 +146,16 @@ const Header = ({
           }}
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            {connectedWallets.length > 0
-              ? <span>Pick account</span>
-              : (accountStore as AccountData).address 
-                ? <>
-                  {(accountStore as AccountData).name}
-                  <span className="text-xs text-stone-400">
-                    <PolkadotIdenticon address={(accountStore as AccountData).address} />
-                    {(accountStore as AccountData).address.slice(0, 4)}...{(accountStore as AccountData).address.slice(-4)}
-                  </span>
-                </>
+            {accountStore.address 
+              ? <>
+                {accountStore.name}
+                <span className="text-xs text-stone-400">
+                  <PolkadotIdenticon address={accountStore.address} />
+                  {accountStore.address.slice(0, 4)}...{accountStore.address.slice(-4)}
+                </span>
+              </>
+              : connectedWallets.length > 0
+                ? <span>Pick account</span>
                 : <span>Connect wallet</span>
             }
           </SelectTrigger>
@@ -183,11 +191,7 @@ const Header = ({
                           console.log({ account });
                           return updateAccount(account);
                         }}>
-                          <PolkadotIdenticon address={address} />
-                          &nbsp;
-                          {name}
-                          <br />
-                          ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
+                          <AccountListing address={address} name={name} />
                         </SelectItem>
                       );
                     })}
