@@ -182,7 +182,7 @@ const Header = ({
         </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
-        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {  }}>
+        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {}}>
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
@@ -197,38 +197,6 @@ const Header = ({
                 </SelectItem>
               ))
             }
-            {(defaultWsUrl && chainStore.id === "people_rococo") && (
-              <div className="p-4 border-t border-stone-300">
-                <Label htmlFor="wsUrl" className="text-inherit flex items-center gap-2">
-                  <Link className="h-4 w-4" />
-                  WebSocket URL
-                </Label>
-                <Input ref={inputRef} id="wsUrl" name="wsUrl" type="url" value={_wsUrl} 
-                  className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
-                  placeholder="wss://example.com/ws" 
-                  onChange={handleUrlChange}
-                  onKeyPress={(e) => e.key === 'Enter' && handleUrlSubmit()}
-                  //aria-invalid={!urlValidation.isValid}
-                  //aria-describedby="url-validation-message" 
-                />
-                <p id="url-validation-message"
-                  className={`text-xs mb-2 ${urlValidation.isValid 
-                    ? 'text-green-600' 
-                    : 'text-red-500'
-                  }`}
-                >
-                  {urlValidation.message}
-                </p>
-                <Button type="submit" 
-                  onClick={handleUrlSubmit}
-                  disabled={!urlValidation.isValid}
-                  className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
-                >
-                  <FolderSync className="mr-2 h-4 w-4" />
-                  Reload
-                </Button>
-              </div>
-            )}
           </SelectContent>
         </Select>
       </div>
