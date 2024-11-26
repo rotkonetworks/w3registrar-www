@@ -103,7 +103,31 @@ const Header = ({
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[240px]">
-        <Select onValueChange={() => { }} open={isUserDropdownOpen}
+        <Select 
+          onValueChange={(newValue) => {
+            import.meta.env.DEV && console.log({ newValue })
+            switch (newValue.type) {
+              case "Wallets":
+                onRequestWalletConnections();
+                break;
+              case "Disconnect":
+                connectedWallets.forEach(w => disconnectWallet(w));
+                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+                break;
+              case "Teleport":
+                identityStore.teleport();
+                break;
+              case "RemoveIdentity":
+                identityStore.removeIdentity();
+                break;
+              case "account":
+                updateAccount({ ...newValue.account });
+                break;
+              default:
+                throw new Error("Invalid action type");
+            }
+          }} 
+          open={isUserDropdownOpen}
           onOpenChange={() => {
             if (connectedWallets.length > 0) {
               setUserDropdownOpen(open => !open)
@@ -129,13 +153,8 @@ const Header = ({
           </SelectTrigger>
           <SelectContent>
             {connectedWallets.length > 0 && <>
-              <SelectItem value="Wallets">Connect Wallets</SelectItem>
-              <SelectItem value="Disconnect"
-                onClick={() => {
-                  connectedWallets.forEach(w => disconnectWallet(w));
-                  Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                }}
-              >
+              <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
+              <SelectItem value={{type: "Disconnect"}}>
                 Disconnect
               </SelectItem>
               {identityStore.identity && <>
@@ -157,15 +176,21 @@ const Header = ({
                 ?<>
                   <SelectGroup>
                     <SelectLabel>Accounts</SelectLabel>
-                    {accounts.map(({ id, name, address, ...rest }) => (
-                      <SelectItem key={id} value={address} onClick={updateAccount}>
-                        <PolkadotIdenticon address={address} />
-                        &nbsp;
-                        {name}
-                        <br />
-                        ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
-                      </SelectItem>
-                    ))}
+                    {accounts.map(({ id, name, address, ...rest }) => {
+                      const account = { id, name, address, ...rest };
+                      return (
+                        <SelectItem key={id} value={{ type: "account", account }} onClick={() => {
+                          console.log({ account });
+                          return updateAccount(account);
+                        }}>
+                          <PolkadotIdenticon address={address} />
+                          &nbsp;
+                          {name}
+                          <br />
+                          ({address.substring(0, 4)}...{address.substring(address.length - 4, address.length)})
+                        </SelectItem>
+                      );
+                    })}
                   </SelectGroup>
                 </>
                 :<>
