@@ -92,6 +92,7 @@ export function IdentityRegistrarComponent() {
   const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
     .getValue((accountStore as AccountData).address)
     .then((result) => {
+      import.meta.env.DEV && console.log({ identityOf: result })
       if (!result) {
         identityStore.status = verifiyStatuses.NoIdentity;
         return;
