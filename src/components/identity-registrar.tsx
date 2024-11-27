@@ -90,7 +90,7 @@ export function IdentityRegistrarComponent() {
 
   //# region identity
   const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
-    .getValue((accountStore as AccountData).address)
+    .getValue(accountStore.address)
     .then((result) => {
       import.meta.env.DEV && console.log({ identityOf: result })
       if (!result) {
