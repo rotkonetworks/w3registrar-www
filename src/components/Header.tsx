@@ -166,16 +166,8 @@ const Header = ({
               <SelectItem value={{type: "Disconnect"}}>
                 Disconnect
               </SelectItem>
-              {identityStore.identity && <>
-                <SelectItem value="RemoveIdentity"
-                  onClick={() => {
-                    typedApi.tx.Identity.clear_identity().signAndSubmit(
-                      accountStore?.polkadotSigner
-                    );
-                  }}
-                >
-                  Remove Identity
-                </SelectItem>
+              {identityStore.info && <>
+                <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
               </>}
               {accountStore.address && <>
                 <SelectItem value="Teleport">Teleport</SelectItem>
