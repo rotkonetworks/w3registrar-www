@@ -145,7 +145,8 @@ export function IdentityRegistrarComponent() {
     }
   }, [accountStore.address, typedApi])
   //# endregion identity
-
+  
+  //# region chains
   useEffect(() => {
     const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
     import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
