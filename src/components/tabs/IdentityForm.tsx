@@ -80,10 +80,6 @@ export function IdentityForm<Chain>({
         max_fee: 0n,
         reg_index: chainStore.registrarIndex,
       })
-      addNotification({
-        type: 'info',
-        message: 'Judgement requested successfully',
-      })
     } else if (actionType === "identity") {
       call = typedApi.tx.Identity.set_identity({
         info: {
@@ -107,10 +103,6 @@ export function IdentityForm<Chain>({
           },
         },
       });
-      addNotification({
-        type: 'info',
-        message: 'Identity set successfully',
-      })
     }
     else {
       throw new Error("Unexpected action type")

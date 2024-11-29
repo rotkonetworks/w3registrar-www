@@ -170,7 +170,7 @@ export function IdentityRegistrarComponent() {
               : appStateSnapshot.verificationProgress */
           addNotification({
             type: "info",
-            message: "Identity Set",
+            message: "Identity Set for this account",
           })
         },
         onError: error => {  },
@@ -181,7 +181,7 @@ export function IdentityRegistrarComponent() {
           appState.identity = null; */
           addNotification({
             type: "info",
-            message: "Identity Set",
+            message: "Identity cleared for this account",
           })
         },
         onError: error => { },
@@ -191,7 +191,7 @@ export function IdentityRegistrarComponent() {
           //appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
           addNotification({
             type: "info",
-            message: "Identity Set",
+            message: "Judgement Requested for this account",
           })
         },
         onError: error => { },
@@ -201,7 +201,7 @@ export function IdentityRegistrarComponent() {
           getIdAndJudgement()
           addNotification({
             type: "info",
-            message: "Identity Set",
+            message: "Judgement Given for this account",
           })
         },
         onError: error => { },
