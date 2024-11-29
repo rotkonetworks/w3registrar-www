@@ -153,7 +153,12 @@ export function IdentityRegistrarComponent() {
     Object.assign(chainStore, { name })
   }, [chainStore.id])
 
-  const chainInfo = useChainRealTimeInfo(typedApi, chainStore, accountStore);
+  const chainEvents = useChainRealTimeInfo({
+    typedApi,
+    chainStore,
+    accountStore,
+    onIdentitySet: getIdAndJudgement
+  })
   //# endregion chains
 
   return <>

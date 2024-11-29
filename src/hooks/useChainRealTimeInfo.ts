@@ -4,11 +4,17 @@ import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
 
-export const useChainRealTimeInfo = (
-  typedApi: TypedApi, 
-  chainStore: ChainInfo,
-  accountStore: AccountData,
-) => {
+export const useChainRealTimeInfo = ({
+  typedApi,
+  chainStore,
+  accountStore,
+  onIdentitySet,
+}: {
+  typedApi: TypedApi;
+  chainStore: ChainInfo;
+  accountStore: AccountData;
+  onIdentitySet: () => void;
+}) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   
   useEffect(() => {
@@ -89,7 +95,7 @@ export const useChainRealTimeInfo = (
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementGiven" },
     onEvent: data => {
-      //getIdAndJudgement()
+      onIdentitySet()
     },
     onError: error => { },
   }), [chainStore.id, accountStore.address])
