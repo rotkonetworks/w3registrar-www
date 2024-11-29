@@ -59,6 +59,7 @@ export function IdentityForm<Chain>({
       error: null,
     },
   })
+
   const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
 
@@ -153,6 +154,21 @@ export function IdentityForm<Chain>({
       required: true,
     },
   }
+  useEffect(() => {
+    if (identityStore.info) {
+      import.meta.env.DEV && console.log({ identityStore })
+      setFormData({
+        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
+          all[key] = {
+            value: identityStore.info![key],
+            error: null,
+          }
+          return all;
+        }, {}))
+      })
+    }
+  }, [identityStore.info])
+
 
   useEffect(() => {
     import.meta.env.DEV && console.log({ formData })
