@@ -20,19 +20,22 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Binary } from 'polkadot-api'
+import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
+import { AccountData } from '~/store/AccountStore'
 
-export function IdentityForm({
+export function IdentityForm<Chain>({
   addNotification,
   identityStore,
   chainStore,
+  accountStore,
   typedApi,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
   chainStore: ChainInfo,
-  typedApi: TypedApi,
+  accountStore: AccountData,
+  typedApi: TypedApi<Chain>,
 }) {
   const [formData, setFormData] = useState({
     display: {
@@ -66,13 +69,14 @@ export function IdentityForm({
     if (forbiddenSubmission) {
       return
     }
+    setActionType("identity")
     setShowCostModal(true);
   }
 
   const confirmAction = () => {
     let call;
     if (actionType === "judgement") {
-      call = typedapi.tx.identity.request_judgement({
+      call = typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
         reg_index: chainStore.registrarIndex,
       })
@@ -81,23 +85,28 @@ export function IdentityForm({
         message: 'Judgement requested successfully',
       })
     } else if (actionType === "identity") {
-      call = typedApi.tx.identity.set_identity(
-        {
-          info: {
-            ...(Object.fromEntries(Object.entries(formData)
-              .map(([key, value]) => [key, value.value]))
-              .map(([key, value]) => [key, { 
-                type: `Raw${value.length}`,
-                value: Binary.fromText(value),
-              }])
-            ),
-            legal: null,
-            github: null,
-            image: null,
-            web: null,
+      call = typedApi.tx.Identity.set_identity({
+        info: {
+          ...(Object.fromEntries(Object.entries(formData)
+            .map(([key, { value }]) => [key, {
+              type: `Raw${value.length}`,
+              value: Binary.fromText(value),
+            }])
+          )),
+          legal: {
+            type: "None",
           },
-        }
-      );
+          github: {
+            type: "None",
+          },
+          image: {
+            type: "None",
+          },
+          web: {
+            type: "None",
+          },
+        },
+      });
       addNotification({
         type: 'info',
         message: 'Identity set successfully',
@@ -106,6 +115,7 @@ export function IdentityForm({
     else {
       throw new Error("Unexpected action type")
     }
+    call.signAndSubmit(accountStore.polkadotSigner)
     setShowCostModal(false)
   }
 

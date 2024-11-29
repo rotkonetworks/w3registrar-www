@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
+import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
@@ -22,6 +22,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
+import { TypedApi } from "polkadot-api"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -231,14 +232,15 @@ export function IdentityRegistrarComponent() {
               addNotification={addNotification}
               identityStore={identityStore}
               chainStore={chainStore}
-              typedApi={typedApi}
+              typedApi={typedApi as TypedApi<ChainInfo.id>}
+              accountStore={accountStore}
             />
           </TabsContent>
           <TabsContent value={pages[1].name}>
             <ChallengePage 
               identityStore={identityStore}
               addNotification={addNotification}
-              />
+            />
           </TabsContent>
           <TabsContent value={pages[2].name}>
             <StatusPage 
