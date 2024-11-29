@@ -107,15 +107,17 @@ export function IdentityRegistrarComponent() {
       identityStore.info = identityData;
       identityStore.status = verifiyStatuses.IdentitySet;
       const idJudgementOfId = identityOf.judgements;
-      const judgementsData: typeof identityStore.judgement = idJudgementOfId.map((judgement) => ({
+      const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
         registrar: {
           index: judgement[0],
         },
         state: judgement[1].type,
         fee: judgement[1].value,
       }));
-      identityStore.judgements = judgementsData;
-      identityStore.status = verifiyStatuses.JudgementRequested;
+      if (judgementsData.length > 0) {
+        identityStore.judgements = judgementsData;
+        identityStore.status = verifiyStatuses.JudgementRequested;
+      }
       if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
         identityStore.status = verifiyStatuses.FeePaid;
       }
