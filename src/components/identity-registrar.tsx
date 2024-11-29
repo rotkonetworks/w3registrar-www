@@ -16,7 +16,7 @@ import { identityStore as _identityStore, verifiyStatuses } from "~/store/Identi
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useAccounts, useTypedApi } from "@reactive-dot/react"
-import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
+import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
@@ -150,7 +150,8 @@ export function IdentityRegistrarComponent() {
     const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
     import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
     const name = chainContext.config.chains[id].name;
-    Object.assign(chainStore, { name })
+    const registrarIndex = chainContext.config.chains[id].registrarIndex;
+    Object.assign(chainStore, { name, registrarIndex })
   }, [chainStore.id])
 
   const chainEvents = useChainRealTimeInfo({
@@ -228,6 +229,8 @@ export function IdentityRegistrarComponent() {
             <IdentityForm 
               addNotification={addNotification}
               identityStore={identityStore}
+              chainStore={chainStore}
+              typedApi={typedApi}
             />
           </TabsContent>
           <TabsContent value={pages[1].name}>

@@ -20,13 +20,19 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
+import { Binary } from 'polkadot-api'
+import { ChainInfo } from '~/store/ChainStore'
 
 export function IdentityForm({
   addNotification,
   identityStore,
+  chainStore,
+  typedApi,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
+  chainStore: ChainInfo,
+  typedApi: TypedApi,
 }) {
   const [formData, setFormData] = useState({
     display: {
@@ -64,16 +70,41 @@ export function IdentityForm({
   }
 
   const confirmAction = () => {
+    let call;
     if (actionType === "judgement") {
+      call = typedapi.tx.identity.request_judgement({
+        max_fee: 0n,
+        reg_index: chainStore.registrarIndex,
+      })
       addNotification({
         type: 'info',
         message: 'Judgement requested successfully',
       })
-    } else {
+    } else if (actionType === "identity") {
+      call = typedApi.tx.identity.set_identity(
+        {
+          info: {
+            ...(Object.fromEntries(Object.entries(formData)
+              .map(([key, value]) => [key, value.value]))
+              .map(([key, value]) => [key, { 
+                type: `Raw${value.length}`,
+                value: Binary.fromText(value),
+              }])
+            ),
+            legal: null,
+            github: null,
+            image: null,
+            web: null,
+          },
+        }
+      );
       addNotification({
         type: 'info',
         message: 'Identity set successfully',
       })
+    }
+    else {
+      throw new Error("Unexpected action type")
     }
     setShowCostModal(false)
   }
