@@ -1,4 +1,5 @@
 import { ChainProvider, ReactiveDotProvider } from '@reactive-dot/react';
+import { Loader } from 'lucide-react';
 import { useProxy } from 'valtio/utils';
 import { ConfigProvider, useConfig } from '~/api/config2';
 import { IdentityRegistrarComponent } from '~/components/identity-registrar';
@@ -17,12 +18,16 @@ const HomeWrapper = () => {
   const chainStore = useProxy(_chainStore);
 
   return <>
-    {config &&
-      <ReactiveDotProvider config={config}>
+    {config 
+      ?<ReactiveDotProvider config={config}>
         <ChainProvider chainId={chainStore.id}>
           <IdentityRegistrarComponent />
         </ChainProvider>
       </ReactiveDotProvider>
+      :<>
+        Loading
+        <Loader />
+      </>
     }
   </>;
 }
