@@ -2,16 +2,10 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import React, { Suspense } from 'react';
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
+import { Loading } from './pages/Loading';
 
 interface Props {
   route: RouteType;
-}
-
-function Loading() {
-  return (
-    <div className='h-100vh flex-center'>
-    </div>
-  );
 }
 
 const DomTitle: React.FC<Props> = ({ route }) => {
