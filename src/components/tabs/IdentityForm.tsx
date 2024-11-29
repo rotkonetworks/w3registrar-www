@@ -179,6 +179,7 @@ export function IdentityForm({
                 {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set. You need to set your identity before requesting judgement."}
                 {onChainIdentity === verifiyStatuses.IdentitySet && "Identity already set. You can update your identity or request judgement."}
                 {onChainIdentity === verifiyStatuses.JudgementRequested && "Judgement already requested. You can update your identity while waiting for judgement."}
+                {onChainIdentity === verifiyStatuses.IdentityVerified && "Your identity is verified! Congrats!"}
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
