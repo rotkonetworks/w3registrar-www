@@ -21,6 +21,7 @@ import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
+import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -151,6 +152,9 @@ export function IdentityRegistrarComponent() {
     const name = chainContext.config.chains[id].name;
     Object.assign(chainStore, { name })
   }, [chainStore.id])
+
+  const chainInfo = useChainRealTimeInfo(typedApi, chainStore, accountStore);
+  //# endregion chains
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
