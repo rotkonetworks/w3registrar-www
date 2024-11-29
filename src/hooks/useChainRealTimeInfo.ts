@@ -8,12 +8,15 @@ export const useChainRealTimeInfo = ({
   typedApi,
   chainStore,
   accountStore,
-  onIdentitySet,
+  handlers,
 }: {
-  typedApi: TypedApi;
+  typedApi: TypedApi<ChainId>;
   chainStore: ChainInfo;
   accountStore: AccountData;
-  onIdentitySet: () => void;
+  handlers: Record<string, {
+    onEvent: (data: any) => void;
+    onError?: (error: Error) => void;
+  }>
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   
@@ -36,8 +39,9 @@ export const useChainRealTimeInfo = ({
   }, [typedApi])
 
   const [_pendingBlocks, _setPendingBlocks] = useState()
-  const handleChainEvent = ({ type: { pallet, call }, onEvent, onError }) => {
+  const handleChainEvent = ({ type: { pallet, call }, }) => {
     const type = `${pallet}.${call}`;
+    const { onEvent, onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
         data.filter(item => [item.payload.who, item.payload.target].includes(accountStore.address))
@@ -52,52 +56,31 @@ export const useChainRealTimeInfo = ({
         import.meta.env.DEV && console.error(error)
       })
   }
-  const getEffectCallback = ({ type: { pallet, call }, onEvent, onError }) => {
+  const getEffectCallback = ({ type: { pallet, call }, }) => {
     return () => {
       if (!chainStore.id || !accountStore.address) {
         return
       }
       const timer = window.setInterval(() => {
-        handleChainEvent({ type: { pallet, call }, onEvent, onError })
+        handleChainEvent({ type: { pallet, call }, })
       }, CHAIN_UPDATE_INTERVAL)
       return () => window.clearInterval(timer)
     }
   }
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentitySet" },
-    onEvent: data => {
-      /* appState.verificationProgress =
-        // As we do batch calls, we need to know if judgeent is already awaiting
-        appStateSnapshot.verificationProgress === IdentityVerificationStatuses.NoIdentity
-          ? IdentityVerificationStatuses.IdentitySet
-          : appStateSnapshot.verificationProgress */
-    },
-    onError: error => { },
   }), [chainStore.id, accountStore.address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentityCleared" },
-    onEvent: data => {
-      /* appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
-      appState.identity = null; */
-    },
-    onError: error => { },
   }), [chainStore.id, accountStore.address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementRequested" },
-    onEvent: data => {
-      //appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
-    },
-    onError: error => { },
   }), [chainStore.id, accountStore.address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementGiven" },
-    onEvent: data => {
-      onIdentitySet()
-    },
-    onError: error => { },
   }), [chainStore.id, accountStore.address])
 
 

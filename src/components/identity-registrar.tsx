@@ -160,7 +160,53 @@ export function IdentityRegistrarComponent() {
     typedApi,
     chainStore,
     accountStore,
-    onIdentitySet: getIdAndJudgement
+    handlers: {
+      "Identity.IdentitySet": {
+        onEvent: data => {
+          /* appState.verificationProgress =
+            // As we do batch calls, we need to know if judgeent is already awaiting
+            appStateSnapshot.verificationProgress === IdentityVerificationStatuses.NoIdentity
+              ? IdentityVerificationStatuses.IdentitySet
+              : appStateSnapshot.verificationProgress */
+          addNotification({
+            type: "info",
+            message: "Identity Set",
+          })
+        },
+        onError: error => {  },
+      },
+      "Identity.IdentityCleared": {
+        onEvent: data => {
+          /* appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
+          appState.identity = null; */
+          addNotification({
+            type: "info",
+            message: "Identity Set",
+          })
+        },
+        onError: error => { },
+      },
+      "Identity.JudgementRequested": {
+        onEvent: data => {
+          //appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
+          addNotification({
+            type: "info",
+            message: "Identity Set",
+          })
+        },
+        onError: error => { },
+      },
+      "Identity.JudgementGiven": {
+        onEvent: data => {
+          getIdAndJudgement()
+          addNotification({
+            type: "info",
+            message: "Identity Set",
+          })
+        },
+        onError: error => { },
+      },
+    },
   })
   //# endregion chains
 
