@@ -220,6 +220,9 @@ export function IdentityRegistrarComponent() {
         <Header chainContext={chainContext} chainStore={chainStore} accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
+          onIdentityClear={() => typedApi.tx.Identity.clear_identity().signAndSubmit(
+            accountStore?.polkadotSigner
+          )}
         />
 
         {errorMessage && (

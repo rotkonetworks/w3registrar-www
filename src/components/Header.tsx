@@ -23,12 +23,14 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore 
+  chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore, 
+  onIdentityClear,
 }: { 
   chainContext: ConfigContextProps;
   chainStore: ChainInfo;
   accountStore: Account;
   onRequestWalletConnections: () => void;
+  onIdentityClear: () => void;
   identityStore: IdentityStore;
 }) => {
   const appStore = useProxy(_appStore);
@@ -125,6 +127,7 @@ const Header = ({
               case "Teleport":
                 break;
               case "RemoveIdentity":
+                onIdentityClear();
                 break;
               case "account":
                 updateAccount({ ...newValue.account });
