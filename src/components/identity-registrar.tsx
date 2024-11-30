@@ -23,6 +23,7 @@ import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { TypedApi } from "polkadot-api"
+import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -211,6 +212,27 @@ export function IdentityRegistrarComponent() {
     },
   })
   //# endregion chains
+  
+  //# region challenges
+  const identityWebSocket = useIdentityWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
+    account: accountStore.address,
+    onNotification: (notification) => {
+      import.meta.env.DEV && console.log('Received notification:', notification);
+    }
+  });
+  const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
+  const idWsDeps = [identityWebSocket.accountState, accountStore.address, identityStore.info, chainStore.id]
+  useEffect(() => {
+    if (idWsDeps.some((value) => value === undefined)) {
+      if (error) {
+        import.meta.env.DEV && console.error(error)
+      }
+      return
+    } 
+    import.meta.env.DEV && console.log({ identityWebSocket })
+  }, idWsDeps)
+  //# endregion challenges
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
