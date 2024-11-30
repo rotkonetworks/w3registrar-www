@@ -147,7 +147,9 @@ export function IdentityForm<Chain>({
       icon: <MessageSquare className="h-4 w-4" />,
       key: "discord",
       placeholder: 'alice#1234',
-      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}(#\d+)?$/.test(v) 
+        ? "Invalid format" 
+        : null,
       required: false,
     },
     twitter: {
