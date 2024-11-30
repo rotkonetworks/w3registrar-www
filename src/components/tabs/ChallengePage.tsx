@@ -18,11 +18,7 @@ export function ChallengePage({
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   challengeStore: ChallengeStore
 }) {
-  const [challenges, setChallenges] = useState({
-    matrix: { code: "234567", status: "pending" },
-    email: { code: "345678", status: "verified" },
-    discord: { code: "456789", status: "failed" },
-  })
+  const challenges = challengeStore
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)

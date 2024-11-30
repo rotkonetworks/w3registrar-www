@@ -13,7 +13,7 @@ import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from 
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore } from "~/store/challengesStore"
+import { challengeStore as _challengeStore, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useAccounts, useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
@@ -222,15 +222,39 @@ export function IdentityRegistrarComponent() {
     }
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
-  const idWsDeps = [identityWebSocket.accountState, accountStore.address, identityStore.info, chainStore.id]
+  const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
   useEffect(() => {
     if (idWsDeps.some((value) => value === undefined)) {
       if (error) {
         import.meta.env.DEV && console.error(error)
       }
       return
-    } 
-    import.meta.env.DEV && console.log({ identityWebSocket })
+    }
+    import.meta.env.DEV && console.log({ accountState })
+    if (accountState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = accountState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const challenges: Record<string, Challenge> = {};
+      Object.entries(verifyState)
+        .filter(([_, value]) => !value)
+        .forEach(([key, value]) => challenges[key] = {
+          status: value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
+          code: !value && pendingChallenges[key],
+        })
+      Object.assign(challengeStore, challenges)
+      //challengeStore. = challenges;
+
+      import.meta.env.DEV && console.log({
+        origin: "accountState",
+        pendingChallenges,
+        verifyState,
+        challenges,
+      })
+    }
   }, idWsDeps)
   //# endregion challenges
 
