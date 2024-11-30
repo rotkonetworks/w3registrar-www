@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { useState } from "react"
 
 export function ChallengePage({
   addNotification,
@@ -99,8 +100,5 @@ export function ChallengePage({
       </CardContent>
     </Card>
   )
-}
-function useState(arg0: { matrix: { code: string; status: string }; email: { code: string; status: string }; discord: { code: string; status: string } }): [any, any] {
-  throw new Error("Function not implemented.")
 }
 
