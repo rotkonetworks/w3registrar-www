@@ -85,10 +85,15 @@ export function IdentityForm<Chain>({
       call = typedApi.tx.Identity.set_identity({
         info: {
           ...(Object.fromEntries(Object.entries(formData)
-            .map(([key, { value }]) => [key, {
-              type: `Raw${value.length}`,
-              value: Binary.fromText(value),
-            }])
+            .map(([key, { value }]) => [key, value
+              ?{
+                type: `Raw${value.length}`,
+                value: Binary.fromText(value),
+              }
+              :{
+                type: "None",
+              }
+            ])
           )),
           legal: {
             type: "None",
@@ -119,7 +124,7 @@ export function IdentityForm<Chain>({
       key: "display",
       placeholder: 'Alice',
       checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
-      required: true,
+      required: false,
     },
     matrix: {
       label: "Matrix",
@@ -127,7 +132,7 @@ export function IdentityForm<Chain>({
       key: "matrix",
       placeholder: '@alice:matrix.org',
       checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
-      required: true,
+      required: false,
     },
     email: {
       label: "Email",
@@ -135,7 +140,7 @@ export function IdentityForm<Chain>({
       key: "email",
       placeholder: 'alice@example.org',
       checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
-      required: true,
+      required: false,
     },
     discord: {
       label: "Discord",
@@ -143,7 +148,7 @@ export function IdentityForm<Chain>({
       key: "discord",
       placeholder: 'alice#1234',
       checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}#\d{4}$/.test(v) ? "Invalid format" : null,
-      required: true,
+      required: false,
     },
     twitter: {
       label: "Twitter",
@@ -151,7 +156,7 @@ export function IdentityForm<Chain>({
       key: "twitter",
       placeholder: '@alice',
       checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
-      required: true,
+      required: false,
     },
   }
   useEffect(() => {
@@ -175,8 +180,12 @@ export function IdentityForm<Chain>({
   }, [formData])
 
   const forbiddenSubmission = useMemo(() => {
-    return Object.entries(formData).some(([key, field]) => field.error !== null 
-      || (identityFormFields[key].required && field.value === "")
+    return (
+      Object.entries(formData)
+        .filter(([key, { value, error }]) => !value).length >= Object.keys(formData).length
+      || 
+      Object.entries(formData)
+        .filter(([key, { value, error }]) => error).length > 0 
     )
   }, [formData])
 
@@ -218,7 +227,7 @@ export function IdentityForm<Chain>({
             )}
             {forbiddenSubmission && (
               <div className="text-[#E6007A] text-sm mt-5">
-                <p>Fill the correctly before proceeding</p>
+                <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
               </div>
             )}
             <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
