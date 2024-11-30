@@ -313,6 +313,7 @@ export function IdentityRegistrarComponent() {
             <ChallengePage 
               identityStore={identityStore}
               addNotification={addNotification}
+              challengeStore={challengeStore}
             />
           </TabsContent>
           <TabsContent value={pages[2].name}>

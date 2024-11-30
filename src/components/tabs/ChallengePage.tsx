@@ -7,13 +7,16 @@ import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle } from "luci
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { useState } from "react"
+import { ChallengeStore } from "~/store/challengesStore"
 
 export function ChallengePage({
   addNotification,
   identityStore,
+  challengeStore,
 }: {
   identityStore: IdentityStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+  challengeStore: ChallengeStore
 }) {
   const [challenges, setChallenges] = useState({
     matrix: { code: "234567", status: "pending" },
