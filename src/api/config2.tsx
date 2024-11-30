@@ -65,16 +65,19 @@ export const ConfigProvider = ({ children }) => {
           name: "Polkadot",
           descriptor: people_polkadot,
           provider: getSmProvider(worker?.addChain({ chainSpec: peoplePolkadotChainSpec })),
+          registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
         },
         people_kusama: {
           name: "Kusama",
           descriptor: people_kusama,
           provider: getSmProvider(worker?.addChain({ chainSpec: peopleKusamaChainSpec })),
+          registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
         },
         people_westend: {
           name: "Westend",
           descriptor: people_westend,
           provider: getSmProvider(worker?.addChain({ chainSpec: peopleWestendChainSpec })),
+          registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
         },
         polkadot: {
           name: "Polkadot",
@@ -134,7 +137,7 @@ export const ConfigProvider = ({ children }) => {
           provider: () => withPolkadotSdkCompat((
             getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
           )),
-          registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
+          registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
         },
         rococo: {
           name: "Rococo",
