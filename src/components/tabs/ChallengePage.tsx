@@ -55,6 +55,12 @@ export function ChallengePage({
     }
   }
 
+  const onverifyStatusReceived = (result) => {
+    challengeStore[field].status = result
+      ? ChallengeStatus.Passed
+      : ChallengeStatus.Failed
+  }
+
   return (
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
@@ -110,10 +116,7 @@ export function ChallengePage({
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                       onClick={() => verifyField(field, code)
                         .then(result => {
-                          console.log({ result })
-                          challengeStore[field].status = result 
-                            ? ChallengeStatus.Passed 
-                            : ChallengeStatus.Failed
+                          onverifyStatusReceived(result)
                         })
                         .catch(error => console.error(error))
                       }
@@ -126,12 +129,27 @@ export function ChallengePage({
             </div>
           ))}
         </div>
-        <Button onClick={() => {
-          addNotification({
-            type: 'info', 
-            message: 'Challenges verified successfully', 
-          })
-        }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full">
+        <Button 
+          className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full"
+          onClick={() => {
+            Promise.all(Object.entries(challengeStore)
+              .filter(([key, { status }]) => status === ChallengeStatus.Pending)
+              .map(([key, { code }]) => verifyField(key, code)
+                .then(result => {
+                  onverifyStatusReceived(result)
+                })
+                .catch(error => console.error(error))
+              )
+            )
+              .then(() => {
+                addNotification({
+                  type: 'info', 
+                  message: 'Challenges verified successfully', 
+                })
+              })
+              .catch(error => console.error(error))
+          }}
+        >
           <CheckCircle className="mr-2 h-4 w-4" />
           Verify Challenges
         </Button>
