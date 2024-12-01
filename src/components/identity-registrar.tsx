@@ -240,10 +240,9 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
-        .filter(([_, value]) => !value)
         .forEach(([key, value]) => challenges[key] = {
           status: value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
-          code: !value && pendingChallenges[key],
+          code: !value && pendingChallenges[key] || "",
         })
       Object.assign(challengeStore, challenges)
       //challengeStore. = challenges;
@@ -338,6 +337,8 @@ export function IdentityRegistrarComponent() {
               identityStore={identityStore}
               addNotification={addNotification}
               challengeStore={challengeStore}
+              requestVerificationSecret={requestVerificationSecret}
+              verifyField={verifyIdentity}
             />
           </TabsContent>
           <TabsContent value={pages[2].name}>

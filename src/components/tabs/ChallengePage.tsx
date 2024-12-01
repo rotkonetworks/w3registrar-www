@@ -3,20 +3,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle } from "lucide-react"
+import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle, RefreshCcw, Verified, Check } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { useState } from "react"
-import { ChallengeStore } from "~/store/challengesStore"
+import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 
 export function ChallengePage({
   addNotification,
   identityStore,
   challengeStore,
+  requestVerificationSecret,
+  verifyField,
 }: {
   identityStore: IdentityStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  challengeStore: ChallengeStore
+  challengeStore: ChallengeStore,
+  requestVerificationSecret: (field: string) => Promise<string>,
+  verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
   const challenges = challengeStore
 
@@ -28,11 +31,11 @@ export function ChallengePage({
     })
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ChallengeStatus) => {
     switch (status) {
-      case "verified":
+      case ChallengeStatus.Passed:
         return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-      case "failed":
+      case ChallengeStatus.Failed:
         return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
       default:
         return <Badge variant="secondary" className="bg-[#706D6D] text-[#FFFFFF]">Pending</Badge>
@@ -80,8 +83,36 @@ export function ChallengePage({
               </div>
               <div className="flex space-x-2 items-center">
                 <Input id={field} value={code} readOnly className="bg-transparent border-[#E6007A] text-inherit flex-grow" />
-                <Button variant="outline" size="icon" onClick={() => copyToClipboard(code)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0">
+                <Button variant="outline" size="icon" 
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                  onClick={() => copyToClipboard(code)} 
+                >
                   <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" 
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                  onClick={() => requestVerificationSecret(field)
+                    .then(challenge => {
+                      challengeStore[field].code = challenge
+                    })
+                    .catch(error => console.error(error))
+                  }
+                >
+                  <RefreshCcw className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" 
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                  onClick={() => verifyField(field, code)
+                    .then(result => {
+                      console.log({ result })
+                      challengeStore[field].status = result 
+                        ? ChallengeStatus.Passed 
+                        : ChallengeStatus.Failed
+                    })
+                    .catch(error => console.error(error))
+                  }
+                >
+                  <Check className="h-4 w-4" />
                 </Button>
               </div>
             </div>
