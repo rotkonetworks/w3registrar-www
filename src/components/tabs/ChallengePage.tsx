@@ -82,38 +82,46 @@ export function ChallengePage({
                 {getStatusBadge(status)}
               </div>
               <div className="flex space-x-2 items-center">
-                <Input id={field} value={code} readOnly className="bg-transparent border-[#E6007A] text-inherit flex-grow" />
-                <Button variant="outline" size="icon" 
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                  onClick={() => copyToClipboard(code)} 
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" 
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                  onClick={() => requestVerificationSecret(field)
-                    .then(challenge => {
-                      challengeStore[field].code = challenge
-                    })
-                    .catch(error => console.error(error))
-                  }
-                >
-                  <RefreshCcw className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" 
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                  onClick={() => verifyField(field, code)
-                    .then(result => {
-                      console.log({ result })
-                      challengeStore[field].status = result 
-                        ? ChallengeStatus.Passed 
-                        : ChallengeStatus.Failed
-                    })
-                    .catch(error => console.error(error))
-                  }
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
+                {code &&
+                  <Input id={field} value={code} readOnly 
+                    className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                  />
+                }
+                {status === ChallengeStatus.Pending &&
+                  <>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => copyToClipboard(code)} 
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => requestVerificationSecret(field)
+                        .then(challenge => {
+                          challengeStore[field].code = challenge
+                        })
+                        .catch(error => console.error(error))
+                      }
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => verifyField(field, code)
+                        .then(result => {
+                          console.log({ result })
+                          challengeStore[field].status = result 
+                            ? ChallengeStatus.Passed 
+                            : ChallengeStatus.Failed
+                        })
+                        .catch(error => console.error(error))
+                      }
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </>
+                }
               </div>
             </div>
           ))}

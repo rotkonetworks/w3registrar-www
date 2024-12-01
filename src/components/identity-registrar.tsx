@@ -242,7 +242,7 @@ export function IdentityRegistrarComponent() {
       Object.entries(verifyState)
         .forEach(([key, value]) => challenges[key] = {
           status: value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
-          code: !value && pendingChallenges[key] || "",
+          code: !value && pendingChallenges[key],
         })
       Object.assign(challengeStore, challenges)
 
