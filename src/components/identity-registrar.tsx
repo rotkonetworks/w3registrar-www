@@ -245,7 +245,6 @@ export function IdentityRegistrarComponent() {
           code: !value && pendingChallenges[key] || "",
         })
       Object.assign(challengeStore, challenges)
-      //challengeStore. = challenges;
 
       import.meta.env.DEV && console.log({
         origin: "accountState",
