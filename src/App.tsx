@@ -11,7 +11,7 @@ interface Props {
 const DomTitle: React.FC<Props> = ({ route }) => {
   React.useEffect(() => {
     if (route.meta?.title) {
-      document.title = `${route.meta.title} | Reactease`;
+      document.title = `${route.meta.title} | w3reg.org`;
     }
   }, [route]);
 
