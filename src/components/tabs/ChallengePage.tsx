@@ -117,6 +117,12 @@ export function ChallengePage({
                       onClick={() => verifyField(field, code)
                         .then(result => {
                           onverifyStatusReceived(result)
+                          addNotification({
+                            type: result ? 'success' : 'error',
+                            message: result
+                              ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
+                              : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                          })
                         })
                         .catch(error => console.error(error))
                       }
