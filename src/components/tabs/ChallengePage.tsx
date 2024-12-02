@@ -7,6 +7,7 @@ import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle, RefreshCcw,
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
+import { useState } from "react"
 
 export function ChallengePage({
   addNotification,
@@ -55,7 +56,8 @@ export function ChallengePage({
     }
   }
 
-  const onverifyStatusReceived = (result) => {
+  const [pendingTransaction, setPendingTransaction] = useState(false)
+  const onVerifyStatusReceived = (result: boolean) => {
     challengeStore[field].status = result
       ? ChallengeStatus.Passed
       : ChallengeStatus.Failed
@@ -114,17 +116,21 @@ export function ChallengePage({
                     </Button>
                     <Button variant="outline" size="icon" 
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      onClick={() => verifyField(field, code)
-                        .then(result => {
-                          onverifyStatusReceived(result)
-                          addNotification({
-                            type: result ? 'success' : 'error',
-                            message: result
-                              ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
-                              : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                      onClick={() => {
+                        setPendingTransaction(true)
+                        verifyField(field, code)
+                          .then(result => {
+                            onVerifyStatusReceived(result)
+                            addNotification({
+                              type: result ? 'success' : 'error',
+                              message: result
+                                ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
+                                : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                            })
                           })
-                        })
-                        .catch(error => console.error(error))
+                          .catch(error => console.error(error))
+                          .finally(() => setPendingTransaction(false))
+                      }
                       }
                     >
                       <Check className="h-4 w-4" />
@@ -138,11 +144,12 @@ export function ChallengePage({
         <Button 
           className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full"
           onClick={() => {
+            setPendingTransaction(true)
             Promise.all(Object.entries(challengeStore)
               .filter(([key, { status }]) => status === ChallengeStatus.Pending)
               .map(([key, { code }]) => verifyField(key, code)
                 .then(result => {
-                  onverifyStatusReceived(result)
+                  onVerifyStatusReceived(result)
                 })
                 .catch(error => console.error(error))
               )
@@ -154,6 +161,7 @@ export function ChallengePage({
                 })
               })
               .catch(error => console.error(error))
+              .finally(() => setPendingTransaction(false))
           }}
         >
           <CheckCircle className="mr-2 h-4 w-4" />
