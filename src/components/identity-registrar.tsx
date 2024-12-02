@@ -86,10 +86,15 @@ export function IdentityRegistrarComponent() {
 
   const accounts = useAccounts()
   useEffect(() => {
-    if (accountStore.address) {
-      Object.assign(accountStore, accounts.find(account => account.address === accountStore.address))
+    if (!accountStore.address || accounts.length < 1) {
+      return;
     }
-  }, [accountStore])
+    const foundAccount = accounts.find(account => account.address === accountStore.address)
+    if (!foundAccount) {
+      return;
+    }
+    Object.assign(accountStore, foundAccount)
+  }, [accountStore, accounts])
   //#endregion accounts
 
   //# region identity
