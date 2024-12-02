@@ -15,7 +15,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
-import { useAccounts, useTypedApi } from "@reactive-dot/react"
+import { useAccounts, useChainSpecData, useClient, useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -24,6 +24,7 @@ import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import BigNumber from "bignumber.js"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -105,6 +106,7 @@ export function IdentityRegistrarComponent() {
         .filter(([_, value]) => value?.type?.startsWith("Raw"))
         .map(([key, value]) => [key, value.value.asText()])
       );
+      identityStore.deposit = identityOf.deposit
       identityStore.info = identityData;
       identityStore.status = verifiyStatuses.IdentitySet;
       const idJudgementOfId = identityOf.judgements;
@@ -151,13 +153,24 @@ export function IdentityRegistrarComponent() {
   //# endregion identity
   
   //# region chains
+  const chainSpecData = useChainSpecData()
+  
   useEffect(() => {
-    const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
-    import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
-    const name = chainContext.config.chains[id].name;
-    const registrarIndex = chainContext.config.chains[id].registrarIndex;
-    Object.assign(chainStore, { name, registrarIndex })
+    (async () => {
+      const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
+      //import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
+      
+      //const chainSpecData = await chainClient._request("system_properties");
+      const newChainData = {
+        name: chainContext.config.chains[id].name,
+        registrarIndex: chainContext.config.chains[id].registrarIndex,
+        ...chainSpecData.properties,
+      }
+      Object.assign(chainStore, newChainData)
+      import.meta.env.DEV && console.log({ id, newChainData })
+    })()
   }, [chainStore.id])
+  //# endregion chains
 
   const chainEvents = useChainRealTimeInfo({
     typedApi,
@@ -256,6 +269,14 @@ export function IdentityRegistrarComponent() {
   }, idWsDeps)
   //# endregion challenges
 
+  const formatAmount = (amount: number | bigint | BigNumber | string, decimals?) => {
+    if (!amount) {
+      return "---"
+    }
+    const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
+    return `${newAmount} ${chainStore.tokenSymbol}`;
+  }
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -345,6 +366,7 @@ export function IdentityRegistrarComponent() {
               identityStore={identityStore}
               addNotification={addNotification}
               challengeStore={challengeStore}
+              formatAmount={formatAmount}
             />
           </TabsContent>
         </Tabs>
