@@ -158,9 +158,7 @@ export function IdentityRegistrarComponent() {
   useEffect(() => {
     (async () => {
       const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
-      //import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
       
-      //const chainSpecData = await chainClient._request("system_properties");
       const newChainData = {
         name: chainContext.config.chains[id].name,
         registrarIndex: chainContext.config.chains[id].registrarIndex,
