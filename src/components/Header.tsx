@@ -53,36 +53,6 @@ const Header = ({
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
 
-  const validateUrl = (url: string): { isValid: boolean; message: string } => {
-    if (!url.trim()) return { isValid: false, message: "URL cannot be empty" };
-    try {
-      new URL(url);
-      if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-        return { isValid: false, message: "URL must start with ws:// or wss://" };
-      }
-      return { isValid: true, message: "Valid WebSocket URL" };
-    } catch {
-      return { isValid: false, message: "Invalid URL format" };
-    }
-  };
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newUrl = e.target.value;
-    _setWsUrl(newUrl);
-    setUrlValidation(validateUrl(newUrl));
-  };
-
-  const handleUrlSubmit = () => {
-    const validation = validateUrl(_wsUrl);
-    if (validation.isValid) {
-      setNetDropdownOpen(false);
-      localStorage.setItem("wsUrl", _wsUrl);
-      document.location.reload();
-    } else {
-      setUrlValidation(validation);
-    }
-  };
-
   const handleChainSelect = (chainId: keyof Chains) => {
     chainStore.id = chainId;
   }
@@ -90,7 +60,6 @@ const Header = ({
   
   //#region userDropdown
   const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
   
   const accounts = useAccounts()
   
