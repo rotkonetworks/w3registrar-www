@@ -380,6 +380,9 @@ export function IdentityRegistrarComponent() {
               addNotification={addNotification}
               challengeStore={challengeStore}
               formatAmount={formatAmount}
+              onIdentityClear={() => {
+                setOpenDialog("clearIdentity")
+              }}
             />
           </TabsContent>
         </Tabs>
