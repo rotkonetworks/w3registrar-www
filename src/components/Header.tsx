@@ -43,7 +43,6 @@ const Header = ({
   const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
   const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
 
-  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (defaultWsUrl && chainStore.id === "people_rococo") {
       _setWsUrl(defaultWsUrl);
@@ -90,9 +89,6 @@ const Header = ({
   //# endregion NetDropdown
   
   //#region userDropdown
-  const [isOpen, setOpen] = useState(false);
-  const [isAccountsOpen, setAccountsOpen] = useState(false);
-  
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
   
