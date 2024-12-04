@@ -303,6 +303,7 @@ export function IdentityRegistrarComponent() {
         <Header chainContext={chainContext} chainStore={chainStore} accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
+          onIdentityClear={() => setOpenDialog("clearIdentity")}
           onDisconnect={() => setOpenDialog("disconnect")}
         />
 
@@ -381,9 +382,7 @@ export function IdentityRegistrarComponent() {
               addNotification={addNotification}
               challengeStore={challengeStore}
               formatAmount={formatAmount}
-              onIdentityClear={() => {
-                setOpenDialog("clearIdentity")
-              }}
+              onIdentityClear={() => setOpenDialog("clearIdentity")}
             />
           </TabsContent>
         </Tabs>
