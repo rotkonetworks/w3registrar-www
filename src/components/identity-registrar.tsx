@@ -36,10 +36,29 @@ export function IdentityRegistrarComponent() {
   const [errorMessage, setErrorMessage] = useState("")
   const [onChainIdentity, setOnChainIdentity] = useState<'none' | 'set' | 'requested'>('none')
 
+  //# region Chains
+  const identityStore = useProxy(_identityStore);
+  const challengeStore = useProxy(_challengeStore);
+  const chainContext = useConfig();
+  const chainStore = useProxy(_chainStore);
+  const typedApi = useTypedApi({ chainId: chainStore.id })
+  //# endregion Chains
+
   const pages = [
-    { name: "Identity Form", icon: <UserCircle className="h-5 w-5" /> },
-    { name: "Challenges", icon: <Shield className="h-5 w-5" /> },
-    { name: "Status", icon: <FileCheck className="h-5 w-5" /> }
+    { 
+      name: "Identity Form", 
+      icon: <UserCircle className="h-5 w-5" />,
+    },
+    { 
+      name: "Challenges", 
+      icon: <Shield className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.JudgementRequested,
+    },
+    { 
+      name: "Status", 
+      icon: <FileCheck className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.NoIdentity,
+    },
   ]
 
   useEffect(() => {
@@ -71,14 +90,6 @@ export function IdentityRegistrarComponent() {
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
-  //# region Chains
-  const identityStore = useProxy(_identityStore);
-  const challengeStore = useProxy(_challengeStore);
-  const chainContext = useConfig();
-  const chainStore = useProxy(_chainStore);
-  const typedApi = useTypedApi({ chainId: chainStore.id })
-  //# endregion Chains
-  
   //#region accounts
   const accountStore = useProxy(_accountStore)
   useEffect(() => {
@@ -353,6 +364,7 @@ export function IdentityRegistrarComponent() {
                 value={page.name} 
                 onClick={() => setCurrentPage(index)}
                 className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+                disabled={page.disabled}
               >
                 {page.icon}
               </TabsTrigger>
