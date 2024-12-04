@@ -1,0 +1,38 @@
+name: Deploy app
+
+env:
+  SERVER_USER: 'w3reg'
+  SERVER_IP: '135.181.202.179'
+  DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
+  BACKUP_PATH: '/home/w3reg/backups'
+  STAGING_PATH: '/home/w3reg/prod.w3reg.org'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Key to Known Hosts
+        run: |
+          echo "$(ssh-keyscan -t rsa ${{ env.SERVER_IP }} 2>/dev/null)" >> ~/.ssh/known_hosts
+
+      - name: Deploy using rsync with backup
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
+            set -euo pipefail
+            TIMESTAMP=\$(date +%Y%m%d%H%M%S)
+            mkdir -p ${{ env.BACKUP_PATH }}
+            if [ -d "${{ env.DEPLOY_PATH }}/w3registrar-www" ]; then
+              mv ${{ env.DEPLOY_PATH }}/w3registrar-www ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
+            fi
+            cp -r ${{ env.STAGING_PATH }}/w3registrar-www ${{ env.DEPLOY_PATH }}/
+            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            docker compose up --build -d web-nginx
+          EOF

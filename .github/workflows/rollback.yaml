@@ -1,0 +1,53 @@
+name: Rollback Deployment
+
+env:
+  SERVER_USER: 'w3reg'
+  SERVER_IP: '135.181.202.179'
+  DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
+  BACKUP_PATH: '/home/w3reg/backups'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Key to Known Hosts
+        run: |
+          echo "$(ssh-keyscan -t rsa ${{ env.SERVER_IP }} 2>/dev/null)" >> ~/.ssh/known_hosts
+
+      - name: Rollback to Previous Deployment
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
+            set -euo pipefail
+            # Check for the latest backup
+            if [ ! -d "${{ env.BACKUP_PATH }}" ]; then
+              echo "No backups found. Cannot rollback." >&2
+              exit 1
+            fi
+
+            LATEST_BACKUP=\$(ls -td ${{ env.BACKUP_PATH }}/w3registrar-www-* | head -n 1)
+            if [ -z "\$LATEST_BACKUP" ]; then
+              echo "No valid backups found. Cannot rollback." >&2
+              exit 1
+            fi
+
+            # Move current deployment to backup
+            TIMESTAMP=\$(date +%Y%m%d%H%M%S)
+            if [ -d "${{ env.DEPLOY_PATH }}/w3registrar-www" ]; then
+              mv ${{ env.DEPLOY_PATH }}/w3registrar-www ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
+            fi
+
+            # Restore the latest backup
+            mv \$LATEST_BACKUP ${{ env.DEPLOY_PATH }}/w3registrar-www
+
+            # Restart services
+            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            docker compose up --build -d web-nginx
+          EOF

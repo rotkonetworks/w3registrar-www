@@ -1,0 +1,55 @@
+name: Build and Deploy staging/preproduction
+
+env:
+  NODE_VERSION: '18'
+  GCP_PROJECT_ID: 'rbl-common'
+  SERVER_USER: 'w3reg'
+  SERVER_IP: '135.181.202.179'
+  DEPLOY_PATH: '/home/w3reg/prod.w3reg.org'
+  BUILD_TARGET: 'production'
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build the Vite app
+        env:
+          BUILD_TARGET: 'production'
+        run: |
+          curl -fsSL https://bun.sh/install | bash -s "canary"
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH=$BUN_INSTALL/bin:$PATH
+          cat .env.example | grep -v "#" > .env
+          cat .env | wc -l
+          bash scripts/build.sh
+      
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Key to Known Hosts
+        run: |
+          echo "$(ssh-keyscan -t rsa ${{ env.SERVER_IP }} 2>/prod/null)" >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            set -euo pipefail
+            rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/nginx || true
+            mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
+          EOF
+          scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
+          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/nginx
+          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+            set -euo pipefail
+            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            docker compose up --build -d web-nginx
+          EOF

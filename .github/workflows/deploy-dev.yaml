@@ -1,8 +1,6 @@
-name: Build and Deploy dev
+name: Build and Deploy Dev
 
 env:
-  NODE_VERSION: '18'
-  GCP_PROJECT_ID: 'rbl-common'
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
@@ -12,26 +10,21 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches:
-      - main
+
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        
       - name: Build the Vite app
-        env:
-          BUILD_TARGET: 'production'
         run: |
-          curl -fsSL https://bun.sh/install | bash -s "canary"
-          export BUN_INSTALL="$HOME/.bun"
-          export PATH=$BUN_INSTALL/bin:$PATH
           cat .env.example | grep -v "#" > .env
-          cat .env | wc -l
           bash scripts/build.sh
-      
+
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -43,15 +36,16 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             rm -fr ${{ env.DEPLOY_PATH }}/w3registrar-www/nginx || true
             mkdir -p ${{ env.DEPLOY_PATH }}/w3registrar-www
+            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
           EOF
-          scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
-          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/nginx
-          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www
-          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
+          scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/
+          scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/nginx/
+          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/w3registrar-www/
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}/w3registrar-www
             docker compose up --build -d web-nginx
