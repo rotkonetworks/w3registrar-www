@@ -125,15 +125,6 @@ export function StatusPage({
           </AlertDescription>
         </Alert>
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Button variant="destructive" onClick={() => {
-            addNotification({
-              type: 'info', 
-              message: 'Identity cleared successfully', 
-            })
-          }} className="bg-[#670D35] text-[#FFFFFF] hover:bg-[#91094c] flex-1">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Clear Identity
-          </Button>
           <Button variant="outline" 
             onClick={() => {
               onIdentityClear()
