@@ -241,10 +241,11 @@ export function IdentityRegistrarComponent() {
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
   const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
   useEffect(() => {
+    if (error) {
+      import.meta.env.DEV && console.error(error)
+      return
+    }
     if (idWsDeps.some((value) => value === undefined)) {
-      if (error) {
-        import.meta.env.DEV && console.error(error)
-      }
       return
     }
     import.meta.env.DEV && console.log({ accountState })
