@@ -429,7 +429,9 @@ export function IdentityRegistrarComponent() {
           </ul>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setShowCostModal(false)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+          <Button variant="outline" onClick={() => setOpenDialog(null)} 
+            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+          >
             Cancel
           </Button>
           <Button onClick={() => {
