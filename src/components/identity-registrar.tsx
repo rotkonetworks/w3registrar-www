@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, AlertCircle, Coins } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, AlertCircle, Coins, User, LogOut } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,7 +15,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
-import { useAccounts, useChainSpecData, useClient, useTypedApi } from "@reactive-dot/react"
+import { useAccounts, useChainSpecData, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -287,8 +287,11 @@ export function IdentityRegistrarComponent() {
   const onIdentityClear = () => typedApi.tx.Identity.clear_identity().signAndSubmit(
     accountStore?.polkadotSigner
   )
+  
+  const connectedWallets = useConnectedWallets()
+  const [_, disconnectWallet] = useWalletDisconnector()
 
-  const [openDialog, setOpenDialog] = useState<"clearIdentity" | null>(null)
+  const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -300,9 +303,7 @@ export function IdentityRegistrarComponent() {
         <Header chainContext={chainContext} chainStore={chainStore} accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => {
-            setOpenDialog("clearIdentity")
-          }}
+          onDisconnect={() => setOpenDialog("disconnect")}
         />
 
         {errorMessage && (
@@ -407,7 +408,7 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    <Dialog open={openDialog === "clearIdentity"} onOpenChange={(state) => {
+    <Dialog open={openDialog} onOpenChange={(state) => {
       setOpenDialog(_state => state ? _state : null)
     }}>
       <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
@@ -417,23 +418,49 @@ export function IdentityRegistrarComponent() {
             Please review the following information before proceeding.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-            <Coins className="h-5 w-5 text-[#E6007A]" />
-            Transaction Costs
-          </h4>
-          <p>Estimated transaction fee: 0.01 DOT</p>
-          <p>Tranaction fees: 1.5 DOT (refundable)</p>
-          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-            Important Notes
-          </h4>
-          <ul className="list-disc list-inside">
-            <li>This action cannot be undone.</li>
-            <li>All of your identity information will be deleted from the blockchain.</li>
-            <li>it will also undo any judgement.</li>
-          </ul>
-        </div>
+        {(() => {
+          switch (openDialog) {
+            case "clearIdentity":
+              return (
+                <>
+                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <User className="h-5 w-5 text-[#E6007A]" />
+                    Identity
+                  </h4>
+                  <p>Clearing your identity will remove all information from the blockchain.</p>
+                </>
+              )
+            case "disconnect":
+              return (
+                <>
+                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <LogOut className="h-5 w-5 text-[#E6007A]" />
+                    Disconnect
+                  </h4>
+                  <p>This will cause all wallets to be disconnected and unselect account.</p>
+                </>
+              )
+            default:
+              return null
+          }
+        }) ()}
+        {(() => {
+          switch (openDialog) {
+            case "clearIdentity":
+              return (
+                <div className="py-4">
+                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-[#E6007A]" />
+                    Transaction Costs
+                  </h4>
+                  <p>Estimated transaction fee: 0.01 DOT</p>
+                  <p>Tranaction fees: 1.5 DOT (refundable)</p>
+                </div>
+              )
+            default:
+              return null
+          }
+        }) ()}
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpenDialog(null)} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
@@ -441,7 +468,18 @@ export function IdentityRegistrarComponent() {
             Cancel
           </Button>
           <Button onClick={() => {
-            onIdentityClear()
+            switch (openDialog) {
+              case "clearIdentity":
+                onIdentityClear();
+                break;
+              case "disconnect":
+                connectedWallets.forEach(w => disconnectWallet(w));
+                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+                delete window.localStorage.account;
+                break;
+              default:
+                throw new Error("Unexpected openDialog value");
+            }
             setOpenDialog(null)
           }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
             Confirm

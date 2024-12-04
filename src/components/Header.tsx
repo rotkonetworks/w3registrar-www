@@ -24,13 +24,14 @@ const AccountListing = ({ address, name }) => <>
 
 const Header = ({ 
   chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore, 
-  onIdentityClear,
+  onIdentityClear, onDisconnect,
 }: { 
   chainContext: ConfigContextProps;
   chainStore: ChainInfo;
   accountStore: Account;
   onRequestWalletConnections: () => void;
   onIdentityClear: () => void;
+  onDisconnect: () => void;
   identityStore: IdentityStore;
 }) => {
   const appStore = useProxy(_appStore);
@@ -40,7 +41,6 @@ const Header = ({
 
   //# region NetDropdown
   const [_wsUrl, _setWsUrl] = useState("");
-  const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
   const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
 
   useEffect(() => {
@@ -116,9 +116,7 @@ const Header = ({
                 onRequestWalletConnections();
                 break;
               case "Disconnect":
-                connectedWallets.forEach(w => disconnectWallet(w));
-                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                delete window.localStorage.account;
+                onDisconnect();
                 break;
               case "Teleport":
                 break;
@@ -159,9 +157,7 @@ const Header = ({
           <SelectContent>
             {connectedWallets.length > 0 && <>
               <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
-              <SelectItem value={{type: "Disconnect"}}>
-                Disconnect
-              </SelectItem>
+              <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
               {identityStore.info && <>
                 <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
               </>}
