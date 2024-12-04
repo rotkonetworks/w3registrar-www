@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, AlertCircle, Coins } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,7 +13,7 @@ import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from 
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, ChallengeStatus } from "~/store/challengesStore"
+import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
 import { useAccounts, useChainSpecData, useClient, useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
@@ -25,6 +25,7 @@ import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -280,6 +281,12 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }
 
+  const onIdentityClear = () => typedApi.tx.Identity.clear_identity().signAndSubmit(
+    accountStore?.polkadotSigner
+  )
+
+  const [openDialog, setOpenDialog] = useState<"clearIdentity" | null>(null)
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -290,9 +297,9 @@ export function IdentityRegistrarComponent() {
         <Header chainContext={chainContext} chainStore={chainStore} accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => typedApi.tx.Identity.clear_identity().signAndSubmit(
-            accountStore?.polkadotSigner
-          )}
+          onIdentityClear={() => {
+            setOpenDialog("clearIdentity")
+          }}
         />
 
         {errorMessage && (
@@ -393,5 +400,46 @@ export function IdentityRegistrarComponent() {
         </div>
       </div>
     </div>
+
+    <Dialog open={openDialog === "clearIdentity"} onOpenChange={(state) => {
+      setOpenDialog(_state => state ? _state : null)
+    }}>
+      <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
+        <DialogHeader>
+          <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
+          <DialogDescription>
+            Please review the following information before proceeding.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <Coins className="h-5 w-5 text-[#E6007A]" />
+            Transaction Costs
+          </h4>
+          <p>Estimated transaction fee: 0.01 DOT</p>
+          <p>Tranaction fees: 1.5 DOT (refundable)</p>
+          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+            Important Notes
+          </h4>
+          <ul className="list-disc list-inside">
+            <li>This action cannot be undone.</li>
+            <li>All of your identity information will be deleted from the blockchain.</li>
+            <li>it will also undo any judgement.</li>
+          </ul>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowCostModal(false)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+            Cancel
+          </Button>
+          <Button onClick={() => {
+            onIdentityClear()
+            setOpenDialog(null)
+          }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </>
 }
