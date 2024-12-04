@@ -213,16 +213,6 @@ const Header = ({
     <div className="flex gap-2">
       <Button variant="outline" size="icon" 
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-        onClick={() => pushAlert({
-          key: (new Date()).toISOString(),
-          type: 'info', 
-          message: 'Notification test',
-        })}
-      >
-        <Bell className="h-4 w-4" />
-      </Button>
-      <Button variant="outline" size="icon" 
-        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
         onClick={() => appStore.isDarkMode = !appStore.isDarkMode} 
       >
         {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
