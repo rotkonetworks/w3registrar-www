@@ -7,15 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash2, RefreshCcw } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
+import BigNumber from "bignumber.js"
 
 export function StatusPage({
   identityStore,
   challengeStore,
   addNotification,
+  formatAmount,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+    formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
 }) {
   const getIcon = (field: string) => {
     switch (field) {
@@ -66,42 +69,47 @@ export function StatusPage({
                 <AlertCircle className="h-4 w-4" />
                 Judgement:
               </strong> 
-              <span>{verifiyStatuses[identityStore.status]}</span>
+              <span>{ verifiyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
                 <Coins className="h-4 w-4" />
                 Deposit:
               </strong> 
-              <span>{identityStore.deposit?.toString() || "Unknown"}</span>
+              <span>{formatAmount(identityStore.deposit)}</span>
             </div>
           </div>
           <div className="mt-4">
             <strong>Field Statuses:</strong>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {Object.entries(challengeStore).map(([field, { status, code }]: 
-                [string, Challenge]
-              ) => (
-                <div key={field} className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    {getIcon(field)}
-                    {field.charAt(0).toUpperCase() + field.slice(1)}:
-                  </span>
-                  <Badge 
-                    variant={
-                      status === ChallengeStatus.Passed ? "success" 
-                      : status === ChallengeStatus.Failed ? "destructive" : "secondary"
-                    }
-                    className={
-                      status === ChallengeStatus.Passed ? "bg-[#E6007A] text-[#FFFFFF]" 
-                      : status === ChallengeStatus.Failed ? "bg-[#670D35] text-[#FFFFFF]"
-                      : "text-[#FFFFFF]"
-                    }
-                  >
-                    {status}
-                  </Badge>
-                </div>
-              ))}
+              {Object.entries(challengeStore)
+                /* .filter(([field, { status }]: 
+                  [string, Challenge]
+                ) => identityStore[field]) */
+                .map(([field, { status, code }]: 
+                  [string, Challenge]
+                ) => (
+                  <div key={field} className="flex justify-between items-center">
+                    <span className="flex items-center gap-2">
+                      {getIcon(field)}
+                      {field.charAt(0).toUpperCase() + field.slice(1)}:
+                    </span>
+                    <Badge 
+                      variant={
+                        status === ChallengeStatus.Passed ? "success" 
+                        : status === ChallengeStatus.Failed ? "destructive" : "secondary"
+                      }
+                      className={
+                        status === ChallengeStatus.Passed ? "bg-[#E6007A] text-[#FFFFFF]" 
+                        : status === ChallengeStatus.Failed ? "bg-[#670D35] text-[#FFFFFF]"
+                        : "text-[#FFFFFF]"
+                      }
+                    >
+                      {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
+                    </Badge>
+                  </div>
+                ))
+              }
             </div>
           </div>
         </div>

@@ -55,7 +55,7 @@ export interface Judgement {
 
 export interface IdentityStore {
   info?: IdentityFormData;
-  judgement?: Judgement;
+  judgements?: Judgement[];
   status: verifiyStatuses;
   hash?: Uint16Array;
   deposit?: bigint;

@@ -6,6 +6,7 @@ export interface ChainInfo {
   ss58Format?: number;
   tokenDecimals?: number;
   tokenSymbol?: string;
+  registrarIndex?: number;
 }
 
 export const chainStore: ChainInfo = proxy({

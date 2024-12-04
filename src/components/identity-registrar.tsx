@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, AlertCircle, Coins } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,19 +7,25 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
+import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore } from "~/store/challengesStore"
+import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
-import { useTypedApi } from "@reactive-dot/react"
+import { useAccounts, useChainSpecData, useClient, useTypedApi } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
+import { IdentityJudgement } from "@polkadot-api/descriptors"
+import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
+import { TypedApi } from "polkadot-api"
+import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import BigNumber from "bignumber.js"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -71,18 +77,215 @@ export function IdentityRegistrarComponent() {
   const chainContext = useConfig();
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id })
-  //# region Chains
-
-  useEffect(() => {
-    const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
-    import.meta.env.DEV && console.log({ id, chain: chainContext.config.chains[id] })
-    const name = chainContext.config.chains[id].name;
-    Object.assign(chainStore, { name })
-  }, [chainStore.id])
-
+  //# endregion Chains
+  
   //#region accounts
   const accountStore = useProxy(_accountStore)
+  useEffect(() => {
+    import.meta.env.DEV && console.log({accountStore})
+  }, [accountStore])
+
+  const accounts = useAccounts()
+  useEffect(() => {
+    if (!accountStore.address || accounts.length < 1) {
+      return;
+    }
+    const foundAccount = accounts.find(account => account.address === accountStore.address)
+    if (!foundAccount) {
+      return;
+    }
+    Object.assign(accountStore, foundAccount)
+  }, [accountStore, accounts])
   //#endregion accounts
+
+  //# region identity
+  const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
+    .getValue(accountStore.address)
+    .then((result) => {
+      import.meta.env.DEV && console.log({ identityOf: result })
+      if (!result) {
+        identityStore.status = verifiyStatuses.NoIdentity;
+        return;
+      }
+      const identityOf = result[0];
+      const identityData = Object.fromEntries(Object.entries(identityOf.info)
+        .filter(([_, value]) => value?.type?.startsWith("Raw"))
+        .map(([key, value]) => [key, value.value.asText()])
+      );
+      identityStore.deposit = identityOf.deposit
+      identityStore.info = identityData;
+      identityStore.status = verifiyStatuses.IdentitySet;
+      const idJudgementOfId = identityOf.judgements;
+      const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
+        registrar: {
+          index: judgement[0],
+        },
+        state: judgement[1].type,
+        fee: judgement[1].value,
+      }));
+      if (judgementsData.length > 0) {
+        identityStore.judgements = judgementsData;
+        identityStore.status = verifiyStatuses.JudgementRequested;
+      }
+      if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+        identityStore.status = verifiyStatuses.FeePaid;
+      }
+      if (judgementsData.find(j => [
+        IdentityJudgement.Reasonable().type,
+        IdentityJudgement.KnownGood().type,
+      ].includes(j.state))) {
+        identityStore.status = verifiyStatuses.IdentityVerified;
+      }
+      const idDeposit = identityOf.deposit;
+      // TODO Compute approximate reserve
+      import.meta.env.DEV && console.log({
+        identityOf,
+        identityData,
+        judgementsData,
+        idDeposit,
+      });
+    })
+    .catch(e => {
+      if (import.meta.env.DEV) {
+        console.error("Couldn't get identityOf");
+        console.error(e);
+      }
+    });
+  useEffect(() => {
+    if (accountStore.address) {
+      getIdAndJudgement();
+    }
+  }, [accountStore.address, typedApi])
+  //# endregion identity
+  
+  //# region chains
+  const chainSpecData = useChainSpecData()
+  
+  useEffect(() => {
+    (async () => {
+      const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
+      
+      const newChainData = {
+        name: chainContext.config.chains[id].name,
+        registrarIndex: chainContext.config.chains[id].registrarIndex,
+        ...chainSpecData.properties,
+      }
+      Object.assign(chainStore, newChainData)
+      import.meta.env.DEV && console.log({ id, newChainData })
+    })()
+  }, [chainStore.id])
+  //# endregion chains
+
+  const chainEvents = useChainRealTimeInfo({
+    typedApi,
+    chainStore,
+    accountStore,
+    handlers: {
+      "Identity.IdentitySet": {
+        onEvent: data => {
+          /* appState.verificationProgress =
+            // As we do batch calls, we need to know if judgeent is already awaiting
+            appStateSnapshot.verificationProgress === IdentityVerificationStatuses.NoIdentity
+              ? IdentityVerificationStatuses.IdentitySet
+              : appStateSnapshot.verificationProgress */
+          addNotification({
+            type: "info",
+            message: "Identity Set for this account",
+          })
+        },
+        onError: error => {  },
+      },
+      "Identity.IdentityCleared": {
+        onEvent: data => {
+          /* appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
+          appState.identity = null; */
+          addNotification({
+            type: "info",
+            message: "Identity cleared for this account",
+          })
+        },
+        onError: error => { },
+      },
+      "Identity.JudgementRequested": {
+        onEvent: data => {
+          //appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
+          addNotification({
+            type: "info",
+            message: "Judgement Requested for this account",
+          })
+        },
+        onError: error => { },
+      },
+      "Identity.JudgementGiven": {
+        onEvent: data => {
+          getIdAndJudgement()
+          addNotification({
+            type: "info",
+            message: "Judgement Given for this account",
+          })
+        },
+        onError: error => { },
+      },
+    },
+  })
+  //# endregion chains
+  
+  //# region challenges
+  const identityWebSocket = useIdentityWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
+    account: accountStore.address,
+    onNotification: (notification) => {
+      import.meta.env.DEV && console.log('Received notification:', notification);
+    }
+  });
+  const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
+  const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
+  useEffect(() => {
+    if (idWsDeps.some((value) => value === undefined)) {
+      if (error) {
+        import.meta.env.DEV && console.error(error)
+      }
+      return
+    }
+    import.meta.env.DEV && console.log({ accountState })
+    if (accountState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = accountState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const challenges: Record<string, Challenge> = {};
+      Object.entries(verifyState)
+        .forEach(([key, value]) => challenges[key] = {
+          status: value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
+          code: !value && pendingChallenges[key],
+        })
+      Object.assign(challengeStore, challenges)
+
+      import.meta.env.DEV && console.log({
+        origin: "accountState",
+        pendingChallenges,
+        verifyState,
+        challenges,
+      })
+    }
+  }, idWsDeps)
+  //# endregion challenges
+
+  const formatAmount = (amount: number | bigint | BigNumber | string, decimals?) => {
+    if (!amount) {
+      return "---"
+    }
+    const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
+    return `${newAmount} ${chainStore.tokenSymbol}`;
+  }
+
+  const onIdentityClear = () => typedApi.tx.Identity.clear_identity().signAndSubmit(
+    accountStore?.polkadotSigner
+  )
+
+  const [openDialog, setOpenDialog] = useState<"clearIdentity" | null>(null)
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -94,6 +297,9 @@ export function IdentityRegistrarComponent() {
         <Header chainContext={chainContext} chainStore={chainStore} accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
+          onIdentityClear={() => {
+            setOpenDialog("clearIdentity")
+          }}
         />
 
         {errorMessage && (
@@ -151,19 +357,26 @@ export function IdentityRegistrarComponent() {
             <IdentityForm 
               addNotification={addNotification}
               identityStore={identityStore}
+              chainStore={chainStore}
+              typedApi={typedApi as TypedApi<ChainInfo.id>}
+              accountStore={accountStore}
             />
           </TabsContent>
           <TabsContent value={pages[1].name}>
             <ChallengePage 
               identityStore={identityStore}
               addNotification={addNotification}
-              />
+              challengeStore={challengeStore}
+              requestVerificationSecret={requestVerificationSecret}
+              verifyField={verifyIdentity}
+            />
           </TabsContent>
           <TabsContent value={pages[2].name}>
             <StatusPage 
               identityStore={identityStore}
               addNotification={addNotification}
               challengeStore={challengeStore}
+              formatAmount={formatAmount}
             />
           </TabsContent>
         </Tabs>
@@ -187,5 +400,46 @@ export function IdentityRegistrarComponent() {
         </div>
       </div>
     </div>
+
+    <Dialog open={openDialog === "clearIdentity"} onOpenChange={(state) => {
+      setOpenDialog(_state => state ? _state : null)
+    }}>
+      <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
+        <DialogHeader>
+          <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
+          <DialogDescription>
+            Please review the following information before proceeding.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+            <Coins className="h-5 w-5 text-[#E6007A]" />
+            Transaction Costs
+          </h4>
+          <p>Estimated transaction fee: 0.01 DOT</p>
+          <p>Tranaction fees: 1.5 DOT (refundable)</p>
+          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+            Important Notes
+          </h4>
+          <ul className="list-disc list-inside">
+            <li>This action cannot be undone.</li>
+            <li>All of your identity information will be deleted from the blockchain.</li>
+            <li>it will also undo any judgement.</li>
+          </ul>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowCostModal(false)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
+            Cancel
+          </Button>
+          <Button onClick={() => {
+            onIdentityClear()
+            setOpenDialog(null)
+          }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </>
 }

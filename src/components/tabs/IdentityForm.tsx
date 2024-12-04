@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useSnapshot } from 'valtio'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertProps } from '@/store/AlertStore'
 import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
 import {
@@ -14,142 +13,223 @@ import {
 } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
+import { Binary, TypedApi } from 'polkadot-api'
+import { ChainInfo } from '~/store/ChainStore'
+import { AccountData } from '~/store/AccountStore'
 
-export function IdentityForm({ 
-  addNotification, 
+export function IdentityForm<Chain>({
+  addNotification,
   identityStore,
+  chainStore,
+  accountStore,
+  typedApi,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
+  chainStore: ChainInfo,
+  accountStore: AccountData,
+  typedApi: TypedApi<Chain>,
 }) {
   const [formData, setFormData] = useState({
-    display: "",
-    matrix: "",
-    email: "",
-    discord: ""
+    display: {
+      value: "",
+      error: null,
+    },
+    matrix: {
+      value: "",
+      error: null,
+    },
+    email: {
+      value: "",
+      error: null,
+    },
+    discord: {
+      value: "",
+      error: null,
+    },
+    twitter: {
+      value: "",
+      error: null,
+    },
   })
+
   const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
-  const [formErrors, setFormErrors] = useState<string[]>([])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
-  const validateForm = () => {
-    const errors: string[] = []
-    if (!formData.display && !formData.matrix && !formData.email && !formData.discord) {
-      errors.push("At least one field must be filled to set identity")
-    }
-    setFormErrors(errors)
-    return errors
-  }
-
-  const [errorMessage, setErrorMessage] = useState("")
   const onChainIdentity = identityStore.status
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const errors = validateForm()
-    if (errors.length > 0) {
-      setErrorMessage(errors.join(". "))
+    if (forbiddenSubmission) {
       return
     }
+    setActionType("identity")
     setShowCostModal(true);
   }
 
   const confirmAction = () => {
+    let call;
     if (actionType === "judgement") {
-      addNotification({
-        type: 'info', 
-        message: 'Judgement requested successfully', 
+      call = typedApi.tx.Identity.request_judgement({
+        max_fee: 0n,
+        reg_index: chainStore.registrarIndex,
       })
-    } else {
-      addNotification({
-        type: 'info', 
-        message: 'Identity set successfully', 
+    } else if (actionType === "identity") {
+      call = typedApi.tx.Identity.set_identity({
+        info: {
+          ...(Object.fromEntries(Object.entries(formData)
+            .map(([key, { value }]) => [key, value
+              ?{
+                type: `Raw${value.length}`,
+                value: Binary.fromText(value),
+              }
+              :{
+                type: "None",
+              }
+            ])
+          )),
+          legal: {
+            type: "None",
+          },
+          github: {
+            type: "None",
+          },
+          image: {
+            type: "None",
+          },
+          web: {
+            type: "None",
+          },
+        },
+      });
+    }
+    else {
+      throw new Error("Unexpected action type")
+    }
+    call.signAndSubmit(accountStore.polkadotSigner)
+    setShowCostModal(false)
+  }
+
+  const identityFormFields = {
+    display: {
+      label: "Display Name",
+      icon: <UserCircle className="h-4 w-4" />,
+      key: "display",
+      placeholder: 'Alice',
+      checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+      required: false,
+    },
+    matrix: {
+      label: "Matrix",
+      icon: <AtSign className="h-4 w-4" />,
+      key: "matrix",
+      placeholder: '@alice:matrix.org',
+      checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+    email: {
+      label: "Email",
+      icon: <Mail className="h-4 w-4" />,
+      key: "email",
+      placeholder: 'alice@example.org',
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+    discord: {
+      label: "Discord",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "discord",
+      placeholder: 'alice#1234',
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}(#\d+)?$/.test(v) 
+        ? "Invalid format" 
+        : null,
+      required: false,
+    },
+    twitter: {
+      label: "Twitter",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "twitter",
+      placeholder: '@alice',
+      checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+  }
+  useEffect(() => {
+    if (identityStore.info) {
+      import.meta.env.DEV && console.log({ identityStore })
+      setFormData({
+        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
+          all[key] = {
+            value: identityStore.info![key],
+            error: null,
+          }
+          return all;
+        }, {}))
       })
     }
-    setShowCostModal(false)
-    setErrorMessage("")
-  }
+  }, [identityStore.info])
+
+
+  useEffect(() => {
+    import.meta.env.DEV && console.log({ formData })
+  }, [formData])
+
+  const forbiddenSubmission = useMemo(() => {
+    return (
+      Object.entries(formData)
+        .filter(([key, { value, error }]) => !value).length >= Object.keys(formData).length
+      || 
+      Object.entries(formData)
+        .filter(([key, { value, error }]) => error).length > 0 
+    )
+  }, [formData])
 
   return (
     <>
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
         <CardContent className="space-y-6 p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
-                <UserCircle className="h-4 w-4" />
-                Display Name
-              </Label>
-              <Input 
-                id="display-name" 
-                name="display" 
-                value={formData.display}
-                onChange={handleInputChange}
-                placeholder="Alice" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="matrix" className="text-inherit flex items-center gap-2">
-                <AtSign className="h-4 w-4" />
-                Matrix
-              </Label>
-              <Input 
-                id="matrix" 
-                name="matrix" 
-                value={formData.matrix}
-                onChange={handleInputChange}
-                placeholder="@alice:matrix.w3reg.org" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-inherit flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="alice@w3reg.org" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="discord" className="text-inherit flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Discord
-              </Label>
-              <Input 
-                id="discord" 
-                name="discord" 
-                value={formData.discord}
-                onChange={handleInputChange}
-                placeholder="alice#1234" 
-                className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]" 
-              />
-            </div>
-            {formErrors.length > 0 && (
-              <div className="text-[#E6007A] text-sm mt-2">
-                {formErrors.map((error, index) => (
-                  <p key={index}>{error}</p>
-                ))}
+            {Object.entries(identityFormFields).map(([key, props]) =>
+              <div className="space-y-2" key={props.key}>
+                <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
+                  {props.icon}
+                  {props.label}
+                </Label>
+                <Input
+                  id={props.key}
+                  name={props.key}
+                  value={formData[key].value}
+                  onChange={event => setFormData(_formData => {
+                    const newValue = event.target.value
+                    _formData = { ..._formData }
+                    _formData[key] = { ..._formData[key] }
+                    _formData[key].value = newValue;
+                    _formData[key].error = props.checkForErrors(newValue);
+                    if (identityFormFields[key].required && _formData[key].value === "") {
+                      _formData[key].error = "Required";
+                    }
+                    return _formData;
+                  })}
+                  placeholder={props.placeholder}
+                  className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
+                />
+                {formData[key].error && (
+                  <div className="text-[#E6007A] text-sm mt-1">
+                    <p>{formData[key].error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            {forbiddenSubmission && (
+              <div className="text-[#E6007A] text-sm mt-5">
+                <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
               </div>
             )}
             <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
@@ -159,21 +239,24 @@ export function IdentityForm({
                 {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set. You need to set your identity before requesting judgement."}
                 {onChainIdentity === verifiyStatuses.IdentitySet && "Identity already set. You can update your identity or request judgement."}
                 {onChainIdentity === verifiyStatuses.JudgementRequested && "Judgement already requested. You can update your identity while waiting for judgement."}
+                {onChainIdentity === verifiyStatuses.IdentityVerified && "Your identity is verified! Congrats!"}
               </AlertDescription>
             </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button type="submit" className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1">
+              <Button type="submit" disabled={forbiddenSubmission}
+                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
+              >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity !== verifiyStatuses.NoIdentity && (
-                <Button type="button" variant="outline" 
+              {onChainIdentity === verifiyStatuses.IdentitySet && (
+                <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)
                     setActionType("judgement")
-                  }} 
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-                  disabled={onChainIdentity === verifiyStatuses.JudgementRequested}
+                  }}
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
+                  disabled={forbiddenSubmission}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement

@@ -250,8 +250,8 @@ export const useIdentityWebSocket = ({
       payload: { account, field, secret }
     });
 
-    if (response.type === 'JsonResult' && 'Ok' in response.payload) {
-      return response.payload.Ok.VerificationResult;
+    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
+      return response.payload.message.VerificationResult;
     }
     throw new Error('Verification failed');
   }, [account, sendMessage]);

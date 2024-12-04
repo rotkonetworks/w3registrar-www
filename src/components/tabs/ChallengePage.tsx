@@ -3,22 +3,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle } from "lucide-react"
+import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle, RefreshCcw, Verified, Check } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
+import { useState } from "react"
 
 export function ChallengePage({
   addNotification,
   identityStore,
+  challengeStore,
+  requestVerificationSecret,
+  verifyField,
 }: {
   identityStore: IdentityStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+  challengeStore: ChallengeStore,
+  requestVerificationSecret: (field: string) => Promise<string>,
+  verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
-  const [challenges, setChallenges] = useState({
-    matrix: { code: "234567", status: "pending" },
-    email: { code: "345678", status: "verified" },
-    discord: { code: "456789", status: "failed" },
-  })
+  const challenges = challengeStore
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -28,11 +32,11 @@ export function ChallengePage({
     })
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ChallengeStatus) => {
     switch (status) {
-      case "verified":
+      case ChallengeStatus.Passed:
         return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-      case "failed":
+      case ChallengeStatus.Failed:
         return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
       default:
         return <Badge variant="secondary" className="bg-[#706D6D] text-[#FFFFFF]">Pending</Badge>
@@ -50,6 +54,13 @@ export function ChallengePage({
       default:
         return null
     }
+  }
+
+  const [pendingTransaction, setPendingTransaction] = useState(false)
+  const onVerifyStatusReceived = (result: boolean) => {
+    challengeStore[field].status = result
+      ? ChallengeStatus.Passed
+      : ChallengeStatus.Failed
   }
 
   return (
@@ -79,28 +90,85 @@ export function ChallengePage({
                 {getStatusBadge(status)}
               </div>
               <div className="flex space-x-2 items-center">
-                <Input id={field} value={code} readOnly className="bg-transparent border-[#E6007A] text-inherit flex-grow" />
-                <Button variant="outline" size="icon" onClick={() => copyToClipboard(code)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0">
-                  <Copy className="h-4 w-4" />
-                </Button>
+                {code &&
+                  <Input id={field} value={code} readOnly 
+                    className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                  />
+                }
+                {status === ChallengeStatus.Pending &&
+                  <>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => copyToClipboard(code)} 
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => requestVerificationSecret(field)
+                        .then(challenge => {
+                          challengeStore[field].code = challenge
+                        })
+                        .catch(error => console.error(error))
+                      }
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" 
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      onClick={() => {
+                        setPendingTransaction(true)
+                        verifyField(field, code)
+                          .then(result => {
+                            onVerifyStatusReceived(result)
+                            addNotification({
+                              type: result ? 'success' : 'error',
+                              message: result
+                                ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
+                                : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                            })
+                          })
+                          .catch(error => console.error(error))
+                          .finally(() => setPendingTransaction(false))
+                      }
+                      }
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  </>
+                }
               </div>
             </div>
           ))}
         </div>
-        <Button onClick={() => {
-          addNotification({
-            type: 'info', 
-            message: 'Challenges verified successfully', 
-          })
-        }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full">
+        <Button 
+          className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full"
+          onClick={() => {
+            setPendingTransaction(true)
+            Promise.all(Object.entries(challengeStore)
+              .filter(([key, { status }]) => status === ChallengeStatus.Pending)
+              .map(([key, { code }]) => verifyField(key, code)
+                .then(result => {
+                  onVerifyStatusReceived(result)
+                })
+                .catch(error => console.error(error))
+              )
+            )
+              .then(() => {
+                addNotification({
+                  type: 'info', 
+                  message: 'Challenges verified successfully', 
+                })
+              })
+              .catch(error => console.error(error))
+              .finally(() => setPendingTransaction(false))
+          }}
+        >
           <CheckCircle className="mr-2 h-4 w-4" />
           Verify Challenges
         </Button>
       </CardContent>
     </Card>
   )
-}
-function useState(arg0: { matrix: { code: string; status: string }; email: { code: string; status: string }; discord: { code: string; status: string } }): [any, any] {
-  throw new Error("Function not implemented.")
 }
 
