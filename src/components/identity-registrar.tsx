@@ -194,38 +194,36 @@ export function IdentityRegistrarComponent() {
     handlers: {
       "Identity.IdentitySet": {
         onEvent: data => {
-          /* appState.verificationProgress =
-            // As we do batch calls, we need to know if judgeent is already awaiting
-            appStateSnapshot.verificationProgress === IdentityVerificationStatuses.NoIdentity
-              ? IdentityVerificationStatuses.IdentitySet
-              : appStateSnapshot.verificationProgress */
+          getIdAndJudgement()
           addNotification({
             type: "info",
             message: "Identity Set for this account",
           })
         },
-        onError: error => {  },
+        onError: error => { },
+        priority: 2,
       },
       "Identity.IdentityCleared": {
         onEvent: data => {
-          /* appState.verificationProgress = IdentityVerificationStatuses.NoIdentity;
-          appState.identity = null; */
+          getIdAndJudgement()
           addNotification({
             type: "info",
             message: "Identity cleared for this account",
           })
         },
         onError: error => { },
+        priority: 1,
       },
       "Identity.JudgementRequested": {
         onEvent: data => {
-          //appState.verificationProgress = IdentityVerificationStatuses.JudgementRequested
+          getIdAndJudgement()
           addNotification({
             type: "info",
             message: "Judgement Requested for this account",
           })
         },
         onError: error => { },
+        priority: 3,
       },
       "Identity.JudgementGiven": {
         onEvent: data => {
@@ -236,6 +234,7 @@ export function IdentityRegistrarComponent() {
           })
         },
         onError: error => { },
+        priority: 4,
       },
     },
   })
