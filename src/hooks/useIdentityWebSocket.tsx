@@ -202,6 +202,7 @@ export const useIdentityWebSocket = ({
     ws.current.onclose = (event) => {
       console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
+      ws.current.onclose = null;
       ws.current = null;  // So hook is forced to reconnect
     };
 
@@ -213,10 +214,16 @@ export const useIdentityWebSocket = ({
     ws.current.onmessage = handleMessage;
     
     return () => {
-      // Important. Socket explicitly checked if open. so it won't get closed even before 
-      //  connecting. ws.current in dependency array ensures updating on unmount.
+      // Important. Socket explicitly checked if open. so it won't get closed before ones that are
+      //  connecting. ws.current in dependency array ensures updating on unmount. Otherwise, it's a
+      //  mess to work with it, as too many connections may be opened in vain, or expected events
+      //  may not really be fired as expected.
       if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.onopen = null
+        ws.current.onerror = null
+        ws.current.onmessage = null
         ws.current.close();
+        // ws.current = null and any remaining cleanup happens on close handling.
       }
     };
   }, [url, handleMessage, sendMessage, ws.current]);
