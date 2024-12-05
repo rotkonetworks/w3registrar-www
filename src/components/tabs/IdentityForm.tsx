@@ -232,16 +232,6 @@ export function IdentityForm<Chain>({
                 <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
               </div>
             )}
-            <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
-              <Info className="h-4 w-4" />
-              <AlertTitle>On-chain Identity Status</AlertTitle>
-              <AlertDescription>
-                {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set. You need to set your identity before requesting judgement."}
-                {onChainIdentity === verifiyStatuses.IdentitySet && "Identity already set. You can update your identity or request judgement."}
-                {onChainIdentity === verifiyStatuses.JudgementRequested && "Judgement already requested. You can update your identity while waiting for judgement."}
-                {onChainIdentity === verifiyStatuses.IdentityVerified && "Your identity is verified! Congrats!"}
-              </AlertDescription>
-            </Alert>
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Button type="submit" disabled={forbiddenSubmission}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
