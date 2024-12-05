@@ -103,5 +103,5 @@ export const useChainRealTimeInfo = ({
   }), [chainStore.id, accountStore.address])
 
 
-  return [ constants, ]
+  return { constants, }
 }
