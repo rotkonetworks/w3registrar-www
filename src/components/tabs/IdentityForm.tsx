@@ -21,6 +21,7 @@ import {
 import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
+import BigNumber from 'bignumber.js'
 
 export function IdentityForm<Chain>({
   addNotification,
@@ -29,6 +30,7 @@ export function IdentityForm<Chain>({
   accountStore,
   typedApi,
   chainConstants,
+  formatAmount,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
@@ -36,6 +38,7 @@ export function IdentityForm<Chain>({
   accountStore: AccountData,
   typedApi: TypedApi<Chain>,
   chainConstants: Record<string, any>,
+  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
 }) {
   const [formData, setFormData] = useState({
     display: {
@@ -74,6 +77,57 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
+  const [estimatedCosts, setEstimatedCosts] = useState({})
+  useEffect(() => {
+    if (actionType === "judgement") {
+      typedApi.tx.Identity.request_judgement({
+        max_fee: 0n,
+        reg_index: chainStore.registrarIndex,
+      }).getEstimatedFees(accountStore.address)
+        .then(fees =>  setEstimatedCosts({ fees, }))
+        .catch(error => {
+          import.meta.env.DEV && console.error(error)
+          setEstimatedCosts({  })
+        })
+    } else if (actionType === "identity") {
+      typedApi.tx.Identity.set_identity({
+        info: {
+          ...(Object.fromEntries(Object.entries(formData)
+            .map(([key, { value }]) => [key, value
+              ? {
+                type: `Raw${value.length}`,
+                value: Binary.fromText(value),
+              }
+              : {
+                type: "None",
+              }
+            ])
+          )),
+          legal: {
+            type: "None",
+          },
+          github: {
+            type: "None",
+          },
+          image: {
+            type: "None",
+          },
+          web: {
+            type: "None",
+          },
+        },
+      }).getEstimatedFees(accountStore.address)
+        .then(fees => setEstimatedCosts({ fees, 
+          deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
+            .times(Object.values(formData).reduce((total, { value }) => BigNumber(total).plus(value.length), BigNumber(0)))
+          ),
+        }))
+        .catch(error => {
+          import.meta.env.DEV && console.error(error)
+          setEstimatedCosts({})
+        })
+    }
+  }, [actionType, chainStore, formData])
   const confirmAction = () => {
     let call;
     if (actionType === "judgement") {
@@ -257,7 +311,10 @@ export function IdentityForm<Chain>({
         </CardContent>
       </Card>
 
-      <Dialog open={showCostModal} onOpenChange={setShowCostModal}>
+      <Dialog open={showCostModal} onOpenChange={value => {
+        setShowCostModal(value)
+        setActionType(_actionType => value ? _actionType : null)
+      }}>
         <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
           <DialogHeader>
             <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
@@ -265,15 +322,21 @@ export function IdentityForm<Chain>({
               Please review the following information before proceeding.
             </DialogDescription>
           </DialogHeader>
+          {estimatedCosts && 
+            <div className="py-4">
+              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Coins className="h-5 w-5 text-[#E6007A]" />
+                Transaction Costs
+              </h4>
+              {estimatedCosts.fees &&
+                <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
+              }
+              {estimatedCosts.deposits && (
+                <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)} (refundable)</p>
+              )}
+            </div>
+          }
           <div className="py-4">
-            <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Coins className="h-5 w-5 text-[#E6007A]" />
-              Transaction Costs
-            </h4>
-            <p>Estimated transaction fee: 0.01 DOT</p>
-            {actionType === "identity" && (
-              <p>Identity deposit: 1.5 DOT (refundable)</p>
-            )}
             <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-[#E6007A]" />
               Important Notes

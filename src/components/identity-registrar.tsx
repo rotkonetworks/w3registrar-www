@@ -382,6 +382,7 @@ export function IdentityRegistrarComponent() {
               typedApi={typedApi as TypedApi<ChainInfo.id>}
               accountStore={accountStore}
               chainConstants={chainConstants}
+              formatAmount={formatAmount}
             />
           </TabsContent>
           <TabsContent value={pages[1].name}>
