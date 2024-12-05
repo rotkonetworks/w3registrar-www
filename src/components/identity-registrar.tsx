@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, AlertCircle, Coins, User, LogOut } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, User, LogOut, Info } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
+import { chainStore as _chainStore } from '~/store/ChainStore'
 import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
@@ -15,7 +15,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
 import { useConfig } from "~/api/config2"
-import { useAccounts, useChainSpecData, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { useAccounts, useChainSpecData, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
