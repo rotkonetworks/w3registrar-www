@@ -239,6 +239,10 @@ export function IdentityRegistrarComponent() {
       },
     },
   })
+  useEffect(() => {
+    import.meta.env.DEV && console.log({ chainEvents })
+  }, [chainEvents])
+  const { constants: chainConstants } = chainEvents;
   //# endregion chains
   
   //# region challenges
