@@ -30,12 +30,14 @@ export function IdentityForm<Chain>({
   chainStore,
   accountStore,
   typedApi,
+  chainConstants,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
   chainStore: ChainInfo,
   accountStore: AccountData,
   typedApi: TypedApi<Chain>,
+  chainConstants: Record<string, any>,
 }) {
   const [formData, setFormData] = useState({
     display: {
