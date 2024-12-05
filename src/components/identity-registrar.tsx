@@ -116,6 +116,7 @@ export function IdentityRegistrarComponent() {
       import.meta.env.DEV && console.log({ identityOf: result })
       if (!result) {
         identityStore.status = verifiyStatuses.NoIdentity;
+        identityStore.info = null
         return;
       }
       const identityOf = result[0];
