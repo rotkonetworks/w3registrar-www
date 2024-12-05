@@ -52,7 +52,7 @@ export function IdentityRegistrarComponent() {
     { 
       name: "Challenges", 
       icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.JudgementRequested,
+      disabled: identityStore.status < verifiyStatuses.FeePaid,
     },
     { 
       name: "Status", 
