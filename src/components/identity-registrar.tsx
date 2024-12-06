@@ -29,12 +29,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
-  const [account, setAccount] = useState("")
-  const [network, setNetwork] = useState("")
   const alertsStore = useProxy(_alertsStore);
   const { isDarkMode } = useSnapshot(appStore)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [onChainIdentity, setOnChainIdentity] = useState<'none' | 'set' | 'requested'>('none')
 
   //# region Chains
   const identityStore = useProxy(_identityStore);
@@ -73,20 +69,6 @@ export function IdentityRegistrarComponent() {
   const removeNotification = (key: string) => {
     removeAlert(key)
   }
-
-  const checkOnChainIdentity = () => {
-    window.setTimeout(() => {
-      const statuses = ['none', 'set', 'requested'] as const
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)]
-      setOnChainIdentity(randomStatus)
-    }, 1000)
-  }
-
-  useEffect(() => {
-    if (account && network) {
-      checkOnChainIdentity()
-    }
-  }, [account, network])
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
@@ -339,14 +321,7 @@ export function IdentityRegistrarComponent() {
           onDisconnect={() => setOpenDialog("disconnect")}
         />
 
-        {errorMessage && (
-          <Alert variant="destructive" className="mb-4 bg-[#FFCCCB] border-[#E6007A] text-[#670D35]">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
-
-        {[...alertsStore.entries()].map(([key, alert]) => (
+        {[...alertsStore.entries()].map(([, alert]) => (
           <Alert 
             key={alert.key} 
             variant={alert.type === 'error' ? "destructive" : "default"} 
