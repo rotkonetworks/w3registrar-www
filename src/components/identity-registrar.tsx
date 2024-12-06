@@ -26,6 +26,7 @@ import { TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
+import { config } from "~/api/config"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -35,7 +36,7 @@ export function IdentityRegistrarComponent() {
   //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
-  const chainContext = useConfig();
+  const chainContext = config;
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id })
   //# endregion Chains
