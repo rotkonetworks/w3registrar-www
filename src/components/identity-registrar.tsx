@@ -273,7 +273,7 @@ export function IdentityRegistrarComponent() {
       })
     }
   }, idWsDeps)
-  //# endregion challenges
+  //#endregion challenges
 
   const formatAmount = (amount: number | bigint | BigNumber | string, decimals?) => {
     if (!amount) {
