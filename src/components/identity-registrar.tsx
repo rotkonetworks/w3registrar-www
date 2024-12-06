@@ -90,8 +90,9 @@ export function IdentityRegistrarComponent() {
     if (!foundAccount) {
       return;
     }
-    Object.assign(accountStore, foundAccount)
-  }, [accountStore, accounts])
+    const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
+    Object.assign(accountStore, newAccountData)
+  }, [accountStore.polkadotSigner, accountStore.address, accounts])
   //#endregion accounts
 
   //# region identity
