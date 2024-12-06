@@ -115,15 +115,6 @@ export function StatusPage({
             </div>
           </div>
         </div>
-        <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
-          <Info className="h-4 w-4" />
-          <AlertTitle>On-chain Identity Status</AlertTitle>
-          <AlertDescription>
-            {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set on-chain."}
-            {onChainIdentity === verifiyStatuses.IdentitySet && "Identity set on-chain."}
-            {onChainIdentity === verifiyStatuses.IdentityVerified && "Judgement requested and pending."}
-          </AlertDescription>
-        </Alert>
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="outline" 
             onClick={() => {
