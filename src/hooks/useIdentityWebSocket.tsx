@@ -182,7 +182,7 @@ export const useIdentityWebSocket = ({
 
   // Set up WebSocket connection
   useEffect(() => {
-    console.log({ ws: ws.current, state: ws.current?.readyState })
+    import.meta.env.DEV && console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
       return;
@@ -191,27 +191,26 @@ export const useIdentityWebSocket = ({
       setIsConnected(true)
       return;
     }
-    ws.current = new WebSocket(url);
-
-    ws.current.onopen = () => {
-      console.log({ callBack: "onopen" })
-      setIsConnected(true);
-      setError(null);
-    };
-
-    ws.current.onclose = (event) => {
-      console.log({ callBack: "onclose", code: event.code })
-      setIsConnected(false);
-      ws.current.onclose = null;
-      ws.current = null;  // So hook is forced to reconnect
-    };
-
-    ws.current.onerror = (error) => {
-      console.error(error)
-      setError('WebSocket error occurred');
-    };
-
-    ws.current.onmessage = handleMessage;
+    if (!ws.current) {
+      ws.current = new WebSocket(url);
+      
+      ws.current.onopen = () => {
+        console.log({ callBack: "onopen" })
+        setIsConnected(true);
+        setError(null);
+      };
+      ws.current.onclose = (event) => {
+        console.log({ callBack: "onclose", code: event.code })
+        setIsConnected(false);
+        ws.current.onclose = null;
+        ws.current = null;  // So hook is forced to reconnect
+      };
+      ws.current.onerror = (error) => {
+        console.error(error)
+        setError('WebSocket error occurred');
+      };
+      ws.current.onmessage = handleMessage;
+    }
     
     return () => {
       // Important. Socket explicitly checked if open. so it won't get closed before ones that are
