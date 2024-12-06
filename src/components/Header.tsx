@@ -165,7 +165,7 @@ const Header = ({
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(chainContext.config.chains)
+            {Object.entries(chainContext.chains)
               .filter(([key]) => key.includes("people"))
               .map(([key, net]) => (
                 <SelectItem key={key} value={key} 
