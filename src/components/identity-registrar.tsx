@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, User, LogOut, Info } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, User, LogOut, Info, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -298,8 +298,9 @@ export function IdentityRegistrarComponent() {
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }
-
-  const onIdentityClear = () => typedApi.tx.Identity.clear_identity().signAndSubmit(
+  
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [])
+  const onIdentityClear = () => _clearIdentity().signAndSubmit(
     accountStore?.polkadotSigner
   )
   
@@ -307,6 +308,22 @@ export function IdentityRegistrarComponent() {
   const [_, disconnectWallet] = useWalletDisconnector()
 
   const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
+
+  //#region CostExtimations
+  const [estimatedCosts, setEstimatedCosts] = useState({})
+  useEffect(() => {
+    if (openDialog === "clearIdentity") {
+      _clearIdentity().getEstimatedFees(accountStore.address)
+        .then(fees => setEstimatedCosts({ fees, }))
+        .catch(error => {
+          import.meta.env.DEV && console.error(error)
+          setEstimatedCosts({})
+        })
+    } else {
+      setEstimatedCosts({})
+    }
+  }, [openDialog, chainStore])
+  //#endregion CostExtimations
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -459,49 +476,38 @@ export function IdentityRegistrarComponent() {
             Please review the following information before proceeding.
           </DialogDescription>
         </DialogHeader>
-        {(() => {
-          switch (openDialog) {
-            case "clearIdentity":
-              return (
-                <>
-                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <User className="h-5 w-5 text-[#E6007A]" />
-                    Identity
-                  </h4>
-                  <p>Clearing your identity will remove all information from the blockchain.</p>
-                </>
-              )
-            case "disconnect":
-              return (
-                <>
-                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <LogOut className="h-5 w-5 text-[#E6007A]" />
-                    Disconnect
-                  </h4>
-                  <p>This will cause all wallets to be disconnected and unselect account.</p>
-                </>
-              )
-            default:
-              return null
-          }
-        }) ()}
-        {(() => {
-          switch (openDialog) {
-            case "clearIdentity":
-              return (
-                <div className="py-4">
-                  <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                    <Coins className="h-5 w-5 text-[#E6007A]" />
-                    Transaction Costs
-                  </h4>
-                  <p>Estimated transaction fee: 0.01 DOT</p>
-                  <p>Tranaction fees: 1.5 DOT (refundable)</p>
-                </div>
-              )
-            default:
-              return null
-          }
-        }) ()}
+        {Object.keys(estimatedCosts).length > 0 &&
+          <div className="py-4">
+            <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <Coins className="h-5 w-5 text-[#E6007A]" />
+              Transaction Costs
+            </h4>
+            {estimatedCosts.fees &&
+              <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
+            }
+            {estimatedCosts.deposits && (
+              <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
+            )}
+          </div>
+        }
+        <div className="py-4">
+          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+            Important Notes
+          </h4>
+          <ul className="list-disc list-inside">
+            {openDialog === "clearIdentity" && (<>
+              <li>All identity data will be deleted from chain..</li>
+              <li>You will have to set identity again.</li>
+              <li>You will lose verification status.</li>
+              <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+            </>)}
+            {openDialog === "disconnect" && (<>
+              <li>No data will be removed on chain.</li>
+              <li>Current account and wallet will be disconnected.</li>
+            </>)}
+          </ul>
+        </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpenDialog(null)} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
