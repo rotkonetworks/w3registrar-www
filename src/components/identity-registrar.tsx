@@ -61,14 +61,13 @@ export function IdentityRegistrarComponent() {
     document.documentElement.classList.toggle('dark', isDarkMode)
   }, [isDarkMode])
 
-  const addNotification = (alert: AlertProps | Omit<AlertProps, "key">) => {
+  const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
     pushAlert({ ...alert, key });
-  }
-
-  const removeNotification = (key: string) => {
+  }, [pushAlert])
+  const removeNotification = useCallback((key: string) => {
     removeAlert(key)
-  }
+  }, [removeAlert])
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
@@ -93,7 +92,7 @@ export function IdentityRegistrarComponent() {
   //#endregion accounts
 
   //#region identity
-  const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
+  const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
       import.meta.env.DEV && console.log({ identityOf: result })
@@ -145,7 +144,9 @@ export function IdentityRegistrarComponent() {
         console.error("Couldn't get identityOf");
         console.error(e);
       }
-    });
+    })
+  , [accountStore.address, typedApi]);
+  useEffect(() => console.log({ getIdAndJudgement }), [getIdAndJudgement])
   useEffect(() => {
     if (accountStore.address) {
       getIdAndJudgement();
@@ -274,22 +275,22 @@ export function IdentityRegistrarComponent() {
   }, idWsDeps)
   //#endregion challenges
 
-  const formatAmount = (amount: number | bigint | BigNumber | string, decimals?) => {
+  const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
     if (!amount) {
       return "---"
     }
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
     return `${newAmount} ${chainStore.tokenSymbol}`;
-  }
+  }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [])
-  const onIdentityClear = () => _clearIdentity().signAndSubmit(
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
+  const onIdentityClear = useCallback(() => _clearIdentity().signAndSubmit(
     accountStore?.polkadotSigner
-  )
+  ), [_clearIdentity])
   
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
-
+  
   const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
 
   //#region CostExtimations
@@ -305,7 +306,7 @@ export function IdentityRegistrarComponent() {
     } else {
       setEstimatedCosts({})
     }
-  }, [openDialog, chainStore])
+  }, [openDialog, chainStore.id])
   //#endregion CostExtimations
 
   return <>
