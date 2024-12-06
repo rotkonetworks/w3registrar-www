@@ -162,8 +162,8 @@ export function IdentityRegistrarComponent() {
       const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
       
       const newChainData = {
-        name: chainContext.config.chains[id].name,
-        registrarIndex: chainContext.config.chains[id].registrarIndex,
+        name: chainContext.chains[id].name,
+        registrarIndex: chainContext.chains[id].registrarIndex,
         ...chainSpecData.properties,
       }
       Object.assign(chainStore, newChainData)
