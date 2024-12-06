@@ -56,7 +56,7 @@ export function IdentityForm<Chain>({
   })
 
   const [showCostModal, setShowCostModal] = useState(false)
-  const [actionType, setActionType] = useState<"judgement" | "identity">("judgement")
+  const [actionType, setActionType] = useState<"judgement" | "identity" | null>(null)
 
   const onChainIdentity = identityStore.status
 
