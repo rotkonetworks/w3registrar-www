@@ -313,7 +313,7 @@ export function IdentityForm<Chain>({
               Please review the following information before proceeding.
             </DialogDescription>
           </DialogHeader>
-          {estimatedCosts && 
+          {Object.keys(estimatedCosts).length > 0 && 
             <div className="py-4">
               <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
                 <Coins className="h-5 w-5 text-[#E6007A]" />
