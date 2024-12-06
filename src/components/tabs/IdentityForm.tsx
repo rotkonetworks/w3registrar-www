@@ -1,15 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AlertProps } from '@/store/AlertStore'
 import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
-import {
-  UserCircle,
-  AtSign,
-  Mail,
-  MessageSquare,
-  CheckCircle,
-  Coins,
-  AlertCircle
-} from 'lucide-react'
+import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
