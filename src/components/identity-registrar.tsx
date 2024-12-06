@@ -146,7 +146,6 @@ export function IdentityRegistrarComponent() {
       }
     })
   , [accountStore.address, typedApi]);
-  useEffect(() => console.log({ getIdAndJudgement }), [getIdAndJudgement])
   useEffect(() => {
     if (accountStore.address) {
       getIdAndJudgement();
@@ -224,7 +223,6 @@ export function IdentityRegistrarComponent() {
     address: accountStore.address,
     handlers: eventHandlers,
   })
-  useEffect(() => console.log(chainConstants), [chainConstants])
   //#endregion chains
   
   const onNotification = useCallback((notification: NotifyAccountState): void => {
