@@ -222,7 +222,6 @@ export function IdentityForm<Chain>({
     }
   }, [identityStore.info])
 
-
   useEffect(() => {
     import.meta.env.DEV && console.log({ formData })
   }, [formData])
