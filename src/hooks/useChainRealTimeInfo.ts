@@ -7,12 +7,12 @@ import { ChainInfo } from "~/store/ChainStore";
 export const useChainRealTimeInfo = ({
   typedApi,
   chainStore,
-  accountStore,
+  address,
   handlers,
 }: {
   typedApi: TypedApi<ChainId>;
   chainStore: ChainInfo;
-  accountStore: AccountData;
+  address: string;
   handlers: Record<string, {
     onEvent: (data: any) => void;
     onError?: (error: Error) => void;
@@ -64,7 +64,7 @@ export const useChainRealTimeInfo = ({
     const { onEvent, onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
-        data.filter(item => [item.payload.who, item.payload.target].includes(accountStore.address))
+        data.filter(item => [item.payload.who, item.payload.target].includes(address))
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
           })
@@ -77,7 +77,7 @@ export const useChainRealTimeInfo = ({
   }
   const getEffectCallback = ({ type: { pallet, call }, }) => {
     return () => {
-      if (!chainStore.id || !accountStore.address) {
+      if (!chainStore.id || !address) {
         return
       }
       const timer = window.setInterval(() => {
@@ -88,19 +88,19 @@ export const useChainRealTimeInfo = ({
   }
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentitySet" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainStore.id, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentityCleared" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainStore.id, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementRequested" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainStore.id, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementGiven" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainStore.id, address])
 
 
   return { constants, }

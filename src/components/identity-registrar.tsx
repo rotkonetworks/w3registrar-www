@@ -174,7 +174,7 @@ export function IdentityRegistrarComponent() {
   const chainEvents = useChainRealTimeInfo({
     typedApi,
     chainStore,
-    accountStore,
+    address: accountStore.address,
     handlers: {
       "Identity.IdentitySet": {
         onEvent: data => {
