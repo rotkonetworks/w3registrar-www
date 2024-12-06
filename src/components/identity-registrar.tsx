@@ -83,6 +83,9 @@ export function IdentityRegistrarComponent() {
     if (!accountStore.address || accounts.length < 1) {
       return;
     }
+    if (accountStore.polkadotSigner && accountStore.address) {
+      return;
+    }
     const foundAccount = accounts.find(account => account.address === accountStore.address)
     if (!foundAccount) {
       return;
