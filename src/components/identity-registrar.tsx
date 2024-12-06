@@ -225,13 +225,15 @@ export function IdentityRegistrarComponent() {
   const { constants: chainConstants } = chainEvents;
   //#endregion chains
   
+  const onNotification = useCallback((notification: NotifyAccountState): void => {
+    import.meta.env.DEV && console.log('Received notification:', notification)
+  }, [])
+  
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.address,
-    onNotification: (notification) => {
-      import.meta.env.DEV && console.log('Received notification:', notification);
-    }
+    onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
   const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
