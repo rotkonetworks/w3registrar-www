@@ -111,7 +111,9 @@ export function IdentityForm<Chain>({
       }).getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, 
           deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
-            .times(Object.values(formData).reduce((total, { value }) => BigNumber(total).plus(value.length), BigNumber(0)))
+            .times(Object.values(formData)
+              .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+            )
           ),
         }))
         .catch(error => {
