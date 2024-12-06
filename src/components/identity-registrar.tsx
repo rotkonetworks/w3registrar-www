@@ -32,7 +32,7 @@ export function IdentityRegistrarComponent() {
   const alertsStore = useProxy(_alertsStore);
   const { isDarkMode } = useSnapshot(appStore)
 
-  //# region Chains
+  //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
   const chainContext = useConfig();
@@ -95,7 +95,7 @@ export function IdentityRegistrarComponent() {
   }, [accountStore.polkadotSigner, accountStore.address, accounts])
   //#endregion accounts
 
-  //# region identity
+  //#region identity
   const getIdAndJudgement = () => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
@@ -154,9 +154,9 @@ export function IdentityRegistrarComponent() {
       getIdAndJudgement();
     }
   }, [accountStore.address, typedApi])
-  //# endregion identity
+  //#endregion identity
   
-  //# region chains
+  //#region chains
   const chainSpecData = useChainSpecData()
   
   useEffect(() => {
@@ -229,9 +229,9 @@ export function IdentityRegistrarComponent() {
     import.meta.env.DEV && console.log({ chainEvents })
   }, [chainEvents])
   const { constants: chainConstants } = chainEvents;
-  //# endregion chains
+  //#endregion chains
   
-  //# region challenges
+  //#region challenges
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.address,
