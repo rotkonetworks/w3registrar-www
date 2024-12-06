@@ -74,9 +74,6 @@ export function IdentityRegistrarComponent() {
 
   //#region accounts
   const accountStore = useProxy(_accountStore)
-  useEffect(() => {
-    import.meta.env.DEV && console.log({accountStore})
-  }, [accountStore])
 
   const accounts = useAccounts()
   useEffect(() => {
