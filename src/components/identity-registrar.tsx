@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, User, LogOut, Info, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -170,60 +170,61 @@ export function IdentityRegistrarComponent() {
       import.meta.env.DEV && console.log({ id, newChainData })
     })()
   }, [chainStore.id])
-  //# endregion chains
-
-  const chainEvents = useChainRealTimeInfo({
-    typedApi,
-    chainStore,
-    address: accountStore.address,
-    handlers: {
-      "Identity.IdentitySet": {
-        onEvent: data => {
-          getIdAndJudgement()
-          addNotification({
-            type: "info",
-            message: "Identity Set for this account",
-          })
-        },
-        onError: error => { },
-        priority: 2,
+  
+  const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
+    "Identity.IdentitySet": {
+      onEvent: data => {
+        getIdAndJudgement()
+        addNotification({
+          type: "info", 
+          message: "Identity Set for this account",
+        })
       },
-      "Identity.IdentityCleared": {
-        onEvent: data => {
-          getIdAndJudgement()
-          addNotification({
-            type: "info",
-            message: "Identity cleared for this account",
-          })
-        },
-        onError: error => { },
-        priority: 1,
-      },
-      "Identity.JudgementRequested": {
-        onEvent: data => {
-          getIdAndJudgement()
-          addNotification({
-            type: "info",
-            message: "Judgement Requested for this account",
-          })
-        },
-        onError: error => { },
-        priority: 3,
-      },
-      "Identity.JudgementGiven": {
-        onEvent: data => {
-          getIdAndJudgement()
-          addNotification({
-            type: "info",
-            message: "Judgement Given for this account",
-          })
-        },
-        onError: error => { },
-        priority: 4,
-      },
+      onError: error => { },
+      priority: 2,
     },
+    "Identity.IdentityCleared": {
+      onEvent: data => {
+        getIdAndJudgement()
+        addNotification({
+          type: "info",
+          message: "Identity cleared for this account",
+        })
+      },
+      onError: error => { },
+      priority: 1,
+    },
+    "Identity.JudgementRequested": {
+      onEvent: data => {
+        getIdAndJudgement()
+        addNotification({
+          type: "info",
+          message: "Judgement Requested for this account",
+        })
+      },
+      onError: error => { },
+      priority: 3,
+    },
+    "Identity.JudgementGiven": {
+      onEvent: data => {
+        getIdAndJudgement()
+        addNotification({
+          type: "info",
+          message: "Judgement Given for this account",
+        })
+      },
+      onError: error => { },
+      priority: 4,
+    },
+  }), [accountStore.address, chainStore.id])  
+  
+  const { constants: chainConstants } = useChainRealTimeInfo({
+    typedApi,
+    chainId: chainStore.id,
+    address: accountStore.address,
+    handlers: eventHandlers,
   })
-  const { constants: chainConstants } = chainEvents;
+  useEffect(() => console.log(chainConstants), [chainConstants])
   //#endregion chains
   
   const onNotification = useCallback((notification: NotifyAccountState): void => {

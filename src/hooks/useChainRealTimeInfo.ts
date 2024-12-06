@@ -6,12 +6,12 @@ import { ChainInfo } from "~/store/ChainStore";
 
 export const useChainRealTimeInfo = ({
   typedApi,
-  chainStore,
+  chainId,
   address,
   handlers,
 }: {
   typedApi: TypedApi<ChainId>;
-  chainStore: ChainInfo;
+  chainId: string;
   address: string;
   handlers: Record<string, {
     onEvent: (data: any) => void;
@@ -20,6 +20,7 @@ export const useChainRealTimeInfo = ({
   }>
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
+  useEffect(() => console.log(constants), [constants])
   
   useEffect(() => {
     if (typedApi) {
@@ -77,7 +78,7 @@ export const useChainRealTimeInfo = ({
   }
   const getEffectCallback = ({ type: { pallet, call }, }) => {
     return () => {
-      if (!chainStore.id || !address) {
+      if (!chainId || !address) {
         return
       }
       const timer = window.setInterval(() => {
@@ -88,20 +89,19 @@ export const useChainRealTimeInfo = ({
   }
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentitySet" },
-  }), [chainStore.id, address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentityCleared" },
-  }), [chainStore.id, address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementRequested" },
-  }), [chainStore.id, address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementGiven" },
-  }), [chainStore.id, address])
-
+  }), [chainId, address])
 
   return { constants, }
 }
