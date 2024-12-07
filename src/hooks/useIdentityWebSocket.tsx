@@ -191,7 +191,7 @@ export const useIdentityWebSocket = ({
       setIsConnected(true)
       return;
     }
-    if (!ws.current) {
+    if (!ws.current?.readyState || ws.current?.readyState > WebSocket.OPEN) {
       ws.current = new WebSocket(url);
       
       ws.current.onopen = () => {
@@ -202,8 +202,6 @@ export const useIdentityWebSocket = ({
       ws.current.onclose = (event) => {
         console.log({ callBack: "onclose", code: event.code })
         setIsConnected(false);
-        ws.current.onclose = null;
-        ws.current = null;  // So hook is forced to reconnect
       };
       ws.current.onerror = (error) => {
         console.error(error)
@@ -224,8 +222,11 @@ export const useIdentityWebSocket = ({
         ws.current.close();
         // ws.current = null and any remaining cleanup happens on close handling.
       }
+      if (ws.current?.readyState > WebSocket.OPEN) {
+        ws.current = null
+      }
     };
-  }, [url, handleMessage, sendMessage, ws.current]);
+  }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
 
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account) {
