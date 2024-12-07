@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, Info, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -157,8 +157,8 @@ export function IdentityRegistrarComponent() {
   const chainSpecData = useChainSpecData()
   
   useEffect(() => {
-    (async () => {
-      const id = import.meta.env.VITE_APP_DEFAULT_CHAIN || chainStore.id;
+    ((async () => startTransition(() => {
+      const id = chainStore.id;
       
       const newChainData = {
         name: chainContext.chains[id].name,
@@ -167,8 +167,11 @@ export function IdentityRegistrarComponent() {
       }
       Object.assign(chainStore, newChainData)
       import.meta.env.DEV && console.log({ id, newChainData })
-    })()
+    })) ())
   }, [chainStore.id])
+  const onChainSelect = useCallback((chainId: keyof Chains) => {
+    chainStore.id = chainId;
+  }, [])
   
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
     "Identity.IdentitySet": {
