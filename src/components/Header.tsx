@@ -23,16 +23,17 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore, 
+  chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
   onIdentityClear, onDisconnect,
 }: { 
   chainContext: ConfigContextProps;
-  chainStore: ChainInfo;
+  chainStore: { id: string, name: string };
   accountStore: Account;
+  identityStore: IdentityStore;
+  onChainSelect: (chainId: keyof Chains) => void;
   onRequestWalletConnections: () => void;
   onIdentityClear: () => void;
   onDisconnect: () => void;
-  identityStore: IdentityStore;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -52,10 +53,6 @@ const Header = ({
   }, [defaultWsUrl]);
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
-
-  const handleChainSelect = (chainId: keyof Chains) => {
-    chainStore.id = chainId;
-  }
   //# endregion NetDropdown
   
   //#region userDropdown
@@ -160,7 +157,9 @@ const Header = ({
         </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
-        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {}}>
+        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} 
+          onValueChange={onChainSelect}
+        >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
@@ -168,9 +167,7 @@ const Header = ({
             {Object.entries(chainContext.chains)
               .filter(([key]) => key.includes("people"))
               .map(([key, net]) => (
-                <SelectItem key={key} value={key} 
-                  onClick={() => handleChainSelect(key)}
-                >
+                <SelectItem key={key} value={key}>
                   {net.name}
                 </SelectItem>
               ))
