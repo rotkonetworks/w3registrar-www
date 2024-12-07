@@ -1,24 +1,26 @@
 import { TypedApi } from "polkadot-api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
 
 export const useChainRealTimeInfo = ({
   typedApi,
-  chainStore,
-  accountStore,
+  chainId,
+  address,
   handlers,
 }: {
   typedApi: TypedApi<ChainId>;
-  chainStore: ChainInfo;
-  accountStore: AccountData;
+  chainId: string;
+  address: string;
   handlers: Record<string, {
     onEvent: (data: any) => void;
     onError?: (error: Error) => void;
+    priority: number;
   }>
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
+  useEffect(() => console.log(constants), [constants])
   
   useEffect(() => {
     if (typedApi) {
@@ -38,16 +40,34 @@ export const useChainRealTimeInfo = ({
     }
   }, [typedApi])
 
-  const [_pendingBlocks, _setPendingBlocks] = useState()
-  const handleChainEvent = ({ type: { pallet, call }, }) => {
+  const _pendingBlocks = useRef([])
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      [..._pendingBlocks.current]
+        .sort((b1, b2) => 
+          b2.neta.block.number*100 + handlers[b2.type].priority - b1.neta.block.number*100 + handlers[b1.type].priority 
+        )
+        .forEach(block => {
+          handlers[block.type].onEvent(block)
+          import.meta.env.DEV && console.log({ block, })
+        })
+      ;
+      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+    },  CHAIN_UPDATE_INTERVAL)
+    return () => {
+      window.clearInterval(timer)
+      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+    }
+  }, [])
+
+  const waitForEvent = ({ type: { pallet, call }, }) => {
     const type = `${pallet}.${call}`;
     const { onEvent, onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
-        data.filter(item => [item.payload.who, item.payload.target].includes(accountStore.address))
+        data.filter(item => [item.payload.who, item.payload.target].includes(address))
           .forEach(item => {
-            onEvent(item)
-            import.meta.env.DEV && console.log({ data: item, type, })
+            _pendingBlocks.current.push({ ...item, type })
           })
       })
       .catch(error => {
@@ -58,31 +78,30 @@ export const useChainRealTimeInfo = ({
   }
   const getEffectCallback = ({ type: { pallet, call }, }) => {
     return () => {
-      if (!chainStore.id || !accountStore.address) {
+      if (!chainId || !address) {
         return
       }
       const timer = window.setInterval(() => {
-        handleChainEvent({ type: { pallet, call }, })
+        waitForEvent({ type: { pallet, call }, })
       }, CHAIN_UPDATE_INTERVAL)
       return () => window.clearInterval(timer)
     }
   }
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentitySet" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "IdentityCleared" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementRequested" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainId, address])
 
   useEffect(getEffectCallback({
     type: { pallet: "Identity", call: "JudgementGiven" },
-  }), [chainStore.id, accountStore.address])
+  }), [chainId, address])
 
-
-  return [ constants, ]
+  return { constants, }
 }

@@ -23,15 +23,17 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  chainContext, chainStore, accountStore, onRequestWalletConnections, identityStore, 
-  onIdentityClear,
+  chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
+  onIdentityClear, onDisconnect,
 }: { 
   chainContext: ConfigContextProps;
-  chainStore: ChainInfo;
+  chainStore: { id: string, name: string };
   accountStore: Account;
+  identityStore: IdentityStore;
+  onChainSelect: (chainId: keyof Chains) => void;
   onRequestWalletConnections: () => void;
   onIdentityClear: () => void;
-  identityStore: IdentityStore;
+  onDisconnect: () => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -40,10 +42,8 @@ const Header = ({
 
   //# region NetDropdown
   const [_wsUrl, _setWsUrl] = useState("");
-  const [urlValidation, setUrlValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: "" });
   const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
 
-  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (defaultWsUrl && chainStore.id === "people_rococo") {
       _setWsUrl(defaultWsUrl);
@@ -53,48 +53,10 @@ const Header = ({
   }, [defaultWsUrl]);
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
-
-  const validateUrl = (url: string): { isValid: boolean; message: string } => {
-    if (!url.trim()) return { isValid: false, message: "URL cannot be empty" };
-    try {
-      new URL(url);
-      if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-        return { isValid: false, message: "URL must start with ws:// or wss://" };
-      }
-      return { isValid: true, message: "Valid WebSocket URL" };
-    } catch {
-      return { isValid: false, message: "Invalid URL format" };
-    }
-  };
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newUrl = e.target.value;
-    _setWsUrl(newUrl);
-    setUrlValidation(validateUrl(newUrl));
-  };
-
-  const handleUrlSubmit = () => {
-    const validation = validateUrl(_wsUrl);
-    if (validation.isValid) {
-      setNetDropdownOpen(false);
-      localStorage.setItem("wsUrl", _wsUrl);
-      document.location.reload();
-    } else {
-      setUrlValidation(validation);
-    }
-  };
-
-  const handleChainSelect = (chainId: keyof Chains) => {
-    chainStore.id = chainId;
-  }
   //# endregion NetDropdown
   
   //#region userDropdown
-  const [isOpen, setOpen] = useState(false);
-  const [isAccountsOpen, setAccountsOpen] = useState(false);
-  
   const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
   
   const accounts = useAccounts()
   
@@ -120,9 +82,7 @@ const Header = ({
                 onRequestWalletConnections();
                 break;
               case "Disconnect":
-                connectedWallets.forEach(w => disconnectWallet(w));
-                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                delete window.localStorage.account;
+                onDisconnect();
                 break;
               case "Teleport":
                 break;
@@ -163,9 +123,7 @@ const Header = ({
           <SelectContent>
             {connectedWallets.length > 0 && <>
               <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
-              <SelectItem value={{type: "Disconnect"}}>
-                Disconnect
-              </SelectItem>
+              <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
               {identityStore.info && <>
                 <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
               </>}
@@ -199,17 +157,17 @@ const Header = ({
         </Select>
       </div>
       <div className="flex-1 min-w-[140px]">
-        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} onValueChange={() => {}}>
+        <Select open={isNetDropdownOpen} onOpenChange={setNetDropdownOpen} 
+          onValueChange={onChainSelect}
+        >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             <SelectValue placeholder={chainStore.name} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(chainContext.config.chains)
+            {Object.entries(chainContext.chains)
               .filter(([key]) => key.includes("people"))
               .map(([key, net]) => (
-                <SelectItem key={key} value={key} 
-                  onClick={() => handleChainSelect(key)}
-                >
+                <SelectItem key={key} value={key}>
                   {net.name}
                 </SelectItem>
               ))
@@ -219,16 +177,6 @@ const Header = ({
       </div>
     </div>
     <div className="flex gap-2">
-      <Button variant="outline" size="icon" 
-        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-        onClick={() => pushAlert({
-          key: (new Date()).toISOString(),
-          type: 'info', 
-          message: 'Notification test',
-        })}
-      >
-        <Bell className="h-4 w-4" />
-      </Button>
       <Button variant="outline" size="icon" 
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
         onClick={() => appStore.isDarkMode = !appStore.isDarkMode} 

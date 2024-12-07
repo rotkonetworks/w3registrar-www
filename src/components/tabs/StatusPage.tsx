@@ -5,7 +5,7 @@ import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash2, RefreshCcw } from "lucide-react"
+import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import BigNumber from "bignumber.js"
 
@@ -14,11 +14,13 @@ export function StatusPage({
   challengeStore,
   addNotification,
   formatAmount,
+  onIdentityClear,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-    formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
+  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
+  onIdentityClear: () =>  void,
 }) {
   const getIcon = (field: string) => {
     switch (field) {
@@ -52,7 +54,7 @@ export function StatusPage({
                 <UserCircle className="h-4 w-4" />
                 Display Name:
               </strong> 
-              <span>{identityStore.info.display || "Not Set"}</span>
+              <span>{identityStore.info?.display || "<Not Set>"}</span>
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
@@ -113,37 +115,16 @@ export function StatusPage({
             </div>
           </div>
         </div>
-        <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
-          <Info className="h-4 w-4" />
-          <AlertTitle>On-chain Identity Status</AlertTitle>
-          <AlertDescription>
-            {onChainIdentity === verifiyStatuses.NoIdentity && "No identity set on-chain."}
-            {onChainIdentity === verifiyStatuses.IdentitySet && "Identity set on-chain."}
-            {onChainIdentity === verifiyStatuses.IdentityVerified && "Judgement requested and pending."}
-          </AlertDescription>
-        </Alert>
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Button variant="destructive" onClick={() => {
-            addNotification({
-              type: 'info', 
-              message: 'Identity cleared successfully', 
-            })
-          }} className="bg-[#670D35] text-[#FFFFFF] hover:bg-[#91094c] flex-1">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Clear Identity
-          </Button>
           <Button variant="outline" 
             onClick={() => {
-              addNotification({
-                type: 'info', 
-                message: 'Judgement cleared successfully', 
-              })
+              onIdentityClear()
             }} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
             disabled={onChainIdentity !== verifiyStatuses.IdentityVerified}
           >
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            Clear Judgement
+            <Trash className="mr-2 h-4 w-4" />
+            Clear Identity
           </Button>
         </div>
       </CardContent>

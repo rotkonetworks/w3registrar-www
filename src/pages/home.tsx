@@ -1,35 +1,20 @@
 import { ChainProvider, ReactiveDotProvider } from '@reactive-dot/react';
-import { Loader } from 'lucide-react';
 import { useProxy } from 'valtio/utils';
-import { ConfigProvider, useConfig } from '~/api/config2';
 import { IdentityRegistrarComponent } from '~/components/identity-registrar';
 import { chainStore as _chainStore } from '~/store/ChainStore';
+import { config } from '~/api/config';
+import { useDeferredValue } from 'react';
 
 function Home() {
+  const chainId = useDeferredValue((useProxy(_chainStore)).id)
+  
   return (
-    <ConfigProvider>
-      <HomeWrapper />
-    </ConfigProvider>
+    <ReactiveDotProvider config={config}>
+      <ChainProvider chainId={chainId}>
+        <IdentityRegistrarComponent />
+      </ChainProvider>
+    </ReactiveDotProvider>
   );
-}
-
-const HomeWrapper = () => {
-  const { config } = useConfig();
-  const chainStore = useProxy(_chainStore);
-
-  return <>
-    {config 
-      ?<ReactiveDotProvider config={config}>
-        <ChainProvider chainId={chainStore.id}>
-          <IdentityRegistrarComponent />
-        </ChainProvider>
-      </ReactiveDotProvider>
-      :<>
-        Loading
-        <Loader />
-      </>
-    }
-  </>;
 }
 
 export default Home;
