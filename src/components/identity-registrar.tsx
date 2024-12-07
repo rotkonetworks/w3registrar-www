@@ -147,10 +147,14 @@ export function IdentityRegistrarComponent() {
     })
   , [accountStore.address, typedApi]);
   useEffect(() => {
+    import.meta.env.DEV && console.log({ typedApi, accountStore })
+    identityStore.deposit = null;
+    identityStore.info = null
+    identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
       getIdAndJudgement();
     }
-  }, [accountStore.address, typedApi])
+  }, [accountStore.address, getIdAndJudgement])
   //#endregion identity
   
   //#region chains
