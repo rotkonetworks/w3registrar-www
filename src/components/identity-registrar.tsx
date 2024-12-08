@@ -14,7 +14,7 @@ import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useChainSpecData, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -147,28 +147,41 @@ export function IdentityRegistrarComponent() {
     })
   , [accountStore.address, typedApi]);
   useEffect(() => {
+    import.meta.env.DEV && console.log({ typedApi, accountStore })
+    identityStore.deposit = null;
+    identityStore.info = null
+    identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
       getIdAndJudgement();
     }
-  }, [accountStore.address, typedApi])
+  }, [accountStore.address, getIdAndJudgement])
   //#endregion identity
   
   //#region chains
-  const chainSpecData = useChainSpecData()
+  const chainClient = useClient({ chainId: chainStore.id })
   
   useEffect(() => {
-    ((async () => startTransition(() => {
+    ((async () => {
       const id = chainStore.id;
       
+      let chainProperties
+      try {
+        chainProperties = (await chainClient.getChainSpecData()).properties
+        import.meta.env.DEV && console.log({ id, chainProperties })
+      } catch {
+        console.error({ id, error })
+      }
       const newChainData = {
         name: chainContext.chains[id].name,
         registrarIndex: chainContext.chains[id].registrarIndex,
-        ...chainSpecData.properties,
+        ...chainProperties,
       }
-      Object.assign(chainStore, newChainData)
-      import.meta.env.DEV && console.log({ id, newChainData })
-    })) ())
-  }, [chainStore.id])
+      startTransition(() => {
+        Object.assign(chainStore, newChainData)
+        import.meta.env.DEV && console.log({ id, newChainData })
+      })
+    }) ())
+  }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: keyof Chains) => {
     chainStore.id = chainId;
   }, [])
@@ -219,7 +232,6 @@ export function IdentityRegistrarComponent() {
       priority: 4,
     },
   }), [accountStore.address, chainStore.id])  
-  
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,

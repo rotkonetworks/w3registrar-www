@@ -221,6 +221,16 @@ export function IdentityForm<Chain>({
           return all;
         }, {}))
       })
+    } else {
+      setFormData({
+        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
+          all[key] = {
+            value: "",
+            error: null,
+          }
+          return all;
+        }, {}))
+      })
     }
   }, [identityStore.info])
 

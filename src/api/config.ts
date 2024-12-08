@@ -46,45 +46,47 @@ export const config = {
     people_polkadot: {
       name: "Polkadot",
       descriptor: people_polkadot,
-      provider: getSmProvider(
+      provider: withPolkadotSdkCompat(getSmProvider(
         smoldot.addChain({ chainSpec: peoplePolkadotChainSpec }),
-      ),
+      )),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
     people_kusama: {
       name: "Kusama",
       descriptor: people_kusama,
-      provider: getSmProvider(
+      provider: withPolkadotSdkCompat(getSmProvider(
         smoldot.addChain({ chainSpec: peopleKusamaChainSpec }),
-      ),
+      )),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
     },
     people_westend: {
       name: "Westend",
       descriptor: people_westend,
-      provider: getSmProvider(
+      provider: withPolkadotSdkCompat(getSmProvider(
         smoldot.addChain({ chainSpec: peopleWestendChainSpec }),
-      ),
+      )),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
     polkadot: {
       name: "Polkadot",
       descriptor: polkadot,
-      provider: getSmProvider(
+      provider: withPolkadotSdkCompat(getSmProvider(
         smoldot.addChain({ chainSpec: polkadotChainSpec }),
-      ),
+      )),
     },
     kusama: {
       name: "Kusama",
       descriptor: kusama,
-      provider: getSmProvider(smoldot.addChain({ chainSpec: kusamaChainSpec })),
+      provider: withPolkadotSdkCompat(getSmProvider(
+        smoldot.addChain({ chainSpec: kusamaChainSpec })
+      )),
     },
     westend: {
       name: "Westend",
       descriptor: westend,
-      provider: getSmProvider(
+      provider: withPolkadotSdkCompat(getSmProvider(
         smoldot.addChain({ chainSpec: westendChainSpec }),
-      ),
+      )),
     },
     people_rococo: {
       name: "Rococo",
@@ -95,8 +97,7 @@ export const config = {
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)
-      ),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
     },
   },
   wallets: [
