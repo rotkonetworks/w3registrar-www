@@ -9,6 +9,7 @@ import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coin
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
+import { VerificationStatusBadge } from "../VerificationStatusBadge"
 
 export function StatusPage({
   identityStore,
@@ -62,7 +63,8 @@ export function StatusPage({
                 <CheckCircle className="h-4 w-4" />
                 Verification:
               </strong> 
-            <VerificationStatusBadge status={identityStore.status} />            </div>
+              <VerificationStatusBadge status={identityStore.status} />
+            </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
