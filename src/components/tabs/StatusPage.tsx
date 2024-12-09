@@ -84,9 +84,6 @@ export function StatusPage({
             <strong>Field Statuses:</strong>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
               {Object.entries(challengeStore)
-                /* .filter(([field, { status }]: 
-                  [string, Challenge]
-                ) => identityStore[field]) */
                 .map(([field, { status, code }]: 
                   [string, Challenge]
                 ) => (
