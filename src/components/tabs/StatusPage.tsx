@@ -123,7 +123,7 @@ export function StatusPage({
               onIdentityClear()
             }} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-            disabled={onChainIdentity !== verifiyStatuses.IdentityVerified}
+            disabled={onChainIdentity <= verifiyStatuses.NoIdentity}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity
