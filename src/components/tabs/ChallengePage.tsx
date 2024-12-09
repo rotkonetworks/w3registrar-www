@@ -8,6 +8,7 @@ import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useState } from "react"
+import { VerificationStatusBadge } from "../VerificationStatusBadge"
 
 export function ChallengePage({
   addNotification,
@@ -67,16 +68,21 @@ export function ChallengePage({
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
-          <div className="mb-4">
-            <Label className="text-inherit flex items-center gap-2 mb-2">
-              <UserCircle className="h-4 w-4" />
-              Display Name
-            </Label>
+          <div className="mb-4 last:mb-0">
             <div className="flex justify-between items-center">
-              <span>{identityStore.info?.display || "Not Set"}</span>
-              {identityStore.status === verifiyStatuses.IdentityVerified && (
-                <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-              )}
+              <Label className="text-inherit flex items-center gap-2 mb-2">
+                <UserCircle className="h-4 w-4" />
+                Display Name
+              </Label>
+              <VerificationStatusBadge status={identityStore.status} />
+            </div>
+            <div className="flex space-x-2 items-center">
+              <div className="flex justify-between items-center">
+                <span>{identityStore.info?.display || "Not Set"}</span>
+                {identityStore.status === verifiyStatuses.IdentityVerified && (
+                  <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
+                )}
+              </div>
             </div>
           </div>
           {Object.entries(challenges).map(([field, { code, status }]) => (
