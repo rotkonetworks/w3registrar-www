@@ -114,9 +114,7 @@ export function StatusPage({
         <IdentityStatusInfo status={identityStore.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="outline" 
-            onClick={() => {
-              onIdentityClear()
-            }} 
+            onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
             disabled={onChainIdentity <= verifiyStatuses.NoIdentity}
           >
