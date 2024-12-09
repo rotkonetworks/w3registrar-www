@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import BigNumber from "bignumber.js"
+import { IdentityStatusInfo } from "../IdentityStatusInfo"
 
 export function StatusPage({
   identityStore,
@@ -115,6 +116,7 @@ export function StatusPage({
             </div>
           </div>
         </div>
+        <IdentityStatusInfo status={identityStore.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="outline" 
             onClick={() => {

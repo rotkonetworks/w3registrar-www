@@ -418,30 +418,6 @@ export function IdentityRegistrarComponent() {
           </TabsContent>
         </Tabs>
 
-        <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
-          <Info className="h-4 w-4" />
-          <AlertTitle>On-chain Identity Status
-            : <strong>{verifiyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ")}</strong>
-          </AlertTitle>
-          <AlertDescription>
-            {identityStore.status === verifiyStatuses.NoIdentity 
-              && "No identity set. You need to set your identity before requesting judgement."
-            }
-            {identityStore.status === verifiyStatuses.IdentitySet 
-              && "Identity already set. You can update your identity or request judgement."
-            }
-            {identityStore.status === verifiyStatuses.JudgementRequested 
-              && "Judgement request sent. You should pay the fee, which is 0.2 DOT."
-            }
-            {identityStore.status === verifiyStatuses.FeePaid 
-              && "Judgement reqyested and paid fee. You need to complete the challenges."
-            }
-            {identityStore.status === verifiyStatuses.IdentityVerified 
-              && "Your identity is verified! Congrats!"
-            }
-          </AlertDescription>
-        </Alert>
-
         <div className="flex justify-between mt-6">
           <Button
             variant="outline"

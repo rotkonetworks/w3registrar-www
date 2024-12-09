@@ -14,6 +14,7 @@ import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
+import { IdentityStatusInfo } from '../IdentityStatusInfo'
 
 export function IdentityForm<Chain>({
   addNotification,
@@ -289,6 +290,7 @@ export function IdentityForm<Chain>({
                 <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
               </div>
             )}
+            <IdentityStatusInfo status={identityStore.status} />
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Button type="submit" disabled={forbiddenSubmission}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
