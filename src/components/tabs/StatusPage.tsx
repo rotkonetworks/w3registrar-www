@@ -62,11 +62,7 @@ export function StatusPage({
                 <CheckCircle className="h-4 w-4" />
                 Verification:
               </strong> 
-              {identityStore.status == verifiyStatuses.IdentityVerified ? 
-                <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge> : 
-                <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Not Verified</Badge>
-              }
-            </div>
+            <VerificationStatusBadge status={identityStore.status} />            </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
