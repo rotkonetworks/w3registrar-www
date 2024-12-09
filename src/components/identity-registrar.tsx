@@ -373,7 +373,7 @@ export function IdentityRegistrarComponent() {
           </Alert>
         ))}
 
-        <Tabs defaultValue={pages[currentPage].name} className="w-full">
+        <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
             {pages.map((page, index) => (
               <TabsTrigger 
