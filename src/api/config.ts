@@ -9,28 +9,26 @@ import {
   people_rococo,
 } from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
-import { InjectedWalletAggregator } from "@reactive-dot/core/wallets.js";
-import { chainSpec as peoplePolkadotChainSpec } from "polkadot-api/chains/polkadot_people";
-import { chainSpec as peopleKusamaChainSpec } from "polkadot-api/chains/ksmcc3_people";
-import { chainSpec as peopleWestendChainSpec } from "polkadot-api/chains/westend2_people";
-import { chainSpec as polkadotChainSpec } from "polkadot-api/chains/polkadot";
-import { chainSpec as kusamaChainSpec } from "polkadot-api/chains/ksmcc3";
-import { chainSpec as westendChainSpec } from "polkadot-api/chains/westend2";
-import { getSmProvider } from "polkadot-api/sm-provider";
-import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
+import { createLightClientProvider } from "@reactive-dot/core/providers/light-client.js";
+import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
 
-const initWorker = () =>
-  startFromWorker(
-    new Worker(new URL("polkadot-api/smoldot/worker", import.meta.url), {
-      type: "module",
-    }),
-  );
-export let smoldot = initWorker();
+const getProviders = () => {
+  const lightClientProvider = createLightClientProvider();
+  const polkadot = lightClientProvider.addRelayChain({ id: "polkadot" });
+  const kusama = lightClientProvider.addRelayChain({ id: "kusama" });
+  const westend = lightClientProvider.addRelayChain({ id: "westend" });
+
+  return {
+    lightClientProvider,
+    polkadot,
+    kusama, 
+    westend
+  };};
+export let providers = getProviders();
 
 type ApiConfig = Config & {
   chains: Record<
@@ -46,62 +44,51 @@ export const config = {
     people_polkadot: {
       name: "Polkadot",
       descriptor: people_polkadot,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: peoplePolkadotChainSpec }),
-      )),
+      provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
     people_kusama: {
       name: "Kusama",
       descriptor: people_kusama,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: peopleKusamaChainSpec }),
-      )),
+      provider: providers.kusama.addParachain({ id: "kusama_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
     },
     people_westend: {
       name: "Westend",
       descriptor: people_westend,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: peopleWestendChainSpec }),
-      )),
+      provider: providers.westend.addParachain({ id: "people_westend_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
     polkadot: {
       name: "Polkadot",
       descriptor: polkadot,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: polkadotChainSpec }),
-      )),
+      provider: providers.polkadot,
     },
     kusama: {
       name: "Kusama",
       descriptor: kusama,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: kusamaChainSpec })
-      )),
+      provider: providers.kusama,
     },
     westend: {
       name: "Westend",
       descriptor: westend,
-      provider: withPolkadotSdkCompat(getSmProvider(
-        smoldot.addChain({ chainSpec: westendChainSpec }),
-      )),
+      provider: providers.westend,
     },
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY),
     },
   },
+  targetChains: ["people-polkadot", "popple_kusama", "people_westend", "people_rococo"],
   wallets: [
-    new InjectedWalletAggregator(),
+    new InjectedWalletProvider(),
     new LedgerWallet(),
     new WalletConnect({
       projectId: import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_ID,
