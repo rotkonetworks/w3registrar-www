@@ -422,14 +422,16 @@ export function IdentityRegistrarComponent() {
           <Button
             variant="outline"
             onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
+            disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           >
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button
             onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-            disabled={currentPage === pages.length - 1}
+            disabled={currentPage === pages.length - 1 
+              || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+            }
             className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
           >
             Next <ChevronRight className="ml-2 h-4 w-4" />
