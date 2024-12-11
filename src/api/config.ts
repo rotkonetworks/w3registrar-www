@@ -8,7 +8,7 @@ import {
   people_westend,
   people_rococo,
 } from "@polkadot-api/descriptors";
-import type { ChainConfig, Config } from "@reactive-dot/core";
+import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
@@ -39,7 +39,7 @@ type ApiConfig = Config & {
     }
   >;
 };
-export const config = {
+export const config = defineConfig({
   chains: {
     people_polkadot: {
       name: "Polkadot",
@@ -113,7 +113,7 @@ export const config = {
       ],
     }),
   ],
-} as const satisfies ApiConfig;
+} as const satisfies ApiConfig);
 
 // Register dot-connect custom elements & configure supported wallets
 registerDotConnect({
