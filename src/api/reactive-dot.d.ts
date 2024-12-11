@@ -1,6 +1,7 @@
-import type { config } from "./config";
-import type { InferChains } from "@reactive-dot/core";
+import type { config } from "./config.js";
 
 declare module "@reactive-dot/core" {
-  export interface Chains extends InferChains<typeof config> {}
+  export interface Register {
+    config: typeof config;
+  }
 }
