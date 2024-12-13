@@ -30,6 +30,9 @@ const InternalPolkadotApi = (props: PolkadotApiWrapperProps) => {
     context.accounts = accounts
   }, [accounts])
   useEffect(() => {
+    if (!accountStore) {
+      return;
+    }
     if (!accountStore.address || accounts.length < 1) {
       return;
     }
@@ -42,12 +45,18 @@ const InternalPolkadotApi = (props: PolkadotApiWrapperProps) => {
     }
     const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
     Object.assign(accountStore, newAccountData)
-  }, [accountStore.polkadotSigner, accountStore.address, accounts])
+  }, [accountStore?.polkadotSigner, accountStore?.address, accounts])
   //#endregion accounts
   
   const typedApi = useTypedApi<chainStore.id>({ chainId: chainStore.id })
   useEffect(() => {
-    context.typedApi = typedApi
+    if (typedApi) {
+      context.typedApi = typedApi
+      import.meta.env.DEV && console.log({ 
+        typedApi,
+        call: typedApi.constants.Identity.ByteDeposit,
+      })
+    }
   }, [typedApi])
 
   //#region chains
@@ -87,7 +96,7 @@ const InternalPolkadotApi = (props: PolkadotApiWrapperProps) => {
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
-    address: accountStore.address,
+    address: accountStore?.address,
     handlers: eventHandlers,
   })
   useEffect(() => {
