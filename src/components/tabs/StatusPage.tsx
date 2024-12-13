@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "../ui/alert"
 import BigNumber from "bignumber.js"
+import { IdentityStatusInfo } from "../IdentityStatusInfo"
+import { VerificationStatusBadge } from "../VerificationStatusBadge"
 
 export function StatusPage({
   identityStore,
@@ -61,10 +63,7 @@ export function StatusPage({
                 <CheckCircle className="h-4 w-4" />
                 Verification:
               </strong> 
-              {identityStore.status == verifiyStatuses.IdentityVerified ? 
-                <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge> : 
-                <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Not Verified</Badge>
-              }
+              <VerificationStatusBadge status={identityStore.status} />
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
@@ -85,9 +84,6 @@ export function StatusPage({
             <strong>Field Statuses:</strong>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
               {Object.entries(challengeStore)
-                /* .filter(([field, { status }]: 
-                  [string, Challenge]
-                ) => identityStore[field]) */
                 .map(([field, { status, code }]: 
                   [string, Challenge]
                 ) => (
@@ -115,13 +111,12 @@ export function StatusPage({
             </div>
           </div>
         </div>
+        <IdentityStatusInfo status={identityStore.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="outline" 
-            onClick={() => {
-              onIdentityClear()
-            }} 
+            onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-            disabled={onChainIdentity !== verifiyStatuses.IdentityVerified}
+            disabled={onChainIdentity <= verifiyStatuses.NoIdentity}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity

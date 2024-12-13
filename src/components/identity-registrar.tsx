@@ -14,7 +14,7 @@ import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useChainSpecData, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -147,28 +147,41 @@ export function IdentityRegistrarComponent() {
     })
   , [accountStore.address, typedApi]);
   useEffect(() => {
+    import.meta.env.DEV && console.log({ typedApi, accountStore })
+    identityStore.deposit = null;
+    identityStore.info = null
+    identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
       getIdAndJudgement();
     }
-  }, [accountStore.address, typedApi])
+  }, [accountStore.address, getIdAndJudgement])
   //#endregion identity
   
   //#region chains
-  const chainSpecData = useChainSpecData()
+  const chainClient = useClient({ chainId: chainStore.id })
   
   useEffect(() => {
-    ((async () => startTransition(() => {
+    ((async () => {
       const id = chainStore.id;
       
+      let chainProperties
+      try {
+        chainProperties = (await chainClient.getChainSpecData()).properties
+        import.meta.env.DEV && console.log({ id, chainProperties })
+      } catch {
+        console.error({ id, error })
+      }
       const newChainData = {
         name: chainContext.chains[id].name,
         registrarIndex: chainContext.chains[id].registrarIndex,
-        ...chainSpecData.properties,
+        ...chainProperties,
       }
-      Object.assign(chainStore, newChainData)
-      import.meta.env.DEV && console.log({ id, newChainData })
-    })) ())
-  }, [chainStore.id])
+      startTransition(() => {
+        Object.assign(chainStore, newChainData)
+        import.meta.env.DEV && console.log({ id, newChainData })
+      })
+    }) ())
+  }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: keyof Chains) => {
     chainStore.id = chainId;
   }, [])
@@ -219,7 +232,6 @@ export function IdentityRegistrarComponent() {
       priority: 4,
     },
   }), [accountStore.address, chainStore.id])  
-  
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
@@ -361,7 +373,7 @@ export function IdentityRegistrarComponent() {
           </Alert>
         ))}
 
-        <Tabs defaultValue={pages[currentPage].name} className="w-full">
+        <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
             {pages.map((page, index) => (
               <TabsTrigger 
@@ -406,42 +418,20 @@ export function IdentityRegistrarComponent() {
           </TabsContent>
         </Tabs>
 
-        <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
-          <Info className="h-4 w-4" />
-          <AlertTitle>On-chain Identity Status
-            : <strong>{verifiyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ")}</strong>
-          </AlertTitle>
-          <AlertDescription>
-            {identityStore.status === verifiyStatuses.NoIdentity 
-              && "No identity set. You need to set your identity before requesting judgement."
-            }
-            {identityStore.status === verifiyStatuses.IdentitySet 
-              && "Identity already set. You can update your identity or request judgement."
-            }
-            {identityStore.status === verifiyStatuses.JudgementRequested 
-              && "Judgement request sent. You should pay the fee, which is 0.2 DOT."
-            }
-            {identityStore.status === verifiyStatuses.FeePaid 
-              && "Judgement reqyested and paid fee. You need to complete the challenges."
-            }
-            {identityStore.status === verifiyStatuses.IdentityVerified 
-              && "Your identity is verified! Congrats!"
-            }
-          </AlertDescription>
-        </Alert>
-
         <div className="flex justify-between mt-6">
           <Button
             variant="outline"
             onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
+            disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           >
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
           <Button
             onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-            disabled={currentPage === pages.length - 1}
+            disabled={currentPage === pages.length - 1 
+              || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+            }
             className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
           >
             Next <ChevronRight className="ml-2 h-4 w-4" />

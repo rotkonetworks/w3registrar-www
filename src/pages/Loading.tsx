@@ -9,7 +9,10 @@ export function Loading() {
   }, [isDarkMode])
   
   return (
-    <div className={'h-100vh flex-center ' + isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}>
+    <div className={`h-screen flex flex-center text-4xl ${isDarkMode
+      ? 'bg-[#2C2B2B] text-[#FFFFFF]'
+      : 'bg-[#FFFFFF] text-[#1E1E1E]'
+    }`}>
       Loading...
     </div>
   );
