@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, Info, AlertCircle } from "lucide-react"
+import { useState, useEffect, useCallback, useMemo } from "react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -14,18 +14,14 @@ import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
-import { IdentityJudgement } from "@polkadot-api/descriptors"
-import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
-import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
+import { polkadotApiStore } from "~/store/PolkadotApiStore"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -37,7 +33,6 @@ export function IdentityRegistrarComponent() {
   const challengeStore = useProxy(_challengeStore);
   const chainContext = config;
   const chainStore = useProxy(_chainStore);
-  const typedApi = useTypedApi({ chainId: chainStore.id })
   //# endregion Chains
 
   const pages = [
@@ -71,25 +66,11 @@ export function IdentityRegistrarComponent() {
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
-  //#region accounts
   const accountStore = useProxy(_accountStore)
 
-  const accounts = useAccounts()
-  useEffect(() => {
-    if (!accountStore.address || accounts.length < 1) {
-      return;
-    }
-    if (accountStore.polkadotSigner && accountStore.address) {
-      return;
-    }
-    const foundAccount = accounts.find(account => account.address === accountStore.address)
-    if (!foundAccount) {
-      return;
-    }
-    const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
-    Object.assign(accountStore, newAccountData)
-  }, [accountStore.polkadotSigner, accountStore.address, accounts])
-  //#endregion accounts
+  const { 
+    typedApi, chainConstants, connectedVallets, disconnectWallet, setChainId 
+  } = useSnapshot(polkadotApiStore)
 
   //#region identity
   const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
@@ -145,7 +126,7 @@ export function IdentityRegistrarComponent() {
         console.error(e);
       }
     })
-  , [accountStore.address, typedApi]);
+    , [accountStore.address, typedApi]);
   useEffect(() => {
     import.meta.env.DEV && console.log({ typedApi, accountStore })
     identityStore.deposit = null;
@@ -156,36 +137,7 @@ export function IdentityRegistrarComponent() {
     }
   }, [accountStore.address, getIdAndJudgement])
   //#endregion identity
-  
-  //#region chains
-  const chainClient = useClient({ chainId: chainStore.id })
-  
-  useEffect(() => {
-    ((async () => {
-      const id = chainStore.id;
-      
-      let chainProperties
-      try {
-        chainProperties = (await chainClient.getChainSpecData()).properties
-        import.meta.env.DEV && console.log({ id, chainProperties })
-      } catch {
-        console.error({ id, error })
-      }
-      const newChainData = {
-        name: chainContext.chains[id].name,
-        registrarIndex: chainContext.chains[id].registrarIndex,
-        ...chainProperties,
-      }
-      startTransition(() => {
-        Object.assign(chainStore, newChainData)
-        import.meta.env.DEV && console.log({ id, newChainData })
-      })
-    }) ())
-  }, [chainStore.id, chainClient])
-  const onChainSelect = useCallback((chainId: keyof Chains) => {
-    chainStore.id = chainId;
-  }, [])
-  
+  //#region chains  
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
@@ -232,12 +184,6 @@ export function IdentityRegistrarComponent() {
       priority: 4,
     },
   }), [accountStore.address, chainStore.id])  
-  const { constants: chainConstants } = useChainRealTimeInfo({
-    typedApi,
-    chainId: chainStore.id,
-    address: accountStore.address,
-    handlers: eventHandlers,
-  })
   //#endregion chains
   
   const onNotification = useCallback((notification: NotifyAccountState): void => {
@@ -295,14 +241,11 @@ export function IdentityRegistrarComponent() {
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
-  
+
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
   const onIdentityClear = useCallback(() => _clearIdentity().signAndSubmit(
     accountStore?.polkadotSigner
   ), [_clearIdentity])
-  
-  const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
   
   const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
 
@@ -334,7 +277,7 @@ export function IdentityRegistrarComponent() {
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onChainSelect={onChainSelect}
+          onChainSelect={setChainId}
           accountStore={accountStore} 
           identityStore={identityStore}
           onRequestWalletConnections={() => setWalletDialogOpen(true)}
