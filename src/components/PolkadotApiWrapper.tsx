@@ -1,29 +1,29 @@
-import { ChainProvider, ReactiveDotProvider, useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
-import { startTransition, Suspense, useCallback, useEffect } from "react"
-import { useProxy } from "valtio/utils"
+import { 
+  ChainProvider, ReactiveDotProvider, useAccounts, useClient, useConnectedWallets, useTypedApi, 
+  useWalletDisconnector, 
+} from "@reactive-dot/react"
+import { startTransition, useCallback, useDeferredValue, useEffect } from "react"
+import { ApiConfig } from "~/api/config2"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { AccountData } from "~/store/AccountStore"
 import { ChainInfo } from "~/store/ChainStore"
-import { IdentityStore } from "~/store/IdentityStore"
-import { IPolkadotApiStore, polkadotApiStore } from "~/store/PolkadotApiStore"
+import { IPolkadotApiStore } from "~/store/PolkadotApiStore"
 
-const InternalPolkadotApi = ({
-  context,
-  accountStore,
-  chainStore,
-  identityStore,
-  eventHandlers,
-}: {
-  context: IPolkadotApiStore,
-  accountStore: AccountData,
-  chainStore: ChainInfo,
-  identityStore: IdentityStore,
+interface PolkadotApiWrapperProps {
+  config: ApiConfig
+  context: IPolkadotApiStore
+  accountStore: AccountData
+  chainStore: ChainInfo
+  isLoading: boolean
   eventHandlers: Record<string, {
-    onEvent: (data: any) => void,
-    onError: (error: Error) => void,
-    priority?: number,
+    onEvent: (data: any) => void
+    onError: (error: Error) => void
+    priority?: number
   }>
-}) => {
+}
+
+const InternalPolkadotApi = (props: PolkadotApiWrapperProps) => {
+  const { config, context, accountStore, chainStore, eventHandlers, isLoading } = props
   //#region accounts
   const accounts = useAccounts()
   useEffect(() => {
@@ -67,8 +67,8 @@ const InternalPolkadotApi = ({
         console.error({ id, error })
       }
       const newChainData = {
-        name: chainContext.chains[id].name,
-        registrarIndex: chainContext.chains[id].registrarIndex,
+        name: config.chains[id].name,
+        registrarIndex: config.chains[id].registrarIndex,
         ...chainProperties,
       }
       startTransition(() => {
@@ -106,12 +106,22 @@ const InternalPolkadotApi = ({
   }, [disconnectWallet])
   //#endregion Wallets
 }
-export const PolkadotApiWrapper = ({ config, chainId }) => {
-  <Suspense>
-    <ReactiveDotProvider config={config}>
-      <ChainProvider chainId={chainId}>
-        <InternalPolkadotApi />
-      </ChainProvider>
-    </ReactiveDotProvider>
-  </Suspense>
+export const PolkadotApiWrapper = ({ config, chainId, accountStore, chainStore, context, eventHandlers }: { 
+  config: ApiConfig,
+  chainId: keyof Chains,
+} & PolkadotApiWrapperProps) => {
+  const chainId2 = useDeferredValue(chainId)
+  const isLoading = chainId !== chainId2
+
+  return <>
+    {!isLoading &&
+      <ReactiveDotProvider config={config}>
+        <ChainProvider chainId={chainId}>
+          <InternalPolkadotApi accountStore={accountStore} config={config} chainStore={chainStore} 
+            context={context} eventHandlers={eventHandlers} isLoading={isLoading}
+          />
+        </ChainProvider>
+      </ReactiveDotProvider>
+    }
+  </>
 }
