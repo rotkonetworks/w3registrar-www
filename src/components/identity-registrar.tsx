@@ -21,7 +21,8 @@ import { StatusPage } from "./tabs/StatusPage"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
-import { polkadotApiStore } from "~/store/PolkadotApiStore"
+import { polkadotApiStore as _polkadotApiStore } from "~/store/PolkadotApiStore"
+import { PolkadotApiWrapper } from "./PolkadotApiWrapper"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -68,12 +69,13 @@ export function IdentityRegistrarComponent() {
 
   const accountStore = useProxy(_accountStore)
 
+  const polkadotApiStore = useProxy(_polkadotApiStore)
   const { 
-    typedApi, chainConstants, connectedVallets, disconnectWallet, setChainId 
-  } = useSnapshot(polkadotApiStore)
+    typedApi, chainConstants, accounts, connectedVallets, disconnectWallet, setChainId 
+  } = polkadotApiStore
 
   //#region identity
-  const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const getIdAndJudgement = useCallback(() => typedApi?.query.Identity?.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
       import.meta.env.DEV && console.log({ identityOf: result })
@@ -126,14 +128,14 @@ export function IdentityRegistrarComponent() {
         console.error(e);
       }
     })
-    , [accountStore.address, typedApi]);
+  , [accountStore.address, typedApi]);
   useEffect(() => {
     import.meta.env.DEV && console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
     identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
-      getIdAndJudgement();
+      getIdAndJudgement?.();
     }
   }, [accountStore.address, getIdAndJudgement])
   //#endregion identity
@@ -266,17 +268,22 @@ export function IdentityRegistrarComponent() {
   //#endregion CostExtimations
 
   return <>
+    <PolkadotApiWrapper context={polkadotApiStore} accountStore={accountState} 
+      chainId={chainStore.id} chainStore={chainStore} config={config} eventHandlers={eventHandlers}
+    />
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
       dark={isDarkMode}
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header chainContext={chainContext} 
+        <Header chainContext={config} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
-          }} 
+          }}
+          accounts={accounts}
+          connectedWallets={connectedVallets}
           onChainSelect={setChainId}
           accountStore={accountStore} 
           identityStore={identityStore}
