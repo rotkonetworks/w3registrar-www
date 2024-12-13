@@ -16,9 +16,7 @@ const DomTitle: React.FC<Props> = ({ route }) => {
   }, [route]);
 
   return (
-    <Suspense fallback={<Loading />}>
-      <route.element />
-    </Suspense>
+    <route.element />
   );
 };
 
