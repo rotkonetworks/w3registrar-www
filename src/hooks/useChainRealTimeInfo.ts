@@ -26,15 +26,26 @@ export const useChainRealTimeInfo = ({
     if (typedApi) {
       (async () => {
         try {
-          const constants = {
-            byteDeposit: await typedApi.constants.Identity.ByteDeposit(),
-            basicDeposit: await typedApi.constants.Identity.BasicDeposit(),
-            existentialDeposit: await typedApi.constants.Balances.ExistentialDeposit(),
+          const constants: Record<string, bigint> = {};
+          try {
+            constants.byteDeposit = await typedApi.constants.Identity.ByteDeposit();
+          } catch (e) {
+            import.meta.env.DEV && console.error('Failed to get ByteDeposit:', e);
           }
-          import.meta.env.DEV && console.log({ constants })
-          setConstants(constants)
+          try {
+            constants.basicDeposit = await typedApi.constants.Identity.BasicDeposit();
+          } catch (e) {
+            import.meta.env.DEV && console.error('Failed to get BasicDeposit:', e);
+          }
+          try {
+            constants.existentialDeposit = await typedApi.constants.Balances.ExistentialDeposit();
+          } catch (e) {
+            import.meta.env.DEV && console.error('Failed to get ExistentialDeposit:', e);
+          }
+          import.meta.env.DEV && console.log({ constants });
+          setConstants(constants);
         } catch (e) {
-          import.meta.env.DEV && console.error(e)
+          import.meta.env.DEV && console.error('Failed to set constants:', e);
         }
       })()
     }
