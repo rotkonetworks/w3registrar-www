@@ -60,15 +60,15 @@ export const useChainRealTimeInfo = ({
     const timer = window.setInterval(() => {
       [..._pendingBlocks.current]
         .sort((b1, b2) => 
-          b2.neta.block.number*100 + handlers[b2.type].priority - b1.neta.block.number*100 + handlers[b1.type].priority 
+          b2.neta.block.number*100 + handlers[b2.type].priority 
+          - b1.neta.block.number*100 + handlers[b1.type].priority 
         )
         .forEach(block => {
           handlers[block.type].onEvent(block)
           import.meta.env.DEV && console.log({ block, })
-        })
-      ;
+        });
       _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
-    },  CHAIN_UPDATE_INTERVAL)
+    }, CHAIN_UPDATE_INTERVAL)
     return () => {
       window.clearInterval(timer)
       _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
