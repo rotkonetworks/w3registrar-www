@@ -18,10 +18,14 @@ export const useChainRealTimeInfo = ({
     onError?: (error: Error) => void;
     priority: number;
   }>
-}) => {  
-  const [ constants, setConstants ] = useState<Record<string, any>>({});
+}) => {
+  const [constants, setConstants] = useState<{
+    existentialDeposit?: bigint,
+    byteDeposit?: bigint,
+    basicDeposit?: bigint,
+  }>({});
   useEffect(() => console.log(constants), [constants])
-  
+
   useEffect(() => {
     if (typedApi) {
       (async () => {
