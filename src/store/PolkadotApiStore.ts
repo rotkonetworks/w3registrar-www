@@ -17,4 +17,5 @@ export interface IPolkadotApiStore {
 
 export const polkadotApiStore = proxy<IPolkadotApiStore>({
   accounts: [],
+  connectedVallets: [],
 })
