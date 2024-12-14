@@ -78,7 +78,7 @@ export const config = defineConfig({
     people_rococo: {
       name: "Rococo",
       descriptor: people_rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
     rococo: {
