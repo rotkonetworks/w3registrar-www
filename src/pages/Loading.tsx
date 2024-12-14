@@ -40,13 +40,23 @@ export function Loading() {
           </div>
         </div>
         
-        {/* Tabs */}
-        <div className="w-full flex flex-grow">
+        <div className="w-full flex flex-grow flex-col flex-stretch">
+          {/* Tabs */}
           <LoadingPlaceholder 
-            className="h-10  rounded-md p-1 text-muted-foreground grid w-full grid-cols-3 overflow-hidden"
+            className="h-10 rounded-md p-1 text-muted-foreground grid w-full grid-cols-3 overflow-hidden"
           />
-          <div className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <LoadingPlaceholder className="w-full h-96" />
+          {/* Content */}
+          <div className="flex flex-grow flex-col items-stretch mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <LoadingPlaceholder className="flex flex-grow w-full" />
+
+            <div className="flex justify-between mt-6">
+              <div className="flex w-full sm:w-auto">
+                <LoadingPlaceholder className="min-w-[140px] h-10" />
+              </div>
+              <div className="flex w-full sm:w-auto">
+                <LoadingPlaceholder className="min-w-[140px] h-10" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
