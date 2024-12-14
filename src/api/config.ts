@@ -15,6 +15,7 @@ import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createLightClientProvider } from "@reactive-dot/core/providers/light-client.js";
 import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 const getProviders = () => {
   const lightClientProvider = createLightClientProvider();
@@ -83,7 +84,7 @@ export const config = defineConfig({
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
     },
   },
   targetChains: ["people-polkadot", "popple_kusama", "people_westend", "people_rococo"],
