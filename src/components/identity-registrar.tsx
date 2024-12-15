@@ -305,7 +305,8 @@ export function IdentityRegistrarComponent() {
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
   
-  const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
+  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
+  const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState({})
