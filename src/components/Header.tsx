@@ -1,15 +1,13 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Bell, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from '~/store/AppStore';
-import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfigContextProps } from "~/api/config2";
-import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
+import { useConnectedWallets } from "@reactive-dot/react";
 import { Account } from "~/store/AccountStore";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
-import { ChainInfo } from "~/store/ChainStore";
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
