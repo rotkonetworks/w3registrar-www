@@ -22,8 +22,8 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  config: chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
-  onIdentityClear, onDisconnect, accounts,
+  config: chainContext, chainStore, accountStore, onChainSelect, onAccountSelect, identityStore, 
+  accounts,
 }: { 
   accounts: WalletAccount[],
   config: ConfigContextProps;
@@ -31,9 +31,7 @@ const Header = ({
   accountStore: Account;
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
-  onRequestWalletConnections: () => void;
-  onIdentityClear: () => void;
-  onDisconnect: () => void;
+  onAccountSelect: ({ type: string, [key]: string }) => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -59,41 +57,13 @@ const Header = ({
   const connectedWallets = useConnectedWallets()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
-  const updateAccount = ({ id, name, address, ...rest }) => {
-    const account = { id, name, address, ...rest };
-    import.meta.env.DEV && console.log({ account });
-    Object.assign(accountStore, account);
-    // Needed to prevent circular references for serialization
-    const accountToLocalStore = { id, name, address };
-    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
-  };
   //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[240px]">
         <Select 
-          onValueChange={(newValue) => {
-            import.meta.env.DEV && console.log({ newValue })
-            switch (newValue.type) {
-              case "Wallets":
-                onRequestWalletConnections();
-                break;
-              case "Disconnect":
-                onDisconnect();
-                break;
-              case "Teleport":
-                break;
-              case "RemoveIdentity":
-                onIdentityClear();
-                break;
-              case "account":
-                updateAccount({ ...newValue.account });
-                break;
-              default:
-                throw new Error("Invalid action type");
-            }
-          }} 
+          onValueChange={onAccountSelect} 
           open={isUserDropdownOpen}
           onOpenChange={() => {
             if (connectedWallets.length > 0) {
@@ -126,7 +96,7 @@ const Header = ({
                 <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
               </>}
               {accountStore.address && <>
-                <SelectItem value="Teleport">Teleport</SelectItem>
+                <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
               </>}
               <SelectSeparator />
               {accounts.length > 0 

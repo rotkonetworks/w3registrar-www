@@ -90,6 +90,15 @@ export function IdentityRegistrarComponent() {
     const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
     Object.assign(accountStore, newAccountData)
   }, [accountStore.polkadotSigner, accountStore.address, accounts])
+
+  const updateAccount = ({ id, name, address, ...rest }) => {
+    const account = { id, name, address, ...rest };
+    import.meta.env.DEV && console.log({ account });
+    Object.assign(accountStore, account);
+    // Needed to prevent circular references for serialization
+    const accountToLocalStore = { id, name, address };
+    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
+  };
   //#endregion accounts
 
   //#region identity
@@ -324,10 +333,40 @@ export function IdentityRegistrarComponent() {
   }, [openDialog, chainStore.id])
   //#endregion CostExtimations
   
-  const handleOpenChange = useEffect((state: boolean): void => {
-    setOpenDialog(_state => state ? _state : null)
+  const handleOpenChange = useCallback((nextState: boolean): void => {
+    setOpenDialog(previousState => {
+      import.meta.env.DEV && console.log({ state: nextState, _state: previousState })
+      return nextState ? previousState : null
+    })
   }, [])
 
+  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+    import.meta.env.DEV && console.log({ newValue })
+    switch (newValue.type) {
+      case "Wallets":
+        setWalletDialogOpen(true);
+        break;
+      case "Disconnect":
+        setOpenDialog("disconnect")
+        break;
+      case "Teleport":
+        setOpenDialog("teleposr")
+        break;
+      case "RemoveIdentity":
+        setOpenDialog("clearIdentity")
+        break;
+      case "account":
+        updateAccount({ ...newValue.account });
+        break;
+      case "Teleport":
+        setOpenDialog("teleposr")
+        break;
+      default:
+        console.log({ newValue })
+        throw new Error("Invalid action type");
+    }
+  }, [])
+  
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -336,10 +375,8 @@ export function IdentityRegistrarComponent() {
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
         <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
-          accountStore={accountStore} identityStore={identityStore} 
-          onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-          onDisconnect={() => setOpenDialog("disconnect")}
+          onAccountSelect={onAccountSelect} accountStore={accountStore} 
+          identityStore={identityStore} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
