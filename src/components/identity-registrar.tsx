@@ -335,17 +335,15 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header chainContext={chainContext} 
+        <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
+          accountStore={accountStore} identityStore={identityStore} 
+          onRequestWalletConnections={() => setWalletDialogOpen(true)}
+          onIdentityClear={() => setOpenDialog("clearIdentity")}
+          onDisconnect={() => setOpenDialog("disconnect")}
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onChainSelect={onChainSelect}
-          accountStore={accountStore} 
-          identityStore={identityStore}
-          onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-          onDisconnect={() => setOpenDialog("disconnect")}
         />
 
         {[...alertsStore.entries()].map(([, alert]) => (
