@@ -10,9 +10,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
+import { TypedApi } from "polkadot-api"
+import { ApiConfig } from "~/api/config2"
 
-export default function Teleporter() {
-  const [open, setOpen] = React.useState(false)
+export default function TeleporterDialog({ accounts, typedApi, config, open, onOpenChange }: {
+  accounts: WalletAccount[],
+  chainId: Chains,
+  typedApi: TypedApi,
+  config: ApiConfig,
+  open: boolean,
+  onOpenChange: (open: boolean) => void,
+}) {
   const [isReversed, setIsReversed] = React.useState(false)
   const [fromWallet, setFromWallet] = React.useState("")
   const [toWallet, setToWallet] = React.useState("")

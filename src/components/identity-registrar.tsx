@@ -26,6 +26,7 @@ import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
+import TeleporterDialog from "./dialogs/Teleporter"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -321,6 +322,10 @@ export function IdentityRegistrarComponent() {
     }
   }, [openDialog, chainStore.id])
   //#endregion CostExtimations
+  
+  const handleOpenChange = useEffect((state: boolean): void => {
+    setOpenDialog(_state => state ? _state : null)
+  }, [])
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -440,9 +445,9 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    <Dialog open={openDialog} onOpenChange={(state) => {
-      setOpenDialog(_state => state ? _state : null)
-    }}>
+    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
@@ -508,5 +513,8 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} onOpenChange={handleOpenChange}
+    />
   </>
 }
