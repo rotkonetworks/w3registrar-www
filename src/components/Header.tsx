@@ -13,6 +13,7 @@ import { ChainInfo } from "~/store/ChainStore";
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
+import { WalletAccount } from "node_modules/@reactive-dot/core/build/wallets/account";
 
 const AccountListing = ({ address, name }) => <>
   <PolkadotIdenticon address={address} />
@@ -23,10 +24,11 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
-  onIdentityClear, onDisconnect,
+  config: chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
+  onIdentityClear, onDisconnect, accounts,
 }: { 
-  chainContext: ConfigContextProps;
+  accounts: WalletAccount[],
+  config: ConfigContextProps;
   chainStore: { id: string, name: string };
   accountStore: Account;
   identityStore: IdentityStore;
@@ -57,8 +59,6 @@ const Header = ({
   
   //#region userDropdown
   const connectedWallets = useConnectedWallets()
-  
-  const accounts = useAccounts()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
   const updateAccount = ({ id, name, address, ...rest }) => {
