@@ -49,15 +49,18 @@ export default function TeleporterDialog({
 
   // Assume the first wallet is the current user's wallet
   const currentUserWallet = userWallets[0]
-
-
-  const handleFromWalletChange = (address: string) => {
-    setFromWallet(address)
-    // If toWallet hasn't been explicitly set, update it to match fromWallet
-    if (toWallet === currentUserWallet.address) {
-      setToWallet(address)
-    }
-  }
+  
+  const [comboboxOpen, setComboboxOpen] = React.useState(null)
+  
+  const handleFromWalletChange = React.useCallback((address: string) => {
+    setFromAddress(address)
+    setComboboxOpen(null)
+  }, [])
+  
+  const handleToWalletChange = React.useCallback((address: string) => {
+    setToAddres(address)
+    setComboboxOpen(null)
+  }, [])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,7 +72,9 @@ export default function TeleporterDialog({
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="from-wallet">From Wallet</Label>
-            <Popover>
+            <Popover open={comboboxOpen === "fromAddress"}
+              onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
+            >
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -104,7 +109,9 @@ export default function TeleporterDialog({
 
           <div className="space-y-2">
             <Label htmlFor="to-wallet">To Wallet</Label>
-            <Popover>
+            <Popover open={comboboxOpen === "toAddress"}
+              onOpenChange={(nextState) => setComboboxOpen(nextState ? "toAddress" : null)}
+            >
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -124,7 +131,7 @@ export default function TeleporterDialog({
                       {accounts.map((account) => (
                         <CommandItem
                           key={account.address}
-                          onSelect={() => setToAddres(account.address)}
+                          onSelect={() => handleToWalletChange(account.address)}
                           className="text-[#FFFFFF] hover:bg-[#3A3939]"
                         >
                           {account.name}
