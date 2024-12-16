@@ -25,9 +25,17 @@ export default function TeleporterDialog({
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
+  const [fromAddress, setFromAddress] = React.useState()
+  const [toAddress, setToAddres] = React.useState()
+
+  React.useEffect(() => {
+    if (open) {
+      setFromAddress(address)
+      setToAddres(address)
+    }
+  }, [address, open])
+
   const [isReversed, setIsReversed] = React.useState(false)
-  const [fromAddress, setFromAddress] = React.useState(address)
-  const [toAddress, setToAddres] = React.useState(address)
   const [amount, setAmount] = React.useState("")
   const [selectedChain, setSelectedChain] = React.useState("Asset Hub")
 
