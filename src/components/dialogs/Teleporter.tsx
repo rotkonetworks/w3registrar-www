@@ -12,6 +12,7 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/
 import { Switch } from "../ui/switch"
 import { TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
+import { CommandList } from "cmdk"
 
 export default function TeleporterDialog({ 
   address, accounts, typedApi, config, open, onOpenChange 
@@ -25,8 +26,8 @@ export default function TeleporterDialog({
   onOpenChange: (open: boolean) => void,
 }) {
   const [isReversed, setIsReversed] = React.useState(false)
-  const [fromWallet, setFromWallet] = React.useState("")
-  const [toWallet, setToWallet] = React.useState("")
+  const [fromAddress, setFromAddress] = React.useState(address)
+  const [toAddress, setToAddres] = React.useState(address)
   const [amount, setAmount] = React.useState("")
   const [selectedChain, setSelectedChain] = React.useState("Asset Hub")
 
@@ -49,11 +50,6 @@ export default function TeleporterDialog({
   // Assume the first wallet is the current user's wallet
   const currentUserWallet = userWallets[0]
 
-  React.useEffect(() => {
-    // Set default wallets when the component mounts
-    setFromWallet(currentUserWallet.address)
-    setToWallet(currentUserWallet.address)
-  }, [])
 
   const handleFromWalletChange = (address: string) => {
     setFromWallet(address)
@@ -80,7 +76,7 @@ export default function TeleporterDialog({
                   role="combobox"
                   className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
                 >
-                  {fromWallet ? userWallets.find((wallet) => wallet.address === fromWallet)?.name : "Select wallet"}
+                  {fromAddress ? accounts.find(account => account.address === fromAddress)?.name : "Select wallet"}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -88,17 +84,19 @@ export default function TeleporterDialog({
                 <Command>
                   <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
                   <CommandEmpty>No wallet found.</CommandEmpty>
-                  <CommandGroup>
-                    {userWallets.map((wallet) => (
-                      <CommandItem
-                        key={wallet.address}
-                        onSelect={() => handleFromWalletChange(wallet.address)}
-                        className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                      >
-                        {wallet.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                  <CommandList>
+                    <CommandGroup>
+                      {accounts.map((account) => (
+                        <CommandItem
+                          key={account.address}
+                          onSelect={() => handleFromWalletChange(account.address)}
+                          className="text-[#FFFFFF] hover:bg-[#3A3939]"
+                        >
+                          {account.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
@@ -113,7 +111,7 @@ export default function TeleporterDialog({
                   role="combobox"
                   className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
                 >
-                  {toWallet ? userWallets.find((wallet) => wallet.address === toWallet)?.name : "Select wallet"}
+                  {toAddress ? accounts.find(account => account.address === toAddress)?.name : "Select wallet"}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -121,17 +119,19 @@ export default function TeleporterDialog({
                 <Command>
                   <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
                   <CommandEmpty>No wallet found.</CommandEmpty>
-                  <CommandGroup>
-                    {userWallets.map((wallet) => (
-                      <CommandItem
-                        key={wallet.address}
-                        onSelect={() => setToWallet(wallet.address)}
-                        className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                      >
-                        {wallet.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                  <CommandList>
+                    <CommandGroup>
+                      {accounts.map((account) => (
+                        <CommandItem
+                          key={account.address}
+                          onSelect={() => setToAddres(account.address)}
+                          className="text-[#FFFFFF] hover:bg-[#3A3939]"
+                        >
+                          {account.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
                 </Command>
               </PopoverContent>
             </Popover>
