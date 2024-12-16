@@ -13,7 +13,10 @@ import { Switch } from "../ui/switch"
 import { TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 
-export default function TeleporterDialog({ accounts, typedApi, config, open, onOpenChange }: {
+export default function TeleporterDialog({ 
+  address, accounts, typedApi, config, open, onOpenChange 
+}: {
+  address: string,
   accounts: WalletAccount[],
   chainId: Chains,
   typedApi: TypedApi,
