@@ -106,10 +106,7 @@ const Header = ({
                     {accounts.map(({ id, name, address, ...rest }) => {
                       const account = { id, name, address, ...rest };
                       return (
-                        <SelectItem key={id} value={{ type: "account", account }} onClick={() => {
-                          console.log({ account });
-                          return updateAccount(account);
-                        }}>
+                        <SelectItem key={id} value={{ type: "account", account }}>
                           <AccountListing address={address} name={name} />
                         </SelectItem>
                       );
