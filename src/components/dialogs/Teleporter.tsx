@@ -15,7 +15,7 @@ import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
 
 export default function TeleporterDialog({ 
-  address, accounts, typedApi, config, open, onOpenChange 
+  address, accounts, chainId, typedApi, config, open, onOpenChange 
 }: {
   address: string,
   accounts: WalletAccount[],
@@ -39,12 +39,8 @@ export default function TeleporterDialog({
   const [amount, setAmount] = React.useState("")
   const [selectedChain, setSelectedChain] = React.useState("Asset Hub")
 
-  const chains = [
-    "Asset Hub",
-    "Bridge Hub",
-    "Collectives",
-    "Hydration"
-  ]
+  const relayChainId = chainId.replace("_people", "")
+  const chains = Object.keys(config.chains).filter(chain => chain.includes(relayChainId))
 
   const fixedChain = "People"
   const token = "DOT"
@@ -55,9 +51,6 @@ export default function TeleporterDialog({
     { name: "Charlie", address: "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y" },
   ]
 
-  // Assume the first wallet is the current user's wallet
-  const currentUserWallet = userWallets[0]
-  
   const [comboboxOpen, setComboboxOpen] = React.useState(null)
   
   const handleFromWalletChange = React.useCallback((address: string) => {

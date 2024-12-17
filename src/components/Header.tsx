@@ -6,7 +6,7 @@ import { useProxy } from "valtio/utils";
 import { useEffect, useState } from "react";
 import { ConfigContextProps } from "~/api/config2";
 import { useConnectedWallets } from "@reactive-dot/react";
-import { Account } from "~/store/AccountStore";
+import { Account, accountStore } from "~/store/AccountStore";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
@@ -31,7 +31,7 @@ const Header = ({
   accountStore: Account;
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
-  onAccountSelect: ({ type: string, [key]: string }) => void;
+  onAccountSelect: (props: { type: string, [key: string]: string }) => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -43,7 +43,7 @@ const Header = ({
   const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
 
   useEffect(() => {
-    if (defaultWsUrl && chainStore.id === "people_rococo") {
+    if (defaultWsUrl && chainStore.id === "rococo_people") {
       _setWsUrl(defaultWsUrl);
     } else {
       _setWsUrl("");
@@ -76,13 +76,7 @@ const Header = ({
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             {accountStore.address 
-              ? <>
-                {accountStore.name}
-                <span className="text-xs text-stone-400">
-                  <PolkadotIdenticon address={accountStore.address} />
-                  {accountStore.address.slice(0, 4)}...{accountStore.address.slice(-4)}
-                </span>
-              </>
+              ? <AccountListing address={accountStore.address} name={accountStore.name} />
               : connectedWallets.length > 0
                 ? <span>Pick account</span>
                 : <span>Connect wallet</span>

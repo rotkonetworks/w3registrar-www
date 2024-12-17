@@ -1,4 +1,4 @@
-networks=("polkadot" "westend" "ksmcc3")
+networks=("polkadot" "westend2" "ksmcc3")
 parachains=("asset_hub" "bridge_hub" "collectives" "encointer" "people")
 
 for network in "${networks[@]}"; do
@@ -6,7 +6,8 @@ for network in "${networks[@]}"; do
     echo "Processing $network $parachain"
     network_id="${network}_${parachain}"
     command="bunx papi add ${network_id} -n ${network_id}"
-    echo $command
+    echo \$ $command
     $command
+    echo 
   done
 done
