@@ -1,12 +1,21 @@
 import {
   polkadot,
+  polkadot_asset_hub,
+  polkadot_bridge_hub,
+  polkadot_collectives,
   polkadot_people,
   ksmcc3,
+  ksmcc3_asset_hub,
+  ksmcc3_bridge_hub,
+  ksmcc3_encointer,
   ksmcc3_people,
-  westend2,
-  westend2_people,
   rococo,
   rococo_people,
+  westend2,
+  westend2_asset_hub,
+  westend2_bridge_hub,
+  westend2_collectives,
+  westend2_people,
 } from "@polkadot-api/descriptors";
 import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
@@ -53,6 +62,21 @@ export const config = defineConfig({
       provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
+    polkadot_asset_hub: {
+      name: "Polkadot Asdset Hub",
+      descriptor: polkadot_asset_hub,
+      provider: providers.polkadot.addParachain({ id: "polkadot_asset_hub" }),
+    },
+    polkadot_bridge_hub: {
+      name: "Polkadot Bridge Hub",
+      descriptor: polkadot_bridge_hub,
+      provider: providers.polkadot.addParachain({ id: "polkadot_bridge_hub" }),
+    },
+    polkadot_collectives: {
+      name: "Polkadot People",
+      descriptor: polkadot_collectives,
+      provider: providers.polkadot.addParachain({ id: "polkadot_collectives" }),
+    },
 
     ksmcc3: {
       name: "Kusama",
@@ -65,6 +89,21 @@ export const config = defineConfig({
       provider: providers.ksmcc3.addParachain({ id: "kusama_people" }),
       registrarIndex: import.meta.env.ksmcc3,
     },
+    ksmcc3_asset_hub: {
+      name: "Kusama Asset Hub",
+      descriptor: ksmcc3_asset_hub,
+      provider: providers.polkadot.addParachain({ id: "kusama_asset_hub" }),
+    },
+    ksmcc3_bridge_hub: {
+      name: "Kusama Bridge Hub",
+      descriptor: ksmcc3_bridge_hub,
+      provider: providers.polkadot.addParachain({ id: "kusama_bridge_hub" }),
+    },
+    ksmcc3_encointer: {
+      name: "Kusama Encointer",
+      descriptor: ksmcc3_encointer,
+      provider: providers.polkadot.addParachain({ id: "kusama_encounter" }),
+    },
 
     westend2: {
       name: "Westend",
@@ -76,6 +115,21 @@ export const config = defineConfig({
       descriptor: westend2_people,
       provider: providers.westend.addParachain({ id: "westend2_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
+    },
+    westend2_asset_hub: {
+      name: "Westend Asset Hub",
+      descriptor: westend2_asset_hub,
+      provider: providers.polkadot.addParachain({ id: "westend_asset_hub" }),
+    },
+    westend2_bridge_hub: {
+      name: "Westend Bridge Hub",
+      descriptor: westend2_bridge_hub,
+      provider: providers.polkadot.addParachain({ id: "westend_bridge_hub" }),
+    },
+    westend2_collectives: {
+      name: "Westend Collectives",
+      descriptor: westend2_collectives,
+      provider: providers.polkadot.addParachain({ id: "westend_collectives" }),
     },
 
     rococo: {
