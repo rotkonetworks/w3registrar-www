@@ -358,9 +358,6 @@ export function IdentityRegistrarComponent() {
       case "account":
         updateAccount({ ...newValue.account });
         break;
-      case "Teleport":
-        setOpenDialog("teleposr")
-        break;
       default:
         console.log({ newValue })
         throw new Error("Invalid action type");
