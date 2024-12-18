@@ -25,8 +25,8 @@ export default function TeleporterDialog({
   open: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
-  const [fromAddress, setFromAddress] = React.useState()
-  const [toAddress, setToAddres] = React.useState()
+  const [fromAddress, setFromAddress] = React.useState(address)
+  const [toAddress, setToAddres] = React.useState(address)
 
   React.useEffect(() => {
     if (open) {
@@ -37,10 +37,18 @@ export default function TeleporterDialog({
 
   const [isReversed, setIsReversed] = React.useState(false)
   const [amount, setAmount] = React.useState("")
-  const [selectedChain, setSelectedChain] = React.useState("Asset Hub")
-
   const relayChainId = chainId.replace("_people", "")
-  const chains = Object.keys(config.chains).filter(chain => chain.includes(relayChainId))
+  const [selectedChain, setSelectedChain] = React.useState(relayChainId)
+
+  React.useEffect(() => {
+    if (open) {
+      setSelectedChain(relayChainId)
+    }
+  }, [relayChainId, open])
+
+  const parachains = Object.entries(config.chains)
+    .filter(([id]) => id.includes(relayChainId) && id !== chainId)
+    .map(([id, chain]) => ({ id, name: chain.name }))
 
   const fixedChain = "People"
   const token = "DOT"
@@ -152,7 +160,7 @@ export default function TeleporterDialog({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Select
-                      value={isReversed ? fixedChain : selectedChain}
+                      value={isReversed ? chainId : selectedChain}
                       onValueChange={setSelectedChain}
                       disabled={isReversed}
                     >
@@ -161,15 +169,15 @@ export default function TeleporterDialog({
                       </SelectTrigger>
                       <SelectContent>
                         {isReversed ? (
-                          <SelectItem value={fixedChain}>{fixedChain}</SelectItem>
-                        ) : chains.map((chain) => (
-                          <SelectItem key={chain} value={chain}>{chain}</SelectItem>
+                          <SelectItem value={chainId}>{config.chains[chainId].name}</SelectItem>
+                        ) : parachains.map((chain) => (
+                          <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                    <p>{isReversed ? fixedChain : selectedChain}</p>
+                    <p>{isReversed ? chainId : selectedChain}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -189,7 +197,7 @@ export default function TeleporterDialog({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Select
-                      value={isReversed ? selectedChain : fixedChain}
+                      value={isReversed ? selectedChain : chainId}
                       onValueChange={setSelectedChain}
                       disabled={!isReversed}
                     >
@@ -197,16 +205,17 @@ export default function TeleporterDialog({
                         <SelectValue placeholder="Select chain" />
                       </SelectTrigger>
                       <SelectContent>
-                        {isReversed ? chains.map((chain) => (
-                          <SelectItem key={chain} value={chain}>{chain}</SelectItem>
-                        )) : (
-                          <SelectItem value={fixedChain}>{fixedChain}</SelectItem>
+                        {isReversed ? parachains.map((chain) => (
+                          <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
+                        )) 
+                        : (
+                          <SelectItem value={chainId}>{config.chains[chainId].name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                    <p>{isReversed ? selectedChain : fixedChain}</p>
+                    <p>{isReversed ? selectedChain : chainId}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
