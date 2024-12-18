@@ -53,12 +53,6 @@ export default function TeleporterDialog({
   const fixedChain = "People"
   const token = "DOT"
 
-  const userWallets = [
-    { name: "Alice", address: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" },
-    { name: "Bob", address: "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty" },
-    { name: "Charlie", address: "5FLSigC9HGRKVhB9FiEo4Y3koPsNmBmLJbpXg2mp1hXcS59Y" },
-  ]
-
   const [comboboxOpen, setComboboxOpen] = React.useState(null)
   
   const handleFromWalletChange = React.useCallback((address: string) => {
