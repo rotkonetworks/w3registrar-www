@@ -334,10 +334,7 @@ export function IdentityRegistrarComponent() {
   //#endregion CostExtimations
   
   const handleOpenChange = useCallback((nextState: boolean): void => {
-    setOpenDialog(previousState => {
-      import.meta.env.DEV && console.log({ state: nextState, _state: previousState })
-      return nextState ? previousState : null
-    })
+    setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
   const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
