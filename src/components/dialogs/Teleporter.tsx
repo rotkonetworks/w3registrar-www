@@ -40,6 +40,9 @@ export default function TeleporterDialog({
   const relayChainId = chainId.replace("_people", "")
   const [selectedChain, setSelectedChain] = React.useState(relayChainId)
 
+  const fromChainId = React.useMemo(() => isReversed ?chainId :selectedChain, [isReversed, chainId])
+  const toChainId = React.useMemo(() => isReversed ? selectedChain : chainId, [isReversed, chainId])
+
   React.useEffect(() => {
     if (open) {
       setSelectedChain(relayChainId)
@@ -153,11 +156,7 @@ export default function TeleporterDialog({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Select
-                      value={isReversed ? chainId : selectedChain}
-                      onValueChange={setSelectedChain}
-                      disabled={isReversed}
-                    >
+                    <Select value={fromChainId} onValueChange={setSelectedChain} disabled={isReversed}>
                       <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
                         <SelectValue placeholder="Select chain" />
                       </SelectTrigger>
@@ -190,11 +189,7 @@ export default function TeleporterDialog({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Select
-                      value={isReversed ? selectedChain : chainId}
-                      onValueChange={setSelectedChain}
-                      disabled={!isReversed}
-                    >
+                    <Select value={toChainId} onValueChange={setSelectedChain} disabled={!isReversed}>
                       <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
                         <SelectValue placeholder="Select chain" />
                       </SelectTrigger>
