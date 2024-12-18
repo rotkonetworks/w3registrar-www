@@ -13,12 +13,14 @@ import { Switch } from "../ui/switch"
 import { TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
+import BigNumber from "bignumber.js"
 
 export default function TeleporterDialog({ 
-  address, accounts, chainId, typedApi, config, open, onOpenChange 
+  address, accounts, chainId, typedApi, config, open, onOpenChange, balance
 }: {
   address: string,
   accounts: WalletAccount[],
+  balance: BigNumber,
   chainId: Chains,
   typedApi: TypedApi,
   config: ApiConfig,

@@ -12,9 +12,16 @@ import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { 
+  identityStore as _identityStore, verifiyStatuses 
+} from "~/store/IdentityStore"
+import { 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+} from "~/store/challengesStore"
+import { 
+  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, 
+  useWalletDisconnector 
+} from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -360,6 +367,13 @@ export function IdentityRegistrarComponent() {
         throw new Error("Invalid action type");
     }
   }, [])
+
+  const spendableBalance = BigNumber(useSpendableBalance(
+    accountStore.address, { chainId: chainStore.id }
+  ).planck.toString())
+  useEffect(() => {
+    import.meta.env.DEV && console.log({ spendableBalance })
+  }, [spendableBalance])
   
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -545,7 +559,7 @@ export function IdentityRegistrarComponent() {
     </Dialog>
     <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
-      onOpenChange={handleOpenChange}
+      onOpenChange={handleOpenChange} balance={spendableBalance}
     />
   </>
 }
