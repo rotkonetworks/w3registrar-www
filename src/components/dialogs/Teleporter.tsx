@@ -17,7 +17,8 @@ import BigNumber from "bignumber.js"
 import { useSpendableBalance } from "@reactive-dot/react"
 
 export default function TeleporterDialog({ 
-  address, accounts, chainId, typedApi, config, open, onOpenChange, balance, formatAmount
+  address, accounts, chainId, tokenSymbol, typedApi, config, open, onOpenChange, balance, 
+  formatAmount
 }: {
   address: string,
   accounts: WalletAccount[],
@@ -26,6 +27,7 @@ export default function TeleporterDialog({
   typedApi: TypedApi,
   config: ApiConfig,
   open: boolean,
+  tokenSymbol: string,
   onOpenChange: (open: boolean) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
 }) {
@@ -253,7 +255,7 @@ export default function TeleporterDialog({
                 className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D] pr-16"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-[#FFFFFF]">{token}</span>
+                <span className="text-[#FFFFFF]">{tokenSymbol}</span>
               </div>
             </div>
           </div>
