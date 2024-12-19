@@ -64,9 +64,6 @@ export default function TeleporterDialog({
     .filter(([id]) => id.includes(relayChainId) && id !== chainId)
     .map(([id, chain]) => ({ id, name: chain.name }))
 
-  const fixedChain = "People"
-  const token = "DOT"
-
   const [comboboxOpen, setComboboxOpen] = React.useState(null)
   
   const handleFromWalletChange = React.useCallback((address: string) => {
