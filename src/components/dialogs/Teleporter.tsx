@@ -14,9 +14,10 @@ import { TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
 import BigNumber from "bignumber.js"
+import { useSpendableBalance } from "@reactive-dot/react"
 
 export default function TeleporterDialog({ 
-  address, accounts, chainId, typedApi, config, open, onOpenChange, balance
+  address, accounts, chainId, typedApi, config, open, onOpenChange, balance, formatAmount
 }: {
   address: string,
   accounts: WalletAccount[],
@@ -26,6 +27,7 @@ export default function TeleporterDialog({
   config: ApiConfig,
   open: boolean,
   onOpenChange: (open: boolean) => void,
+  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
 }) {
   const [fromAddress, setFromAddress] = React.useState(address)
   const [toAddress, setToAddres] = React.useState(address)
@@ -44,6 +46,10 @@ export default function TeleporterDialog({
 
   const fromChainId = React.useMemo(() => isReversed ?chainId :selectedChain, [isReversed, chainId])
   const toChainId = React.useMemo(() => isReversed ? selectedChain : chainId, [isReversed, chainId])
+
+  const otherBalance = BigNumber(useSpendableBalance(toAddress, { chainId: selectedChain }).planck.toString())
+  const fromBalance = isReversed ? balance : otherBalance
+  const toBalance = isReversed ? otherBalance : balance
 
   React.useEffect(() => {
     if (open) {
@@ -218,12 +224,12 @@ export default function TeleporterDialog({
               <h3 className="mb-4 text-lg font-semibold text-[#E6007A]">Transferable Balances</h3>
               <div className="space-y-2 text-[#FFFFFF]">
                 <div className="flex justify-between">
-                  <span>{selectedChain}</span>
-                  <span>0.0000 {token}</span>
+                  <span>{config.chains[fromChainId].name}</span>
+                  <span>{formatAmount(fromBalance)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{fixedChain}</span>
-                  <span>0.0000 {token}</span>
+                  <span>{config.chains[toChainId].name}</span>
+                  <span>{formatAmount(toBalance)}</span>
                 </div>
               </div>
             </CardContent>

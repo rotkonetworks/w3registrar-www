@@ -559,7 +559,7 @@ export function IdentityRegistrarComponent() {
     </Dialog>
     <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
-      onOpenChange={handleOpenChange} balance={spendableBalance}
+      onOpenChange={handleOpenChange} balance={spendableBalance} formatAmount={formatAmount}
     />
   </>
 }
