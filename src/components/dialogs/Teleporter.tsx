@@ -14,7 +14,7 @@ import { TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
 import BigNumber from "bignumber.js"
-import { useSpendableBalance } from "@reactive-dot/react"
+import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, onOpenChange, balance, 
@@ -79,6 +79,110 @@ export default function TeleporterDialog({
     setComboboxOpen(null)
   }, [])
 
+  const relayChainTypedApi = useTypedApi({ chainId: relayChainId })
+  const selectedChainTypedApi = useTypedApi({ chainId: selectedChain })
+
+  const fromTypedApi = isReversed ? selectedChainTypedApi : typedApi
+  const toTypedApi = isReversed ? typedApi : selectedChainTypedApi
+
+  const _getParachainId = (typedApi: TypedApi, setter: (id: number | null) => void) => {
+    if (typedApi) {
+      (async () => {
+        try {
+          const paraId = await typedApi.constants.parachainSystems.SelfParaId()
+          import.meta.env.DEV && console.log({ paraId })
+          setter(paraId)
+        } catch (error) {
+          import.meta.env.DEV && console.error("Error getting parachain ID", error)
+          setter(null)
+        }
+      })()
+    }
+  }
+
+  const [firstParachainId, setFirstParachainId] = React.useState(null)
+  React.useEffect(() => { _getParachainId(typedApi, setFirstParachainId) }, [typedApi])
+  const [secondParachainId, setSecondParachainId] = React.useState(null)
+  React.useEffect(() => { 
+    _getParachainId(selectedChainTypedApi, setSecondParachainId) 
+  }, [selectedChainTypedApi])
+
+  const getTeleportParams = React.useCallback((paraId, intoParachain, address, amount,) => ([
+    {
+      V4: intoParachain
+        ? {
+          interior: 'Here',
+          parents: 1
+        }
+        : {
+          interior: {
+            X1: {
+              ParaChain: paraId
+            }
+          },
+          parents: 0
+        }
+    },
+    {
+      V4: {
+        interior: {
+          X1: {
+            AccountId32: {
+              id: address,
+              network: null
+            }
+          }
+        },
+        parents: 0
+      }
+    },
+    {
+      V4V3: [{
+        fun: {
+          Fungible: amount
+        },
+        id: {
+          Concrete: {
+            interior: 'Here',
+            parents: intoParachain ? 1 : 0
+          }
+        }
+      }]
+    },
+    0,
+    { Unlimited: null }
+  ]), [])
+
+  const fromParachainId = isReversed ? firstParachainId : secondParachainId
+  const toParachainId = isReversed ? secondParachainId : firstParachainId
+  const submitTeleport = React.useCallback(() => {
+    const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(tokenDecimals)).toString())
+    import.meta.env.DEV && console.log("teleporting", newAmount)
+
+    (async () => {
+      try {
+        if (fromParachainId) {
+          await typedApi.tx.PolkadotXcm.limited_teleport_assets(getTeleportParams({ 
+            paraId: fromParachainId, 
+            intoParachain: false,
+            address: fromAddress,
+            amount: newAmount
+          }))
+        }
+        if (toParachainId) {
+          await typedApi.tx.PolkadotXcm.limited_teleport_assets(getTeleportParams({
+            paraId: toParachainId,
+            intoParachain: true,
+            address: toAddress,
+            amount: newAmount
+          }))
+        }
+      } catch (error) {
+        import.meta.env.DEV && console.error("Error teleporting", error)
+      }
+    }) ()
+  }, [amount, typedApi])
+ 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#1E1E1E] text-[#FFFFFF] border-[#E6007A] sm:max-w-[425px]">
@@ -261,7 +365,9 @@ export default function TeleporterDialog({
             </div>
           </div>
 
-          <Button className="w-full bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+          <Button className="w-full bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]" 
+            onClick={submitTeleport}
+          >
             <ArrowDownUp className="mr-2 h-4 w-4" />
             Teleport
           </Button>
