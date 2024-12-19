@@ -6,33 +6,89 @@
       "wsUrl": "wss://polkadot.dotters.network",
       "metadata": ".papi/metadata/polkadot.scale"
     },
-    "people_polkadot": {
-      "wsUrl": "wss://people-polkadot.dotters.network",
-      "metadata": ".papi/metadata/people_polkadot.scale"
-    },
     "westend": {
       "wsUrl": "wss://westend.dotters.network",
       "metadata": ".papi/metadata/westend.scale"
     },
-    "people_westend": {
-      "wsUrl": "wss://people-westend.dotters.network",
-      "metadata": ".papi/metadata/people_westend.scale"
-    },
-    "kusama": {
-      "wsUrl": "wss://kusama.dotters.network",
-      "metadata": ".papi/metadata/kusama.scale"
-    },
-    "people_kusama": {
-      "wsUrl": "wss://people-kusama.dotters.network",
-      "metadata": ".papi/metadata/people_kusama.scale"
-    },
     "rococo": {
-      "wsUrl": "wss://dev.rotko.net/rococo",
+      "wsUrl": "wss://testnet.71walceli.beauty/alice",
       "metadata": ".papi/metadata/rococo.scale"
     },
     "people_rococo": {
       "wsUrl": "wss://dev.rotko.net/people-rococo",
       "metadata": ".papi/metadata/people_rococo.scale"
+    },
+    "paseo": {
+      "chain": "paseo",
+      "metadata": ".papi/metadata/paseo.scale"
+    },
+    "paseo_asset_hub": {
+      "chain": "paseo_asset_hub",
+      "metadata": ".papi/metadata/paseo_asset_hub.scale"
+    },
+    "polkadot_asset_hub": {
+      "chain": "polkadot_asset_hub",
+      "metadata": ".papi/metadata/polkadot_asset_hub.scale"
+    },
+    "polkadot_bridge_hub": {
+      "chain": "polkadot_bridge_hub",
+      "metadata": ".papi/metadata/polkadot_bridge_hub.scale"
+    },
+    "polkadot_collectives": {
+      "chain": "polkadot_collectives",
+      "metadata": ".papi/metadata/polkadot_collectives.scale"
+    },
+    "polkadot_people": {
+      "chain": "polkadot_people",
+      "metadata": ".papi/metadata/polkadot_people.scale"
+    },
+    "westend2_asset_hub": {
+      "chain": "westend2_asset_hub",
+      "metadata": ".papi/metadata/westend2_asset_hub.scale"
+    },
+    "westend2_bridge_hub": {
+      "chain": "westend2_bridge_hub",
+      "metadata": ".papi/metadata/westend2_bridge_hub.scale"
+    },
+    "westend2_collectives": {
+      "chain": "westend2_collectives",
+      "metadata": ".papi/metadata/westend2_collectives.scale"
+    },
+    "westend2_people": {
+      "chain": "westend2_people",
+      "metadata": ".papi/metadata/westend2_people.scale"
+    },
+    "ksmcc3_asset_hub": {
+      "chain": "ksmcc3_asset_hub",
+      "metadata": ".papi/metadata/ksmcc3_asset_hub.scale"
+    },
+    "ksmcc3_bridge_hub": {
+      "chain": "ksmcc3_bridge_hub",
+      "metadata": ".papi/metadata/ksmcc3_bridge_hub.scale"
+    },
+    "ksmcc3_encointer": {
+      "chain": "ksmcc3_encointer",
+      "metadata": ".papi/metadata/ksmcc3_encointer.scale"
+    },
+    "ksmcc3_people": {
+      "chain": "ksmcc3_people",
+      "metadata": ".papi/metadata/ksmcc3_people.scale"
+    },
+    "ksmcc3": {
+      "chain": "ksmcc3",
+      "metadata": ".papi/metadata/ksmcc3.scale"
+    },
+    "westend2": {
+      "chain": "westend2",
+      "metadata": ".papi/metadata/westend2.scale"
+    },
+    "rococo_people": {
+      "wsUrl": "wss://testnet.71walceli.beauty/people-01",
+      "metadata": ".papi/metadata/rococo_people.scale"
+    },
+    "kusama_people": {
+      "chain": "ksmcc3_people",
+      "metadata": ".papi/metadata/kusama_people.scale"
     }
   }
 }
