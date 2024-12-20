@@ -115,7 +115,8 @@ export default function TeleporterDialog({
           : {
             type: "X1",
             value: {
-              ParaChain: paraId
+              type: "Parachain",
+              value: paraId,
             }
           }
         ,
@@ -174,20 +175,24 @@ export default function TeleporterDialog({
     (async () => {
       try {
         if (fromParachainId) {
-          await typedApi.tx.PolkadotXcm.limited_teleport_assets(getTeleportParams({ 
+          const params = getTeleportParams({ 
             paraId: fromParachainId, 
-            intoParachain: false,
+            intoParachain: true,
             address: fromAddress,
             amount: newAmount
-          })).signAndSubmit(signer)
+          })
+          import.meta.env.DEV && console.log({ params })
+          await typedApi.tx.PolkadotXcm.limited_teleport_assets(params).signAndSubmit(signer)
         }
         if (toParachainId) {
-          await typedApi.tx.PolkadotXcm.limited_teleport_assets(getTeleportParams({
+          const params = getTeleportParams({
             paraId: toParachainId,
-            intoParachain: true,
+            intoParachain: false,
             address: toAddress,
             amount: newAmount
-          })).signAndSubmit(signer)
+          })
+          import.meta.env.DEV && console.log({ params })
+          await typedApi.tx.PolkadotXcm.limited_teleport_assets(params).signAndSubmit(signer)
         }
       } catch (error) {
         import.meta.env.DEV && console.error("Error teleporting", error)
