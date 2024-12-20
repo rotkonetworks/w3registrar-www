@@ -169,7 +169,7 @@ export default function TeleporterDialog({
             intoParachain: false,
             address: fromAddress,
             amount: newAmount
-          }))
+          })).signAndSubmit({ signer })
         }
         if (toParachainId) {
           await typedApi.tx.PolkadotXcm.limited_teleport_assets(getTeleportParams({
@@ -177,7 +177,7 @@ export default function TeleporterDialog({
             intoParachain: true,
             address: toAddress,
             amount: newAmount
-          }))
+          })).signAndSubmit({ signer })
         }
       } catch (error) {
         import.meta.env.DEV && console.error("Error teleporting", error)
