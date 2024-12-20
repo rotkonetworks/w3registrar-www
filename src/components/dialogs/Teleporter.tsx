@@ -156,8 +156,10 @@ export default function TeleporterDialog({
   const fromParachainId = isReversed ? firstParachainId : secondParachainId
   const toParachainId = isReversed ? secondParachainId : firstParachainId
   const submitTeleport = React.useCallback(() => {
-    const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(tokenDecimals)).toString())
-    import.meta.env.DEV && console.log("teleporting", newAmount)
+    const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(BigNumber(tokenDecimals)))
+      .toString()
+    )
+    import.meta.env.DEV && console.log("teleporting", newAmount);
 
     (async () => {
       try {
