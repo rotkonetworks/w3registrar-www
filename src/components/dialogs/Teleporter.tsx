@@ -107,16 +107,18 @@ export default function TeleporterDialog({
     dest: {
       type: "V4",
       value: {
-        interior: {
-          type: "XcmV3Junctions", 
-          value: intoParachain 
-            ? "Here" 
-            : {
-              X1: {
-                ParaChain: paraId
-              }
+        interior: intoParachain 
+          ? { 
+            type: "Here", 
+            value: null 
+          }
+          : {
+            type: "X1",
+            value: {
+              ParaChain: paraId
             }
-        },
+          }
+        ,
         parents: {
           type: "parents", 
           value: Number(intoParachain),
