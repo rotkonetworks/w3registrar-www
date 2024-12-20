@@ -12,9 +12,16 @@ import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { 
+  identityStore as _identityStore, verifiyStatuses 
+} from "~/store/IdentityStore"
+import { 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+} from "~/store/challengesStore"
+import { 
+  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, 
+  useWalletDisconnector 
+} from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -26,6 +33,7 @@ import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
+import TeleporterDialog from "./dialogs/Teleporter"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -89,6 +97,15 @@ export function IdentityRegistrarComponent() {
     const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
     Object.assign(accountStore, newAccountData)
   }, [accountStore.polkadotSigner, accountStore.address, accounts])
+
+  const updateAccount = ({ id, name, address, ...rest }) => {
+    const account = { id, name, address, ...rest };
+    import.meta.env.DEV && console.log({ account });
+    Object.assign(accountStore, account);
+    // Needed to prevent circular references for serialization
+    const accountToLocalStore = { id, name, address };
+    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
+  };
   //#endregion accounts
 
   //#region identity
@@ -304,7 +321,8 @@ export function IdentityRegistrarComponent() {
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
   
-  const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
+  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
+  const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState({})
@@ -321,7 +339,42 @@ export function IdentityRegistrarComponent() {
     }
   }, [openDialog, chainStore.id])
   //#endregion CostExtimations
+  
+  const handleOpenChange = useCallback((nextState: boolean): void => {
+    setOpenDialog(previousState => nextState ? previousState : null)
+  }, [])
 
+  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+    import.meta.env.DEV && console.log({ newValue })
+    switch (newValue.type) {
+      case "Wallets":
+        setWalletDialogOpen(true);
+        break;
+      case "Disconnect":
+        setOpenDialog("disconnect")
+        break;
+      case "Teleport":
+        setOpenDialog("teleposr")
+        break;
+      case "RemoveIdentity":
+        setOpenDialog("clearIdentity")
+        break;
+      case "account":
+        updateAccount({ ...newValue.account });
+        break;
+      default:
+        console.log({ newValue })
+        throw new Error("Invalid action type");
+    }
+  }, [])
+
+  const spendableBalance = BigNumber(useSpendableBalance(
+    accountStore.address, { chainId: chainStore.id }
+  ).planck.toString())
+  useEffect(() => {
+    import.meta.env.DEV && console.log({ spendableBalance })
+  }, [spendableBalance])
+  
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -329,17 +382,13 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header chainContext={chainContext} 
+        <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
+          onAccountSelect={onAccountSelect} accountStore={accountStore} 
+          identityStore={identityStore} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onChainSelect={onChainSelect}
-          accountStore={accountStore} 
-          identityStore={identityStore}
-          onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-          onDisconnect={() => setOpenDialog("disconnect")}
         />
 
         {[...alertsStore.entries()].map(([, alert]) => (
@@ -440,9 +489,9 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    <Dialog open={openDialog} onOpenChange={(state) => {
-      setOpenDialog(_state => state ? _state : null)
-    }}>
+    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
@@ -508,5 +557,11 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
+      onOpenChange={handleOpenChange} balance={spendableBalance} formatAmount={formatAmount}
+      tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+      signer={accountStore.polkadotSigner}
+    />
   </>
 }
