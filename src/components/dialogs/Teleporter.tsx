@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowDownUp, Wallet, ChevronDown } from 'lucide-react'
+import { ArrowDownUp, ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
-import { PolkadotSigner, TypedApi } from "polkadot-api"
+import { Binary, PolkadotSigner, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
 import BigNumber from "bignumber.js"
@@ -126,14 +126,16 @@ export default function TeleporterDialog({
       },
     },
     beneficiary: {
-      V4: {
+      type: "V4",
+      value: {
         interior: {
-          X1: {
-            AccountId32: {
-              id: address,
-              network: null
-            }
-          }
+          type: "X1",
+          value: {
+            type: "AccountId32",
+            value: {
+              id: Binary.fromText(address),
+            },
+          },
         },
         parents: 0
       }
