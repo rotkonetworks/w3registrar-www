@@ -141,20 +141,26 @@ export default function TeleporterDialog({
       }
     },
     assets: {
-      V4: [{
+      type: "V4",
+      value: [{
         fun: {
-          Fungible: amount
+          type: "Fungible",
+          value: amount
         },
         id: {
-          Concrete: {
-            interior: 'Here',
-            parents: intoParachain ? 1 : 0
-          }
+          interior: {
+            type: "Here",
+            value: null
+          },
+          parents: Number(intoParachain),
         }
       }]
     },
     fee_asset_index: 0,
-    weight_limit: { Unlimited: null }
+    weight_limit: {
+      type: "Unlimited",
+      value: null,
+    }
   }), [])
 
   const fromParachainId = isReversed ? firstParachainId : secondParachainId
