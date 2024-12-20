@@ -87,7 +87,7 @@ export default function TeleporterDialog({
     if (typedApi) {
       (async () => {
         try {
-          const paraId = await typedApi.constants.parachainSystems.SelfParaId()
+          const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
           import.meta.env.DEV && console.log({ paraId })
           setter(paraId)
         } catch (error) {
@@ -99,29 +99,31 @@ export default function TeleporterDialog({
   }
 
   const [firstParachainId, setFirstParachainId] = React.useState(null)
-  React.useEffect(() => { _getParachainId(typedApi, setFirstParachainId) }, [typedApi])
+  React.useEffect(() => _getParachainId(typedApi, setFirstParachainId), [typedApi])
   const [secondParachainId, setSecondParachainId] = React.useState(null)
-  React.useEffect(() => { 
-    _getParachainId(selectedChainTypedApi, setSecondParachainId) 
-  }, [selectedChainTypedApi])
+  React.useEffect(() => _getParachainId(selectedChainApi, setSecondParachainId), [selectedChainApi])
 
-  const getTeleportParams = React.useCallback((paraId, intoParachain, address, amount,) => ([
-    {
-      V4: intoParachain
-        ? {
-          interior: 'Here',
-          parents: 1
-        }
-        : {
-          interior: {
-            X1: {
-              ParaChain: paraId
+  const getTeleportParams = React.useCallback(({paraId, intoParachain, address, amount}) => ({
+    dest: {
+      type: "V4",
+      value: {
+        interior: {
+          type: "XcmV3Junctions", 
+          value: intoParachain 
+            ? "Here" 
+            : {
+              X1: {
+                ParaChain: paraId
+              }
             }
-          },
-          parents: 0
-        }
+        },
+        parents: {
+          type: "parents", 
+          value: Number(intoParachain),
+        },
+      },
     },
-    {
+    beneficiary: {
       V4: {
         interior: {
           X1: {
@@ -134,8 +136,8 @@ export default function TeleporterDialog({
         parents: 0
       }
     },
-    {
-      V4V3: [{
+    assets: {
+      V4: [{
         fun: {
           Fungible: amount
         },
@@ -147,9 +149,9 @@ export default function TeleporterDialog({
         }
       }]
     },
-    0,
-    { Unlimited: null }
-  ]), [])
+    fee_asset_index: 0,
+    weight_limit: { Unlimited: null }
+  }), [])
 
   const fromParachainId = isReversed ? firstParachainId : secondParachainId
   const toParachainId = isReversed ? secondParachainId : firstParachainId
