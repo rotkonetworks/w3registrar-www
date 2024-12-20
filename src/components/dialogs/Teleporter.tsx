@@ -78,10 +78,10 @@ export default function TeleporterDialog({
   }, [])
 
   const relayChainTypedApi = useTypedApi({ chainId: relayChainId })
-  const selectedChainTypedApi = useTypedApi({ chainId: selectedChain })
+  const selectedChainApi = useTypedApi({ chainId: selectedChain })
 
-  const fromTypedApi = isReversed ? selectedChainTypedApi : typedApi
-  const toTypedApi = isReversed ? typedApi : selectedChainTypedApi
+  const fromTypedApi = isReversed ? selectedChainApi : typedApi
+  const toTypedApi = isReversed ? typedApi : selectedChainApi
 
   const _getParachainId = (typedApi: TypedApi, setter: (id: number | null) => void) => {
     if (typedApi) {
