@@ -561,6 +561,7 @@ export function IdentityRegistrarComponent() {
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
       onOpenChange={handleOpenChange} balance={spendableBalance} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+      signer={accountStore.polkadotSigner}
     />
   </>
 }

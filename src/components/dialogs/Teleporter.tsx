@@ -10,15 +10,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
-import { TypedApi } from "polkadot-api"
+import { PolkadotSigner, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import { CommandList } from "cmdk"
 import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 
 export default function TeleporterDialog({ 
-  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, onOpenChange, balance, 
-  formatAmount
+  address, balance, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
+  onOpenChange, formatAmount
 }: {
   address: string,
   accounts: WalletAccount[],
@@ -29,6 +29,7 @@ export default function TeleporterDialog({
   open: boolean,
   tokenSymbol: string,
   tokenDecimals: number,
+  signer: PolkadotSigner,
   onOpenChange: (open: boolean) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
 }) {
