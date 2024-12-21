@@ -105,7 +105,7 @@ export default function TeleporterDialog({
 
   const getTeleportParams = React.useCallback(({paraId, intoParachain, address, amount}) => ({
     dest: {
-      type: "V4",
+      type: "V3",
       value: {
         interior: intoParachain 
           ? { 
@@ -120,14 +120,11 @@ export default function TeleporterDialog({
             }
           }
         ,
-        parents: {
-          type: "parents", 
-          value: Number(intoParachain),
-        },
+        parents: Number(intoParachain),
       },
     },
     beneficiary: {
-      type: "V4",
+      type: "V3",
       value: {
         interior: {
           type: "X1",
@@ -142,18 +139,21 @@ export default function TeleporterDialog({
       }
     },
     assets: {
-      type: "V4",
+      type: "V3",
       value: [{
         fun: {
           type: "Fungible",
           value: amount
         },
         id: {
-          interior: {
-            type: "Here",
-            value: null
+          type: "Concrete",
+          value: {
+            interior: {
+              type: "Here",
+              value: null
+            },
+            parents: Number(intoParachain),
           },
-          parents: Number(intoParachain),
         }
       }]
     },
@@ -167,6 +167,9 @@ export default function TeleporterDialog({
   const fromParachainId = isReversed ? firstParachainId : secondParachainId
   const toParachainId = isReversed ? secondParachainId : firstParachainId
   const submitTeleport = React.useCallback(() => {
+    if (!relayChainTypedApi || !signer || !amount) {
+      return;
+    }
     const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(BigNumber(tokenDecimals)))
       .toString()
     )
@@ -182,7 +185,9 @@ export default function TeleporterDialog({
             amount: newAmount
           })
           import.meta.env.DEV && console.log({ params })
-          await typedApi.tx.PolkadotXcm.limited_teleport_assets(params).signAndSubmit(signer)
+          const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
+            .signAndSubmit(signer)
+          import.meta.env.DEV && console.log({ result })
         }
         if (toParachainId) {
           const params = getTeleportParams({
@@ -192,13 +197,15 @@ export default function TeleporterDialog({
             amount: newAmount
           })
           import.meta.env.DEV && console.log({ params })
-          await typedApi.tx.PolkadotXcm.limited_teleport_assets(params).signAndSubmit(signer)
+          const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
+            .signAndSubmit(signer)
+          import.meta.env.DEV && console.log({ result })
         }
       } catch (error) {
         import.meta.env.DEV && console.error("Error teleporting", error)
       }
     }) ()
-  }, [amount, typedApi])
+  }, [amount, relayChainTypedApi])
  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
