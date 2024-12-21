@@ -51,10 +51,9 @@ export default function TeleporterDialog({
   const fromChainId = React.useMemo(() => isReversed ?chainId :selectedChain, [isReversed, chainId])
   const toChainId = React.useMemo(() => isReversed ? selectedChain : chainId, [isReversed, chainId])
 
-  const otherBalance = BigNumber(useSpendableBalance(toAddress, { chainId: selectedChain }).planck.toString())
-  const fromBalance = isReversed ? balance : otherBalance
-  const toBalance = isReversed ? otherBalance : balance
-
+  const fromBalance = BigNumber(useSpendableBalance(fromAddress, { chainId: fromChainId }).planck.toString())
+  const toBalance = BigNumber(useSpendableBalance(toAddress, { chainId: toChainId }).planck.toString())
+  
   React.useEffect(() => {
     if (open) {
       setSelectedChain(relayChainId)
@@ -79,9 +78,6 @@ export default function TeleporterDialog({
 
   const relayChainTypedApi = useTypedApi({ chainId: relayChainId })
   const selectedChainApi = useTypedApi({ chainId: selectedChain })
-
-  const fromTypedApi = isReversed ? selectedChainApi : typedApi
-  const toTypedApi = isReversed ? typedApi : selectedChainApi
 
   const _getParachainId = (typedApi: TypedApi, setter: (id: number | null) => void) => {
     if (typedApi) {
@@ -356,11 +352,11 @@ export default function TeleporterDialog({
               <div className="space-y-2 text-[#FFFFFF]">
                 <div className="flex justify-between">
                   <span>{config.chains[fromChainId].name}</span>
-                  <span>{formatAmount(fromBalance)}</span>
+                  <span>{formatAmount(isReversed ? fromBalance : toBalance)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{config.chains[toChainId].name}</span>
-                  <span>{formatAmount(toBalance)}</span>
+                  <span>{formatAmount(isReversed ? toBalance : fromBalance)}</span>
                 </div>
               </div>
             </CardContent>
