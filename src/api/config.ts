@@ -16,6 +16,8 @@ import {
   westend2_bridge_hub,
   westend2_collectives,
   westend2_people,
+  paseo,
+  paseo_people,
 } from "@polkadot-api/descriptors";
 import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
@@ -30,12 +32,14 @@ const getProviders = () => {
   const lightClientProvider = createLightClientProvider();
   const polkadot = lightClientProvider.addRelayChain({ id: "polkadot" });
   const ksmcc3 = lightClientProvider.addRelayChain({ id: "kusama" });
+  const paseo = lightClientProvider.addRelayChain({ id: "paseo" });
   const westend = lightClientProvider.addRelayChain({ id: "westend" });
 
   return {
     lightClientProvider,
     polkadot,
     ksmcc3, 
+    paseo,
     westend
   };};
 export let providers = getProviders();
@@ -103,6 +107,18 @@ export const config = defineConfig({
       name: "Kusama Encointer",
       descriptor: ksmcc3_encointer,
       provider: providers.polkadot.addParachain({ id: "kusama_encounter" }),
+    },
+
+    paseo: {
+      name: "Paseo",
+      descriptor: paseo,
+      provider: providers.paseo,
+    },
+    paseo_people: {
+      name: "Paseo People",
+      descriptor: paseo_people,
+      provider: providers.paseo.addParachain({ id: "paseo_people" }),
+      registrarIndex: import.meta.env.ksmcc3,
     },
 
     westend2: {

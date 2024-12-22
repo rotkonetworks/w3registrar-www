@@ -89,6 +89,10 @@
     "kusama_people": {
       "chain": "ksmcc3_people",
       "metadata": ".papi/metadata/kusama_people.scale"
+    },
+    "paseo_people": {
+      "chain": "paseo_people",
+      "metadata": ".papi/metadata/paseo_people.scale"
     }
   }
 }
