@@ -45,11 +45,15 @@ export default function TeleporterDialog({
 
   const [isReversed, setIsReversed] = React.useState(false)
   const [amount, setAmount] = React.useState("")
-  const relayChainId = chainId.replace("_people", "")
+  const relayChainId = React.useMemo(() => chainId.replace("_people", ""), [chainId])
   const [selectedChain, setSelectedChain] = React.useState(relayChainId)
 
-  const fromChainId = React.useMemo(() => isReversed ?chainId :selectedChain, [isReversed, chainId])
-  const toChainId = React.useMemo(() => isReversed ? selectedChain : chainId, [isReversed, chainId])
+  const fromChainId = React.useMemo(
+    () => isReversed ? chainId : selectedChain, [isReversed, selectedChain, chainId]
+  )
+  const toChainId = React.useMemo(
+    () => isReversed ? selectedChain : chainId, [isReversed, selectedChain, chainId]
+  )
 
   const fromBalance = BigNumber(useSpendableBalance(fromAddress, { chainId: fromChainId }).planck.toString())
   const toBalance = BigNumber(useSpendableBalance(toAddress, { chainId: toChainId }).planck.toString())
