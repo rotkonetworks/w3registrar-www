@@ -17,12 +17,11 @@ import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 
 export default function TeleporterDialog({ 
-  address, balance, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
+  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
 }: {
   address: string,
   accounts: WalletAccount[],
-  balance: BigNumber,
   chainId: Chains,
   typedApi: TypedApi,
   config: ApiConfig,

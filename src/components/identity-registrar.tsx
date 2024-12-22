@@ -368,13 +368,6 @@ export function IdentityRegistrarComponent() {
     }
   }, [])
 
-  const spendableBalance = BigNumber(useSpendableBalance(
-    accountStore.address, { chainId: chainStore.id }
-  ).planck.toString())
-  useEffect(() => {
-    import.meta.env.DEV && console.log({ spendableBalance })
-  }, [spendableBalance])
-  
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -559,7 +552,7 @@ export function IdentityRegistrarComponent() {
     </Dialog>
     <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
-      onOpenChange={handleOpenChange} balance={spendableBalance} formatAmount={formatAmount}
+      onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}
     />
