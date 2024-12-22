@@ -54,8 +54,14 @@ export default function TeleporterDialog({
     () => isReversed ? selectedChain : chainId, [isReversed, selectedChain, chainId]
   )
 
-  const fromBalance = BigNumber(useSpendableBalance(fromAddress, { chainId: fromChainId }).planck.toString())
-  const toBalance = BigNumber(useSpendableBalance(toAddress, { chainId: toChainId }).planck.toString())
+  const fromBalance = BigNumber(address 
+    ? useSpendableBalance(fromAddress, { chainId: fromChainId }).planck.toString()
+    : null
+  )
+  const toBalance = BigNumber(address 
+    ? useSpendableBalance(toAddress, { chainId: toChainId }).planck.toString()
+    : null
+  )
   
   React.useEffect(() => {
     if (open) {
