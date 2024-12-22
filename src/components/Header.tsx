@@ -22,8 +22,8 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  config: chainContext, chainStore, accountStore, onChainSelect, onAccountSelect, identityStore, 
-  accounts,
+  config: chainContext, chainStore, accountStore, identityStore, accounts, 
+  onChainSelect, onAccountSelect, onRequestWalletConnections,
 }: { 
   accounts: WalletAccount[],
   config: ConfigContextProps;
@@ -32,6 +32,7 @@ const Header = ({
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
   onAccountSelect: (props: { type: string, [key: string]: string }) => void;
+  onRequestWalletConnections: () => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;

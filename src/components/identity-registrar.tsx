@@ -368,6 +368,8 @@ export function IdentityRegistrarComponent() {
     }
   }, [])
 
+  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+  
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -382,6 +384,7 @@ export function IdentityRegistrarComponent() {
             name: chainStore.name,
             id: chainStore.id,
           }} 
+          onRequestWalletConnections={onRequestWalletConnection}
         />
 
         {[...alertsStore.entries()].map(([, alert]) => (
