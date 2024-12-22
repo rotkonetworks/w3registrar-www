@@ -37,7 +37,7 @@ for var in "${REQUIRED_VARS[@]}"; do
 done
 
 bun install
-bunx papi update
+bunx polkadot-apu generate
 
 cat << EOF > ./node_modules/css-tree/lib/data-patch.js
 import * as patch from "../data/patch.json"
