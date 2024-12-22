@@ -112,12 +112,12 @@ export const config = defineConfig({
     paseo: {
       name: "Paseo",
       descriptor: paseo,
-      provider: providers.paseo,
+      provider: withPolkadotSdkCompat(getWsProvider("wss://rpc.ibp.network/paseo")),
     },
     paseo_people: {
       name: "Paseo People",
       descriptor: paseo_people,
-      provider: providers.paseo.addParachain({ id: "paseo_people" }),
+      provider: withPolkadotSdkCompat(getWsProvider("wss://sys.ibp.network/people-paseo")),
       registrarIndex: import.meta.env.ksmcc3,
     },
 
