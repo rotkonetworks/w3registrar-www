@@ -115,7 +115,6 @@ export function IdentityRegistrarComponent() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   //#region accounts
-  const accountStore = useProxy(_accountStore)
 
   const accounts = useAccounts()
   useEffect(() => {
