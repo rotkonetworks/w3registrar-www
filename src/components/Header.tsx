@@ -39,20 +39,7 @@ const Header = ({
 
   useEffect(() => import.meta.env.DEV && console.log({ chainContext }), [chainContext]);
 
-  //# region NetDropdown
-  const [_wsUrl, _setWsUrl] = useState("");
-  const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
-
-  useEffect(() => {
-    if (defaultWsUrl && chainStore.id === "rococo_people") {
-      _setWsUrl(defaultWsUrl);
-    } else {
-      _setWsUrl("");
-    }
-  }, [defaultWsUrl]);
-
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
-  //# endregion NetDropdown
   
   //#region userDropdown
   const connectedWallets = useConnectedWallets()
