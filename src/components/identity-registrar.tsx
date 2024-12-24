@@ -43,7 +43,6 @@ export function IdentityRegistrarComponent() {
   //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
-  const chainContext = config;
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id })
   //# endregion Chains
@@ -221,8 +220,8 @@ export function IdentityRegistrarComponent() {
         console.error({ id, error })
       }
       const newChainData = {
-        name: chainContext.chains[id].name,
-        registrarIndex: chainContext.chains[id].registrarIndex,
+        name: config.chains[id].name,
+        registrarIndex: config.chains[id].registrarIndex,
         ...chainProperties,
       }
       startTransition(() => {
