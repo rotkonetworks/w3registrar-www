@@ -118,7 +118,7 @@ export const config = defineConfig({
       name: "Paseo People",
       descriptor: paseo_people,
       provider: withPolkadotSdkCompat(getWsProvider("wss://sys.ibp.network/people-paseo")),
-      registrarIndex: import.meta.env.ksmcc3,
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
     },
 
     westend2: {
