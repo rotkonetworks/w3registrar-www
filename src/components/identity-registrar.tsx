@@ -48,6 +48,41 @@ export function IdentityRegistrarComponent() {
   const typedApi = useTypedApi({ chainId: chainStore.id })
   //# endregion Chains
 
+  const accountStore = useProxy(_accountStore)
+
+  const urlParams = useMemo(() => {
+    const _urlParams = new URLSearchParams(window.location.search).entries()
+      .map(([key, value]) => ({ key, value }))
+      .reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
+    import.meta.env.DEV && console.log({ _urlParams })
+    return _urlParams
+  }, [window.location.search])
+  useEffect(() => {
+    if (urlParams.chain) {
+      chainStore.id = urlParams.chain
+    }
+    if (urlParams.address) {
+      accountStore.address = urlParams.address
+    }
+  }, [urlParams])
+  const updateUrlParams = useCallback((params) => {
+    const newParams = params
+      ? "?" + Object.entries(params)
+        .filter(([ , value ]) => value)
+        .map(([ key, value ]) => `${key}=${value}`)
+        .join("&")
+      : ""
+    window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
+    import.meta.env.DEV && console.log({ newParams })
+  }, [])
+
+  useEffect(() => {
+    updateUrlParams({
+      chain: chainStore.id,
+      address: accountStore.address,
+    })
+  }, [chainStore.id, accountStore.address])
+
   const pages = [
     { 
       name: "Identity Form", 
@@ -102,9 +137,7 @@ export function IdentityRegistrarComponent() {
     const account = { id, name, address, ...rest };
     import.meta.env.DEV && console.log({ account });
     Object.assign(accountStore, account);
-    // Needed to prevent circular references for serialization
-    const accountToLocalStore = { id, name, address };
-    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
+    updateUrlParams({ address })
   };
   //#endregion accounts
 
@@ -200,7 +233,7 @@ export function IdentityRegistrarComponent() {
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: keyof Chains) => {
-    chainStore.id = chainId;
+    updateUrlParams({ ...urlParams, chain: chainId })
   }, [])
   
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
@@ -541,7 +574,7 @@ export function IdentityRegistrarComponent() {
               case "disconnect":
                 connectedWallets.forEach(w => disconnectWallet(w));
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                delete window.localStorage.account;
+                updateUrlParams({ ...urlParams, address: null, })
                 break;
               default:
                 throw new Error("Unexpected openDialog value");

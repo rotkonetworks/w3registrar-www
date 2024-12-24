@@ -10,5 +10,5 @@ export interface ChainInfo {
 }
 
 export const chainStore: ChainInfo = proxy({
-  id: localStorage.getItem('chain') as keyof Chains || import.meta.env.VITE_APP_DEFAULT_CHAIN,
+  id: new URLSearchParams(window.location.search).get("chain") || import.meta.env.VITE_APP_DEFAULT_CHAIN,
 });
