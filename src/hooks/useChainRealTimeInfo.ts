@@ -20,7 +20,7 @@ export const useChainRealTimeInfo = ({
   }>
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
-  useEffect(() => console.log(constants), [constants])
+  useEffect(() => import.meta.env.DEV && console.log(constants), [constants])
   
   useEffect(() => {
     if (typedApi) {

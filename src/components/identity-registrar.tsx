@@ -394,7 +394,7 @@ export function IdentityRegistrarComponent() {
         updateAccount({ ...newValue.account });
         break;
       default:
-        console.log({ newValue })
+        import.meta.env.DEV && console.log({ newValue })
         throw new Error("Invalid action type");
     }
   }, [])
