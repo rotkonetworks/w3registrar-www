@@ -20,5 +20,6 @@ export default defineConfig({
   },
   build: {
     sourcemap: "inline", // Enable source map generation
+    minify: true, // enable minification
   },
 })
