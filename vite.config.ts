@@ -17,5 +17,8 @@ export default defineConfig({
       '~': resolve(__dirname, 'src'),
       '@': resolve(__dirname, 'src'),
     }
-  }
+  },
+  build: {
+    sourcemap: true, // Enable source map generation
+  },
 })
