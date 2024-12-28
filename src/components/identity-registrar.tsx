@@ -72,7 +72,7 @@ export function IdentityRegistrarComponent() {
       : ""
     window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
     import.meta.env.DEV && console.log({ newParams })
-  }, [])
+  }, [window.history.replaceState])
 
   useEffect(() => {
     updateUrlParams({
