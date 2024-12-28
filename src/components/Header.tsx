@@ -37,7 +37,7 @@ const Header = ({
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
-  useEffect(() => console.log({ chainContext }), [chainContext]);
+  useEffect(() => { if (import.meta.env.DEV) console.log({ chainContext }) }, [chainContext]);
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   

@@ -2,8 +2,8 @@ import React from 'react';
 
 export class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
-    console.error('Detailed error:', error);
-    console.error('Component stack:', errorInfo.componentStack);
+    if (import.meta.env.DEV) console.error('Detailed error:', error);
+    if (import.meta.env.DEV) console.error('Component stack:', errorInfo.componentStack);
   }
   
   render() {
