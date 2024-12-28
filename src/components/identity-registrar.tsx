@@ -113,7 +113,6 @@ export function IdentityRegistrarComponent() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   //#region accounts
-
   const accounts = useAccounts()
   useEffect(() => {
     if (!accountStore.address || accounts.length < 1) {
@@ -130,6 +129,7 @@ export function IdentityRegistrarComponent() {
     Object.assign(accountStore, newAccountData)
   }, [accountStore.polkadotSigner, accountStore.address, accounts])
 
+  // TODO Swap in useCallback
   const updateAccount = ({ id, name, address, ...rest }) => {
     const account = { id, name, address, ...rest };
     import.meta.env.DEV && console.log({ account });
