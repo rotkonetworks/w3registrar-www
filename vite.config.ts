@@ -23,8 +23,12 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: isDevelopment, // Enable source map generation only in development
-      minify: !isDevelopment, // Enable minification only in production
+      minify: !isDevelopment ? "esbuild" : false, // Enable minification only in production
       mode: isDevelopment ? 'development' : 'production',
+      esbuild: {
+        minify: !isDevelopment,
+        drop: !isDevelopment ? ['console'] : [],
+      },
     },
   }
 })
