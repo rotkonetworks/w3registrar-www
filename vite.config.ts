@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc'
 import unocss from 'unocss/vite'
 
 export default defineConfig(({ mode }) => {
-  const isDevelopment = mode === 'development';
+  const isDevelopment = ['development', 'preview'].includes(mode);
 
   return {
     plugins: [
