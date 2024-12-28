@@ -19,8 +19,7 @@ import {
   challengeStore as _challengeStore, Challenge, ChallengeStatus 
 } from "~/store/challengesStore"
 import { 
-  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, 
-  useWalletDisconnector 
+  useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
