@@ -20,7 +20,7 @@ export const useChainRealTimeInfo = ({
   }>
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
-  useEffect(() => import.meta.env.DEV && console.log(constants), [constants])
+  useEffect(() => console.log(constants), [constants])
   
   useEffect(() => {
     if (typedApi) {
@@ -31,10 +31,10 @@ export const useChainRealTimeInfo = ({
             basicDeposit: await typedApi.constants.Identity.BasicDeposit(),
             existentialDeposit: await typedApi.constants.Balances.ExistentialDeposit(),
           }
-          import.meta.env.DEV && console.log({ constants })
+          console.log({ constants })
           setConstants(constants)
         } catch (e) {
-          import.meta.env.DEV && console.error(e)
+          console.error(e)
         }
       })()
     }
@@ -49,7 +49,7 @@ export const useChainRealTimeInfo = ({
         )
         .forEach(block => {
           handlers[block.type].onEvent(block)
-          import.meta.env.DEV && console.log({ block, })
+          console.log({ block, })
         })
       ;
       _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
@@ -72,8 +72,8 @@ export const useChainRealTimeInfo = ({
       })
       .catch(error => {
         onError(error)
-        import.meta.env.DEV && console.error({ message: error.message, type, })
-        import.meta.env.DEV && console.error(error)
+        console.error({ message: error.message, type, })
+        console.error(error)
       })
   }
   const getEffectCallback = ({ type: { pallet, call }, }) => {

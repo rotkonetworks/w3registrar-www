@@ -95,7 +95,7 @@ export function useIdentityEncoder(identity: IdentityFields) {
   useEffect(() => {
     if (identity) {
       const encoded = encodeFields();
-      import.meta.env.DEV && console.log({ 
+      console.log({ 
         encoded: encoded,
         hash: `0x${Buffer.from(calculateHash()).toString("hex")}`,
       })

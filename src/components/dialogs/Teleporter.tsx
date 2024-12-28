@@ -91,10 +91,10 @@ export default function TeleporterDialog({
       (async () => {
         try {
           const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
-          import.meta.env.DEV && console.log({ paraId })
+          console.log({ paraId })
           setter(paraId)
         } catch (error) {
-          import.meta.env.DEV && console.error("Error getting parachain ID", error)
+          console.error("Error getting parachain ID", error)
           setter(null)
         }
       })()
@@ -176,7 +176,7 @@ export default function TeleporterDialog({
     const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(BigNumber(tokenDecimals)))
       .toString()
     )
-    import.meta.env.DEV && console.log("teleporting", newAmount);
+    console.log("teleporting", newAmount);
 
     (async () => {
       try {
@@ -187,10 +187,10 @@ export default function TeleporterDialog({
             address: fromAddress,
             amount: newAmount
           })
-          import.meta.env.DEV && console.log({ params })
+          console.log({ params })
           const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
             .signAndSubmit(signer)
-          import.meta.env.DEV && console.log({ result })
+          console.log({ result })
         }
         if (toParachainId) {
           const params = getTeleportParams({
@@ -199,13 +199,13 @@ export default function TeleporterDialog({
             address: toAddress,
             amount: newAmount
           })
-          import.meta.env.DEV && console.log({ params })
+          console.log({ params })
           const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
             .signAndSubmit(signer)
-          import.meta.env.DEV && console.log({ result })
+          console.log({ result })
         }
       } catch (error) {
-        import.meta.env.DEV && console.error("Error teleporting", error)
+        console.error("Error teleporting", error)
       }
     }) ()
   }, [amount, relayChainTypedApi])

@@ -52,7 +52,7 @@ export function IdentityRegistrarComponent() {
     const _urlParams = new URLSearchParams(window.location.search).entries()
       .map(([key, value]) => ({ key, value }))
       .reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
-    import.meta.env.DEV && console.log({ _urlParams })
+    console.log({ _urlParams })
     return _urlParams
   }, [window.location.search])
   useEffect(() => {
@@ -71,7 +71,7 @@ export function IdentityRegistrarComponent() {
         .join("&")
       : ""
     window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
-    import.meta.env.DEV && console.log({ newParams })
+    console.log({ newParams })
   }, [window.history.replaceState])
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export function IdentityRegistrarComponent() {
   // TODO Swap in useCallback
   const updateAccount = ({ id, name, address, ...rest }) => {
     const account = { id, name, address, ...rest };
-    import.meta.env.DEV && console.log({ account });
+    console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ address })
   };
@@ -142,7 +142,7 @@ export function IdentityRegistrarComponent() {
   const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
-      import.meta.env.DEV && console.log({ identityOf: result })
+      console.log({ identityOf: result })
       if (!result) {
         identityStore.status = verifiyStatuses.NoIdentity;
         identityStore.info = null
@@ -179,12 +179,7 @@ export function IdentityRegistrarComponent() {
       }
       const idDeposit = identityOf.deposit;
       // TODO Compute approximate reserve
-      import.meta.env.DEV && console.log({
-        identityOf,
-        identityData,
-        judgementsData,
-        idDeposit,
-      });
+      console.log({ identityOf, identityData, judgementsData, idDeposit, });
     })
     .catch(e => {
       if (import.meta.env.DEV) {
@@ -194,7 +189,7 @@ export function IdentityRegistrarComponent() {
     })
   , [accountStore.address, typedApi]);
   useEffect(() => {
-    import.meta.env.DEV && console.log({ typedApi, accountStore })
+    console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
     identityStore.status = verifiyStatuses.Unknown;
@@ -214,7 +209,7 @@ export function IdentityRegistrarComponent() {
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
-        import.meta.env.DEV && console.log({ id, chainProperties })
+        console.log({ id, chainProperties })
       } catch {
         console.error({ id, error })
       }
@@ -225,7 +220,7 @@ export function IdentityRegistrarComponent() {
       }
       startTransition(() => {
         Object.assign(chainStore, newChainData)
-        import.meta.env.DEV && console.log({ id, newChainData })
+        console.log({ id, newChainData })
       })
     }) ())
   }, [chainStore.id, chainClient])
@@ -288,7 +283,7 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   const onNotification = useCallback((notification: NotifyAccountState): void => {
-    import.meta.env.DEV && console.log('Received notification:', notification)
+    console.log('Received notification:', notification)
   }, [])
   
   //#region challenges
@@ -301,13 +296,13 @@ export function IdentityRegistrarComponent() {
   const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
-      import.meta.env.DEV && console.error(error)
+      console.error(error)
       return
     }
     if (idWsDeps.some((value) => value === undefined)) {
       return
     }
-    import.meta.env.DEV && console.log({ accountState })
+    console.log({ accountState })
     if (accountState) {
       const {
         pending_challenges,
@@ -325,7 +320,7 @@ export function IdentityRegistrarComponent() {
         })
       Object.assign(challengeStore, challenges)
 
-      import.meta.env.DEV && console.log({
+      console.log({
         origin: "accountState",
         pendingChallenges,
         verifyState,
@@ -361,7 +356,7 @@ export function IdentityRegistrarComponent() {
       _clearIdentity().getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, }))
         .catch(error => {
-          import.meta.env.DEV && console.error(error)
+          console.error(error)
           setEstimatedCosts({})
         })
     } else {
@@ -375,7 +370,7 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
-    import.meta.env.DEV && console.log({ newValue })
+    console.log({ newValue })
     switch (newValue.type) {
       case "Wallets":
         setWalletDialogOpen(true);
@@ -393,7 +388,7 @@ export function IdentityRegistrarComponent() {
         updateAccount({ ...newValue.account });
         break;
       default:
-        import.meta.env.DEV && console.log({ newValue })
+        console.log({ newValue })
         throw new Error("Invalid action type");
     }
   }, [])

@@ -51,11 +51,11 @@ export const ConfigProvider = ({ children }) => {
     );
 
     if (worker) {
-      import.meta.env.DEV && console.log("Stopping smoldot worker")
+      console.log("Stopping smoldot worker")
       worker.terminate()
     }
     setWorker(_worker)
-    import.meta.env.DEV && console.log("Starting smoldot worker")
+    console.log("Starting smoldot worker")
   }
 
   function createConfig(): ApiConfig {
@@ -186,7 +186,7 @@ export const ConfigProvider = ({ children }) => {
   }, [])
   useEffect(() => {
     const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL;
-    import.meta.env.DEV && console.log({ worker, config, defaultWeUrl: defaultWsUrl })
+    console.log({ worker, config, defaultWeUrl: defaultWsUrl })
     if (worker && !config) {
       const newConfig = defaultWsUrl ? createConfigWithCustomEndpoint(defaultWsUrl) : createConfig()
       updateConfig(newConfig)
