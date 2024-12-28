@@ -81,9 +81,10 @@ const Header = ({
                 <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
               </>}
               <SelectSeparator />
-              {accounts.length > 0 
-                ?<>
-                  <SelectGroup>
+              {/* Required to encose any laber or element so won't crash if no account */}
+              <SelectGroup>
+                {accounts.length > 0 
+                  ?<>
                     <SelectLabel>Accounts</SelectLabel>
                     {accounts.map(({ id, name, address, ...rest }) => {
                       const account = { id, name, address, ...rest };
@@ -93,12 +94,12 @@ const Header = ({
                         </SelectItem>
                       );
                     })}
-                  </SelectGroup>
-                </>
-                :<>
-                  <SelectLabel>No accounts found</SelectLabel>
-                </>
-              }
+                  </>
+                  :<>
+                    <SelectLabel>No accounts found</SelectLabel>
+                  </>
+                }
+              </SelectGroup>
             </>}
           </SelectContent>
         </Select>
