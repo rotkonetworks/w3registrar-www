@@ -106,7 +106,10 @@ export const config = defineConfig({
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__rococo_people,
     },
   },
-  targetChains: ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"],
+  targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
+    ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim()).includes(key)
+    : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
+  ,
   wallets: [
     new InjectedWalletProvider(),
     new LedgerWallet(),
