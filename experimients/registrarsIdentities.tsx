@@ -27,9 +27,9 @@ const main = async () => {
       const _identities = identities.map(({ registrar, identity }, i) => {
         return {
           registrar: { ...registrar, index: i },
-          judgements: identity?.[0].judgements,
-          deposit: identity?.[0].deposit,
-          info: identity?.[0].info
+          judgements: identity?.[0]?.judgements,
+          deposit: identity?.[0]?.deposit,
+          info: identity?.[0]?.info
             ? (Object.entries(identity[0].info)
               .reduce((acc, [key, value]) => {
                 if (value === null || (value && "none" in value)) {
