@@ -12,9 +12,15 @@ import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, Challenge, ChallengeStatus } from "~/store/challengesStore"
-import { useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector } from "@reactive-dot/react"
+import { 
+  identityStore as _identityStore, verifiyStatuses 
+} from "~/store/IdentityStore"
+import { 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+} from "~/store/challengesStore"
+import { 
+  useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
+} from "@reactive-dot/react"
 import { accountStore as _accountStore } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
@@ -26,6 +32,8 @@ import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
+import TeleporterDialog from "./dialogs/Teleporter"
+import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -35,10 +43,47 @@ export function IdentityRegistrarComponent() {
   //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
-  const chainContext = config;
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id })
   //# endregion Chains
+
+  const accountStore = useProxy(_accountStore)
+
+  const urlParams = useMemo<{
+    chain: string;
+    address: string;
+  }>(() => {
+    const _urlParams = new URLSearchParams(window.location.search).entries()
+      .map(([key, value]) => ({ key, value }))
+      .reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
+    if (import.meta.env.DEV) console.log({ _urlParams })
+    return _urlParams
+  }, [window.location.search])
+  useEffect(() => {
+    if (urlParams.chain) {
+      chainStore.id = urlParams.chain
+    }
+    if (urlParams.address) {
+      accountStore.address = urlParams.address
+    }
+  }, [urlParams])
+  const updateUrlParams = useCallback((params) => {
+    const newParams = params
+      ? "?" + Object.entries(params)
+        .filter(([ , value ]) => value)
+        .map(([ key, value ]) => `${key}=${value}`)
+        .join("&")
+      : ""
+    window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
+    if (import.meta.env.DEV) console.log({ newParams })
+  }, [window.history.replaceState])
+
+  useEffect(() => {
+    updateUrlParams({
+      chain: chainStore.id,
+      address: accountStore.address,
+    })
+  }, [chainStore.id, accountStore.address])
 
   const pages = [
     { 
@@ -72,8 +117,6 @@ export function IdentityRegistrarComponent() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   //#region accounts
-  const accountStore = useProxy(_accountStore)
-
   const accounts = useAccounts()
   useEffect(() => {
     if (!accountStore.address || accounts.length < 1) {
@@ -82,26 +125,56 @@ export function IdentityRegistrarComponent() {
     if (accountStore.polkadotSigner && accountStore.address) {
       return;
     }
-    const foundAccount = accounts.find(account => account.address === accountStore.address)
+
+    let foundAccount;
+    // Check if the account is in the list of accounts
+    foundAccount = accounts.find(account => account.address === accountStore.address)
+
+    // Account was not found by its address, because actual list's addresses are encoded with
+    //  different SS58 prefix, so we need to decode it and compare it using public key
     if (!foundAccount) {
-      return;
+      const decodedAddress = decodeAddress(accountStore.address)
+      if (import.meta.env.DEV) console.log({  decodedAddress })
+      foundAccount = accounts.find(account => {
+        const publicKey = account.polkadotSigner.publicKey
+        if (import.meta.env.DEV) console.log({ publicKey, name: account.name })
+        return publicKey.every((byte, index) => byte === decodedAddress[index])
+      })
+      if (!foundAccount) {
+        return;
+      }
+
+      const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format)
+      if (import.meta.env.DEV) console.log({ 
+        foundAccount: reencodedAddress
+      })
+      updateUrlParams({ ...urlParams, address: reencodedAddress })
     }
     const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
     Object.assign(accountStore, newAccountData)
   }, [accountStore.polkadotSigner, accountStore.address, accounts])
+
+  // TODO Swap in useCallback
+  const updateAccount = ({ id, name, address, ...rest }) => {
+    const account = { id, name, address, ...rest };
+    if (import.meta.env.DEV) console.log({ account });
+    Object.assign(accountStore, account);
+    updateUrlParams({ address })
+  };
   //#endregion accounts
 
   //#region identity
   const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
-      import.meta.env.DEV && console.log({ identityOf: result })
+      if (import.meta.env.DEV) console.log({ identityOf: result })
       if (!result) {
         identityStore.status = verifiyStatuses.NoIdentity;
         identityStore.info = null
         return;
       }
-      const identityOf = result[0];
+      // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
+      const identityOf = result[0] || result;
       const identityData = Object.fromEntries(Object.entries(identityOf.info)
         .filter(([_, value]) => value?.type?.startsWith("Raw"))
         .map(([key, value]) => [key, value.value.asText()])
@@ -132,22 +205,16 @@ export function IdentityRegistrarComponent() {
       }
       const idDeposit = identityOf.deposit;
       // TODO Compute approximate reserve
-      import.meta.env.DEV && console.log({
-        identityOf,
-        identityData,
-        judgementsData,
-        idDeposit,
-      });
+      if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
     })
     .catch(e => {
       if (import.meta.env.DEV) {
-        console.error("Couldn't get identityOf");
-        console.error(e);
+        if (import.meta.env.DEV) console.error("Couldn't get identityOf.", e);
       }
     })
   , [accountStore.address, typedApi]);
   useEffect(() => {
-    import.meta.env.DEV && console.log({ typedApi, accountStore })
+    if (import.meta.env.DEV) console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
     identityStore.status = verifiyStatuses.Unknown;
@@ -167,23 +234,23 @@ export function IdentityRegistrarComponent() {
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
-        import.meta.env.DEV && console.log({ id, chainProperties })
+        if (import.meta.env.DEV) console.log({ id, chainProperties })
       } catch {
-        console.error({ id, error })
+        if (import.meta.env.DEV) console.error({ id, error })
       }
       const newChainData = {
-        name: chainContext.chains[id].name,
-        registrarIndex: chainContext.chains[id].registrarIndex,
+        name: config.chains[id].name,
+        registrarIndex: config.chains[id].registrarIndex,
         ...chainProperties,
       }
       startTransition(() => {
         Object.assign(chainStore, newChainData)
-        import.meta.env.DEV && console.log({ id, newChainData })
+        if (import.meta.env.DEV) console.log({ id, newChainData })
       })
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: keyof Chains) => {
-    chainStore.id = chainId;
+    updateUrlParams({ ...urlParams, chain: chainId })
   }, [])
   
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
@@ -241,7 +308,7 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   const onNotification = useCallback((notification: NotifyAccountState): void => {
-    import.meta.env.DEV && console.log('Received notification:', notification)
+    if (import.meta.env.DEV) console.log('Received notification:', notification)
   }, [])
   
   //#region challenges
@@ -254,13 +321,13 @@ export function IdentityRegistrarComponent() {
   const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
-      import.meta.env.DEV && console.error(error)
+      if (import.meta.env.DEV) console.error(error)
       return
     }
     if (idWsDeps.some((value) => value === undefined)) {
       return
     }
-    import.meta.env.DEV && console.log({ accountState })
+    if (import.meta.env.DEV) console.log({ accountState })
     if (accountState) {
       const {
         pending_challenges,
@@ -278,7 +345,7 @@ export function IdentityRegistrarComponent() {
         })
       Object.assign(challengeStore, challenges)
 
-      import.meta.env.DEV && console.log({
+      if (import.meta.env.DEV) console.log({
         origin: "accountState",
         pendingChallenges,
         verifyState,
@@ -304,7 +371,8 @@ export function IdentityRegistrarComponent() {
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
   
-  const [openDialog, setOpenDialog] = useState<"clearIdentity"| "disconnect" | null>(null)
+  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
+  const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState({})
@@ -313,7 +381,7 @@ export function IdentityRegistrarComponent() {
       _clearIdentity().getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, }))
         .catch(error => {
-          import.meta.env.DEV && console.error(error)
+          if (import.meta.env.DEV) console.error(error)
           setEstimatedCosts({})
         })
     } else {
@@ -321,7 +389,37 @@ export function IdentityRegistrarComponent() {
     }
   }, [openDialog, chainStore.id])
   //#endregion CostExtimations
+  
+  const handleOpenChange = useCallback((nextState: boolean): void => {
+    setOpenDialog(previousState => nextState ? previousState : null)
+  }, [])
 
+  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+    if (import.meta.env.DEV) console.log({ newValue })
+    switch (newValue.type) {
+      case "Wallets":
+        setWalletDialogOpen(true);
+        break;
+      case "Disconnect":
+        setOpenDialog("disconnect")
+        break;
+      case "Teleport":
+        setOpenDialog("teleposr")
+        break;
+      case "RemoveIdentity":
+        setOpenDialog("clearIdentity")
+        break;
+      case "account":
+        updateAccount({ ...newValue.account });
+        break;
+      default:
+        if (import.meta.env.DEV) console.log({ newValue })
+        throw new Error("Invalid action type");
+    }
+  }, [])
+
+  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+  
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -329,17 +427,14 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header chainContext={chainContext} 
+        <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
+          onAccountSelect={onAccountSelect} accountStore={accountStore} 
+          identityStore={identityStore} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onChainSelect={onChainSelect}
-          accountStore={accountStore} 
-          identityStore={identityStore}
-          onRequestWalletConnections={() => setWalletDialogOpen(true)}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-          onDisconnect={() => setOpenDialog("disconnect")}
+          onRequestWalletConnections={onRequestWalletConnection}
         />
 
         {[...alertsStore.entries()].map(([, alert]) => (
@@ -440,9 +535,9 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    <Dialog open={openDialog} onOpenChange={(state) => {
-      setOpenDialog(_state => state ? _state : null)
-    }}>
+    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
@@ -496,7 +591,7 @@ export function IdentityRegistrarComponent() {
               case "disconnect":
                 connectedWallets.forEach(w => disconnectWallet(w));
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                delete window.localStorage.account;
+                updateUrlParams({ ...urlParams, address: null, })
                 break;
               default:
                 throw new Error("Unexpected openDialog value");
@@ -508,5 +603,11 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
+      onOpenChange={handleOpenChange} formatAmount={formatAmount}
+      tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+      signer={accountStore.polkadotSigner}
+    />
   </>
 }

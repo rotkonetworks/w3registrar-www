@@ -79,7 +79,7 @@ export function IdentityForm<Chain>({
       }).getEstimatedFees(accountStore.address)
         .then(fees =>  setEstimatedCosts({ fees, }))
         .catch(error => {
-          import.meta.env.DEV && console.error(error)
+          if (import.meta.env.DEV) console.error(error)
           setEstimatedCosts({  })
         })
     } else if (actionType === "identity") {
@@ -118,7 +118,7 @@ export function IdentityForm<Chain>({
           ),
         }))
         .catch(error => {
-          import.meta.env.DEV && console.error(error)
+          if (import.meta.env.DEV) console.error(error)
           setEstimatedCosts({})
         })
     }
@@ -212,7 +212,7 @@ export function IdentityForm<Chain>({
   }
   useEffect(() => {
     if (identityStore.info) {
-      import.meta.env.DEV && console.log({ identityStore })
+      if (import.meta.env.DEV) console.log({ identityStore })
       setFormData({
         ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
           all[key] = {
@@ -236,7 +236,7 @@ export function IdentityForm<Chain>({
   }, [identityStore.info])
 
   useEffect(() => {
-    import.meta.env.DEV && console.log({ formData })
+    if (import.meta.env.DEV) console.log({ formData })
   }, [formData])
 
   const forbiddenSubmission = useMemo(() => {

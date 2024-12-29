@@ -1,24 +1,22 @@
 import { useState } from 'react'
-import { LocalStorageUtil } from '~/utils'
-
 export function useDark() {
   // 初始化
-  const dark = LocalStorageUtil.getItem<boolean>('dark')
-  const [isDark, setIsDark] = useState(dark)
+  const [isDark, setIsDark] = useState<boolean>(window.matchMedia('(prefers-color-scheme: dark)').matches)
 
-  if (isDark) {
-    document.documentElement.classList.add('dark')
-  }
-
+  useEffect(() => {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      setDark(event.matches)
+    });
+  })
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    }
+  }, [isDark])
   const setDark = (value: boolean) => {
     setIsDark(value)
-    LocalStorageUtil.setItem('dark', value)
     document.documentElement.classList.toggle('dark', value)
   }
 
-  const toggle = () => {
-    setDark(!isDark)
-  }
-
-  return { isDark, toggle }
+  return { isDark, setDark }
 }

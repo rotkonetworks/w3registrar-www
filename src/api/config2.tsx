@@ -1,5 +1,5 @@
 import { 
-  polkadot, kusama, westend, people_polkadot, people_kusama, people_westend, 
+  polkadot, kusama, westend, polkadot_people, ksmcc3_people, westend2_people, 
   rococo
 } from "@polkadot-api/descriptors";
 import type { ChainConfig, Config } from "@reactive-dot/core";
@@ -15,7 +15,7 @@ import { startFromWorker } from "polkadot-api/smoldot/from-worker";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 
-import { people_rococo } from "@polkadot-api/descriptors";
+import { rococo_people } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createContext, useContext, useEffect, useState } from "react";
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
@@ -51,31 +51,31 @@ export const ConfigProvider = ({ children }) => {
     );
 
     if (worker) {
-      import.meta.env.DEV && console.log("Stopping smoldot worker")
+      if (import.meta.env.DEV) console.log("Stopping smoldot worker")
       worker.terminate()
     }
     setWorker(_worker)
-    import.meta.env.DEV && console.log("Starting smoldot worker")
+    if (import.meta.env.DEV) console.log("Starting smoldot worker")
   }
 
   function createConfig(): ApiConfig {
     return {
       chains: {
-        people_polkadot: {
+        polkadot_people: {
           name: "Polkadot",
-          descriptor: people_polkadot,
+          descriptor: polkadot_people,
           provider: getSmProvider(worker?.addChain({ chainSpec: peoplePolkadotChainSpec })),
           registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
         },
-        people_kusama: {
+        ksmcc3_people: {
           name: "Kusama",
-          descriptor: people_kusama,
+          descriptor: ksmcc3_people,
           provider: getSmProvider(worker?.addChain({ chainSpec: peopleKusamaChainSpec })),
           registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
         },
-        people_westend: {
+        westend2_people: {
           name: "Westend",
-          descriptor: people_westend,
+          descriptor: westend2_people,
           provider: getSmProvider(worker?.addChain({ chainSpec: peopleWestendChainSpec })),
           registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
         },
@@ -131,9 +131,9 @@ export const ConfigProvider = ({ children }) => {
       ...newConfig,
       chains: {
         ...newConfig.chains,
-        people_rococo: {
+        rococo_people: {
           name: "Rococo",
-          descriptor: people_rococo,
+          descriptor: rococo_people,
           provider: () => withPolkadotSdkCompat((
             getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)
           )),
@@ -186,7 +186,7 @@ export const ConfigProvider = ({ children }) => {
   }, [])
   useEffect(() => {
     const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL;
-    import.meta.env.DEV && console.log({ worker, config, defaultWeUrl: defaultWsUrl })
+    if (import.meta.env.DEV) console.log({ worker, config, defaultWeUrl: defaultWsUrl })
     if (worker && !config) {
       const newConfig = defaultWsUrl ? createConfigWithCustomEndpoint(defaultWsUrl) : createConfig()
       updateConfig(newConfig)

@@ -121,7 +121,7 @@ export const useIdentityWebSocket = ({
         reject(new Error('WebSocket is not connected'));
         return;
       }
-      console.log({ message, callback: "sendMessage" })
+      if (import.meta.env.DEV) console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
       const versionedMessage: VersionedMessage = {
@@ -146,14 +146,14 @@ export const useIdentityWebSocket = ({
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const message = JSON.parse(event.data) as WebSocketMessage;
-      console.log({message})
+      if (import.meta.env.DEV) console.log({message})
 
       switch (message.type) {
         case 'JsonResult':
           if ('ok' === message.payload.type) {
             const response = message.payload.message.AccountState;
             if (response) {
-              console.log({ response })
+              if (import.meta.env.DEV) console.log({ response })
               setAccountState(response);
             }
           } else {
@@ -182,7 +182,7 @@ export const useIdentityWebSocket = ({
 
   // Set up WebSocket connection
   useEffect(() => {
-    import.meta.env.DEV && console.log({ ws: ws.current, state: ws.current?.readyState })
+    if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
       return;
@@ -195,16 +195,16 @@ export const useIdentityWebSocket = ({
       ws.current = new WebSocket(url);
       
       ws.current.onopen = () => {
-        console.log({ callBack: "onopen" })
+        if (import.meta.env.DEV) console.log({ callBack: "onopen" })
         setIsConnected(true);
         setError(null);
       };
       ws.current.onclose = (event) => {
-        console.log({ callBack: "onclose", code: event.code })
+        if (import.meta.env.DEV) console.log({ callBack: "onclose", code: event.code })
         setIsConnected(false);
       };
       ws.current.onerror = (error) => {
-        console.error(error)
+        if (import.meta.env.DEV) console.error(error)
         setError('WebSocket error occurred');
       };
       ws.current.onmessage = handleMessage;
@@ -230,7 +230,7 @@ export const useIdentityWebSocket = ({
 
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account) {
-      console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
+      if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
       // Subscribe to account state on connection
       sendMessage({
         type: 'SubscribeAccountState',

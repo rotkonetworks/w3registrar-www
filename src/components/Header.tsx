@@ -1,18 +1,17 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Bell, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from '~/store/AppStore';
-import { pushAlert } from '~/store/AlertStore';
 import { useProxy } from "valtio/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfigContextProps } from "~/api/config2";
-import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
-import { Account } from "~/store/AccountStore";
+import { useConnectedWallets } from "@reactive-dot/react";
+import { Account, accountStore } from "~/store/AccountStore";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
-import { ChainInfo } from "~/store/ChainStore";
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
+import { WalletAccount } from "node_modules/@reactive-dot/core/build/wallets/account";
 
 const AccountListing = ({ address, name }) => <>
   <PolkadotIdenticon address={address} />
@@ -23,79 +22,36 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  chainContext, chainStore, accountStore, onChainSelect, onRequestWalletConnections, identityStore, 
-  onIdentityClear, onDisconnect,
+  config: chainContext, chainStore, accountStore, identityStore, accounts, 
+  onChainSelect, onAccountSelect, onRequestWalletConnections,
 }: { 
-  chainContext: ConfigContextProps;
-  chainStore: { id: string, name: string };
+  accounts: WalletAccount[],
+  config: ConfigContextProps;
+  chainStore: { id: string | number | symbol, name: string };
   accountStore: Account;
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
+  onAccountSelect: (props: { type: string, [key: string]: string }) => void;
   onRequestWalletConnections: () => void;
-  onIdentityClear: () => void;
-  onDisconnect: () => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
-  useEffect(() => import.meta.env.DEV && console.log({ chainContext }), [chainContext]);
-
-  //# region NetDropdown
-  const [_wsUrl, _setWsUrl] = useState("");
-  const defaultWsUrl = localStorage.getItem("wsUrl") || import.meta.env.VITE_APP_DEFAULT_WS_URL
-
-  useEffect(() => {
-    if (defaultWsUrl && chainStore.id === "people_rococo") {
-      _setWsUrl(defaultWsUrl);
-    } else {
-      _setWsUrl("");
-    }
-  }, [defaultWsUrl]);
+  useEffect(() => { if (import.meta.env.DEV) console.log({ chainContext }) }, [chainContext]);
 
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
-  //# endregion NetDropdown
   
   //#region userDropdown
   const connectedWallets = useConnectedWallets()
   
-  const accounts = useAccounts()
-  
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
-  const updateAccount = ({ id, name, address, ...rest }) => {
-    const account = { id, name, address, ...rest };
-    import.meta.env.DEV && console.log({ account });
-    Object.assign(accountStore, account);
-    // Needed to prevent circular references for serialization
-    const accountToLocalStore = { id, name, address };
-    localStorage.setItem("account", JSON.stringify(accountToLocalStore));
-  };
   //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
       <div className="flex-1 min-w-[240px]">
         <Select 
-          onValueChange={(newValue) => {
-            import.meta.env.DEV && console.log({ newValue })
-            switch (newValue.type) {
-              case "Wallets":
-                onRequestWalletConnections();
-                break;
-              case "Disconnect":
-                onDisconnect();
-                break;
-              case "Teleport":
-                break;
-              case "RemoveIdentity":
-                onIdentityClear();
-                break;
-              case "account":
-                updateAccount({ ...newValue.account });
-                break;
-              default:
-                throw new Error("Invalid action type");
-            }
-          }} 
+          onValueChange={onAccountSelect} 
           open={isUserDropdownOpen}
           onOpenChange={() => {
             if (connectedWallets.length > 0) {
@@ -108,13 +64,7 @@ const Header = ({
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
             {accountStore.address 
-              ? <>
-                {accountStore.name}
-                <span className="text-xs text-stone-400">
-                  <PolkadotIdenticon address={accountStore.address} />
-                  {accountStore.address.slice(0, 4)}...{accountStore.address.slice(-4)}
-                </span>
-              </>
+              ? <AccountListing address={accountStore.address} name={accountStore.name} />
               : connectedWallets.length > 0
                 ? <span>Pick account</span>
                 : <span>Connect wallet</span>
@@ -128,30 +78,28 @@ const Header = ({
                 <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
               </>}
               {accountStore.address && <>
-                <SelectItem value="Teleport">Teleport</SelectItem>
+                <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
               </>}
               <SelectSeparator />
-              {accounts.length > 0 
-                ?<>
-                  <SelectGroup>
+              {/* Required to encose any laber or element so won't crash if no account */}
+              <SelectGroup>
+                {accounts.length > 0 
+                  ?<>
                     <SelectLabel>Accounts</SelectLabel>
                     {accounts.map(({ id, name, address, ...rest }) => {
                       const account = { id, name, address, ...rest };
                       return (
-                        <SelectItem key={id} value={{ type: "account", account }} onClick={() => {
-                          console.log({ account });
-                          return updateAccount(account);
-                        }}>
+                        <SelectItem key={id} value={{ type: "account", account }}>
                           <AccountListing address={address} name={name} />
                         </SelectItem>
                       );
                     })}
-                  </SelectGroup>
-                </>
-                :<>
-                  <SelectLabel>No accounts found</SelectLabel>
-                </>
-              }
+                  </>
+                  :<>
+                    <SelectLabel>No accounts found</SelectLabel>
+                  </>
+                }
+              </SelectGroup>
             </>}
           </SelectContent>
         </Select>
@@ -165,7 +113,12 @@ const Header = ({
           </SelectTrigger>
           <SelectContent>
             {Object.entries(chainContext.chains)
-              .filter(([key]) => key.includes("people"))
+              .filter(([key]) => 
+                import.meta.env.VITE_APP_AVAILABLE_CHAINS 
+                  ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
+                    .includes(key)
+                  : key.includes("people")
+              )
               .map(([key, net]) => (
                 <SelectItem key={key} value={key}>
                   {net.name}

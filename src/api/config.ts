@@ -1,12 +1,14 @@
 import {
   polkadot,
-  kusama,
-  westend,
+  polkadot_people,
+  ksmcc3,
+  ksmcc3_people,
   rococo,
-  people_polkadot,
-  people_kusama,
-  people_westend,
-  people_rococo,
+  rococo_people,
+  westend2,
+  westend2_people,
+  paseo,
+  paseo_people,
 } from "@polkadot-api/descriptors";
 import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
@@ -15,17 +17,20 @@ import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { createLightClientProvider } from "@reactive-dot/core/providers/light-client.js";
 import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 const getProviders = () => {
   const lightClientProvider = createLightClientProvider();
   const polkadot = lightClientProvider.addRelayChain({ id: "polkadot" });
-  const kusama = lightClientProvider.addRelayChain({ id: "kusama" });
+  const ksmcc3 = lightClientProvider.addRelayChain({ id: "kusama" });
+  const paseo = lightClientProvider.addRelayChain({ id: "paseo" });
   const westend = lightClientProvider.addRelayChain({ id: "westend" });
 
   return {
     lightClientProvider,
     polkadot,
-    kusama, 
+    ksmcc3, 
+    paseo,
     westend
   };};
 export let providers = getProviders();
@@ -41,52 +46,70 @@ type ApiConfig = Config & {
 };
 export const config = defineConfig({
   chains: {
-    people_polkadot: {
-      name: "Polkadot",
-      descriptor: people_polkadot,
-      provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
-    },
-    people_kusama: {
-      name: "Kusama",
-      descriptor: people_kusama,
-      provider: providers.kusama.addParachain({ id: "kusama_people" }),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
-    },
-    people_westend: {
-      name: "Westend",
-      descriptor: people_westend,
-      provider: providers.westend.addParachain({ id: "people_westend_people" }),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
-    },
     polkadot: {
       name: "Polkadot",
       descriptor: polkadot,
       provider: providers.polkadot,
     },
-    kusama: {
-      name: "Kusama",
-      descriptor: kusama,
-      provider: providers.kusama,
+    polkadot_people: {
+      name: "Polkadot People",
+      descriptor: polkadot_people,
+      provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
-    westend: {
+
+    ksmcc3: {
+      name: "Kusama",
+      descriptor: ksmcc3,
+      provider: providers.ksmcc3,
+    },
+    ksmcc3_people: {
+      name: "Kusama People",
+      descriptor: ksmcc3_people,
+      provider: providers.ksmcc3.addParachain({ id: "kusama_people" }),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
+    },
+
+    paseo: {
+      name: "Paseo",
+      descriptor: paseo,
+      provider: withPolkadotSdkCompat(getWsProvider("wss://rpc.ibp.network/paseo")),
+    },
+    paseo_people: {
+      name: "Paseo People",
+      descriptor: paseo_people,
+      provider: withPolkadotSdkCompat(getWsProvider("wss://sys.ibp.network/people-paseo")),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
+    },
+
+    westend2: {
       name: "Westend",
-      descriptor: westend,
+      descriptor: westend2,
       provider: providers.westend,
     },
-    people_rococo: {
-      name: "Rococo",
-      descriptor: people_rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
+    westend2_people: {
+      name: "Westend People",
+      descriptor: westend2_people,
+      provider: providers.westend.addParachain({ id: "westend_people" }),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
+
     rococo: {
       name: "Rococo",
       descriptor: rococo,
-      provider: getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+    },
+    rococo_people: {
+      name: "Rococo People",
+      descriptor: rococo_people,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__rococo_people,
     },
   },
-  targetChains: ["people-polkadot", "popple_kusama", "people_westend", "people_rococo"],
+  targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
+    ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
+    : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
+  ,
   wallets: [
     new InjectedWalletProvider(),
     new LedgerWallet(),
@@ -103,12 +126,12 @@ export const config = defineConfig({
       chainIds: [
         "polkadot:67fa177a097bfa18f77ea95ab56e9bcd", // people-polkadot
         "polkadot:1eb6fb0ba5187434de017a70cb84d4f4", // people-westend
-        "polkadot:c1af4cb4eb3918e5db15086c0cc5ec17", // people-kusama
+        "polkadot:c1af4cb4eb3918e5db15086c0cc5ec17", // people-ksmcc3
       ],
       optionalChainIds: [
         "polkadot:42a6fe2a73c2a8920a8ece6bdbaa63fc", // people-rococo
         "polkadot:91b171bb158e2d3848fa23a9f1c25182", // polkadot
-        "polkadot:b0a8d493285c2df73290dfb7e61f870f", // kusama
+        "polkadot:b0a8d493285c2df73290dfb7e61f870f", // ksmcc3
         "polkadot:e143f23803ac50e8f6f8e62695d1ce9e", // westend
       ],
     }),

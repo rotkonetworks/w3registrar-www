@@ -24,6 +24,7 @@ readonly REQUIRED_VARS=(
     VITE_APP_DEFAULT_WS_URL_RELAY
     VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT
     VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA
+    VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO
     VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND
     VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO
     VITE_APP_CHALLENGES_API_URL
@@ -37,7 +38,7 @@ for var in "${REQUIRED_VARS[@]}"; do
 done
 
 bun install
-bunx papi update
+bunx polkadot-api@1.8.0 update
 
 cat << EOF > ./node_modules/css-tree/lib/data-patch.js
 import * as patch from "../data/patch.json"

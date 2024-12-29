@@ -115,7 +115,9 @@ export function ChallengePage({
                         .then(challenge => {
                           challengeStore[field].code = challenge
                         })
-                        .catch(error => console.error(error))
+                        .catch(error => {
+                          if (import.meta.env.DEV) console.error(error)
+                        })
                       }
                     >
                       <RefreshCcw className="h-4 w-4" />
@@ -134,7 +136,7 @@ export function ChallengePage({
                                 : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
                             })
                           })
-                          .catch(error => console.error(error))
+                          .catch(error => { if (import.meta.env.DEV) console.error(error) })
                           .finally(() => setPendingTransaction(false))
                       }
                       }
@@ -157,7 +159,7 @@ export function ChallengePage({
                 .then(result => {
                   onVerifyStatusReceived(result)
                 })
-                .catch(error => console.error(error))
+                .catch(error => { if (import.meta.env.DEV) console.error(error) })
               )
             )
               .then(() => {
@@ -166,7 +168,7 @@ export function ChallengePage({
                   message: 'Challenges verified successfully', 
                 })
               })
-              .catch(error => console.error(error))
+              .catch(error => { if (import.meta.env.DEV) console.error(error) })
               .finally(() => setPendingTransaction(false))
           }}
         >
