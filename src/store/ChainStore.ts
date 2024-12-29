@@ -2,7 +2,7 @@ import { Chains } from "@reactive-dot/core";
 import { proxy } from "valtio";
 
 export interface ChainInfo {
-  id: keyof Chains;
+  id: string | number | symbol;
   name: string;
   ss58Format?: number;
   tokenDecimals?: number;

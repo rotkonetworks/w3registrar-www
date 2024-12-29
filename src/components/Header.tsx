@@ -27,7 +27,7 @@ const Header = ({
 }: { 
   accounts: WalletAccount[],
   config: ConfigContextProps;
-  chainStore: { id: string, name: string };
+  chainStore: { id: string | number | symbol, name: string };
   accountStore: Account;
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;

@@ -48,7 +48,10 @@ export function IdentityRegistrarComponent() {
 
   const accountStore = useProxy(_accountStore)
 
-  const urlParams = useMemo(() => {
+  const urlParams = useMemo<{
+    chain: string;
+    address: string;
+  }>(() => {
     const _urlParams = new URLSearchParams(window.location.search).entries()
       .map(([key, value]) => ({ key, value }))
       .reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
