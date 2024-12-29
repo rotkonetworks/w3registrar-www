@@ -38,7 +38,7 @@ for var in "${REQUIRED_VARS[@]}"; do
 done
 
 bun install
-bunx polkadot-api generate
+bunx polkadot-api@1.8.0 update
 
 cat << EOF > ./node_modules/css-tree/lib/data-patch.js
 import * as patch from "../data/patch.json"
