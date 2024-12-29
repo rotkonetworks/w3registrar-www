@@ -148,7 +148,8 @@ export function IdentityRegistrarComponent() {
         identityStore.info = null
         return;
       }
-      const identityOf = result[0];
+      // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
+      const identityOf = result[0] || result;
       const identityData = Object.fromEntries(Object.entries(identityOf.info)
         .filter(([_, value]) => value?.type?.startsWith("Raw"))
         .map(([key, value]) => [key, value.value.asText()])
@@ -183,8 +184,7 @@ export function IdentityRegistrarComponent() {
     })
     .catch(e => {
       if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) console.error("Couldn't get identityOf");
-        if (import.meta.env.DEV) console.error(e);
+        if (import.meta.env.DEV) console.error("Couldn't get identityOf.", e);
       }
     })
   , [accountStore.address, typedApi]);
