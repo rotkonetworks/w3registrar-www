@@ -113,7 +113,12 @@ const Header = ({
           </SelectTrigger>
           <SelectContent>
             {Object.entries(chainContext.chains)
-              .filter(([key]) => key.includes("people"))
+              .filter(([key]) => 
+                import.meta.env.VITE_APP_AVAILABLE_CHAINS 
+                  ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
+                    .includes(key)
+                  : key.includes("people")
+              )
               .map(([key, net]) => (
                 <SelectItem key={key} value={key}>
                   {net.name}
