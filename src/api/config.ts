@@ -90,7 +90,7 @@ export const config = defineConfig({
     westend2_people: {
       name: "Westend People",
       descriptor: westend2_people,
-      provider: providers.westend.addParachain({ id: "westend2_people" }),
+      provider: providers.westend.addParachain({ id: "westend_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
 
