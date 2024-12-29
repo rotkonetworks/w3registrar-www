@@ -3,6 +3,7 @@ import { proxy } from "valtio";
 
 export interface ChainInfo {
   id: keyof Chains;
+  name: string;
   ss58Format?: number;
   tokenDecimals?: number;
   tokenSymbol?: string;
