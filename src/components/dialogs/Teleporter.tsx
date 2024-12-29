@@ -359,11 +359,11 @@ export default function TeleporterDialog({
               <div className="space-y-2 text-[#FFFFFF]">
                 <div className="flex justify-between">
                   <span>{config.chains[fromChainId].name}</span>
-                  <span>{formatAmount(isReversed ? fromBalance : toBalance)}</span>
+                  <span>{formatAmount(!isReversed ? fromBalance : toBalance)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{config.chains[toChainId].name}</span>
-                  <span>{formatAmount(isReversed ? toBalance : fromBalance)}</span>
+                  <span>{formatAmount(isReversed ? fromBalance : toBalance)}</span>
                 </div>
               </div>
             </CardContent>
