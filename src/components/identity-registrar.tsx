@@ -33,6 +33,7 @@ import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
 import TeleporterDialog from "./dialogs/Teleporter"
+import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -124,9 +125,30 @@ export function IdentityRegistrarComponent() {
     if (accountStore.polkadotSigner && accountStore.address) {
       return;
     }
-    const foundAccount = accounts.find(account => account.address === accountStore.address)
+
+    let foundAccount;
+    // Check if the account is in the list of accounts
+    foundAccount = accounts.find(account => account.address === accountStore.address)
+
+    // Account was not found by its address, because actual list's addresses are encoded with
+    //  different SS58 prefix, so we need to decode it and compare it using public key
     if (!foundAccount) {
-      return;
+      const decodedAddress = decodeAddress(accountStore.address)
+      if (import.meta.env.DEV) console.log({  decodedAddress })
+      foundAccount = accounts.find(account => {
+        const publicKey = account.polkadotSigner.publicKey
+        if (import.meta.env.DEV) console.log({ publicKey, name: account.name })
+        return publicKey.every((byte, index) => byte === decodedAddress[index])
+      })
+      if (!foundAccount) {
+        return;
+      }
+
+      const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format)
+      if (import.meta.env.DEV) console.log({ 
+        foundAccount: reencodedAddress
+      })
+      updateUrlParams({ ...urlParams, address: reencodedAddress })
     }
     const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
     Object.assign(accountStore, newAccountData)
