@@ -31,7 +31,7 @@ bun dev
 
 To generate/update scale metadata
 ```sh
-bunx papi update # or bun metadata
+bunx polkadot-api@1.8.0 update # or bun metadata
 ```
 
 ### Build

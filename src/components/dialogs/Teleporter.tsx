@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "../ui/command"
+import { 
+  Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem 
+} from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
-import { Binary, PolkadotSigner, TypedApi } from "polkadot-api"
+import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config2"
 import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
@@ -20,8 +24,8 @@ export default function TeleporterDialog({
   onOpenChange, formatAmount
 }: {
   address: string,
-  accounts: WalletAccount[],
-  chainId: Chains,
+  accounts: { address: SS58String, name: string }[],
+  chainId: string | number | symbol,
   typedApi: TypedApi,
   config: ApiConfig,
   open: boolean,
@@ -31,8 +35,8 @@ export default function TeleporterDialog({
   onOpenChange: (open: boolean) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
 }) {
-  const [fromAddress, setFromAddress] = React.useState(address)
-  const [toAddress, setToAddres] = React.useState(address)
+  const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
+  const [toAddress, setToAddres] = React.useState<SS58String>(address)
 
   React.useEffect(() => {
     if (open) {
@@ -43,7 +47,7 @@ export default function TeleporterDialog({
 
   const [isReversed, setIsReversed] = React.useState(false)
   const [amount, setAmount] = React.useState("")
-  const relayChainId = React.useMemo(() => chainId.replace("_people", ""), [chainId])
+  const relayChainId = React.useMemo(() => (chainId as string).replace("_people", ""), [chainId])
   const [selectedChain, setSelectedChain] = React.useState(relayChainId)
 
   const fromChainId = React.useMemo(
@@ -53,7 +57,7 @@ export default function TeleporterDialog({
     () => isReversed ? selectedChain : chainId, [isReversed, selectedChain, chainId]
   )
 
-  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" // Alice
+  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
   const fromBalance = BigNumber(
     useSpendableBalance(fromAddress || genericAddress, { chainId: fromChainId }).planck.toString()
   )
