@@ -226,7 +226,7 @@ export function IdentityRegistrarComponent() {
       })
     }) ())
   }, [chainStore.id, chainClient])
-  const onChainSelect = useCallback((chainId: keyof Chains) => {
+  const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId })
     chainStore.id = chainId
   }, [])
