@@ -3,7 +3,11 @@ import { useEffect } from "react";
 import { useSnapshot } from "valtio";
 import { appStore } from "~/store/AppStore";
 
-export const LoadingPlaceholder = ({ className, children, ...props }) => <div {...props}
+export const LoadingPlaceholder = ({ className, children, ...props }: {
+  className?: string,
+  children?: React.ReactNode | React.ReactNode[],
+  [key: string]: any
+}) => <div {...props}
   className={`${className} animate-pulse bg-gray`} 
 >
   {children}
@@ -47,7 +51,9 @@ export function Loading() {
           />
           {/* Content */}
           <div className="flex flex-grow flex-col items-stretch mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <LoadingPlaceholder className="flex flex-grow w-full" />
+            <LoadingPlaceholder className="flex flex-grow w-full flex-center font-bold text-3xl">
+              Syncing light client...
+            </LoadingPlaceholder>
 
             <div className="flex justify-between mt-6">
               <div className="flex w-full sm:w-auto">
