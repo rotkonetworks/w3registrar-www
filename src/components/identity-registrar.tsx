@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, Info, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,9 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore } from '~/store/ChainStore'
-import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
-import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
 import { 
   identityStore as _identityStore, verifiyStatuses 
@@ -36,6 +34,7 @@ import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
+import type { ChainId } from "@reactive-dot/core";
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -46,7 +45,7 @@ export function IdentityRegistrarComponent() {
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
   const chainStore = useProxy(_chainStore);
-  const typedApi = useTypedApi({ chainId: chainStore.id })
+  const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
   //# endregion Chains
 
   const accountStore = useProxy(_accountStore)
@@ -128,13 +127,12 @@ export function IdentityRegistrarComponent() {
     }
   }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
 
-  // TODO Swap in useCallback
-  const updateAccount = ({ id, name, address, polkadotSigner }) => {
-    const account = { id, name, address, polkadotSigner };
+  const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
+    const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ address })
-  };
+  }, [accountStore, updateUrlParams]);
   //#endregion accounts
 
   //#region identity
