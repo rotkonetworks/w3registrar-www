@@ -23,7 +23,7 @@ const AccountListing = ({ address, name }) => <>
 
 const Header = ({ 
   config: chainContext, chainStore, accountStore, identityStore, accounts, 
-  onChainSelect, onAccountSelect, onRequestWalletConnections,
+  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
   accounts: WalletAccount[],
   config: ConfigContextProps;
@@ -33,6 +33,7 @@ const Header = ({
   onChainSelect: (chainId: keyof Chains) => void;
   onAccountSelect: (props: { type: string, [key: string]: string }) => void;
   onRequestWalletConnections: () => void;
+  onToggleDark: () => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -132,7 +133,7 @@ const Header = ({
     <div className="flex gap-2">
       <Button variant="outline" size="icon" 
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-        onClick={() => appStore.isDarkMode = !appStore.isDarkMode} 
+        onClick={() => onToggleDark()} 
       >
         {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>

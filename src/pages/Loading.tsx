@@ -1,7 +1,6 @@
 import { Circle } from "lucide-react";
-import { useEffect } from "react";
-import { useSnapshot } from "valtio";
-import { appStore } from "~/store/AppStore";
+import React from "react";
+import { useDark } from "~/hooks/useDark";
 
 export const LoadingPlaceholder = ({ className, children, ...props }: {
   className?: string,
@@ -14,13 +13,10 @@ export const LoadingPlaceholder = ({ className, children, ...props }: {
 </div>
 
 export function Loading() {
-  const { isDarkMode } = useSnapshot(appStore)
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode)
-  }, [isDarkMode])
-  
+  const { isDark } = useDark();
+
   return (
-    <div className={`min-h-screen p-4 transition-colors duration-300 flex items-stretch ${isDarkMode
+    <div className={`min-h-screen p-4 transition-colors duration-300 flex items-stretch ${isDark
       ? 'bg-[#2C2B2B] text-[#FFFFFF]'
       : 'bg-[#FFFFFF] text-[#1E1E1E]'
     }`}>

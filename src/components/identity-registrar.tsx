@@ -35,11 +35,12 @@ import { config } from "~/api/config"
 import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
+import { useDark } from "~/hooks/useDark"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
   const alertsStore = useProxy(_alertsStore);
-  const { isDarkMode } = useSnapshot(appStore)
+  const { isDark, setDark } = useDark()
 
   //#region Chains
   const identityStore = useProxy(_identityStore);
@@ -68,10 +69,6 @@ export function IdentityRegistrarComponent() {
       disabled: identityStore.status < verifiyStatuses.NoIdentity,
     },
   ]
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode)
-  }, [isDarkMode])
 
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
@@ -401,18 +398,19 @@ export function IdentityRegistrarComponent() {
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
-      dark={isDarkMode}
+      dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
+    <div className={`min-h-screen p-4 transition-colors duration-300 ${isDark ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
         <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} accountStore={accountStore} 
           identityStore={identityStore} 
+          onRequestWalletConnections={onRequestWalletConnection}
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onRequestWalletConnections={onRequestWalletConnection}
+          onToggleDark={() => setDark(!isDark)}
         />
 
         {[...alertsStore.entries()].map(([, alert]) => (
@@ -422,7 +420,7 @@ export function IdentityRegistrarComponent() {
             className={`mb-4 ${
               alert.type === 'error' 
                 ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
-                : isDarkMode 
+                : isDark 
                   ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
                   : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
             }`}
@@ -435,7 +433,7 @@ export function IdentityRegistrarComponent() {
                 size="sm" 
                 onClick={() => removeNotification(alert.key)} 
                 className={`${
-                  isDarkMode 
+                  isDark 
                     ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
                     : 'text-[#670D35] hover:text-[#E6007A]'
                 }`}
