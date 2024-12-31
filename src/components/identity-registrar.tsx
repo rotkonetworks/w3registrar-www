@@ -59,11 +59,6 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ _urlParams })
     return _urlParams
   }, [window.location.search])
-  useEffect(() => {
-    if (urlParams.chain) {
-      chainStore.id = urlParams.chain
-    }
-  }, [urlParams])
   const updateUrlParams = useCallback((params) => {
     const newParams = params
       ? "?" + Object.entries(params)
@@ -251,6 +246,7 @@ export function IdentityRegistrarComponent() {
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: keyof Chains) => {
     updateUrlParams({ ...urlParams, chain: chainId })
+    chainStore.id = chainId
   }, [])
   
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
