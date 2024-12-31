@@ -27,7 +27,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { TypedApi } from "polkadot-api"
+import { SS58String, TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -63,9 +63,6 @@ export function IdentityRegistrarComponent() {
     if (urlParams.chain) {
       chainStore.id = urlParams.chain
     }
-    if (urlParams.address) {
-      accountStore.address = urlParams.address
-    }
   }, [urlParams])
   const updateUrlParams = useCallback((params) => {
     const newParams = params
@@ -77,13 +74,6 @@ export function IdentityRegistrarComponent() {
     window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
     if (import.meta.env.DEV) console.log({ newParams })
   }, [window.history.replaceState])
-
-  useEffect(() => {
-    updateUrlParams({
-      chain: chainStore.id,
-      address: accountStore.address,
-    })
-  }, [chainStore.id, accountStore.address])
 
   const pages = [
     { 
@@ -118,45 +108,55 @@ export function IdentityRegistrarComponent() {
 
   //#region accounts
   const accounts = useAccounts()
-  useEffect(() => {
-    if (!accountStore.address || accounts.length < 1) {
-      return;
-    }
-    if (accountStore.polkadotSigner && accountStore.address) {
-      return;
-    }
+  const getAccountData = useCallback((address: SS58String) => {
+    let foundAccount = accounts.find(account => account.address === address);
 
-    let foundAccount;
-    // Check if the account is in the list of accounts
-    foundAccount = accounts.find(account => account.address === accountStore.address)
+    if (foundAccount) {
+      return {
+        name: foundAccount.name,
+        polkadotSigner: foundAccount.polkadotSigner,
+        address: foundAccount.address,
+      };
+    }
+    let decodedAddress;
+    try {
+      decodedAddress = decodeAddress(address); // Validate addressZ
+    } catch (error) {
+      console.error("Error decoding address from URL:", error)
+      return null;
+    }
+    foundAccount = accounts.find(account => {
+      const publicKey = account.polkadotSigner.publicKey;
+      return publicKey.every((byte, index) => byte === decodedAddress[index]);
+    });
 
-    // Account was not found by its address, because actual list's addresses are encoded with
-    //  different SS58 prefix, so we need to decode it and compare it using public key
     if (!foundAccount) {
-      const decodedAddress = decodeAddress(accountStore.address)
-      if (import.meta.env.DEV) console.log({  decodedAddress })
-      foundAccount = accounts.find(account => {
-        const publicKey = account.polkadotSigner.publicKey
-        if (import.meta.env.DEV) console.log({ publicKey, name: account.name })
-        return publicKey.every((byte, index) => byte === decodedAddress[index])
-      })
-      if (!foundAccount) {
-        return;
-      }
-
-      const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format)
-      if (import.meta.env.DEV) console.log({ 
-        foundAccount: reencodedAddress
-      })
-      updateUrlParams({ ...urlParams, address: reencodedAddress })
+      return null;
     }
-    const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
-    Object.assign(accountStore, newAccountData)
-  }, [accountStore.polkadotSigner, accountStore.address, accounts])
+
+    const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format);
+    return {
+      name: foundAccount.name,
+      polkadotSigner: foundAccount.polkadotSigner,
+      address: reencodedAddress,
+    };
+  }, [accounts, chainStore.ss58Format]);
+  useEffect(() => {
+    if (!urlParams.address) {
+      return;
+    }
+    if (accountStore.polkadotSigner) {
+      return;
+    }
+    const accountData = getAccountData(urlParams.address);
+    if (accountData) {
+      Object.assign(accountStore, accountData);
+    }
+  }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
 
   // TODO Swap in useCallback
-  const updateAccount = ({ id, name, address, ...rest }) => {
-    const account = { id, name, address, ...rest };
+  const updateAccount = ({ id, name, address, polkadotSigner }) => {
+    const account = { id, name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ address })
