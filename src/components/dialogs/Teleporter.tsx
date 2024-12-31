@@ -4,10 +4,14 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "../ui/command"
+import { 
+  Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem 
+} from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
