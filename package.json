@@ -74,6 +74,7 @@
   },
   "packageManager": "yarn@4.5.0+sha512.837566d24eec14ec0f5f1411adb544e892b3454255e61fdef8fd05f3429480102806bac7446bc9daff3896b01ae4b62d00096c7e989f1596f2af10b927532f39",
   "patchedDependencies": {
-    "@reactive-dot/core@0.27.1": "patches/@reactive-dot%2Fcore@0.27.1.patch"
+    "@reactive-dot/core@0.27.1": "patches/@reactive-dot%2Fcore@0.27.1.patch",
+    "css-tree@3.0.0": "patches/css-tree@3.0.0.patch"
   }
 }
