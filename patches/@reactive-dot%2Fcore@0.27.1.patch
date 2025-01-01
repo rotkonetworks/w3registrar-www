@@ -1,0 +1,12 @@
+diff --git a/src/providers/light-client/wellknown-chains.ts b/src/providers/light-client/wellknown-chains.ts
+index 090324e82a114a1ecd1ac20ec63aac7a9c91f075..58c450bc9def207e32fd06cea3a5b7ab9a495044 100644
+--- a/src/providers/light-client/wellknown-chains.ts
++++ b/src/providers/light-client/wellknown-chains.ts
+@@ -23,6 +23,7 @@ export const wellknownChains = {
+   paseo: [
+     () => import("polkadot-api/chains/paseo"),
+     { paseo_asset_hub: () => import("polkadot-api/chains/paseo_asset_hub") },
++    { paseo_people: () => import("polkadot-api/chains/paseo_people") },
+   ],
+   westend: [
+     () => import("polkadot-api/chains/westend2"),
