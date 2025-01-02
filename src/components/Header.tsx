@@ -110,7 +110,7 @@ const Header = ({
           onValueChange={onChainSelect}
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            <SelectValue placeholder={chainStore.name} />
+            <SelectValue placeholder={chainStore.name?.replace("People", "")} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(chainContext.chains)
@@ -122,7 +122,7 @@ const Header = ({
               )
               .map(([key, net]) => (
                 <SelectItem key={key} value={key}>
-                  {net.name}
+                  {net.name.replace("People", "")}
                 </SelectItem>
               ))
             }
