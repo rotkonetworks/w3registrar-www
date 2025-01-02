@@ -6,12 +6,10 @@ import { useProxy } from "valtio/utils";
 import { useEffect, useState } from "react";
 import { ConfigContextProps } from "~/api/config2";
 import { useConnectedWallets } from "@reactive-dot/react";
-import { Account, accountStore } from "~/store/AccountStore";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
-import { WalletAccount } from "node_modules/@reactive-dot/core/build/wallets/account";
 
 const AccountListing = ({ address, name }) => <>
   <PolkadotIdenticon address={address} />

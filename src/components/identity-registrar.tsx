@@ -10,9 +10,7 @@ import Header from "./Header"
 import { chainStore as _chainStore } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { 
-  identityStore as _identityStore, verifiyStatuses 
-} from "~/store/IdentityStore"
+import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { 
   challengeStore as _challengeStore, Challenge, ChallengeStatus 
 } from "~/store/challengesStore"
