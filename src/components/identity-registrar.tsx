@@ -86,6 +86,11 @@ export function IdentityRegistrarComponent() {
 
   //#region accounts
   const accounts = useAccounts()
+  const displayedAccounts = useMemo(() => accounts.map(account => ({
+    ...account,
+    address: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
+  })), [accounts, chainStore.ss58Format])
+
   const getAccountData = useCallback((address: SS58String) => {
     let foundAccount = accounts.find(account => account.address === address);
 
@@ -112,18 +117,17 @@ export function IdentityRegistrarComponent() {
       return null;
     }
 
-    const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format);
+    const encodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format);
     return {
       name: foundAccount.name,
       polkadotSigner: foundAccount.polkadotSigner,
-      address: reencodedAddress,
+      address: address,
+      encodedAddress,
     };
   }, [accounts, chainStore.ss58Format]);
+
   useEffect(() => {
     if (!urlParams.address) {
-      return;
-    }
-    if (accountStore.polkadotSigner) {
       return;
     }
     const accountData = getAccountData(urlParams.address);
@@ -401,10 +405,13 @@ export function IdentityRegistrarComponent() {
     />
     <div className={`min-h-screen p-4 transition-colors duration-300 ${isDark ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
       <div className="container mx-auto max-w-3xl font-mono">
-        <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} accountStore={accountStore} 
-          identityStore={identityStore} 
+        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
+          onAccountSelect={onAccountSelect} identityStore={identityStore} 
           onRequestWalletConnections={onRequestWalletConnection}
+          accountStore={{
+            address: accountStore.encodedAddress,
+            name: accountStore.name,
+          }} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
