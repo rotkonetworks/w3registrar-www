@@ -76,6 +76,10 @@ export function IdentityRegistrarComponent() {
   const removeNotification = useCallback((key: string) => {
     removeAlert(key)
   }, [removeAlert])
+
+  const onNotification = useCallback((notification: NotifyAccountState): void => {
+    if (import.meta.env.DEV) console.log('Received notification:', notification)
+  }, [])
   //#endregion notifications
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
@@ -280,10 +284,6 @@ export function IdentityRegistrarComponent() {
     handlers: eventHandlers,
   })
   //#endregion chains
-  
-  const onNotification = useCallback((notification: NotifyAccountState): void => {
-    if (import.meta.env.DEV) console.log('Received notification:', notification)
-  }, [])
   
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
