@@ -25,10 +25,10 @@ const Header = ({
   config: chainContext, chainStore, accountStore, identityStore, accounts, 
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
-  accounts: WalletAccount[],
+  accounts: { name: string, address: string, encodedAddress: string }[];
   config: ConfigContextProps;
   chainStore: { id: string | number | symbol, name: string };
-  accountStore: Account;
+  accountStore: { address: string, name: string };
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
   onAccountSelect: (props: { type: string, [key: string]: string }) => void;
@@ -87,11 +87,11 @@ const Header = ({
                 {accounts.length > 0 
                   ?<>
                     <SelectLabel>Accounts</SelectLabel>
-                    {accounts.map(({ id, name, address, ...rest }) => {
+                    {accounts.map(({ id, name, address, encodedAddress, ...rest }) => {
                       const account = { id, name, address, ...rest };
                       return (
                         <SelectItem key={id} value={{ type: "account", account }}>
-                          <AccountListing address={address} name={name} />
+                          <AccountListing address={encodedAddress} name={name} />
                         </SelectItem>
                       );
                     })}

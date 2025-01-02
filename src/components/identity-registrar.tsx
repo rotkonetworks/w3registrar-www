@@ -88,7 +88,7 @@ export function IdentityRegistrarComponent() {
   const accounts = useAccounts()
   const displayedAccounts = useMemo(() => accounts.map(account => ({
     ...account,
-    address: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
+    encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
@@ -117,12 +117,11 @@ export function IdentityRegistrarComponent() {
       return null;
     }
 
-    const encodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format);
     return {
       name: foundAccount.name,
       polkadotSigner: foundAccount.polkadotSigner,
       address: address,
-      encodedAddress,
+      encodedAddress: encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format),
     };
   }, [accounts, chainStore.ss58Format]);
 
