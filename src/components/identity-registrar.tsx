@@ -41,12 +41,10 @@ export function IdentityRegistrarComponent() {
   const alertsStore = useProxy(_alertsStore);
   const { isDark, setDark } = useDark()
 
-  //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
-  //# endregion Chains
 
   const accountStore = useProxy(_accountStore)
 
@@ -69,13 +67,16 @@ export function IdentityRegistrarComponent() {
     },
   ]
 
+  //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
     pushAlert({ ...alert, key });
   }, [pushAlert])
+
   const removeNotification = useCallback((key: string) => {
     removeAlert(key)
   }, [removeAlert])
+  //#endregion notifications
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
