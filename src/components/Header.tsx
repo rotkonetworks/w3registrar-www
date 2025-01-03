@@ -80,10 +80,10 @@ const Header = ({
                 {accounts.length > 0 
                   ?<>
                     <SelectLabel>Accounts</SelectLabel>
-                    {accounts.map(({ id, name, address, encodedAddress, ...rest }) => {
-                      const account = { id, name, address, ...rest };
+                    {accounts.map(({ name, address, encodedAddress, ...rest }) => {
+                      const account = { name, address, ...rest };
                       return (
-                        <SelectItem key={id} value={{ type: "account", account }}>
+                        <SelectItem key={address} value={{ type: "account", account }}>
                           <AccountListing address={encodedAddress} name={name} />
                         </SelectItem>
                       );
