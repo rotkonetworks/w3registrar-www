@@ -33,7 +33,10 @@ export function IdentityForm<Chain>({
   chainConstants: Record<string, any>,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, {
+    value: string,
+    error: string | null,
+  }>>({
     display: {
       value: "",
       error: null,
@@ -216,7 +219,7 @@ export function IdentityForm<Chain>({
       setFormData({
         ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
           all[key] = {
-            value: identityStore.info![key],
+            value: identityStore.info![key] || "",
             error: null,
           }
           return all;

@@ -8,11 +8,9 @@ export interface AccountBalance {
   flags: bigint;
 }
 export type AccountData = {
-  id?: string;
   name?: string;
   address?: string;
   polkadotSigner?: PolkadotSigner;
-  balance?: AccountBalance;
 }
 export type Account = AccountData
 

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
 export function useDark() {
-  // 初始化
   const [isDark, setIsDark] = useState<boolean>(window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   useEffect(() => {
@@ -9,13 +9,11 @@ export function useDark() {
     });
   })
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark')
-    }
+    if (import.meta.env.DEV) console.log({ isDark })
+    document.documentElement.classList.toggle('dark', isDark)
   }, [isDark])
   const setDark = (value: boolean) => {
     setIsDark(value)
-    document.documentElement.classList.toggle('dark', value)
   }
 
   return { isDark, setDark }
