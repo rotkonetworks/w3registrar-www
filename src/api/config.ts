@@ -103,7 +103,7 @@ export const config = defineConfig({
       name: "Rococo People",
       descriptor: rococo_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__rococo_people,
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
