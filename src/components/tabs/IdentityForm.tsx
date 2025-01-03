@@ -216,7 +216,7 @@ export function IdentityForm<Chain>({
       setFormData({
         ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
           all[key] = {
-            value: identityStore.info![key],
+            value: identityStore.info![key] || "",
             error: null,
           }
           return all;
