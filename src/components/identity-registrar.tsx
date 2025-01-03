@@ -33,6 +33,7 @@ import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
+import { LoadingContent, LoadingPlaceholder, LoadingTabs } from "~/pages/Loading"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -400,8 +401,13 @@ export function IdentityRegistrarComponent() {
       onClose={() => { setWalletDialogOpen(false) }} 
       dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 ${isDark ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
-      <div className="container mx-auto max-w-3xl font-mono">
+    <div className={`min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch 
+      ${isDark 
+        ? 'bg-[#2C2B2B] text-[#FFFFFF]' 
+        : 'bg-[#FFFFFF] text-[#1E1E1E]'
+      }`
+    }>
+      <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identityStore={identityStore} 
           onRequestWalletConnections={onRequestWalletConnection}
@@ -416,101 +422,113 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
         />
 
-        {[...alertsStore.entries()].map(([, alert]) => (
-          <Alert 
-            key={alert.key} 
-            variant={alert.type === 'error' ? "destructive" : "default"} 
-            className={`mb-4 ${
-              alert.type === 'error' 
-                ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
-                : isDark 
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-            }`}
-          >
-            <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-            <AlertDescription className="flex justify-between items-center">
-              {alert.message}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => removeNotification(alert.key)} 
-                className={`${
-                  isDark 
-                    ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
-                    : 'text-[#670D35] hover:text-[#E6007A]'
+        {identityStore.status === verifiyStatuses.Unknown
+          ? <>
+            <div className="flex flex-grow flex-col flex-stretch">
+              <LoadingTabs />
+              <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                Loading Identity Data...
+              </LoadingContent>
+            </div>
+          </>
+          : <>
+            {[...alertsStore.entries()].map(([, alert]) => (
+              <Alert 
+                key={alert.key} 
+                variant={alert.type === 'error' ? "destructive" : "default"} 
+                className={`mb-4 ${
+                  alert.type === 'error' 
+                    ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
+                    : isDark 
+                      ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
+                      : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
                 }`}
               >
-                Dismiss
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ))}
-
-        <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
-            {pages.map((page, index) => (
-              <TabsTrigger 
-                key={index} 
-                value={page.name} 
-                onClick={() => setCurrentPage(index)}
-                className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-                disabled={page.disabled}
-              >
-                {page.icon}
-              </TabsTrigger>
+                <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                <AlertDescription className="flex justify-between items-center">
+                  {alert.message}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeNotification(alert.key)} 
+                    className={`${
+                      isDark 
+                        ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
+                        : 'text-[#670D35] hover:text-[#E6007A]'
+                    }`}
+                  >
+                    Dismiss
+                  </Button>
+                </AlertDescription>
+              </Alert>
             ))}
-          </TabsList>
-          <TabsContent value={pages[0].name}>
-            <IdentityForm 
-              addNotification={addNotification}
-              identityStore={identityStore}
-              chainStore={chainStore}
-              typedApi={typedApi as TypedApi<ChainInfo.id>}
-              accountStore={accountStore}
-              chainConstants={chainConstants}
-              formatAmount={formatAmount}
-            />
-          </TabsContent>
-          <TabsContent value={pages[1].name}>
-            <ChallengePage 
-              identityStore={identityStore}
-              addNotification={addNotification}
-              challengeStore={challengeStore}
-              requestVerificationSecret={requestVerificationSecret}
-              verifyField={verifyIdentity}
-            />
-          </TabsContent>
-          <TabsContent value={pages[2].name}>
-            <StatusPage 
-              identityStore={identityStore}
-              addNotification={addNotification}
-              challengeStore={challengeStore}
-              formatAmount={formatAmount}
-              onIdentityClear={() => setOpenDialog("clearIdentity")}
-            />
-          </TabsContent>
-        </Tabs>
 
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-            disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
-            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-            disabled={currentPage === pages.length - 1 
-              || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-            }
-            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-          >
-            Next <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+            <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
+                {pages.map((page, index) => (
+                  <TabsTrigger 
+                    key={index} 
+                    value={page.name} 
+                    onClick={() => setCurrentPage(index)}
+                    className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+                    disabled={page.disabled}
+                  >
+                    {page.icon}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TabsContent value={pages[0].name}>
+                <IdentityForm 
+                  addNotification={addNotification}
+                  identityStore={identityStore}
+                  chainStore={chainStore}
+                  typedApi={typedApi as TypedApi<ChainInfo.id>}
+                  accountStore={accountStore}
+                  chainConstants={chainConstants}
+                  formatAmount={formatAmount}
+                />
+              </TabsContent>
+              <TabsContent value={pages[1].name}>
+                <ChallengePage 
+                  identityStore={identityStore}
+                  addNotification={addNotification}
+                  challengeStore={challengeStore}
+                  requestVerificationSecret={requestVerificationSecret}
+                  verifyField={verifyIdentity}
+                />
+              </TabsContent>
+              <TabsContent value={pages[2].name}>
+                <StatusPage 
+                  identityStore={identityStore}
+                  addNotification={addNotification}
+                  challengeStore={challengeStore}
+                  formatAmount={formatAmount}
+                  onIdentityClear={() => setOpenDialog("clearIdentity")}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-between mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
+                className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+              </Button>
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
+                disabled={currentPage === pages.length - 1 
+                  || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+                }
+                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+              >
+                Next <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        }
       </div>
     </div>
 

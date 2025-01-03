@@ -12,6 +12,44 @@ export const LoadingPlaceholder = ({ className, children, ...props }: {
   {children}
 </div>
 
+export const LoadingTabs = ({ className, ...props }: {
+  className?: string,
+  [key: string]: any
+}) => <>
+  <LoadingPlaceholder {...props}
+    className={
+      "h-10 rounded-md p-1 text-muted-foreground grid w-full grid-cols-3 overflow-hidden"
+      + className || ""
+    }
+  />
+</>
+
+export const LoadingContent = ({ className, children, ...props }: {
+  className?: string,
+  children?: React.ReactNode | React.ReactNode[],
+  [key: string]: any
+}) => <>
+  <div {...props}
+    className={
+      "flex flex-grow flex-col items-stretch mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 "
+      + className || ""
+    }
+  >
+    <LoadingPlaceholder className="flex flex-grow w-full flex-center font-bold text-3xl">
+      {children}
+    </LoadingPlaceholder>
+
+    <div className="flex justify-between mt-6">
+      <div className="flex w-full sm:w-auto">
+        <LoadingPlaceholder className="min-w-[140px] h-10" />
+      </div>
+      <div className="flex w-full sm:w-auto">
+        <LoadingPlaceholder className="min-w-[140px] h-10" />
+      </div>
+    </div>
+  </div>
+</>
+
 export function Loading() {
   const { isDark } = useDark();
 
@@ -41,25 +79,8 @@ export function Loading() {
         </div>
         
         <div className="w-full flex flex-grow flex-col flex-stretch">
-          {/* Tabs */}
-          <LoadingPlaceholder 
-            className="h-10 rounded-md p-1 text-muted-foreground grid w-full grid-cols-3 overflow-hidden"
-          />
-          {/* Content */}
-          <div className="flex flex-grow flex-col items-stretch mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <LoadingPlaceholder className="flex flex-grow w-full flex-center font-bold text-3xl">
-              Syncing light client...
-            </LoadingPlaceholder>
-
-            <div className="flex justify-between mt-6">
-              <div className="flex w-full sm:w-auto">
-                <LoadingPlaceholder className="min-w-[140px] h-10" />
-              </div>
-              <div className="flex w-full sm:w-auto">
-                <LoadingPlaceholder className="min-w-[140px] h-10" />
-              </div>
-            </div>
-          </div>
+          <LoadingTabs />
+          <LoadingContent>Syncing light client...</LoadingContent>
         </div>
       </div>
     </div>
