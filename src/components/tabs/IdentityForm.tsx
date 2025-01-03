@@ -33,7 +33,10 @@ export function IdentityForm<Chain>({
   chainConstants: Record<string, any>,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Record<string, {
+    value: string,
+    error: string | null,
+  }>>({
     display: {
       value: "",
       error: null,
