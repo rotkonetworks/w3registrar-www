@@ -3,7 +3,7 @@ import { useProxy } from 'valtio/utils';
 import { IdentityRegistrarComponent } from '~/components/identity-registrar';
 import { chainStore as _chainStore } from '~/store/ChainStore';
 import { config } from '~/api/config';
-import { Suspense, useDeferredValue } from 'react';
+import { Suspense } from 'react';
 import { Loading } from './Loading';
 import React from 'react';
 import { ErrorBoundary } from '~/components/ErrorBoundary';
@@ -13,6 +13,12 @@ function Home() {
   React.useEffect(() => {
     if (import.meta.env.DEV) console.log({ config });
   }, [config]);
+
+  React.useEffect(() => {
+    if (!Object.keys(config.chains).includes(chainId as string)) {
+      _chainStore.id = import.meta.env.VITE_APP_DEFAULT_CHAIN;
+    }
+  }, [chainId]);
   
   return (
     <ErrorBoundary>

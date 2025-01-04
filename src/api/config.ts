@@ -73,12 +73,12 @@ export const config = defineConfig({
     paseo: {
       name: "Paseo",
       descriptor: paseo,
-      provider: withPolkadotSdkCompat(getWsProvider("wss://rpc.ibp.network/paseo")),
+      provider: providers.paseo,
     },
     paseo_people: {
       name: "Paseo People",
       descriptor: paseo_people,
-      provider: withPolkadotSdkCompat(getWsProvider("wss://sys.ibp.network/people-paseo")),
+      provider: providers.paseo.addParachain({ id: "paseo_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
     },
 
@@ -103,7 +103,7 @@ export const config = defineConfig({
       name: "Rococo People",
       descriptor: rococo_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__rococo_people,
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     },
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 

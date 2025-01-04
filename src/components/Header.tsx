@@ -6,12 +6,10 @@ import { useProxy } from "valtio/utils";
 import { useEffect, useState } from "react";
 import { ConfigContextProps } from "~/api/config2";
 import { useConnectedWallets } from "@reactive-dot/react";
-import { Account, accountStore } from "~/store/AccountStore";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
-import { WalletAccount } from "node_modules/@reactive-dot/core/build/wallets/account";
 
 const AccountListing = ({ address, name }) => <>
   <PolkadotIdenticon address={address} />
@@ -23,16 +21,17 @@ const AccountListing = ({ address, name }) => <>
 
 const Header = ({ 
   config: chainContext, chainStore, accountStore, identityStore, accounts, 
-  onChainSelect, onAccountSelect, onRequestWalletConnections,
+  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
-  accounts: WalletAccount[],
+  accounts: { name: string, address: string, encodedAddress: string }[];
   config: ConfigContextProps;
   chainStore: { id: string | number | symbol, name: string };
-  accountStore: Account;
+  accountStore: { address: string, name: string };
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof Chains) => void;
   onAccountSelect: (props: { type: string, [key: string]: string }) => void;
   onRequestWalletConnections: () => void;
+  onToggleDark: () => void;
 }) => {
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
@@ -86,11 +85,11 @@ const Header = ({
                 {accounts.length > 0 
                   ?<>
                     <SelectLabel>Accounts</SelectLabel>
-                    {accounts.map(({ id, name, address, ...rest }) => {
+                    {accounts.map(({ id, name, address, encodedAddress, ...rest }) => {
                       const account = { id, name, address, ...rest };
                       return (
                         <SelectItem key={id} value={{ type: "account", account }}>
-                          <AccountListing address={address} name={name} />
+                          <AccountListing address={encodedAddress} name={name} />
                         </SelectItem>
                       );
                     })}
@@ -109,7 +108,7 @@ const Header = ({
           onValueChange={onChainSelect}
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            <SelectValue placeholder={chainStore.name} />
+            <SelectValue placeholder={chainStore.name?.replace("People", "")} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(chainContext.chains)
@@ -121,7 +120,7 @@ const Header = ({
               )
               .map(([key, net]) => (
                 <SelectItem key={key} value={key}>
-                  {net.name}
+                  {net.name.replace("People", "")}
                 </SelectItem>
               ))
             }
@@ -132,7 +131,7 @@ const Header = ({
     <div className="flex gap-2">
       <Button variant="outline" size="icon" 
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-        onClick={() => appStore.isDarkMode = !appStore.isDarkMode} 
+        onClick={() => onToggleDark()} 
       >
         {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>

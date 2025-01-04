@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, Info, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,13 +8,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore } from '~/store/ChainStore'
-import { appStore } from '~/store/AppStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
-import { useSnapshot } from "valtio"
 import { useProxy } from "valtio/utils"
-import { 
-  identityStore as _identityStore, verifiyStatuses 
-} from "~/store/IdentityStore"
+import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { 
   challengeStore as _challengeStore, Challenge, ChallengeStatus 
 } from "~/store/challengesStore"
@@ -27,63 +23,31 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { TypedApi } from "polkadot-api"
+import { SS58String, TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
 import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
+import { useUrlParams } from "~/hooks/useUrlParams"
+import { useDark } from "~/hooks/useDark"
+import type { ChainId } from "@reactive-dot/core";
+import { LoadingContent, LoadingPlaceholder, LoadingTabs } from "~/pages/Loading"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
   const alertsStore = useProxy(_alertsStore);
-  const { isDarkMode } = useSnapshot(appStore)
+  const { isDark, setDark } = useDark()
 
-  //#region Chains
   const identityStore = useProxy(_identityStore);
   const challengeStore = useProxy(_challengeStore);
   const chainStore = useProxy(_chainStore);
-  const typedApi = useTypedApi({ chainId: chainStore.id })
-  //# endregion Chains
+  const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
 
   const accountStore = useProxy(_accountStore)
 
-  const urlParams = useMemo<{
-    chain: string;
-    address: string;
-  }>(() => {
-    const _urlParams = new URLSearchParams(window.location.search).entries()
-      .map(([key, value]) => ({ key, value }))
-      .reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
-    if (import.meta.env.DEV) console.log({ _urlParams })
-    return _urlParams
-  }, [window.location.search])
-  useEffect(() => {
-    if (urlParams.chain) {
-      chainStore.id = urlParams.chain
-    }
-    if (urlParams.address) {
-      accountStore.address = urlParams.address
-    }
-  }, [urlParams])
-  const updateUrlParams = useCallback((params) => {
-    const newParams = params
-      ? "?" + Object.entries(params)
-        .filter(([ , value ]) => value)
-        .map(([ key, value ]) => `${key}=${value}`)
-        .join("&")
-      : ""
-    window.history.replaceState(null, null, `${window.location.pathname}${newParams}`)
-    if (import.meta.env.DEV) console.log({ newParams })
-  }, [window.history.replaceState])
-
-  useEffect(() => {
-    updateUrlParams({
-      chain: chainStore.id,
-      address: accountStore.address,
-    })
-  }, [chainStore.id, accountStore.address])
+  const { urlParams, updateUrlParams } = useUrlParams()
 
   const pages = [
     { 
@@ -102,65 +66,80 @@ export function IdentityRegistrarComponent() {
     },
   ]
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode)
-  }, [isDarkMode])
-
+  //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
     pushAlert({ ...alert, key });
   }, [pushAlert])
+
   const removeNotification = useCallback((key: string) => {
     removeAlert(key)
   }, [removeAlert])
+
+  const onNotification = useCallback((notification: NotifyAccountState): void => {
+    if (import.meta.env.DEV) console.log('Received notification:', notification)
+  }, [])
+  //#endregion notifications
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   //#region accounts
   const accounts = useAccounts()
-  useEffect(() => {
-    if (!accountStore.address || accounts.length < 1) {
-      return;
-    }
-    if (accountStore.polkadotSigner && accountStore.address) {
-      return;
-    }
+  const displayedAccounts = useMemo(() => accounts.map(account => ({
+    ...account,
+    encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
+  })), [accounts, chainStore.ss58Format])
 
-    let foundAccount;
-    // Check if the account is in the list of accounts
-    foundAccount = accounts.find(account => account.address === accountStore.address)
+  const getAccountData = useCallback((address: SS58String) => {
+    let foundAccount = accounts.find(account => account.address === address);
 
-    // Account was not found by its address, because actual list's addresses are encoded with
-    //  different SS58 prefix, so we need to decode it and compare it using public key
+    if (foundAccount) {
+      return {
+        name: foundAccount.name,
+        polkadotSigner: foundAccount.polkadotSigner,
+        address: foundAccount.address,
+      };
+    }
+    let decodedAddress;
+    try {
+      decodedAddress = decodeAddress(address); // Validate addressZ
+    } catch (error) {
+      console.error("Error decoding address from URL:", error)
+      return null;
+    }
+    foundAccount = accounts.find(account => {
+      const publicKey = account.polkadotSigner.publicKey;
+      return publicKey.every((byte, index) => byte === decodedAddress[index]);
+    });
+
     if (!foundAccount) {
-      const decodedAddress = decodeAddress(accountStore.address)
-      if (import.meta.env.DEV) console.log({  decodedAddress })
-      foundAccount = accounts.find(account => {
-        const publicKey = account.polkadotSigner.publicKey
-        if (import.meta.env.DEV) console.log({ publicKey, name: account.name })
-        return publicKey.every((byte, index) => byte === decodedAddress[index])
-      })
-      if (!foundAccount) {
-        return;
-      }
-
-      const reencodedAddress = encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format)
-      if (import.meta.env.DEV) console.log({ 
-        foundAccount: reencodedAddress
-      })
-      updateUrlParams({ ...urlParams, address: reencodedAddress })
+      return null;
     }
-    const newAccountData = { polkadotSigner: foundAccount.polkadotSigner, name: foundAccount.name }
-    Object.assign(accountStore, newAccountData)
-  }, [accountStore.polkadotSigner, accountStore.address, accounts])
 
-  // TODO Swap in useCallback
-  const updateAccount = ({ id, name, address, ...rest }) => {
-    const account = { id, name, address, ...rest };
+    return {
+      name: foundAccount.name,
+      polkadotSigner: foundAccount.polkadotSigner,
+      address: address,
+      encodedAddress: encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format),
+    };
+  }, [accounts, chainStore.ss58Format]);
+
+  useEffect(() => {
+    if (!urlParams.address) {
+      return;
+    }
+    const accountData = getAccountData(urlParams.address);
+    if (accountData) {
+      Object.assign(accountStore, accountData);
+    }
+  }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
+
+  const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
+    const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ address })
-  };
+  }, [accountStore, updateUrlParams]);
   //#endregion accounts
 
   //#region identity
@@ -249,8 +228,9 @@ export function IdentityRegistrarComponent() {
       })
     }) ())
   }, [chainStore.id, chainClient])
-  const onChainSelect = useCallback((chainId: keyof Chains) => {
+  const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId })
+    chainStore.id = chainId
   }, [])
   
   const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
@@ -306,10 +286,6 @@ export function IdentityRegistrarComponent() {
     handlers: eventHandlers,
   })
   //#endregion chains
-  
-  const onNotification = useCallback((notification: NotifyAccountState): void => {
-    if (import.meta.env.DEV) console.log('Received notification:', notification)
-  }, [])
   
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
@@ -423,115 +399,136 @@ export function IdentityRegistrarComponent() {
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
-      dark={isDarkMode}
+      dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 ${isDarkMode ? 'bg-[#2C2B2B] text-[#FFFFFF]' : 'bg-[#FFFFFF] text-[#1E1E1E]'}`}>
-      <div className="container mx-auto max-w-3xl font-mono">
-        <Header config={config} accounts={accounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} accountStore={accountStore} 
-          identityStore={identityStore} 
+    <div className={`min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch 
+      ${isDark 
+        ? 'bg-[#2C2B2B] text-[#FFFFFF]' 
+        : 'bg-[#FFFFFF] text-[#1E1E1E]'
+      }`
+    }>
+      <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
+        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
+          onAccountSelect={onAccountSelect} identityStore={identityStore} 
+          onRequestWalletConnections={onRequestWalletConnection}
+          accountStore={{
+            address: accountStore.encodedAddress,
+            name: accountStore.name,
+          }} 
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
           }} 
-          onRequestWalletConnections={onRequestWalletConnection}
+          onToggleDark={() => setDark(!isDark)}
         />
 
-        {[...alertsStore.entries()].map(([, alert]) => (
-          <Alert 
-            key={alert.key} 
-            variant={alert.type === 'error' ? "destructive" : "default"} 
-            className={`mb-4 ${
-              alert.type === 'error' 
-                ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
-                : isDarkMode 
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-            }`}
-          >
-            <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-            <AlertDescription className="flex justify-between items-center">
-              {alert.message}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => removeNotification(alert.key)} 
-                className={`${
-                  isDarkMode 
-                    ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
-                    : 'text-[#670D35] hover:text-[#E6007A]'
+        {identityStore.status === verifiyStatuses.Unknown
+          ? <>
+            <div className="flex flex-grow flex-col flex-stretch">
+              <LoadingTabs />
+              <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                Loading Identity Data...
+              </LoadingContent>
+            </div>
+          </>
+          : <>
+            {[...alertsStore.entries()].map(([, alert]) => (
+              <Alert 
+                key={alert.key} 
+                variant={alert.type === 'error' ? "destructive" : "default"} 
+                className={`mb-4 ${
+                  alert.type === 'error' 
+                    ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
+                    : isDark 
+                      ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
+                      : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
                 }`}
               >
-                Dismiss
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ))}
-
-        <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
-            {pages.map((page, index) => (
-              <TabsTrigger 
-                key={index} 
-                value={page.name} 
-                onClick={() => setCurrentPage(index)}
-                className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-                disabled={page.disabled}
-              >
-                {page.icon}
-              </TabsTrigger>
+                <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                <AlertDescription className="flex justify-between items-center">
+                  {alert.message}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => removeNotification(alert.key)} 
+                    className={`${
+                      isDark 
+                        ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
+                        : 'text-[#670D35] hover:text-[#E6007A]'
+                    }`}
+                  >
+                    Dismiss
+                  </Button>
+                </AlertDescription>
+              </Alert>
             ))}
-          </TabsList>
-          <TabsContent value={pages[0].name}>
-            <IdentityForm 
-              addNotification={addNotification}
-              identityStore={identityStore}
-              chainStore={chainStore}
-              typedApi={typedApi as TypedApi<ChainInfo.id>}
-              accountStore={accountStore}
-              chainConstants={chainConstants}
-              formatAmount={formatAmount}
-            />
-          </TabsContent>
-          <TabsContent value={pages[1].name}>
-            <ChallengePage 
-              identityStore={identityStore}
-              addNotification={addNotification}
-              challengeStore={challengeStore}
-              requestVerificationSecret={requestVerificationSecret}
-              verifyField={verifyIdentity}
-            />
-          </TabsContent>
-          <TabsContent value={pages[2].name}>
-            <StatusPage 
-              identityStore={identityStore}
-              addNotification={addNotification}
-              challengeStore={challengeStore}
-              formatAmount={formatAmount}
-              onIdentityClear={() => setOpenDialog("clearIdentity")}
-            />
-          </TabsContent>
-        </Tabs>
 
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-            disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
-            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-            disabled={currentPage === pages.length - 1 
-              || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-            }
-            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-          >
-            Next <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+            <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
+                {pages.map((page, index) => (
+                  <TabsTrigger 
+                    key={index} 
+                    value={page.name} 
+                    onClick={() => setCurrentPage(index)}
+                    className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+                    disabled={page.disabled}
+                  >
+                    {page.icon}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TabsContent value={pages[0].name}>
+                <IdentityForm 
+                  addNotification={addNotification}
+                  identityStore={identityStore}
+                  chainStore={chainStore}
+                  typedApi={typedApi as TypedApi<ChainInfo.id>}
+                  accountStore={accountStore}
+                  chainConstants={chainConstants}
+                  formatAmount={formatAmount}
+                />
+              </TabsContent>
+              <TabsContent value={pages[1].name}>
+                <ChallengePage 
+                  identityStore={identityStore}
+                  addNotification={addNotification}
+                  challengeStore={challengeStore}
+                  requestVerificationSecret={requestVerificationSecret}
+                  verifyField={verifyIdentity}
+                />
+              </TabsContent>
+              <TabsContent value={pages[2].name}>
+                <StatusPage 
+                  identityStore={identityStore}
+                  addNotification={addNotification}
+                  challengeStore={challengeStore}
+                  formatAmount={formatAmount}
+                  onIdentityClear={() => setOpenDialog("clearIdentity")}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-between mt-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+                disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
+                className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+              </Button>
+              <Button
+                onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
+                disabled={currentPage === pages.length - 1 
+                  || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+                }
+                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+              >
+                Next <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        }
       </div>
     </div>
 
