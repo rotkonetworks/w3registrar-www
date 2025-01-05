@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from '~/store/AppStore';
 import { useProxy } from "valtio/utils";
-import { useEffect, useState } from "react";
-import { ConfigContextProps } from "~/api/config2";
+import { useState } from "react";
+import { ApiConfig } from "~/api/config2";
 import { useConnectedWallets } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
-import { Chains } from "@reactive-dot/core";
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
 
@@ -20,15 +19,15 @@ const AccountListing = ({ address, name }) => <>
 </>
 
 const Header = ({ 
-  config: chainContext, chainStore, accountStore, identityStore, accounts, 
+  config, chainStore, accountStore, identityStore, accounts, 
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
   accounts: { name: string, address: string, encodedAddress: string }[];
-  config: ConfigContextProps;
+  config: ApiConfig;
   chainStore: { id: string | number | symbol, name: string };
   accountStore: { address: string, name: string };
   identityStore: IdentityStore;
-  onChainSelect: (chainId: keyof Chains) => void;
+  onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
   onAccountSelect: (props: { type: string, [key: string]: string }) => void;
   onRequestWalletConnections: () => void;
   onToggleDark: () => void;
@@ -36,15 +35,11 @@ const Header = ({
   const appStore = useProxy(_appStore);
   const isDarkMode = appStore.isDarkMode;
 
-  useEffect(() => { if (import.meta.env.DEV) console.log({ chainContext }) }, [chainContext]);
-
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   
-  //#region userDropdown
   const connectedWallets = useConnectedWallets()
   
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
-  //#endregion userDropdown
 
   return <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div className="flex gap-2 w-full sm:w-auto">
@@ -85,10 +80,10 @@ const Header = ({
                 {accounts.length > 0 
                   ?<>
                     <SelectLabel>Accounts</SelectLabel>
-                    {accounts.map(({ id, name, address, encodedAddress, ...rest }) => {
-                      const account = { id, name, address, ...rest };
+                    {accounts.map(({ name, address, encodedAddress, ...rest }) => {
+                      const account = { name, address, ...rest };
                       return (
-                        <SelectItem key={id} value={{ type: "account", account }}>
+                        <SelectItem key={address} value={{ type: "account", account }}>
                           <AccountListing address={encodedAddress} name={name} />
                         </SelectItem>
                       );
@@ -111,14 +106,14 @@ const Header = ({
             <SelectValue placeholder={chainStore.name?.replace("People", "")} />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(chainContext.chains)
+            {Object.entries(config.chains)
               .filter(([key]) => 
                 import.meta.env.VITE_APP_AVAILABLE_CHAINS 
                   ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
                     .includes(key)
                   : key.includes("people")
               )
-              .map(([key, net]) => (
+              .map(([key, net]: [string, { name: string }]) => (
                 <SelectItem key={key} value={key}>
                   {net.name.replace("People", "")}
                 </SelectItem>
