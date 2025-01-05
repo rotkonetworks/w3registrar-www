@@ -73,7 +73,10 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
-  const [estimatedCosts, setEstimatedCosts] = useState({})
+  const [estimatedCosts, setEstimatedCosts] = useState<{
+    fees?: number | bigint | BigNumber,
+    deposits?: number | bigint | BigNumber
+  }>({})
   useEffect(() => {
     if (actionType === "judgement") {
       typedApi.tx.Identity.request_judgement({

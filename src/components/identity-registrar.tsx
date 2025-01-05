@@ -98,6 +98,7 @@ export function IdentityRegistrarComponent() {
         name: foundAccount.name,
         polkadotSigner: foundAccount.polkadotSigner,
         address: foundAccount.address,
+        encodedAddress: foundAccount.address,
       };
     }
     let decodedAddress;

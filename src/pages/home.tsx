@@ -23,7 +23,7 @@ function Home() {
   return (
     <ErrorBoundary>
       <ReactiveDotProvider config={config}>
-        <ChainProvider chainId={chainId}>
+        <ChainProvider chainId={chainId as keyof typeof config.chains}>
           <Suspense fallback={<Loading />}>
             <IdentityRegistrarComponent />
           </Suspense>
