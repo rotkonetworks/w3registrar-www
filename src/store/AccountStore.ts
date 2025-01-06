@@ -1,4 +1,4 @@
-import { PolkadotSigner } from "polkadot-api";
+import { PolkadotSigner, SS58String } from "polkadot-api";
 import { proxy } from "valtio";
 
 export interface AccountBalance {
@@ -9,7 +9,8 @@ export interface AccountBalance {
 }
 export type AccountData = {
   name?: string;
-  address?: string;
+  address?: SS58String;
+  encodedAddress?: SS58String;
   polkadotSigner?: PolkadotSigner;
 }
 export type Account = AccountData

@@ -1,18 +1,11 @@
-import { TypedApi } from "polkadot-api";
+import { SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
-import { AccountData } from "~/store/AccountStore";
-import { ChainInfo } from "~/store/ChainStore";
 
-export const useChainRealTimeInfo = ({
-  typedApi,
-  chainId,
-  address,
-  handlers,
-}: {
+export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: {
   typedApi: TypedApi<ChainId>;
-  chainId: string;
-  address: string;
+  chainId: string | number | symbol;
+  address: SS58String;
   handlers: Record<string, {
     onEvent: (data: any) => void;
     onError?: (error: Error) => void;

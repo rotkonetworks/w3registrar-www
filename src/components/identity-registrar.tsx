@@ -23,7 +23,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { SS58String, TypedApi } from "polkadot-api"
+import { PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -234,7 +234,11 @@ export function IdentityRegistrarComponent() {
     chainStore.id = chainId
   }, [])
   
-  const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
+  const eventHandlers = useMemo<Record<string, { 
+    onEvent: (data: any) => void; 
+    onError?: (error: Error) => void; 
+    priority: number 
+  }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
         getIdAndJudgement()
@@ -283,7 +287,7 @@ export function IdentityRegistrarComponent() {
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
-    address: accountStore.address,
+    address: accountStore.encodedAddress,
     handlers: eventHandlers,
   })
   //#endregion chains

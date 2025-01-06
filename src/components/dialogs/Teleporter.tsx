@@ -23,8 +23,8 @@ export default function TeleporterDialog({
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
 }: {
-  address: string,
-  accounts: { address: SS58String, name: string }[],
+  address: SS58String,
+  accounts: { address: SS58String, name: string, encodedAddress: SS58String }[],
   chainId: string | number | symbol,
   typedApi: TypedApi,
   config: ApiConfig,
