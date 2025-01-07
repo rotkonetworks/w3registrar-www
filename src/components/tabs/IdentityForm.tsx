@@ -73,23 +73,14 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
-  const [estimatedCosts, setEstimatedCosts] = useState<{
-    fees?: number | bigint | BigNumber,
-    deposits?: number | bigint | BigNumber
-  }>({})
-  useEffect(() => {
+  const getCall = useCallback(() => {
     if (actionType === "judgement") {
-      typedApi.tx.Identity.request_judgement({
+      return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
         reg_index: chainStore.registrarIndex,
-      }).getEstimatedFees(accountStore.address)
-        .then(fees =>  setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({  })
-        })
+      })
     } else if (actionType === "identity") {
-      typedApi.tx.Identity.set_identity({
+      return typedApi.tx.Identity.set_identity({
         info: {
           ...(Object.fromEntries(Object.entries(formData)
             .map(([key, { value }]) => [key, value
@@ -115,7 +106,30 @@ export function IdentityForm<Chain>({
             type: "None",
           },
         },
-      }).getEstimatedFees(accountStore.address)
+      });
+    } 
+    else if (actionType === null) {
+      return null
+    } else {
+      throw new Error("Unexpected action type")
+    }
+  }, [actionType, chainStore, formData])
+
+  const [estimatedCosts, setEstimatedCosts] = useState<{
+    fees?: number | bigint | BigNumber,
+    deposits?: number | bigint | BigNumber
+  }>({})
+  useEffect(() => {
+    const call = getCall()
+    if (actionType === "judgement") {
+      call.getEstimatedFees(accountStore.address)
+        .then(fees =>  setEstimatedCosts({ fees, }))
+        .catch(error => {
+          if (import.meta.env.DEV) console.error(error)
+          setEstimatedCosts({  })
+        })
+    } else if (actionType === "identity") {
+      call.getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, 
           deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
             .times(Object.values(formData)
@@ -128,45 +142,22 @@ export function IdentityForm<Chain>({
           setEstimatedCosts({})
         })
     }
+    else if (actionType === null) {
+      setEstimatedCosts({  })
+      return
+    }
+    call.getEncodedData()
+      .then(encodedCall => {
+        if (import.meta.env.DEV) console.log({ encodedCall: encodedCall.asHex() });
+      })
+      .catch(error => {
+        if (import.meta.env.DEV) console.error(error);
+      });
   }, [actionType, chainStore, formData])
   const confirmAction = () => {
-    let call;
-    if (actionType === "judgement") {
-      call = typedApi.tx.Identity.request_judgement({
-        max_fee: 0n,
-        reg_index: chainStore.registrarIndex,
-      })
-    } else if (actionType === "identity") {
-      call = typedApi.tx.Identity.set_identity({
-        info: {
-          ...(Object.fromEntries(Object.entries(formData)
-            .map(([key, { value }]) => [key, value
-              ?{
-                type: `Raw${value.length}`,
-                value: Binary.fromText(value),
-              }
-              :{
-                type: "None",
-              }
-            ])
-          )),
-          legal: {
-            type: "None",
-          },
-          github: {
-            type: "None",
-          },
-          image: {
-            type: "None",
-          },
-          web: {
-            type: "None",
-          },
-        },
-      });
-    }
-    else {
-      throw new Error("Unexpected action type")
+    const call = getCall();
+    if (!call) {
+      return
     }
     call.signAndSubmit(accountStore.polkadotSigner)
     setShowCostModal(false)
