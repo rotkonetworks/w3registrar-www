@@ -60,6 +60,10 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
     const { onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
+        if (data.length === 0) {
+          return
+        }
+        if (import.meta.env.DEV) console.log({ data, type, address })
         data.filter(item => [item.payload.who, item.payload.target].includes(address))
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
