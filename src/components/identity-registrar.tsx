@@ -295,11 +295,11 @@ export function IdentityRegistrarComponent() {
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: accountStore.address,
+    account: accountStore.encodedAddress,
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
-  const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
+  const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
       if (import.meta.env.DEV) console.error(error)
@@ -605,8 +605,8 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
+    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}
