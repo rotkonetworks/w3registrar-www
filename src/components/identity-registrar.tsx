@@ -91,19 +91,10 @@ export function IdentityRegistrarComponent() {
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount = accounts.find(account => account.address === address);
-
-    if (foundAccount) {
-      return {
-        name: foundAccount.name,
-        polkadotSigner: foundAccount.polkadotSigner,
-        address: foundAccount.address,
-        encodedAddress: foundAccount.address,
-      };
-    }
-    let decodedAddress;
+    let foundAccount: { name: string, polkadotSigner: PolkadotSigner, address: SS58String } | null;
+    let decodedAddress: Uint8Array;
     try {
-      decodedAddress = decodeAddress(address); // Validate addressZ
+      decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
       return null;
@@ -130,6 +121,7 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getAccountData(urlParams.address);
+    if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
     }
