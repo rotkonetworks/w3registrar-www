@@ -57,7 +57,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
 
   const waitForEvent = ({ type: { pallet, call }, }) => {
     const type = `${pallet}.${call}`;
-    const { onEvent, onError } = handlers[type]
+    const { onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
         data.filter(item => [item.payload.who, item.payload.target].includes(address))
