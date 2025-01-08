@@ -266,6 +266,7 @@ export function IdentityForm<Chain>({
                   id={props.key}
                   name={props.key}
                   value={formData[key].value}
+                  disabled={!accountStore.address}
                   onChange={event => setFormData(_formData => {
                     const newValue = event.target.value
                     _formData = { ..._formData }
