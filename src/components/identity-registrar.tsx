@@ -125,7 +125,7 @@ export function IdentityRegistrarComponent() {
     if (accountData) {
       Object.assign(accountStore, accountData);
     }
-  }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
+  }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
     const account = { name, address, polkadotSigner };
@@ -275,7 +275,7 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [accountStore.address, chainStore.id])  
+  }), [])  
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
