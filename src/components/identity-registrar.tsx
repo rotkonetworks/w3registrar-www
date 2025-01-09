@@ -493,7 +493,7 @@ export function IdentityRegistrarComponent() {
     </>
   }, [
     currentPage, pages, identityStore, challengeStore, chainStore, typedApi, accountStore, 
-    chainConstants
+    chainConstants, isDark, addNotification, formatAmount, requestVerificationSecret, verifyIdentity,
   ])
 
   return <>
