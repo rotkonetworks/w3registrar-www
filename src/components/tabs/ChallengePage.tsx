@@ -193,9 +193,10 @@ export function ChallengePage({
                             })
                             .catch(error => { if (import.meta.env.DEV) console.error(error) })
                             .finally(() => setPendingTransaction(false))
-                        } else if (formData[field]?.value) {
+                        } else if (type === "input") {
                           // TODO Implement actual verification when API is ready
                           onVerifyStatusReceived(field, true)
+                          console.log("Verification successful")
                         }
                       }}
                     >
