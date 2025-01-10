@@ -47,11 +47,11 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
           if (import.meta.env.DEV) console.log({ block, })
         })
       ;
-      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+      _pendingBlocks.current = []
     },  CHAIN_UPDATE_INTERVAL)
     return () => {
       window.clearInterval(timer)
-      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+      _pendingBlocks.current = []
     }
   }, [])
 
