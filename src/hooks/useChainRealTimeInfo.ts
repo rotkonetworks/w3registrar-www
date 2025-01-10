@@ -86,21 +86,29 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
       return () => window.clearInterval(timer)
     }
   }
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "IdentitySet" },
-  }), [chainId, address])
 
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "IdentityCleared" },
-  }), [chainId, address])
-
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "JudgementRequested" },
-  }), [chainId, address])
-
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "JudgementGiven" },
-  }), [chainId, address])
+  // Convert handlers to array and memoize
+  const handlerEntries = useMemo(() => 
+    Object.entries(handlers).map(([key, handler]) => {
+      const [pallet, call] = key.split('.')
+      return { pallet, call, handler }
+    }), 
+    [handlers]
+  )
+  
+  // Single effect to handle all subscriptions
+  useEffect(() => {
+    const subscriptions = handlerEntries.map(({ pallet, call }) => 
+      getEffectCallback({
+        type: { pallet, call },
+      })()
+    )
+  
+    // Cleanup function
+    return () => {
+      subscriptions.forEach(cleanup => cleanup?.())
+    }
+  }, [chainId, address, handlerEntries])
 
   return { constants, }
 }
