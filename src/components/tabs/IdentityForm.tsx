@@ -16,6 +16,11 @@ import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 
+export type IdentityFormData = Record<string, {
+  value: string
+  error: string | null
+}>
+
 export function IdentityForm<Chain>({
   addNotification,
   identityStore,
@@ -33,10 +38,8 @@ export function IdentityForm<Chain>({
   chainConstants: Record<string, any>,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
 }) {
-  const [formData, setFormData] = useState<Record<string, {
-    value: string,
-    error: string | null,
-  }>>({
+
+  const [formData, setFormData] = useState<IdentityFormData>({
     display: {
       value: "",
       error: null,
