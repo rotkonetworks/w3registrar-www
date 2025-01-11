@@ -55,6 +55,9 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
     }
   }, [])
 
+  // Since a single account is used, we can keep track of the last block per relevant event type. 
+  // This way we can avoid processing the same event multiple times.
+  const _lastBlockPerEvent = useRef({})
   const waitForEvent = ({ type: { pallet, call }, }) => {
     const type = `${pallet}.${call}`;
     const { onError } = handlers[type]
@@ -64,9 +67,13 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
           return
         }
         if (import.meta.env.DEV) console.log({ data, type, address })
-        data.filter(item => [item.payload.who, item.payload.target].includes(address))
+        data.filter(item => 
+          [item.payload.who, item.payload.target].includes(address)
+            && item.meta.block.number > (_lastBlockPerEvent.current[type] || 0)
+        )
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
+            _lastBlockPerEvent.current[type] = item.meta.block.number
           })
       })
       .catch(error => {
