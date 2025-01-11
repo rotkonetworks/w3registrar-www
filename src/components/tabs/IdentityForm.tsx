@@ -10,11 +10,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Binary, TypedApi } from 'polkadot-api'
+import { Binary, TxEntry, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
+import { Observable } from 'rxjs'
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -29,6 +30,7 @@ export function IdentityForm<Chain>({
   typedApi,
   chainConstants,
   formatAmount,
+  signSubmitAndWatch,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
@@ -36,7 +38,17 @@ export function IdentityForm<Chain>({
   accountStore: AccountData,
   typedApi: TypedApi<Chain>,
   chainConstants: Record<string, any>,
-  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
+  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
+  signSubmitAndWatch: (
+    call: TxEntry<0, string, string, any, any>,
+    messages: {
+      broadcasted?: string,
+      loading?: string,
+      success?: string,
+      error?: string,
+    },
+    eventType: string,
+  ) => Observable,
 }) {
 
   const [formData, setFormData] = useState<IdentityFormData>({
@@ -81,7 +93,11 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
-  const getCall = useCallback(() => {
+  const getCall = useCallback((): (
+    TxEntry<0, "Identity", "set_identity", any, any>
+    | TxEntry<0, "Identity", "request_judgement", any, any>
+    | null
+  ) => {
     if (actionType === "judgement") {
       return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
@@ -162,14 +178,19 @@ export function IdentityForm<Chain>({
         if (import.meta.env.DEV) console.error(error);
       });
   }, [actionType, chainStore, formData])
-  const confirmAction = () => {
+  const confirmAction = useCallback(() => {
     const call = getCall();
     if (!call) {
       return
     }
-    call.signAndSubmit(accountStore.polkadotSigner)
+    signSubmitAndWatch(call, {
+      broadcasted: `Broadcasted ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      loading: `Processing ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      success: `${actionType === "judgement" ? "judgement requested" : "identity set"}`,
+      error: `Failed to ${actionType === "judgement" ? "request judgement" : "set identity"}`,
+    }, actionType === "judgement" ? "Identity.JudgementRequested" : "identity.SetIdentity")
     setShowCostModal(false)
-  }
+  }, [getCall])
 
   const identityFormFields = {
     display: {

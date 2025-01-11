@@ -23,7 +23,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
+import { HexString, PolkadotSigner, SS58String, TxEntry, TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -33,7 +33,7 @@ import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
-import { LoadingContent, LoadingPlaceholder, LoadingTabs } from "~/pages/Loading"
+import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -69,7 +69,7 @@ export function IdentityRegistrarComponent() {
   //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
-    pushAlert({ ...alert, key });
+    pushAlert({ ...alert, key, closable: alert.closable ?? true });
   }, [pushAlert])
 
   const removeNotification = useCallback((key: string) => {
@@ -336,10 +336,73 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
+  const [pendingTx, setPendingTx] = useState([])
+  const signSubmitAndWatch = useCallback(async (
+    call: TxEntry<0, string, string, any, any>,
+    messages: {
+      broadcasted?: string,
+      loading?: string,
+      success?: string,
+      error?: string,
+    },
+    eventType: string,
+  ) => {
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner)
+    let txHash: HexString | null = null
+    signedCall.subscribe({
+      next: (result) => {
+        txHash = result.txHash
+        if (result.type === "broadcasted") {
+          addNotification({
+            key: result.txHash,
+            type: "loading",
+            closable: false,
+            message: messages.broadcasted || "Transaction broadcasted",
+          })
+        }
+        if (result.type === "txBestBlocksState") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            closable: false,
+            message: messages.loading || "Waiting for finalization",
+          })
+        }
+        if (result.type === "finalized") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            message: messages.success || "Transaction finalized",
+          })
+        }
+        if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
+          setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
+        }
+        if (import.meta.env.DEV) console.log({ result })
+      },
+      error: (error) => {
+        if (import.meta.env.DEV) console.error({ error })
+      },
+      complete: () => {
+        if (import.meta.env.DEV) console.log("Completed")
+        setPendingTx((prev) => prev.filter(tx => tx.txHash !== txHash))
+      }
+    })
+    return signedCall
+  }, [accountStore.polkadotSigner])
+
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
-  const onIdentityClear = useCallback(() => _clearIdentity().signAndSubmit(
-    accountStore?.polkadotSigner
-  ), [_clearIdentity])
+  const onIdentityClear = useCallback(async () => {
+    signSubmitAndWatch(_clearIdentity(), 
+      {
+        broadcasted: "Clearing identity...",
+        loading: "Waiting for finalization...",
+        success: "Identity cleared",
+        error: "Error clearing identity",
+      },
+      "Identity.IdentityCleared"
+    )
+  }, [_clearIdentity])
   
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
@@ -409,17 +472,19 @@ export function IdentityRegistrarComponent() {
           <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
           <AlertDescription className="flex justify-between items-center">
             {alert.message}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeNotification(alert.key)}
-              className={`${isDark
-                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
-                : 'text-[#670D35] hover:text-[#E6007A]'
-              }`}
-            >
-              Dismiss
-            </Button>
+            {alert.closable === true && <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeNotification(alert.key)}
+                className={`${isDark
+                  ? 'text-[#FFFFFF] hover:text-[#E6007A]'
+                  : 'text-[#670D35] hover:text-[#E6007A]'
+                }`}
+              >
+                Dismiss
+              </Button>
+            </>}
           </AlertDescription>
         </Alert>
       ))}
@@ -449,6 +514,7 @@ export function IdentityRegistrarComponent() {
             accountStore={accountStore}
             chainConstants={chainConstants}
             formatAmount={formatAmount}
+            signSubmitAndWatch={signSubmitAndWatch}
           />
         </TabsContent>
         <TabsContent value={pages[1].name}>
