@@ -400,11 +400,11 @@ export function IdentityRegistrarComponent() {
           key={alert.key}
           variant={alert.type === 'error' ? "destructive" : "default"}
           className={`mb-4 ${alert.type === 'error'
-              ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
-              : isDark
-                ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-                : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-            }`}
+            ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
+            : isDark
+              ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
+              : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+          }`}
         >
           <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
           <AlertDescription className="flex justify-between items-center">
@@ -414,9 +414,9 @@ export function IdentityRegistrarComponent() {
               size="sm"
               onClick={() => removeNotification(alert.key)}
               className={`${isDark
-                  ? 'text-[#FFFFFF] hover:text-[#E6007A]'
-                  : 'text-[#670D35] hover:text-[#E6007A]'
-                }`}
+                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
+                : 'text-[#670D35] hover:text-[#E6007A]'
+              }`}
             >
               Dismiss
             </Button>
@@ -492,8 +492,9 @@ export function IdentityRegistrarComponent() {
       </div>
     </>
   }, [
-    currentPage, pages, identityStore, challengeStore, chainStore, typedApi, accountStore, 
-    chainConstants, isDark, addNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+    currentPage, identityStore, challengeStore, chainStore, typedApi, accountStore, 
+    chainConstants, isDark, alertsStore, 
+    addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
   ])
 
   return <>
