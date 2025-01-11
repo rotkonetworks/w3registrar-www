@@ -275,12 +275,17 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [])  
+  }), [])
+
+  const [pendingTx, setPendingTx] = useState<
+    Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>
+  >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
     address: accountStore.encodedAddress,
     handlers: eventHandlers,
+    pendingTx,
   })
   //#endregion chains
   
@@ -336,7 +341,6 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
-  const [pendingTx, setPendingTx] = useState([])
   const signSubmitAndWatch = useCallback(async (
     call: TxEntry<0, string, string, any, any>,
     messages: {

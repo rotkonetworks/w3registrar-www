@@ -1,4 +1,4 @@
-import { SS58String, TypedApi } from "polkadot-api";
+import { HexString, SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 
@@ -11,6 +11,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
     onError?: (error: Error) => void;
     priority: number;
   }>
+  pendingTx: Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>;
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   useEffect(() => {
@@ -70,6 +71,10 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
         data.filter(item => 
           [item.payload.who, item.payload.target].includes(address)
             && item.meta.block.number > (_lastBlockPerEvent.current[type] || 0)
+            && !pendingTx.find(tx => 
+              x.type === `${pallet}.${call}` 
+              && [item.payload.who, item.payload.target].includes(tx.who)
+            )
         )
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
