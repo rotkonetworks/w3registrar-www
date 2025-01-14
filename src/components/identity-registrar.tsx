@@ -221,6 +221,154 @@ const MainContent = ({
   </>
 }
 
+const MemoIdeitityForm = memo(IdentityForm)
+const MemoChallengesPage = memo(ChallengePage)
+const MemoStatusPage = memo(StatusPage)
+
+type MainContentProps = {
+  currentPage: number,
+  identityStore: IdentityStore,
+  challengeStore: ChallengeStore,
+  chainStore: ChainInfo, 
+  typedApi: TypedApi<keyof config.chains>, 
+  accountStore: AccountData,
+  chainConstants, 
+  isDark: boolean, 
+  alertsStore: Map<string, AlertProps>,
+  addNotification: any, 
+  formatAmount: any, 
+  requestVerificationSecret: any, 
+  verifyIdentity: any, 
+  removeNotificatio: any,
+  signSubmitAndWatch: any,
+  identityFormRef: Ref,
+}
+const MainContent = ({
+  currentPage, identityStore, challengeStore, chainStore, typedApi, accountStore,
+  chainConstants, isDark, alertsStore, identityFormRef,
+  addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
+  signSubmitAndWatch,
+}: MainContentProps) => {
+  const pages = [
+    {
+      name: "Identity Form",
+      icon: <UserCircle className="h-5 w-5" />,
+    },
+    {
+      name: "Challenges",
+      icon: <Shield className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.FeePaid,
+    },
+    {
+      name: "Status",
+      icon: <FileCheck className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.NoIdentity,
+    },
+  ]
+
+  return <>
+    {[...alertsStore.entries()].map(([, alert]) => (
+      <Alert
+        key={alert.key}
+        variant={alert.type === 'error' ? "destructive" : "default"}
+        className={`mb-4 ${alert.type === 'error'
+          ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
+          : isDark
+            ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
+            : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+          }`}
+      >
+        <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+        <AlertDescription className="flex justify-between items-center">
+          {alert.message}
+          {alert.closable === true && <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeNotification(alert.key)}
+              className={`${isDark
+                ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
+                : 'text-[#670D35] hover:text-[#E6007A]'
+                }`}
+            >
+              Dismiss
+            </Button>
+          </>}
+        </AlertDescription>
+      </Alert>
+    ))}
+
+    <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
+      <TabsList
+        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
+      >
+        {pages.map((page, index) => (
+          <TabsTrigger
+            key={index}
+            value={page.name}
+            onClick={() => setCurrentPage(index)}
+            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+            disabled={page.disabled}
+          >
+            {page.icon}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent value={pages[0].name}>
+        <MemoIdeitityForm
+          ref={identityFormRef}
+          addNotification={addNotification}
+          identityStore={identityStore}
+          chainStore={chainStore}
+          typedApi={typedApi}
+          accountStore={accountStore}
+          chainConstants={chainConstants}
+          formatAmount={formatAmount}
+          signSubmitAndWatch={signSubmitAndWatch}
+        />
+      </TabsContent>
+      <TabsContent value={pages[1].name}>
+        <MemoChallengesPage
+          identityStore={identityStore}
+          addNotification={addNotification}
+          challengeStore={challengeStore}
+          requestVerificationSecret={requestVerificationSecret}
+          verifyField={verifyIdentity}
+        />
+      </TabsContent>
+      <TabsContent value={pages[2].name}>
+        <MemoStatusPage
+          identityStore={identityStore}
+          addNotification={addNotification}
+          challengeStore={challengeStore}
+          formatAmount={formatAmount}
+          onIdentityClear={() => setOpenDialog("clearIdentity")}
+        />
+      </TabsContent>
+    </Tabs>
+
+    <div className="flex justify-between mt-6">
+      <Button
+        variant="outline"
+        onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+        disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
+        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+      </Button>
+      <Button
+        onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
+        disabled={currentPage === pages.length - 1
+          || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+        }
+        className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+      >
+        Next <ChevronRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  </>
+}
+
 export function IdentityRegistrarComponent() {
   const alertsStore = useProxy(_alertsStore);
   const { isDark, setDark } = useDark()
