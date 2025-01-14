@@ -268,48 +268,54 @@ export function IdentityRegistrarComponent() {
   //#endregion accounts
 
   //#region identity
-  const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const identityFormRef = useRef()
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ identityFormRef })
+  }, [identityFormRef.current])
+  const fetchIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
-      if (import.meta.env.DEV) console.log({ identityOf: result })
-      if (!result) {
+      if (import.meta.env.DEV) console.log({ identityOf: result });
+      if (result) {
+        // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
+        const identityOf = result[0] || result;
+        const identityData = Object.fromEntries(Object.entries(identityOf.info)
+          .filter(([_, value]) => value?.type?.startsWith("Raw"))
+          .map(([key, value]) => [key, value.value.asText()])
+        );
+        identityStore.deposit = identityOf.deposit
+        identityStore.info = identityData;
+        identityStore.status = verifiyStatuses.IdentitySet;
+        const idJudgementOfId = identityOf.judgements;
+        const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
+          registrar: {
+            index: judgement[0],
+          },
+          state: judgement[1].type,
+          fee: judgement[1].value,
+        }));
+        if (judgementsData.length > 0) {
+          identityStore.judgements = judgementsData;
+          identityStore.status = verifiyStatuses.JudgementRequested;
+        }
+        if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+          identityStore.status = verifiyStatuses.FeePaid;
+        }
+        if (judgementsData.find(j => [
+          IdentityJudgement.Reasonable().type,
+          IdentityJudgement.KnownGood().type,
+        ].includes(j.state))) {
+          identityStore.status = verifiyStatuses.IdentityVerified;
+        }
+        const idDeposit = identityOf.deposit;
+        // TODO Compute approximate reserve
+        if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      } else {
         identityStore.status = verifiyStatuses.NoIdentity;
         identityStore.info = null
-        return;
+        identityStore.deposit = null
       }
-      // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
-      const identityOf = result[0] || result;
-      const identityData = Object.fromEntries(Object.entries(identityOf.info)
-        .filter(([_, value]) => value?.type?.startsWith("Raw"))
-        .map(([key, value]) => [key, value.value.asText()])
-      );
-      identityStore.deposit = identityOf.deposit
-      identityStore.info = identityData;
-      identityStore.status = verifiyStatuses.IdentitySet;
-      const idJudgementOfId = identityOf.judgements;
-      const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
-        registrar: {
-          index: judgement[0],
-        },
-        state: judgement[1].type,
-        fee: judgement[1].value,
-      }));
-      if (judgementsData.length > 0) {
-        identityStore.judgements = judgementsData;
-        identityStore.status = verifiyStatuses.JudgementRequested;
-      }
-      if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-        identityStore.status = verifiyStatuses.FeePaid;
-      }
-      if (judgementsData.find(j => [
-        IdentityJudgement.Reasonable().type,
-        IdentityJudgement.KnownGood().type,
-      ].includes(j.state))) {
-        identityStore.status = verifiyStatuses.IdentityVerified;
-      }
-      const idDeposit = identityOf.deposit;
-      // TODO Compute approximate reserve
-      if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      identityFormRef.current.reset()
     })
     .catch(e => {
       if (import.meta.env.DEV) {
