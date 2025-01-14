@@ -113,8 +113,8 @@ const MainContent = ({
     },
   ]
   const enabledTabsIndexes = tabs
-    .filter(tab => !tab.disabled)
     .map((tab, index) => ({ index, id: tab.id }))
+    .filter(tab => !tab.disabled)
   
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
     
@@ -123,7 +123,7 @@ const MainContent = ({
       return;
     }
     const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
-    if (tab) {
+    if (tab && !tab.disabled) {
       setCurrentTabIndex(tabs.indexOf(tab))
     }
   }, [urlParams.tab])
