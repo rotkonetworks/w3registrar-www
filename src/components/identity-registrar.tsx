@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
+import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -7,12 +7,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
+import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { 
-  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus, 
+  ChallengeStore
 } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
@@ -191,9 +192,9 @@ export function IdentityRegistrarComponent() {
     identityStore.info = null
     identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
-      getIdAndJudgement();
+      fetchIdAndJudgement();
     }
-  }, [accountStore.address, getIdAndJudgement])
+  }, [accountStore.address, fetchIdAndJudgement])
   //#endregion identity
   
   //#region chains
@@ -233,7 +234,7 @@ export function IdentityRegistrarComponent() {
   }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info", 
           message: "Identity Set for this account",
@@ -244,7 +245,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.IdentityCleared": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Identity cleared for this account",
@@ -255,7 +256,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementRequested": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Requested for this account",
@@ -266,7 +267,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementGiven": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Given for this account",
@@ -378,6 +379,7 @@ export function IdentityRegistrarComponent() {
             type: "success",
             message: messages.success || "Transaction finalized",
           })
+          fetchIdAndJudgement()
         }
         if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
           setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])

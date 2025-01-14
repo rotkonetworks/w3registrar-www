@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { AlertProps } from '@/store/AlertStore'
 import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
 import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
@@ -22,33 +22,37 @@ export type IdentityFormData = Record<string, {
   error: string | null
 }>
 
-export function IdentityForm<Chain>({
-  addNotification,
-  identityStore,
-  chainStore,
-  accountStore,
-  typedApi,
-  chainConstants,
-  formatAmount,
-  signSubmitAndWatch,
-}: {
-  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  identityStore: IdentityStore,
-  chainStore: ChainInfo,
-  accountStore: AccountData,
-  typedApi: TypedApi<Chain>,
-  chainConstants: Record<string, any>,
-  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
-  signSubmitAndWatch: (
-    call: TxEntry<0, string, string, any, any>,
-    messages: {
-      broadcasted?: string,
-      loading?: string,
-      success?: string,
-      error?: string,
-    },
-    eventType: string,
-  ) => Observable,
+export const IdentityForm = forwardRef((
+  {
+    addNotification,
+    identityStore,
+    chainStore,
+    accountStore,
+    typedApi,
+    chainConstants,
+    formatAmount,
+    signSubmitAndWatch,
+  }: {
+    addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+    identityStore: IdentityStore,
+    chainStore: ChainInfo,
+    accountStore: AccountData,
+    typedApi: TypedApi<Chain>,
+    chainConstants: Record<string, any>,
+    formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
+    signSubmitAndWatch: (
+      call: TxEntry<0, string, string, any, any>,
+      messages: {
+        broadcasted?: string,
+        loading?: string,
+        success?: string,
+        error?: string,
+      },
+      eventType: string,
+    ) => Observable,
+  },
+  ref: Ref & { reset: () => void },
+) => {
   const _reset = useCallback(() => Object.fromEntries(
     ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
       key,
@@ -229,7 +233,13 @@ export function IdentityForm<Chain>({
     }, { })
     )}
   ), [])
+
+  const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
+    if (!formResetFlag) {
+      return
+    }
+    setFormResetFlag(false)
     if (identityStore.info) {
       if (import.meta.env.DEV) console.log({ identityStore })
       setFormData(() => _resetFromIdStore(identityStore))
@@ -238,6 +248,9 @@ export function IdentityForm<Chain>({
     }
   }, [identityStore.info, formResetFlag])
   
+  useImperativeHandle(ref, () => ({
+    reset: () => setFormResetFlag(true)
+  }), [identityStore])
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ formData })
@@ -371,4 +384,4 @@ export function IdentityForm<Chain>({
       </Dialog>
     </>
   )
-}
+})
