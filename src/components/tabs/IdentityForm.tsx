@@ -49,30 +49,13 @@ export function IdentityForm<Chain>({
     },
     eventType: string,
   ) => Observable,
-}) {
-
-  const [formData, setFormData] = useState<IdentityFormData>({
-    display: {
-      value: "",
-      error: null,
-    },
-    matrix: {
-      value: "",
-      error: null,
-    },
-    email: {
-      value: "",
-      error: null,
-    },
-    discord: {
-      value: "",
-      error: null,
-    },
-    twitter: {
-      value: "",
-      error: null,
-    },
-  })
+  const _reset = useCallback(() => Object.fromEntries(
+    ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
+      key,
+      { value: "", error: null }
+    ])
+  ), [])
+  const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
   const [actionType, setActionType] = useState<"judgement" | "identity" | null>(null)
   const [showCostModal, setShowCostModal] = useState(false)
@@ -236,30 +219,25 @@ export function IdentityForm<Chain>({
       required: false,
     },
   }
+  const _resetFromIdStore = useCallback((identityStoreInfo) => (
+    {...(Object.entries(identityFormFields).reduce((all, [key]) => {
+      all[key] = {
+        value: identityStore.info![key] || "",
+        error: null,
+      }
+      return all
+    }, { })
+    )}
+  ), [])
   useEffect(() => {
     if (identityStore.info) {
       if (import.meta.env.DEV) console.log({ identityStore })
-      setFormData({
-        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
-          all[key] = {
-            value: identityStore.info![key] || "",
-            error: null,
-          }
-          return all;
-        }, {}))
-      })
+      setFormData(() => _resetFromIdStore(identityStore))
     } else {
-      setFormData({
-        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
-          all[key] = {
-            value: "",
-            error: null,
-          }
-          return all;
-        }, {}))
-      })
+      setFormData(_reset)
     }
-  }, [identityStore.info])
+  }, [identityStore.info, formResetFlag])
+  
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ formData })
