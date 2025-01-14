@@ -120,7 +120,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pen
     return () => {
       subscriptions.forEach(cleanup => cleanup?.())
     }
-  }, [chainId, address, handlerEntries])
+  }, [chainId, address, handlerEntries, pendingTx])
 
   return { constants, }
 }
