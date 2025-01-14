@@ -2,7 +2,7 @@ import { HexString, SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 
-export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: {
+export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pendingTx }: {
   typedApi: TypedApi<ChainId>;
   chainId: string | number | symbol;
   address: SS58String;
