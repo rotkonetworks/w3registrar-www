@@ -250,18 +250,47 @@ const MainContent = ({
 }: MainContentProps) => {
   const pages = [
     {
+      id: "identityForm",
       name: "Identity Form",
       icon: <UserCircle className="h-5 w-5" />,
+      disabled: false,
+      content: <MemoIdeitityForm
+        ref={identityFormRef}
+        addNotification={addNotification}
+        identityStore={identityStore}
+        chainStore={chainStore}
+        typedApi={typedApi}
+        accountStore={accountStore}
+        chainConstants={chainConstants}
+        formatAmount={formatAmount}
+        signSubmitAndWatch={signSubmitAndWatch}
+      />
     },
     {
+      id: "challenges",
       name: "Challenges",
       icon: <Shield className="h-5 w-5" />,
       disabled: identityStore.status < verifiyStatuses.FeePaid,
+      content: <MemoChallengesPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        requestVerificationSecret={requestVerificationSecret}
+        verifyField={verifyIdentity}
+      />
     },
     {
+      id: "status",
       name: "Status",
       icon: <FileCheck className="h-5 w-5" />,
       disabled: identityStore.status < verifiyStatuses.NoIdentity,
+      content: <MemoStatusPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        formatAmount={formatAmount}
+        onIdentityClear={() => setOpenDialog("clearIdentity")}
+      />
     },
   ]
 
@@ -315,37 +344,11 @@ const MainContent = ({
           </TabsTrigger>
         ))}
       </TabsList>
-      <TabsContent value={pages[0].name}>
-        <MemoIdeitityForm
-          ref={identityFormRef}
-          addNotification={addNotification}
-          identityStore={identityStore}
-          chainStore={chainStore}
-          typedApi={typedApi}
-          accountStore={accountStore}
-          chainConstants={chainConstants}
-          formatAmount={formatAmount}
-          signSubmitAndWatch={signSubmitAndWatch}
-        />
-      </TabsContent>
-      <TabsContent value={pages[1].name}>
-        <MemoChallengesPage
-          identityStore={identityStore}
-          addNotification={addNotification}
-          challengeStore={challengeStore}
-          requestVerificationSecret={requestVerificationSecret}
-          verifyField={verifyIdentity}
-        />
-      </TabsContent>
-      <TabsContent value={pages[2].name}>
-        <MemoStatusPage
-          identityStore={identityStore}
-          addNotification={addNotification}
-          challengeStore={challengeStore}
-          formatAmount={formatAmount}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-        />
-      </TabsContent>
+      {pages.map((page, index) => (
+        <TabsContent key={index} value={page.name} className="p-4">
+          {page.content}
+        </TabsContent>
+      ))}
     </Tabs>
 
     <div className="flex justify-between mt-6">
