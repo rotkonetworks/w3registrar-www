@@ -4,7 +4,7 @@ env:
   GCP_PROJECT_ID: 'rbl-common'
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
-  DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
+  DEPLOY_PATH: '/home/w3reg/staging.w3reg.org'
   BUILD_TARGET: 'production'
   VITE_APP_WALLET_CONNECT_PROJECT_ID: 'rotko-w3-registrar'
   VITE_APP_DEFAULT_WS_URL: 'wss://people-paseo.dotters.network'
