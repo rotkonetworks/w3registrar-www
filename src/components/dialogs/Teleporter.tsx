@@ -23,8 +23,8 @@ export default function TeleporterDialog({
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
 }: {
-  address: string,
-  accounts: { address: SS58String, name: string }[],
+  address: SS58String,
+  accounts: { address: SS58String, name: string, encodedAddress: SS58String }[],
   chainId: string | number | symbol,
   typedApi: TypedApi,
   config: ApiConfig,
@@ -233,7 +233,7 @@ export default function TeleporterDialog({
                   role="combobox"
                   className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
                 >
-                  {fromAddress ? accounts.find(account => account.address === fromAddress)?.name : "Select wallet"}
+                  {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -246,7 +246,7 @@ export default function TeleporterDialog({
                       {accounts.map((account) => (
                         <CommandItem
                           key={account.address}
-                          onSelect={() => handleFromWalletChange(account.address)}
+                          onSelect={() => handleFromWalletChange(account.encodedAddress)}
                           className="text-[#FFFFFF] hover:bg-[#3A3939]"
                         >
                           {account.name}
@@ -270,7 +270,7 @@ export default function TeleporterDialog({
                   role="combobox"
                   className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
                 >
-                  {toAddress ? accounts.find(account => account.address === toAddress)?.name : "Select wallet"}
+                  {toAddress ? accounts.find(account => account.encodedAddress === toAddress)?.name : "Select wallet"}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -283,7 +283,7 @@ export default function TeleporterDialog({
                       {accounts.map((account) => (
                         <CommandItem
                           key={account.address}
-                          onSelect={() => handleToWalletChange(account.address)}
+                          onSelect={() => handleToWalletChange(account.encodedAddress)}
                           className="text-[#FFFFFF] hover:bg-[#3A3939]"
                         >
                           {account.name}

@@ -7,7 +7,7 @@ import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle, RefreshCcw,
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
 
 export function ChallengePage({
@@ -23,7 +23,47 @@ export function ChallengePage({
   requestVerificationSecret: (field: string) => Promise<string>,
   verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
-  const challenges = challengeStore
+  // TODO Review when API changes are made
+  const testChallengeStore = useMemo(() => {
+    return {
+      ...Object.fromEntries(Object.entries(challengeStore)
+        .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
+      ),
+      email: {
+        type: 'input',
+        status: ChallengeStatus.Pending,
+      },
+    }
+  }, [challengeStore])
+
+  const [formData, setFormData] = useState<Record<string, {
+    value: string,
+    error: string | null,
+  }>>({})
+
+  useEffect(() => {
+    setFormData(Object.fromEntries(Object.keys(testChallengeStore)
+      .filter(key => testChallengeStore[key].type === "input")
+      .map(key => [key, { 
+        value: formData[key]?.value || "", 
+        error: formData[key]?.error || null, 
+      }])
+    ))
+  }, [testChallengeStore])
+
+  const setFormField = useCallback((field: string, value: string): void => {
+    setFormData(_formData => {
+      const newValue = value
+      _formData = { ..._formData }
+      _formData[field] = { ..._formData[field] }
+      _formData[field].value = newValue
+      //_formData[field].error = props.checkForErrors(newValue);
+      /* if (identityFormFields[field].required && _formData[field].value === "") {
+        _formData[field].error = "Required";
+      } */
+      return _formData
+    })
+  }, [])
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -58,7 +98,7 @@ export function ChallengePage({
   }
 
   const [pendingTransaction, setPendingTransaction] = useState(false)
-  const onVerifyStatusReceived = (result: boolean) => {
+  const onVerifyStatusReceived = (field: keyof ChallengeStore, result: boolean) => {
     challengeStore[field].status = result
       ? ChallengeStatus.Passed
       : ChallengeStatus.Failed
@@ -85,7 +125,7 @@ export function ChallengePage({
               </div>
             </div>
           </div>
-          {Object.entries(challenges).map(([field, { code, status }]) => (
+          {Object.entries(testChallengeStore).map(([field, { type, code, status }]) => (
             <div key={field} className="mb-4 last:mb-0">
               <div className="flex justify-between items-center mb-2">
                 <Label htmlFor={field} className="text-inherit flex items-center gap-2">
@@ -101,45 +141,64 @@ export function ChallengePage({
                     className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
                   />
                 }
+                {type === "input" &&
+                  <Input id={field + "-challenge"} value={formData[field]?.value || ""}
+                    onChange={event => setFormField(field, event.target.value)}
+                    className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                  />
+                }
                 {status === ChallengeStatus.Pending &&
                   <>
                     <Button variant="outline" size="icon" 
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      onClick={() => copyToClipboard(code)} 
+                      onClick={async () => {
+                        if (type === "input") {
+                          setFormField(field, await window.navigator.clipboard.readText())
+                        } else if (code) {
+                          copyToClipboard(code)
+                        }
+                      }} 
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" 
-                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      onClick={() => requestVerificationSecret(field)
-                        .then(challenge => {
-                          challengeStore[field].code = challenge
-                        })
-                        .catch(error => {
-                          if (import.meta.env.DEV) console.error(error)
-                        })
-                      }
-                    >
-                      <RefreshCcw className="h-4 w-4" />
-                    </Button>
+                    {code &&
+                      <Button variant="outline" size="icon" 
+                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                        onClick={() => requestVerificationSecret(field)
+                          .then(challenge => {
+                            challengeStore[field].code = challenge
+                          })
+                          .catch(error => {
+                            if (import.meta.env.DEV) console.error(error)
+                          })
+                        }
+                      >
+                        <RefreshCcw className="h-4 w-4" />
+                      </Button>
+                    }
                     <Button variant="outline" size="icon" 
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                       onClick={() => {
-                        setPendingTransaction(true)
-                        verifyField(field, code)
-                          .then(result => {
-                            onVerifyStatusReceived(result)
-                            addNotification({
-                              type: result ? 'success' : 'error',
-                              message: result
-                                ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
-                                : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                        if (code) {
+                          setPendingTransaction(true)
+                          verifyField(field, code)
+                            .then(result => {
+                              onVerifyStatusReceived(field, result)
+                              addNotification({
+                                type: result ? 'success' : 'error',
+                                message: result
+                                  ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
+                                  : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
+                              })
                             })
-                          })
-                          .catch(error => { if (import.meta.env.DEV) console.error(error) })
-                          .finally(() => setPendingTransaction(false))
-                      }
-                      }
+                            .catch(error => { if (import.meta.env.DEV) console.error(error) })
+                            .finally(() => setPendingTransaction(false))
+                        } else if (type === "input") {
+                          // TODO Implement actual verification when API is ready
+                          onVerifyStatusReceived(field, true)
+                          console.log("Verification successful")
+                        }
+                      }}
                     >
                       <Check className="h-4 w-4" />
                     </Button>

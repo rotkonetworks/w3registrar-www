@@ -3,7 +3,9 @@ import { verifiyStatuses } from "~/store/IdentityStore";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export const IdentityStatusInfo = ({ status }: { status: verifiyStatuses }) => <>
-  <Alert variant="default" className="bg-[#393838] border-[#E6007A] text-[#FFFFFF]">
+  <Alert variant="default" 
+    className="dark:bg-[#393838] bg-[#ffffff] border-[#E6007A] dark:text-light text-dark"
+  >
     <Info className="h-4 w-4" />
     <AlertTitle>On-chain Identity Status
       : <strong>{verifiyStatuses[status]?.match(/[A-Z][a-z]+/g).join(" ") || "Unknown"}</strong>

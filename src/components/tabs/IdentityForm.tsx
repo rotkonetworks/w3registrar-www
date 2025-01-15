@@ -10,11 +10,17 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Binary, TypedApi } from 'polkadot-api'
+import { Binary, TxEntry, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
+import { Observable } from 'rxjs'
+
+export type IdentityFormData = Record<string, {
+  value: string
+  error: string | null
+}>
 
 export function IdentityForm<Chain>({
   addNotification,
@@ -24,6 +30,7 @@ export function IdentityForm<Chain>({
   typedApi,
   chainConstants,
   formatAmount,
+  signSubmitAndWatch,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   identityStore: IdentityStore,
@@ -31,12 +38,20 @@ export function IdentityForm<Chain>({
   accountStore: AccountData,
   typedApi: TypedApi<Chain>,
   chainConstants: Record<string, any>,
-  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
+  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
+  signSubmitAndWatch: (
+    call: TxEntry<0, string, string, any, any>,
+    messages: {
+      broadcasted?: string,
+      loading?: string,
+      success?: string,
+      error?: string,
+    },
+    eventType: string,
+  ) => Observable,
 }) {
-  const [formData, setFormData] = useState<Record<string, {
-    value: string,
-    error: string | null,
-  }>>({
+
+  const [formData, setFormData] = useState<IdentityFormData>({
     display: {
       value: "",
       error: null,
@@ -59,8 +74,13 @@ export function IdentityForm<Chain>({
     },
   })
 
-  const [showCostModal, setShowCostModal] = useState(false)
   const [actionType, setActionType] = useState<"judgement" | "identity" | null>(null)
+  const [showCostModal, setShowCostModal] = useState(false)
+  useEffect(() => {
+    if (!showCostModal) {
+      setActionType(null)
+    }
+  }, [showCostModal])
 
   const onChainIdentity = identityStore.status
 
@@ -73,23 +93,18 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
-  const [estimatedCosts, setEstimatedCosts] = useState<{
-    fees?: number | bigint | BigNumber,
-    deposits?: number | bigint | BigNumber
-  }>({})
-  useEffect(() => {
+  const getCall = useCallback((): (
+    TxEntry<0, "Identity", "set_identity", any, any>
+    | TxEntry<0, "Identity", "request_judgement", any, any>
+    | null
+  ) => {
     if (actionType === "judgement") {
-      typedApi.tx.Identity.request_judgement({
+      return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
         reg_index: chainStore.registrarIndex,
-      }).getEstimatedFees(accountStore.address)
-        .then(fees =>  setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({  })
-        })
+      })
     } else if (actionType === "identity") {
-      typedApi.tx.Identity.set_identity({
+      return typedApi.tx.Identity.set_identity({
         info: {
           ...(Object.fromEntries(Object.entries(formData)
             .map(([key, { value }]) => [key, value
@@ -115,7 +130,30 @@ export function IdentityForm<Chain>({
             type: "None",
           },
         },
-      }).getEstimatedFees(accountStore.address)
+      });
+    } 
+    else if (actionType === null) {
+      return null
+    } else {
+      throw new Error("Unexpected action type")
+    }
+  }, [actionType, chainStore, formData])
+
+  const [estimatedCosts, setEstimatedCosts] = useState<{
+    fees?: number | bigint | BigNumber,
+    deposits?: number | bigint | BigNumber
+  }>({})
+  useEffect(() => {
+    const call = getCall()
+    if (actionType === "judgement") {
+      call.getEstimatedFees(accountStore.address)
+        .then(fees =>  setEstimatedCosts({ fees, }))
+        .catch(error => {
+          if (import.meta.env.DEV) console.error(error)
+          setEstimatedCosts({  })
+        })
+    } else if (actionType === "identity") {
+      call.getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, 
           deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
             .times(Object.values(formData)
@@ -128,49 +166,31 @@ export function IdentityForm<Chain>({
           setEstimatedCosts({})
         })
     }
-  }, [actionType, chainStore, formData])
-  const confirmAction = () => {
-    let call;
-    if (actionType === "judgement") {
-      call = typedApi.tx.Identity.request_judgement({
-        max_fee: 0n,
-        reg_index: chainStore.registrarIndex,
+    else if (actionType === null) {
+      setEstimatedCosts({  })
+      return
+    }
+    call.getEncodedData()
+      .then(encodedCall => {
+        if (import.meta.env.DEV) console.log({ encodedCall: encodedCall.asHex() });
       })
-    } else if (actionType === "identity") {
-      call = typedApi.tx.Identity.set_identity({
-        info: {
-          ...(Object.fromEntries(Object.entries(formData)
-            .map(([key, { value }]) => [key, value
-              ?{
-                type: `Raw${value.length}`,
-                value: Binary.fromText(value),
-              }
-              :{
-                type: "None",
-              }
-            ])
-          )),
-          legal: {
-            type: "None",
-          },
-          github: {
-            type: "None",
-          },
-          image: {
-            type: "None",
-          },
-          web: {
-            type: "None",
-          },
-        },
+      .catch(error => {
+        if (import.meta.env.DEV) console.error(error);
       });
+  }, [actionType, chainStore, formData])
+  const confirmAction = useCallback(() => {
+    const call = getCall();
+    if (!call) {
+      return
     }
-    else {
-      throw new Error("Unexpected action type")
-    }
-    call.signAndSubmit(accountStore.polkadotSigner)
+    signSubmitAndWatch(call, {
+      broadcasted: `Broadcasted ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      loading: `Processing ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      success: `${actionType === "judgement" ? "judgement requested" : "identity set"}`,
+      error: `Failed to ${actionType === "judgement" ? "request judgement" : "set identity"}`,
+    }, actionType === "judgement" ? "Identity.JudgementRequested" : "identity.SetIdentity")
     setShowCostModal(false)
-  }
+  }, [getCall])
 
   const identityFormFields = {
     display: {
@@ -270,6 +290,7 @@ export function IdentityForm<Chain>({
                   id={props.key}
                   name={props.key}
                   value={formData[key].value}
+                  disabled={!accountStore.address}
                   onChange={event => setFormData(_formData => {
                     const newValue = event.target.value
                     _formData = { ..._formData }

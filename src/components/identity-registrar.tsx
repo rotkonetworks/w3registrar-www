@@ -23,7 +23,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityJudgement } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { SS58String, TypedApi } from "polkadot-api"
+import { HexString, PolkadotSigner, SS58String, TxEntry, TypedApi } from "polkadot-api"
 import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -33,7 +33,7 @@ import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
-import { LoadingContent, LoadingPlaceholder, LoadingTabs } from "~/pages/Loading"
+import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 
 export function IdentityRegistrarComponent() {
   const [currentPage, setCurrentPage] = useState(0)
@@ -69,7 +69,7 @@ export function IdentityRegistrarComponent() {
   //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
-    pushAlert({ ...alert, key });
+    pushAlert({ ...alert, key, closable: alert.closable ?? true });
   }, [pushAlert])
 
   const removeNotification = useCallback((key: string) => {
@@ -91,19 +91,10 @@ export function IdentityRegistrarComponent() {
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount = accounts.find(account => account.address === address);
-
-    if (foundAccount) {
-      return {
-        name: foundAccount.name,
-        polkadotSigner: foundAccount.polkadotSigner,
-        address: foundAccount.address,
-        encodedAddress: foundAccount.address,
-      };
-    }
-    let decodedAddress;
+    let foundAccount: { name: string, polkadotSigner: PolkadotSigner, address: SS58String } | null;
+    let decodedAddress: Uint8Array;
     try {
-      decodedAddress = decodeAddress(address); // Validate addressZ
+      decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
       return null;
@@ -130,10 +121,11 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getAccountData(urlParams.address);
+    if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
     }
-  }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
+  }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
     const account = { name, address, polkadotSigner };
@@ -234,7 +226,11 @@ export function IdentityRegistrarComponent() {
     chainStore.id = chainId
   }, [])
   
-  const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
+  const eventHandlers = useMemo<Record<string, { 
+    onEvent: (data: any) => void; 
+    onError?: (error: Error) => void; 
+    priority: number 
+  }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
         getIdAndJudgement()
@@ -279,23 +275,28 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [accountStore.address, chainStore.id])  
+  }), [])
+
+  const [pendingTx, setPendingTx] = useState<
+    Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>
+  >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
-    address: accountStore.address,
+    address: accountStore.encodedAddress,
     handlers: eventHandlers,
+    pendingTx,
   })
   //#endregion chains
   
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: accountStore.address,
+    account: accountStore.encodedAddress,
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
-  const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
+  const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
       if (import.meta.env.DEV) console.error(error)
@@ -340,10 +341,72 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
+  const signSubmitAndWatch = useCallback(async (
+    call: TxEntry<0, string, string, any, any>,
+    messages: {
+      broadcasted?: string,
+      loading?: string,
+      success?: string,
+      error?: string,
+    },
+    eventType: string,
+  ) => {
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner)
+    let txHash: HexString | null = null
+    signedCall.subscribe({
+      next: (result) => {
+        txHash = result.txHash
+        if (result.type === "broadcasted") {
+          addNotification({
+            key: result.txHash,
+            type: "loading",
+            closable: false,
+            message: messages.broadcasted || "Transaction broadcasted",
+          })
+        }
+        if (result.type === "txBestBlocksState") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            closable: false,
+            message: messages.loading || "Waiting for finalization",
+          })
+        }
+        if (result.type === "finalized") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            message: messages.success || "Transaction finalized",
+          })
+        }
+        if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
+          setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
+        }
+        if (import.meta.env.DEV) console.log({ result })
+      },
+      error: (error) => {
+        if (import.meta.env.DEV) console.error({ error })
+      },
+      complete: () => {
+        if (import.meta.env.DEV) console.log("Completed")
+        setPendingTx((prev) => prev.filter(tx => tx.txHash !== txHash))
+      }
+    })
+    return signedCall
+  }, [accountStore.polkadotSigner])
+
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
-  const onIdentityClear = useCallback(() => _clearIdentity().signAndSubmit(
-    accountStore?.polkadotSigner
-  ), [_clearIdentity])
+  const onIdentityClear = useCallback(async () => {
+    signSubmitAndWatch(_clearIdentity(), 
+      {
+        broadcasted: "Clearing identity...",
+        loading: "Waiting for finalization...",
+        success: "Identity cleared",
+        error: "Error clearing identity",
+      },
+      "Identity.IdentityCleared"
+    )
+  }, [_clearIdentity])
   
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
@@ -397,6 +460,113 @@ export function IdentityRegistrarComponent() {
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
   
+  const Main = useCallback(() => {
+    return <>
+      {[...alertsStore.entries()].map(([, alert]) => (
+        <Alert
+          key={alert.key}
+          variant={alert.type === 'error' ? "destructive" : "default"}
+          className={`mb-4 ${alert.type === 'error'
+            ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
+            : isDark
+              ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
+              : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+          }`}
+        >
+          <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            {alert.message}
+            {alert.closable === true && <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeNotification(alert.key)}
+                className={`${isDark
+                  ? 'text-[#FFFFFF] hover:text-[#E6007A]'
+                  : 'text-[#670D35] hover:text-[#E6007A]'
+                }`}
+              >
+                Dismiss
+              </Button>
+            </>}
+          </AlertDescription>
+        </Alert>
+      ))}
+
+      <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
+        <TabsList 
+          className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
+        >
+          {pages.map((page, index) => (
+            <TabsTrigger
+              key={index}
+              value={page.name}
+              onClick={() => setCurrentPage(index)}
+              className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+              disabled={page.disabled}
+            >
+              {page.icon}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={pages[0].name}>
+          <IdentityForm
+            addNotification={addNotification}
+            identityStore={identityStore}
+            chainStore={chainStore}
+            typedApi={typedApi as TypedApi<ChainInfo.id>}
+            accountStore={accountStore}
+            chainConstants={chainConstants}
+            formatAmount={formatAmount}
+            signSubmitAndWatch={signSubmitAndWatch}
+          />
+        </TabsContent>
+        <TabsContent value={pages[1].name}>
+          <ChallengePage
+            identityStore={identityStore}
+            addNotification={addNotification}
+            challengeStore={challengeStore}
+            requestVerificationSecret={requestVerificationSecret}
+            verifyField={verifyIdentity}
+          />
+        </TabsContent>
+        <TabsContent value={pages[2].name}>
+          <StatusPage
+            identityStore={identityStore}
+            addNotification={addNotification}
+            challengeStore={challengeStore}
+            formatAmount={formatAmount}
+            onIdentityClear={() => setOpenDialog("clearIdentity")}
+          />
+        </TabsContent>
+      </Tabs>
+
+      <div className="flex justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+          disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
+          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+        </Button>
+        <Button
+          onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
+          disabled={currentPage === pages.length - 1
+            || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
+          }
+          className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+        >
+          Next <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </>
+  }, [
+    currentPage, identityStore, challengeStore, chainStore, typedApi, accountStore, 
+    chainConstants, isDark, alertsStore, 
+    addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
+  ])
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -423,111 +593,39 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
         />
 
-        {identityStore.status === verifiyStatuses.Unknown
+        {accountStore.address && chainStore.id 
           ? <>
-            <div className="flex flex-grow flex-col flex-stretch">
-              <LoadingTabs />
-              <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                Loading Identity Data...
-              </LoadingContent>
-            </div>
+            {identityStore.status === verifiyStatuses.Unknown
+              ? <>
+                <div className="flex flex-grow flex-col flex-stretch">
+                  <LoadingTabs />
+                  <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                    Loading Identity Data...
+                  </LoadingContent>
+                </div>
+              </>
+              : <>
+                <Main />
+              </>
+            }
           </>
           : <>
-            {[...alertsStore.entries()].map(([, alert]) => (
-              <Alert 
-                key={alert.key} 
-                variant={alert.type === 'error' ? "destructive" : "default"} 
-                className={`mb-4 ${
-                  alert.type === 'error' 
-                    ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
-                    : isDark 
-                      ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
-                      : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+            <Alert
+              variant="default"
+              className={`mb-4 ${alert.type === 'error'
+                ? isDark
+                  ? 'bg-[#393838] border-[#E6007A] text-[#FF8080]'
+                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+                : isDark
+                  ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
+                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
                 }`}
-              >
-                <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                <AlertDescription className="flex justify-between items-center">
-                  {alert.message}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeNotification(alert.key)} 
-                    className={`${
-                      isDark 
-                        ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
-                        : 'text-[#670D35] hover:text-[#E6007A]'
-                    }`}
-                  >
-                    Dismiss
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            ))}
-
-            <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
-                {pages.map((page, index) => (
-                  <TabsTrigger 
-                    key={index} 
-                    value={page.name} 
-                    onClick={() => setCurrentPage(index)}
-                    className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-                    disabled={page.disabled}
-                  >
-                    {page.icon}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <TabsContent value={pages[0].name}>
-                <IdentityForm 
-                  addNotification={addNotification}
-                  identityStore={identityStore}
-                  chainStore={chainStore}
-                  typedApi={typedApi as TypedApi<ChainInfo.id>}
-                  accountStore={accountStore}
-                  chainConstants={chainConstants}
-                  formatAmount={formatAmount}
-                />
-              </TabsContent>
-              <TabsContent value={pages[1].name}>
-                <ChallengePage 
-                  identityStore={identityStore}
-                  addNotification={addNotification}
-                  challengeStore={challengeStore}
-                  requestVerificationSecret={requestVerificationSecret}
-                  verifyField={verifyIdentity}
-                />
-              </TabsContent>
-              <TabsContent value={pages[2].name}>
-                <StatusPage 
-                  identityStore={identityStore}
-                  addNotification={addNotification}
-                  challengeStore={challengeStore}
-                  formatAmount={formatAmount}
-                  onIdentityClear={() => setOpenDialog("clearIdentity")}
-                />
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
-                className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
-              <Button
-                onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-                disabled={currentPage === pages.length - 1 
-                  || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-                }
-                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-              >
-                Next <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            >
+              <AlertDescription className="flex justify-between items-center">
+                Please pick an account from the dropdown to start the process.
+              </AlertDescription>
+            </Alert>
+            <Main />
           </>
         }
       </div>
@@ -601,8 +699,8 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
+    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}
