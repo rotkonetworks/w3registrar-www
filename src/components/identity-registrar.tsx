@@ -369,7 +369,7 @@ const MainContent = ({
           <TabsTrigger
             key={index}
             value={page.name}
-            onClick={() => setCurrentPage(index)}
+            onClick={() => updateCurrentPage(index)}
             className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
             disabled={page.disabled}
           >
