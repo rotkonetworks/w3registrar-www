@@ -175,7 +175,7 @@ export const IdentityForm = forwardRef((
       loading: `Processing ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
       success: `${actionType === "judgement" ? "judgement requested" : "identity set"}`,
       error: `Failed to ${actionType === "judgement" ? "request judgement" : "set identity"}`,
-    }, actionType === "judgement" ? "Identity.JudgementRequested" : "identity.SetIdentity")
+    }, actionType === "judgement" ? "Identity.JudgementRequested" : "Identity.IdentitySet")
     setShowCostModal(false)
   }, [getCall])
 
