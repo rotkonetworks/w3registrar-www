@@ -65,7 +65,7 @@ const MainContent = ({
   addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
   signSubmitAndWatch, updateUrlParams,
 }: MainContentProps) => {
-  const pages = [
+  const tabs = [
     {
       id: "identityForm",
       name: "Identity Form",
@@ -110,39 +110,40 @@ const MainContent = ({
       />
     },
   ]
-  const enabledPagesIndexes = pages
-    .filter(page => !page.disabled)
-    .map((page, index) => ({ index, id: page.id }))
+  const enabledTabsIndexes = tabs
+    .filter(tab => !tab.disabled)
+    .map((tab, index) => ({ index, id: tab.id }))
   
-  const [currentPage, setCurrentPage] = useState(0)
+  const [currentTabIndex, setCurrentTabIndex] = useState(0)
     
   useEffect(() => {
     if (!urlParams) {
       return;
     }
-    const page = pages.find(page => page.id === urlParams.page && !page.disabled);
-    if (page) {
-      setCurrentPage(pages.indexOf(page))
+    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
+    if (tab) {
+      setCurrentTabIndex(tabs.indexOf(tab))
     }
-  }, [urlParams.page])
-  const updateCurrentPage = useCallback((index: number) => {
-    const page = pages[index];
-    updateUrlParams({ ...urlParams, page: page.id })
-    setCurrentPage(index)
-  }, [urlParams, pages, updateUrlParams])
+  }, [urlParams.tab])
+  const changeCurrentTab = useCallback((index: number) => {
+    const page = tabs[index];
+    updateUrlParams({ ...urlParams, tab: page.id })
+    setCurrentTabIndex(index)
+  }, [urlParams, tabs, updateUrlParams])
 
-  const advanceToPrevPage = useCallback(() => {
-    const prevIndex = enabledPagesIndexes.slice().reverse().find(({ index }) => index < currentPage)
+  const advanceToPrevTab = useCallback(() => {
+    const prevIndex = enabledTabsIndexes.slice().reverse()
+      .find(({ index }) => index < currentTabIndex)
     if (prevIndex) {
-      updateCurrentPage(prevIndex.index)
+      changeCurrentTab(prevIndex.index)
     }
-  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
-  const advanceToNextPage = useCallback(() => {
-    const nextIndex = enabledPagesIndexes.find(({ index }) => index > currentPage)
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+  const advanceToNextTab = useCallback(() => {
+    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
     if (nextIndex) {
-      updateCurrentPage(nextIndex.index)
+      changeCurrentTab(nextIndex.index)
     }
-  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
@@ -176,23 +177,23 @@ const MainContent = ({
       </Alert>
     ))}
 
-    <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
+    <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
         className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
       >
-        {pages.map((page, index) => (
+        {tabs.map((tab, index) => (
           <TabsTrigger
             key={index}
-            value={page.name}
-            onClick={() => updateCurrentPage(index)}
+            value={tab.name}
+            onClick={() => changeCurrentTab(index)}
             className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-            disabled={page.disabled}
+            disabled={tab.disabled}
           >
-            {page.icon}
+            {tab.icon}
           </TabsTrigger>
         ))}
       </TabsList>
-      {pages.map((page, index) => (
+      {tabs.map((page, index) => (
         <TabsContent key={index} value={page.name} className="p-4">
           {page.content}
         </TabsContent>
@@ -202,15 +203,15 @@ const MainContent = ({
     <div className="flex justify-between mt-6">
       <Button
         variant="outline"
-        onClick={advanceToPrevPage}
-        disabled={enabledPagesIndexes.findIndex(({ index }) => index < currentPage) === -1}
+        onClick={advanceToPrevTab}
+        disabled={enabledTabsIndexes.slice().reverse().findIndex(({ index }) => index < currentTabIndex) === -1}
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
       >
         <ChevronLeft className="mr-2 h-4 w-4" /> Previous
       </Button>
       <Button
-        onClick={advanceToNextPage}
-        disabled={enabledPagesIndexes.findIndex(({ index }) => index > currentPage) === -1}
+        onClick={advanceToNextTab}
+        disabled={enabledTabsIndexes.findIndex(({ index }) => index > currentTabIndex) === -1}
         className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
       >
         Next <ChevronRight className="ml-2 h-4 w-4" />
