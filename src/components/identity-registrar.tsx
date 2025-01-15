@@ -151,29 +151,30 @@ const MainContent = ({
     if (!urlParams) {
       return;
     }
-    const page = pages.find(page => page.id === urlParams.page && !page.disabled);
-    if (page) {
-      setCurrentPage(pages.indexOf(page))
+    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
+    if (tab) {
+      setCurrentTabIndex(tabs.indexOf(tab))
     }
-  }, [urlParams.page])
-  const updateCurrentPage = useCallback((index: number) => {
-    const page = pages[index];
-    updateUrlParams({ ...urlParams, page: page.id })
-    setCurrentPage(index)
-  }, [urlParams, pages, updateUrlParams])
+  }, [urlParams.tab])
+  const changeCurrentTab = useCallback((index: number) => {
+    const page = tabs[index];
+    updateUrlParams({ ...urlParams, tab: page.id })
+    setCurrentTabIndex(index)
+  }, [urlParams, tabs, updateUrlParams])
 
-  const advanceToPrevPage = useCallback(() => {
-    const prevIndex = enabledPagesIndexes.slice().reverse().find(({ index }) => index < currentPage)
+  const advanceToPrevTab = useCallback(() => {
+    const prevIndex = enabledTabsIndexes.slice().reverse()
+      .find(({ index }) => index < currentTabIndex)
     if (prevIndex) {
-      updateCurrentPage(prevIndex.index)
+      changeCurrentTab(prevIndex.index)
     }
-  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
-  const advanceToNextPage = useCallback(() => {
-    const nextIndex = enabledPagesIndexes.find(({ index }) => index > currentPage)
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+  const advanceToNextTab = useCallback(() => {
+    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
     if (nextIndex) {
-      updateCurrentPage(nextIndex.index)
+      changeCurrentTab(nextIndex.index)
     }
-  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
