@@ -278,8 +278,8 @@ export function IdentityRegistrarComponent() {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
-    updateUrlParams({ address })
-  }, [accountStore, updateUrlParams]);
+    updateUrlParams({ ...urlParams, address,  })
+  }, [accountStore, urlParams]);
   //#endregion accounts
 
   //#region identity
@@ -377,7 +377,7 @@ export function IdentityRegistrarComponent() {
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId })
     chainStore.id = chainId
-  }, [])
+  }, [urlParams])
   
   const eventHandlers = useMemo<Record<string, { 
     onEvent: (data: any) => void; 
