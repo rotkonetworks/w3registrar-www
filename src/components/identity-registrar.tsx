@@ -110,7 +110,10 @@ const MainContent = ({
       />
     },
   ]
-
+  const enabledPagesIndexes = pages
+    .filter(page => !page.disabled)
+    .map((page, index) => ({ index, id: page.id }))
+  
   const [currentPage, setCurrentPage] = useState(0)
     
   useEffect(() => {
@@ -128,6 +131,18 @@ const MainContent = ({
     setCurrentPage(index)
   }, [urlParams, pages, updateUrlParams])
 
+  const advanceToPrevPage = useCallback(() => {
+    const prevIndex = enabledPagesIndexes.slice().reverse().find(({ index }) => index < currentPage)
+    if (prevIndex) {
+      updateCurrentPage(prevIndex.index)
+    }
+  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
+  const advanceToNextPage = useCallback(() => {
+    const nextIndex = enabledPagesIndexes.find(({ index }) => index > currentPage)
+    if (nextIndex) {
+      updateCurrentPage(nextIndex.index)
+    }
+  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
@@ -187,17 +202,15 @@ const MainContent = ({
     <div className="flex justify-between mt-6">
       <Button
         variant="outline"
-        onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-        disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
+        onClick={advanceToPrevPage}
+        disabled={enabledPagesIndexes.findIndex(({ index }) => index < currentPage) === -1}
         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
       >
         <ChevronLeft className="mr-2 h-4 w-4" /> Previous
       </Button>
       <Button
-        onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-        disabled={currentPage === pages.length - 1
-          || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-        }
+        onClick={advanceToNextPage}
+        disabled={enabledPagesIndexes.findIndex(({ index }) => index > currentPage) === -1}
         className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
       >
         Next <ChevronRight className="ml-2 h-4 w-4" />
