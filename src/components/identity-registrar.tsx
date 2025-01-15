@@ -162,6 +162,18 @@ const MainContent = ({
     setCurrentPage(index)
   }, [urlParams, pages, updateUrlParams])
 
+  const advanceToPrevPage = useCallback(() => {
+    const prevIndex = enabledPagesIndexes.slice().reverse().find(({ index }) => index < currentPage)
+    if (prevIndex) {
+      updateCurrentPage(prevIndex.index)
+    }
+  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
+  const advanceToNextPage = useCallback(() => {
+    const nextIndex = enabledPagesIndexes.find(({ index }) => index > currentPage)
+    if (nextIndex) {
+      updateCurrentPage(nextIndex.index)
+    }
+  }, [currentPage, enabledPagesIndexes, updateCurrentPage])
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
