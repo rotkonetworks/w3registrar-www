@@ -56,12 +56,14 @@ type MainContentProps = {
   removeNotificatio: any,
   signSubmitAndWatch: any,
   identityFormRef: Ref,
+  urlParams: Record<string, string>,
+  updateUrlParams: any,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, isDark, alertsStore, identityFormRef,
+  chainConstants, isDark, alertsStore, identityFormRef, urlParams,
   addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
-  signSubmitAndWatch,
+  signSubmitAndWatch, updateUrlParams,
 }: MainContentProps) => {
   const pages = [
     {
@@ -110,6 +112,22 @@ const MainContent = ({
   ]
 
   const [currentPage, setCurrentPage] = useState(0)
+    
+  useEffect(() => {
+    if (!urlParams. ) {
+      return;
+    }
+    const page = pages.find(page => page.id === urlParams.page && !page.disabled);
+    if (page) {
+      setCurrentPage(pages.indexOf(page))
+    }
+  }, [urlParams.page])
+  const updateCurrentPage = useCallback((index: number) => {
+    const page = pages[index];
+    updateUrlParams({ ...urlParams, page: page.id })
+    setCurrentPage(index)
+  }, [urlParams, pages, updateUrlParams])
+
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
@@ -619,9 +637,9 @@ export function IdentityRegistrarComponent() {
 
   const mainProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    challengeStore, identityFormRef,
+    challengeStore, identityFormRef, urlParams,
     removeNotification, addNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
-    removeNotification, signSubmitAndWatch,
+    signSubmitAndWatch, updateAccount, updateUrlParams,
   }
   
   return <>
