@@ -41,7 +41,6 @@ const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
 type MainContentProps = {
-  currentPage: number,
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   chainStore: ChainInfo, 
@@ -59,7 +58,7 @@ type MainContentProps = {
   identityFormRef: Ref,
 }
 const MainContent = ({
-  currentPage, identityStore, challengeStore, chainStore, typedApi, accountStore,
+  identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef,
   addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
   signSubmitAndWatch,
@@ -80,6 +79,8 @@ const MainContent = ({
       disabled: identityStore.status < verifiyStatuses.NoIdentity,
     },
   ]
+
+  const [currentPage, setCurrentPage] = useState(0)
 
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
@@ -185,7 +186,6 @@ const MainContent = ({
 }
 
 export function IdentityRegistrarComponent() {
-  const [currentPage, setCurrentPage] = useState(0)
   const alertsStore = useProxy(_alertsStore);
   const { isDark, setDark } = useDark()
 
@@ -601,7 +601,7 @@ export function IdentityRegistrarComponent() {
 
   const mainProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    currentPage, challengeStore, identityFormRef,
+    challengeStore, identityFormRef,
     removeNotification, addNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
     removeNotification, signSubmitAndWatch,
   }
