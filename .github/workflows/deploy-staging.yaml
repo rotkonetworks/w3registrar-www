@@ -1,5 +1,4 @@
-name: Build and Deploy staging/preproduction
-
+name: Build and Deploy preproduction
 env:
   NODE_VERSION: '18'
   GCP_PROJECT_ID: 'rbl-common'
@@ -7,6 +6,12 @@ env:
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
   BUILD_TARGET: 'production'
+  VITE_APP_WALLET_CONNECT_PROJECT_ID: 'rotko-w3-registrar'
+  VITE_APP_DEFAULT_WS_URL: 'wss://people-paseo.dotters.network'
+  VITE_APP_DEFAULT_WS_URL_RELAY: 'wss://paseo.dotters.network'
+  VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO: '1'
+  VITE_APP_AVAILABLE_CHAINS: 'paseo_people'
+  VITE_APP_DEFAULT_CHAIN: 'paseo_people'
 
 on:
   push:
@@ -26,6 +31,13 @@ jobs:
           export BUN_INSTALL="$HOME/.bun"
           export PATH=$BUN_INSTALL/bin:$PATH
           cat .env.example | grep -v "#" > .env
+          # our overrides will be appended last, so even duplicate, they'll take precedence
+          echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=${{ env.VITE_APP_WALLET_CONNECT_PROJECT_ID }}" >> .env
+          echo "VITE_APP_DEFAULT_WS_URL=${{ env.VITE_APP_DEFAULT_WS_URL }}" >> .env
+          echo "VITE_APP_DEFAULT_WS_URL_RELAY=${{ env.VITE_APP_DEFAULT_WS_URL_RELAY }}" >> .env
+          echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO }}" >> .env
+          echo "VITE_APP_AVAILABLE_CHAINS=${{ env.VITE_APP_AVAILABLE_CHAINS }}" >> .env
+          echo "VITE_APP_DEFAULT_CHAIN=${{ env.VITE_APP_DEFAULT_CHAIN }}" >> .env
           cat .env | wc -l
           bash scripts/build.sh
       
@@ -33,13 +45,11 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
       - name: Add SSH Key to Known Hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -t ed25519 ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
-
       - name: Deploy to server
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
