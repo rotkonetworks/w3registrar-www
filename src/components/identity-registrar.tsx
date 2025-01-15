@@ -229,6 +229,12 @@ export function IdentityRegistrarComponent() {
       decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
+      addNotification({
+        type: "error",
+        message: "Invalid address in URL. Could not decode",
+        closable: false,
+        key: "invalidAddress",
+      })
       return null;
     }
     foundAccount = accounts.find(account => {
@@ -256,6 +262,13 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
+    } else {
+      addNotification({
+        type: "error",
+        message: "Please pick an account that is registered in your wallets from account dropdown.",
+        closable: false,
+        key: "invalidAccount",
+      })
     }
   }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
@@ -649,21 +662,6 @@ export function IdentityRegistrarComponent() {
             }
           </>
           : <>
-            <Alert
-              variant="default"
-              className={`mb-4 ${alert.type === 'error'
-                ? isDark
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FF8080]'
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-                : isDark
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-                }`}
-            >
-              <AlertDescription className="flex justify-between items-center">
-                Please pick an account from the dropdown to start the process.
-              </AlertDescription>
-            </Alert>
             <MainContent {...mainProps} />
           </>
         }
