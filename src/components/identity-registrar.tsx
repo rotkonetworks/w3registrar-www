@@ -145,6 +145,8 @@ const MainContent = ({
     }
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
+  const [currentPage, setCurrentPage] = useState(0)
+
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
       <Alert
