@@ -262,6 +262,8 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
+      removeAlert("invalidAccount");
+      removeAlert("invalidAddress");
     } else {
       addNotification({
         type: "error",
