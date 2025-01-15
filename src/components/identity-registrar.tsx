@@ -117,7 +117,7 @@ const MainContent = ({
   const [currentPage, setCurrentPage] = useState(0)
     
   useEffect(() => {
-    if (!urlParams. ) {
+    if (!urlParams) {
       return;
     }
     const page = pages.find(page => page.id === urlParams.page && !page.disabled);
