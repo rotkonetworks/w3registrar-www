@@ -311,8 +311,8 @@ const MainContent = ({
     }
   }, [urlParams.tab])
   const changeCurrentTab = useCallback((index: number) => {
-    const page = tabs[index];
-    updateUrlParams({ ...urlParams, tab: page.id })
+    const tab = tabs[index];
+    updateUrlParams({ ...urlParams, tab: tab.id })
     setCurrentTabIndex(index)
   }, [urlParams, tabs, updateUrlParams])
 
