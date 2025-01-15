@@ -8,7 +8,17 @@ export const IdentityStatusInfo = ({ status }: { status: verifiyStatuses }) => <
   >
     <Info className="h-4 w-4" />
     <AlertTitle>On-chain Identity Status
-      : <strong>{verifiyStatuses[status]?.match(/[A-Z][a-z]+/g).join(" ") || "Unknown"}</strong>
+      : <strong className={
+        status === verifiyStatuses.NoIdentity
+          ? "dark:text-red-300 text-red-700"
+          : status === verifiyStatuses.IdentitySet
+            ? "dark:text-orange-300 text-orange-700"
+            : status === verifiyStatuses.IdentityVerified
+              ? "dark:text-green-300 text-green-700"
+              : "dark:text-yellow-300 text-yellow-700"
+      }>
+        {verifiyStatuses[status]?.match(/[A-Z][a-z]+/g).join(" ") || "Unknown"}
+      </strong>
     </AlertTitle>
     <AlertDescription>
       {status === verifiyStatuses.NoIdentity
