@@ -88,7 +88,7 @@ const MainContent = ({
         key={alert.key}
         variant={alert.type === 'error' ? "destructive" : "default"}
         className={`mb-4 ${alert.type === 'error'
-          ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
+          ? 'bg-pink-200 border-[#E6007A] text-pink-800 dark:bg-[#e6007a] dark:text-pink-200'
           : isDark
             ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
             : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
