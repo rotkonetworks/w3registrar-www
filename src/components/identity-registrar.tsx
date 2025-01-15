@@ -193,9 +193,9 @@ const MainContent = ({
           </TabsTrigger>
         ))}
       </TabsList>
-      {tabs.map((page, index) => (
-        <TabsContent key={index} value={page.name} className="p-4">
-          {page.content}
+      {tabs.map((tab, index) => (
+        <TabsContent key={index} value={tab.name} className="p-4">
+          {tab.content}
         </TabsContent>
       ))}
     </Tabs>
