@@ -31,10 +31,10 @@ jobs:
             set -euo pipefail
             TIMESTAMP=\$(date +%Y%m%d%H%M%S)
             mkdir -p ${{ env.BACKUP_PATH }}
-            if [ -d "${{ env.DEPLOY_PATH }}/w3registrar-www" ]; then
-              mv ${{ env.DEPLOY_PATH }}/w3registrar-www ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
+            if [ -d "${{ env.DEPLOY_PATH }}" ]; then
+              mv ${{ env.DEPLOY_PATH }}/${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
             fi
-            cp -r ${{ env.STAGING_PATH }}/w3registrar-www ${{ env.DEPLOY_PATH }}/
-            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            cp -r ${{ env.STAGING_PATH }} ${{ env.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
             docker compose up --build -d web-nginx
           EOF

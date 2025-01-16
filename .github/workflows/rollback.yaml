@@ -42,14 +42,14 @@ jobs:
 
             # Move current deployment to backup
             TIMESTAMP=\$(date +%Y%m%d%H%M%S)
-            if [ -d "${{ env.DEPLOY_PATH }}/w3registrar-www" ]; then
-              mv ${{ env.DEPLOY_PATH }}/w3registrar-www ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
+            if [ -d "${{ env.DEPLOY_PATH }}" ]; then
+              mv ${{ env.DEPLOY_PATH }}${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
             fi
 
             # Restore the latest backup
-            mv \$LATEST_BACKUP ${{ env.DEPLOY_PATH }}/w3registrar-www
+            mv \$LATEST_BACKUP ${{ env.DEPLOY_PATH }}
 
             # Restart services
-            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            cd ${{ env.DEPLOY_PATH }}
             docker compose up --build -d web-nginx
           EOF
