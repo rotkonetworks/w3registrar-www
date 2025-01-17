@@ -58,7 +58,7 @@ jobs:
             rm -fr ${{ env.DEPLOY_PATH }}/dist || true
             mkdir -p ${{ env.DEPLOY_PATH }}
           EOF
-          scp -r ./nginx/* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
+          scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
