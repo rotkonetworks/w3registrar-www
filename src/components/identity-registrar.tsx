@@ -183,10 +183,9 @@ const MainContent = ({
         variant={alert.type === 'error' ? "destructive" : "default"}
         className={`mb-4 ${alert.type === 'error'
           ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-          : isDark
-            ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-            : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-          }`}
+          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+          }`
+        }
       >
         <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
         <AlertDescription className="flex justify-between items-center">
@@ -199,7 +198,7 @@ const MainContent = ({
               className={`${isDark
                 ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
                 : 'text-[#670D35] hover:text-[#E6007A]'
-                }`}
+              }`}
             >
               Dismiss
             </Button>
@@ -535,11 +534,18 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
-        .forEach(([key, value]) => challenges[key] = {
-          status: identityStore.status === verifiyStatuses.IdentityVerified
-            ? ChallengeStatus.Passed
-            : value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
-          code: !value && pendingChallenges[key],
+        .forEach(([key, value]) => {
+          let status;
+          if (identityStore.status === verifiyStatuses.IdentityVerified) {
+            status = ChallengeStatus.Passed;
+          } else {
+            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+          }
+
+          challenges[key] = {
+            status,
+            code: !value && pendingChallenges[key],
+          };
         })
       Object.assign(challengeStore, challenges)
 
@@ -714,26 +720,24 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
         />
 
-        {accountStore.address && chainStore.id 
-          ? <>
-            {identityStore.status === verifiyStatuses.Unknown
-              ? <>
-                <div className="flex flex-grow flex-col flex-stretch">
-                  <LoadingTabs />
-                  <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                    Loading Identity Data...
-                  </LoadingContent>
-                </div>
-              </>
-              : <>
-                <MainContent {...mainProps} />
-              </>
-            }
-          </>
-          : <>
-            <MainContent {...mainProps} />
-          </>
-        }
+        {(() => {
+          if (!accountStore.address || !chainStore.id) {
+            return <MainContent {...mainProps} />;
+          }
+
+          if (identityStore.status === verifiyStatuses.Unknown) {
+            return (
+              <div className="flex flex-grow flex-col flex-stretch">
+                <LoadingTabs />
+                <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                  Loading Identity Data...
+                </LoadingContent>
+              </div>
+            );
+          }
+
+          return <MainContent {...mainProps} />;
+        })()}
       </div>
     </div>
 
