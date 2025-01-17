@@ -99,9 +99,7 @@ export function ChallengePage({
 
   const [pendingTransaction, setPendingTransaction] = useState(false)
   const onVerifyStatusReceived = (field: keyof ChallengeStore, result: boolean) => {
-    challengeStore[field].status = result
-      ? ChallengeStatus.Passed
-      : ChallengeStatus.Failed
+    challengeStore[field].status = result ? ChallengeStatus.Passed : ChallengeStatus.Failed
   }
 
   return (

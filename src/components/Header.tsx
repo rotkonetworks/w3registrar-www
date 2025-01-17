@@ -57,12 +57,15 @@ const Header = ({
           }}
         >
           <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
-            {accountStore.address 
-              ? <AccountListing address={accountStore.address} name={accountStore.name} />
-              : connectedWallets.length > 0
-                ? <span>Pick account</span>
-                : <span>Connect wallet</span>
-            }
+            {(() => {
+              if (accountStore.address) {
+                return <AccountListing address={accountStore.address} name={accountStore.name} />;
+              }
+              if (connectedWallets.length > 0) {
+                return <span>Pick account</span>;
+              }
+              return <span>Connect wallet</span>;
+            }) ()}
           </SelectTrigger>
           <SelectContent>
             {connectedWallets.length > 0 && <>

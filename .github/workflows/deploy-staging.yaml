@@ -65,5 +65,5 @@ jobs:
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
-            NGINX_HOST=${{env.NGINX_HOST}} docker compose up --build -d web-nginx
+            NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
           EOF
