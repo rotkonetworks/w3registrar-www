@@ -193,7 +193,9 @@ export const IdentityForm = forwardRef((
       icon: <AtSign className="h-4 w-4" />,
       key: "matrix",
       placeholder: '@alice:matrix.org',
-      checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 
+        && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null
+      ,
       required: false,
     },
     email: {
@@ -201,7 +203,8 @@ export const IdentityForm = forwardRef((
       icon: <Mail className="h-4 w-4" />,
       key: "email",
       placeholder: 'alice@example.org',
-      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 
+        && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
       required: false,
     },
     discord: {

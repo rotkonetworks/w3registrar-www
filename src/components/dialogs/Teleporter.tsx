@@ -342,8 +342,7 @@ export default function TeleporterDialog({
                       <SelectContent>
                         {isReversed ? parachains.map((chain) => (
                           <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
-                        )) 
-                        : (
+                        )) : (
                           <SelectItem value={chainId}>{config.chains[chainId].name}</SelectItem>
                         )}
                       </SelectContent>
