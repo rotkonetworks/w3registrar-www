@@ -40,13 +40,6 @@ export class ErrorBoundary extends React.Component {
         <Card className="max-w-2xl w-full p-6 space-y-6 bg-[#2A2A2A] border-[#E6007A]/20 text-white">
           <div className="flex flex-col items-center space-y-4">
             <div className="relative w-32 h-32">
-              {/* <Image
-                src="/placeholder.svg?height=128&width=128"
-                alt="Error illustration"
-                fill
-                className="object-contain"
-                priority
-              /> */}
             </div>
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-bold tracking-tight">

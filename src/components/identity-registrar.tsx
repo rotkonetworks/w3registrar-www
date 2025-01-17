@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
+import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -7,12 +7,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
+import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
 import { 
-  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus, 
+  ChallengeStore
 } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
@@ -35,8 +36,191 @@ import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 
+const MemoIdeitityForm = memo(IdentityForm)
+const MemoChallengesPage = memo(ChallengePage)
+const MemoStatusPage = memo(StatusPage)
+
+type MainContentProps = {
+  identityStore: IdentityStore,
+  challengeStore: ChallengeStore,
+  chainStore: ChainInfo, 
+  typedApi: TypedApi<keyof config.chains>, 
+  accountStore: AccountData,
+  chainConstants, 
+  isDark: boolean, 
+  alertsStore: Map<string, AlertProps>,
+  addNotification: any, 
+  formatAmount: any, 
+  requestVerificationSecret: any, 
+  verifyIdentity: any, 
+  removeNotificatio: any,
+  signSubmitAndWatch: any,
+  identityFormRef: Ref,
+  urlParams: Record<string, string>,
+  updateUrlParams: any,
+}
+const MainContent = ({
+  identityStore, challengeStore, chainStore, typedApi, accountStore,
+  chainConstants, isDark, alertsStore, identityFormRef, urlParams,
+  addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
+  signSubmitAndWatch, updateUrlParams,
+}: MainContentProps) => {
+  const tabs = [
+    {
+      id: "identityForm",
+      name: "Identity Form",
+      icon: <UserCircle className="h-5 w-5" />,
+      disabled: false,
+      content: <MemoIdeitityForm
+        ref={identityFormRef}
+        addNotification={addNotification}
+        identityStore={identityStore}
+        chainStore={chainStore}
+        typedApi={typedApi}
+        accountStore={accountStore}
+        chainConstants={chainConstants}
+        formatAmount={formatAmount}
+        signSubmitAndWatch={signSubmitAndWatch}
+      />
+    },
+    {
+      id: "challenges",
+      name: "Challenges",
+      icon: <Shield className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.FeePaid,
+      content: <MemoChallengesPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        requestVerificationSecret={requestVerificationSecret}
+        verifyField={verifyIdentity}
+      />
+    },
+    {
+      id: "status",
+      name: "Status",
+      icon: <FileCheck className="h-5 w-5" />,
+      disabled: identityStore.status < verifiyStatuses.NoIdentity,
+      content: <MemoStatusPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        formatAmount={formatAmount}
+        onIdentityClear={() => setOpenDialog("clearIdentity")}
+      />
+    },
+  ]
+  const enabledTabsIndexes = tabs
+    .filter(tab => !tab.disabled)
+    .map((tab, index) => ({ index, id: tab.id }))
+  
+  const [currentTabIndex, setCurrentTabIndex] = useState(0)
+    
+  useEffect(() => {
+    if (!urlParams) {
+      return;
+    }
+    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
+    if (tab) {
+      setCurrentTabIndex(tabs.indexOf(tab))
+    }
+  }, [urlParams.tab])
+  const changeCurrentTab = useCallback((index: number) => {
+    const tab = tabs[index];
+    updateUrlParams({ ...urlParams, tab: tab.id })
+    setCurrentTabIndex(index)
+  }, [urlParams, tabs, updateUrlParams])
+
+  const advanceToPrevTab = useCallback(() => {
+    const prevIndex = enabledTabsIndexes.slice().reverse()
+      .find(({ index }) => index < currentTabIndex)
+    if (prevIndex) {
+      changeCurrentTab(prevIndex.index)
+    }
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+  const advanceToNextTab = useCallback(() => {
+    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
+    if (nextIndex) {
+      changeCurrentTab(nextIndex.index)
+    }
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+
+  return <>
+    {[...alertsStore.entries()].map(([, alert]) => (
+      <Alert
+        key={alert.key}
+        variant={alert.type === 'error' ? "destructive" : "default"}
+        className={`mb-4 ${alert.type === 'error'
+          ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
+          : isDark
+            ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
+            : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
+          }`}
+      >
+        <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+        <AlertDescription className="flex justify-between items-center">
+          {alert.message}
+          {alert.closable === true && <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeNotification(alert.key)}
+              className={`${isDark
+                ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
+                : 'text-[#670D35] hover:text-[#E6007A]'
+                }`}
+            >
+              Dismiss
+            </Button>
+          </>}
+        </AlertDescription>
+      </Alert>
+    ))}
+
+    <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
+      <TabsList
+        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
+      >
+        {tabs.map((tab, index) => (
+          <TabsTrigger
+            key={index}
+            value={tab.name}
+            onClick={() => changeCurrentTab(index)}
+            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+            disabled={tab.disabled}
+          >
+            {tab.icon}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {tabs.map((tab, index) => (
+        <TabsContent key={index} value={tab.name} className="p-4">
+          {tab.content}
+        </TabsContent>
+      ))}
+    </Tabs>
+
+    <div className="flex justify-between mt-6">
+      <Button
+        variant="outline"
+        onClick={advanceToPrevTab}
+        disabled={enabledTabsIndexes.slice().reverse().findIndex(({ index }) => index < currentTabIndex) === -1}
+        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+      </Button>
+      <Button
+        onClick={advanceToNextTab}
+        disabled={enabledTabsIndexes.findIndex(({ index }) => index > currentTabIndex) === -1}
+        className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+      >
+        Next <ChevronRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  </>
+}
+
 export function IdentityRegistrarComponent() {
-  const [currentPage, setCurrentPage] = useState(0)
   const alertsStore = useProxy(_alertsStore);
   const { isDark, setDark } = useDark()
 
@@ -48,23 +232,6 @@ export function IdentityRegistrarComponent() {
   const accountStore = useProxy(_accountStore)
 
   const { urlParams, updateUrlParams } = useUrlParams()
-
-  const pages = [
-    { 
-      name: "Identity Form", 
-      icon: <UserCircle className="h-5 w-5" />,
-    },
-    { 
-      name: "Challenges", 
-      icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.FeePaid,
-    },
-    { 
-      name: "Status", 
-      icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.NoIdentity,
-    },
-  ]
 
   //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
@@ -97,6 +264,12 @@ export function IdentityRegistrarComponent() {
       decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
+      addNotification({
+        type: "error",
+        message: "Invalid address in URL. Could not decode",
+        closable: false,
+        key: "invalidAddress",
+      })
       return null;
     }
     foundAccount = accounts.find(account => {
@@ -124,6 +297,15 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
+      removeAlert("invalidAccount");
+      removeAlert("invalidAddress");
+    } else {
+      addNotification({
+        type: "error",
+        message: "Please pick an account that is registered in your wallets from account dropdown.",
+        closable: false,
+        key: "invalidAccount",
+      })
     }
   }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
@@ -131,53 +313,59 @@ export function IdentityRegistrarComponent() {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
-    updateUrlParams({ address })
-  }, [accountStore, updateUrlParams]);
+    updateUrlParams({ ...urlParams, address,  })
+  }, [accountStore, urlParams]);
   //#endregion accounts
 
   //#region identity
-  const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const identityFormRef = useRef()
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ identityFormRef })
+  }, [identityFormRef.current])
+  const fetchIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
     .getValue(accountStore.address)
     .then((result) => {
-      if (import.meta.env.DEV) console.log({ identityOf: result })
-      if (!result) {
+      if (import.meta.env.DEV) console.log({ identityOf: result });
+      if (result) {
+        // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
+        const identityOf = result[0] || result;
+        const identityData = Object.fromEntries(Object.entries(identityOf.info)
+          .filter(([_, value]) => value?.type?.startsWith("Raw"))
+          .map(([key, value]) => [key, value.value.asText()])
+        );
+        identityStore.deposit = identityOf.deposit
+        identityStore.info = identityData;
+        identityStore.status = verifiyStatuses.IdentitySet;
+        const idJudgementOfId = identityOf.judgements;
+        const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
+          registrar: {
+            index: judgement[0],
+          },
+          state: judgement[1].type,
+          fee: judgement[1].value,
+        }));
+        if (judgementsData.length > 0) {
+          identityStore.judgements = judgementsData;
+          identityStore.status = verifiyStatuses.JudgementRequested;
+        }
+        if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+          identityStore.status = verifiyStatuses.FeePaid;
+        }
+        if (judgementsData.find(j => [
+          IdentityJudgement.Reasonable().type,
+          IdentityJudgement.KnownGood().type,
+        ].includes(j.state))) {
+          identityStore.status = verifiyStatuses.IdentityVerified;
+        }
+        const idDeposit = identityOf.deposit;
+        // TODO Compute approximate reserve
+        if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      } else {
         identityStore.status = verifiyStatuses.NoIdentity;
         identityStore.info = null
-        return;
+        identityStore.deposit = null
       }
-      // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
-      const identityOf = result[0] || result;
-      const identityData = Object.fromEntries(Object.entries(identityOf.info)
-        .filter(([_, value]) => value?.type?.startsWith("Raw"))
-        .map(([key, value]) => [key, value.value.asText()])
-      );
-      identityStore.deposit = identityOf.deposit
-      identityStore.info = identityData;
-      identityStore.status = verifiyStatuses.IdentitySet;
-      const idJudgementOfId = identityOf.judgements;
-      const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
-        registrar: {
-          index: judgement[0],
-        },
-        state: judgement[1].type,
-        fee: judgement[1].value,
-      }));
-      if (judgementsData.length > 0) {
-        identityStore.judgements = judgementsData;
-        identityStore.status = verifiyStatuses.JudgementRequested;
-      }
-      if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-        identityStore.status = verifiyStatuses.FeePaid;
-      }
-      if (judgementsData.find(j => [
-        IdentityJudgement.Reasonable().type,
-        IdentityJudgement.KnownGood().type,
-      ].includes(j.state))) {
-        identityStore.status = verifiyStatuses.IdentityVerified;
-      }
-      const idDeposit = identityOf.deposit;
-      // TODO Compute approximate reserve
-      if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      identityFormRef.current.reset()
     })
     .catch(e => {
       if (import.meta.env.DEV) {
@@ -191,9 +379,9 @@ export function IdentityRegistrarComponent() {
     identityStore.info = null
     identityStore.status = verifiyStatuses.Unknown;
     if (accountStore.address) {
-      getIdAndJudgement();
+      fetchIdAndJudgement();
     }
-  }, [accountStore.address, getIdAndJudgement])
+  }, [accountStore.address, fetchIdAndJudgement])
   //#endregion identity
   
   //#region chains
@@ -224,7 +412,7 @@ export function IdentityRegistrarComponent() {
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId })
     chainStore.id = chainId
-  }, [])
+  }, [urlParams])
   
   const eventHandlers = useMemo<Record<string, { 
     onEvent: (data: any) => void; 
@@ -233,7 +421,7 @@ export function IdentityRegistrarComponent() {
   }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info", 
           message: "Identity Set for this account",
@@ -244,7 +432,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.IdentityCleared": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Identity cleared for this account",
@@ -255,7 +443,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementRequested": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Requested for this account",
@@ -266,7 +454,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementGiven": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Given for this account",
@@ -378,6 +566,7 @@ export function IdentityRegistrarComponent() {
             type: "success",
             message: messages.success || "Transaction finalized",
           })
+          fetchIdAndJudgement()
         }
         if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
           setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
@@ -459,114 +648,14 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+
+  const mainProps = { 
+    chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
+    challengeStore, identityFormRef, urlParams,
+    removeNotification, addNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    signSubmitAndWatch, updateAccount, updateUrlParams,
+  }
   
-  const Main = useCallback(() => {
-    return <>
-      {[...alertsStore.entries()].map(([, alert]) => (
-        <Alert
-          key={alert.key}
-          variant={alert.type === 'error' ? "destructive" : "default"}
-          className={`mb-4 ${alert.type === 'error'
-            ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]'
-            : isDark
-              ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-              : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-          }`}
-        >
-          <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-          <AlertDescription className="flex justify-between items-center">
-            {alert.message}
-            {alert.closable === true && <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeNotification(alert.key)}
-                className={`${isDark
-                  ? 'text-[#FFFFFF] hover:text-[#E6007A]'
-                  : 'text-[#670D35] hover:text-[#E6007A]'
-                }`}
-              >
-                Dismiss
-              </Button>
-            </>}
-          </AlertDescription>
-        </Alert>
-      ))}
-
-      <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
-        <TabsList 
-          className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
-        >
-          {pages.map((page, index) => (
-            <TabsTrigger
-              key={index}
-              value={page.name}
-              onClick={() => setCurrentPage(index)}
-              className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-              disabled={page.disabled}
-            >
-              {page.icon}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <TabsContent value={pages[0].name}>
-          <IdentityForm
-            addNotification={addNotification}
-            identityStore={identityStore}
-            chainStore={chainStore}
-            typedApi={typedApi as TypedApi<ChainInfo.id>}
-            accountStore={accountStore}
-            chainConstants={chainConstants}
-            formatAmount={formatAmount}
-            signSubmitAndWatch={signSubmitAndWatch}
-          />
-        </TabsContent>
-        <TabsContent value={pages[1].name}>
-          <ChallengePage
-            identityStore={identityStore}
-            addNotification={addNotification}
-            challengeStore={challengeStore}
-            requestVerificationSecret={requestVerificationSecret}
-            verifyField={verifyIdentity}
-          />
-        </TabsContent>
-        <TabsContent value={pages[2].name}>
-          <StatusPage
-            identityStore={identityStore}
-            addNotification={addNotification}
-            challengeStore={challengeStore}
-            formatAmount={formatAmount}
-            onIdentityClear={() => setOpenDialog("clearIdentity")}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-          disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
-          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-        </Button>
-        <Button
-          onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-          disabled={currentPage === pages.length - 1
-            || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-          }
-          className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-        >
-          Next <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    </>
-  }, [
-    currentPage, identityStore, challengeStore, chainStore, typedApi, accountStore, 
-    chainConstants, isDark, alertsStore, 
-    addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
-  ])
-
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
@@ -605,27 +694,12 @@ export function IdentityRegistrarComponent() {
                 </div>
               </>
               : <>
-                <Main />
+                <MainContent {...mainProps} />
               </>
             }
           </>
           : <>
-            <Alert
-              variant="default"
-              className={`mb-4 ${alert.type === 'error'
-                ? isDark
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FF8080]'
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-                : isDark
-                  ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-                  : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-                }`}
-            >
-              <AlertDescription className="flex justify-between items-center">
-                Please pick an account from the dropdown to start the process.
-              </AlertDescription>
-            </Alert>
-            <Main />
+            <MainContent {...mainProps} />
           </>
         }
       </div>

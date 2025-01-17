@@ -2,7 +2,7 @@ import { HexString, SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 
-export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: {
+export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pendingTx }: {
   typedApi: TypedApi<ChainId>;
   chainId: string | number | symbol;
   address: SS58String;
@@ -43,6 +43,10 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
         .sort((b1, b2) => 
           b2.neta.block.number*100 + handlers[b2.type].priority - b1.neta.block.number*100 + handlers[b1.type].priority 
         )
+        .filter(block => !pendingTx.find(tx =>
+          block.type === tx.type
+          && [block.payload.who, block.payload.target].includes(tx.who)
+        ))
         .forEach(block => {
           handlers[block.type].onEvent(block)
           if (import.meta.env.DEV) console.log({ block, })
@@ -71,10 +75,6 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
         data.filter(item => 
           [item.payload.who, item.payload.target].includes(address)
             && item.meta.block.number > (_lastBlockPerEvent.current[type] || 0)
-            && !pendingTx.find(tx => 
-              x.type === `${pallet}.${call}` 
-              && [item.payload.who, item.payload.target].includes(tx.who)
-            )
         )
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
@@ -120,7 +120,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, }: 
     return () => {
       subscriptions.forEach(cleanup => cleanup?.())
     }
-  }, [chainId, address, handlerEntries])
+  }, [chainId, address, handlerEntries, pendingTx])
 
   return { constants, }
 }
