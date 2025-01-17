@@ -53,14 +53,9 @@ type ResponsePayload = {
   VerificationResult: boolean;
 };
 
-type SubscribeAccountState = {
-  account: string;
-  network: string;
-};
-
 type WebSocketMessage = { 
     type: 'SubscribeAccountState'; 
-    payload: SubscribeAccountState 
+    payload: string 
   } | { 
     type: 'NotifyAccountState'; 
     payload: NotifyAccountState 
@@ -90,7 +85,6 @@ interface VersionedMessage {
 interface UseIdentityWebSocketProps {
   url: string;
   account: string;
-  network: string;
   onNotification?: (notification: NotifyAccountState) => void;
 }
 
@@ -105,7 +99,6 @@ interface UseIdentityWebSocketReturn {
 export const useIdentityWebSocket = ({
   url,
   account,
-  network,
   onNotification
 }: UseIdentityWebSocketProps): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
@@ -241,10 +234,10 @@ export const useIdentityWebSocket = ({
       // Subscribe to account state on connection
       sendMessage({
         type: 'SubscribeAccountState',
-        payload: { account,network },
+        payload: account,
       }).catch(err => setError(err.message));
     }
-  }, [account, network, sendMessage, ws.current?.readyState])
+  }, [account, sendMessage, ws.current?.readyState])
 
   const requestVerificationSecret = useCallback(async (field: string): Promise<string> => {
     const response = await sendMessage({
