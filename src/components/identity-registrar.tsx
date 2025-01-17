@@ -337,10 +337,9 @@ const MainContent = ({
         variant={alert.type === 'error' ? "destructive" : "default"}
         className={`mb-4 ${alert.type === 'error'
           ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-          : isDark
-            ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-            : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-          }`}
+          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+          }`
+        }
       >
         <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
         <AlertDescription className="flex justify-between items-center">
@@ -353,7 +352,7 @@ const MainContent = ({
               className={`${isDark
                 ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
                 : 'text-[#670D35] hover:text-[#E6007A]'
-                }`}
+              }`}
             >
               Dismiss
             </Button>
