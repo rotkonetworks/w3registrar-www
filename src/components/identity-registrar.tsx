@@ -293,6 +293,7 @@ export function IdentityRegistrarComponent() {
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.encodedAddress,
+    network: chainStore.name ? chainStore.name.split(' ')[0].toLowerCase() : import.meta.env.VITE_APP_DEFAULT_CHAIN.split(' ')[0].toLowerCase(),
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket

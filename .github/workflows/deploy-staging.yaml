@@ -6,6 +6,7 @@ env:
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/staging.w3reg.org'
   BUILD_TARGET: 'production'
+  NGINX_HOST: '127.0.0.2'
   VITE_APP_WALLET_CONNECT_PROJECT_ID: w3reg
   VITE_APP_DEFAULT_WS_URL: wss://people-paseo.dotters.network
   VITE_APP_DEFAULT_WS_URL_RELAY: wss://paseo.dotters.network
@@ -64,5 +65,5 @@ jobs:
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
-            docker compose up --build -d web-nginx
+            NGINX_HOST=${{env.NGINX_HOST}} docker compose up --build -d web-nginx
           EOF

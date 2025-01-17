@@ -10,5 +10,5 @@ services:
   web-nginx:
     build: ./nginx
     ports:
-      - 127.0.0.1:63999:80
+      - ${NGINX_HOST:-127.0.0.1}:63999:80
     restart: unless-stopped
