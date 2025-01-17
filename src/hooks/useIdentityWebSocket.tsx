@@ -25,12 +25,14 @@ interface VerificationState {
 
 interface NotifyAccountState {
   account: string;
+  network?: string;
   info: IdentityInfo;
   verification_state: VerificationState;
 }
 
 interface ResponseAccountState {
   account: string;
+  network?: string;
   hashed_info: string;
   verification_state: VerificationState;
   pending_challenges: [string, string][];
@@ -53,9 +55,14 @@ type ResponsePayload = {
   VerificationResult: boolean;
 };
 
+type SubscribeAccountState = {
+  network: string;
+  account: string;
+};
+
 type WebSocketMessage = { 
     type: 'SubscribeAccountState'; 
-    payload: string 
+    payload: SubscribeAccountState 
   } | { 
     type: 'NotifyAccountState'; 
     payload: NotifyAccountState 
@@ -85,6 +92,7 @@ interface VersionedMessage {
 interface UseIdentityWebSocketProps {
   url: string;
   account: string;
+  network: string;
   onNotification?: (notification: NotifyAccountState) => void;
 }
 
@@ -99,6 +107,7 @@ interface UseIdentityWebSocketReturn {
 export const useIdentityWebSocket = ({
   url,
   account,
+  network,
   onNotification
 }: UseIdentityWebSocketProps): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
@@ -154,19 +163,28 @@ export const useIdentityWebSocket = ({
             const response = message.payload.message.AccountState;
             if (response) {
               if (import.meta.env.DEV) console.log({ response })
-              setAccountState(response);
+              setAccountState({
+                ...response,
+                network: response.network || 'rococo'
+              });
             }
           } else {
             setError(message.payload.message);
           }
           break;
           
-        case 'NotifyAccountState':
-          onNotification?.(message.payload);
+        case 'NotifyAccountState':{
+          const notifyPayload = { 
+            ...message.payload,
+            network: message.payload.network || 'rococo'
+          };
+          onNotification?.(notifyPayload);
           setAccountState(prev => ({ ...prev,
             verification_state: message.payload.verification_state,
+            network: message.payload.network || 'rococo'
           }))
           break;
+        }
       }
 
       // Resolve any pending requests
@@ -234,10 +252,10 @@ export const useIdentityWebSocket = ({
       // Subscribe to account state on connection
       sendMessage({
         type: 'SubscribeAccountState',
-        payload: account,
+        payload: {account, network},
       }).catch(err => setError(err.message));
     }
-  }, [account, sendMessage, ws.current?.readyState])
+  }, [account, network, sendMessage, ws.current?.readyState])
 
   const requestVerificationSecret = useCallback(async (field: string): Promise<string> => {
     const response = await sendMessage({
