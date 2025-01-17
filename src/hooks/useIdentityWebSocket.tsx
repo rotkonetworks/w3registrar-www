@@ -25,12 +25,14 @@ interface VerificationState {
 
 interface NotifyAccountState {
   account: string;
+  network?: string;
   info: IdentityInfo;
   verification_state: VerificationState;
 }
 
 interface ResponseAccountState {
   account: string;
+  network?: string;
   hashed_info: string;
   verification_state: VerificationState;
   pending_challenges: [string, string][];
@@ -154,19 +156,28 @@ export const useIdentityWebSocket = ({
             const response = message.payload.message.AccountState;
             if (response) {
               if (import.meta.env.DEV) console.log({ response })
-              setAccountState(response);
+              setAccountState({
+                ...response,
+                network: response.network || 'rococo'
+              });
             }
           } else {
             setError(message.payload.message);
           }
           break;
           
-        case 'NotifyAccountState':
-          onNotification?.(message.payload);
+        case 'NotifyAccountState':{
+          const notifyPayload = { 
+            ...message.payload,
+            network: message.payload.network || 'rococo'
+          };
+          onNotification?.(notifyPayload);
           setAccountState(prev => ({ ...prev,
             verification_state: message.payload.verification_state,
+            network: message.payload.network || 'rococo'
           }))
           break;
+        }
       }
 
       // Resolve any pending requests
