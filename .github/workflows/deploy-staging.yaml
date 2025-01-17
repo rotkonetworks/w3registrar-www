@@ -67,8 +67,3 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
           EOF
-      - name: Debug Build
-        run: |
-          env
-          ls -la
-          ls -la ./dist
