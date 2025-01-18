@@ -4,7 +4,16 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Select = SelectPrimitive.Root
+export type TypedSelectValue = {
+  type: string;
+  [key: string]: any;
+}
+export type SelectChangeHandler = ((value: string | TypedSelectValue) => void)
+type ExtendedSelectProps = Omit<SelectPrimitive.SelectProps, 'onValueChange' | 'value'> & {
+  onValueChange?: (value: string | TypedSelectValue) => void;
+  value?: string | TypedSelectValue | null;
+}
+const Select = SelectPrimitive.Root as React.FC<ExtendedSelectProps>;
 
 const SelectGroup = SelectPrimitive.Group
 
@@ -109,10 +118,14 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+type ExtendedSelectItemProps = Omit<React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, 'value'> & {
+  value?: string | TypedSelectValue;
+}
+
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
+  ExtendedSelectItemProps
+>(({ className, children, value, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
@@ -120,6 +133,7 @@ const SelectItem = React.forwardRef<
       className
     )}
     {...props}
+    value={value as string}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>

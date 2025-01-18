@@ -1,4 +1,4 @@
-import { Select, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue, TypedSelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from '~/store/AppStore';
@@ -28,7 +28,7 @@ const Header = ({
   accountStore: { address: string, name: string };
   identityStore: IdentityStore;
   onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
-  onAccountSelect: (props: { type: string, [key: string]: string }) => void;
+  onAccountSelect: SelectChangeHandler;
   onRequestWalletConnections: () => void;
   onToggleDark: () => void;
 }) => {
