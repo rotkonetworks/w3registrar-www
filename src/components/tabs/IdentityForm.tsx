@@ -25,7 +25,6 @@ export type IdentityFormData = Record<string, {
 
 export const IdentityForm = forwardRef((
   {
-    addNotification,
     identityStore,
     chainStore,
     accountStore,
@@ -34,7 +33,6 @@ export const IdentityForm = forwardRef((
     formatAmount,
     signSubmitAndWatch,
   }: {
-    addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
     identityStore: IdentityStore,
     chainStore: ChainInfo,
     accountStore: AccountData,

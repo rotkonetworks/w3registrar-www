@@ -18,7 +18,7 @@ import {
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
-import { accountStore as _accountStore } from "~/store/AccountStore"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
@@ -74,7 +74,6 @@ const MainContent = ({
       disabled: false,
       content: <MemoIdeitityForm
         ref={identityFormRef}
-        addNotification={addNotification}
         identityStore={identityStore}
         chainStore={chainStore}
         typedApi={typedApi}
