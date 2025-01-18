@@ -1,9 +1,11 @@
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
 import { HexString, SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ApiConfig } from "~/api/config2";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 
 export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pendingTx }: {
-  typedApi: TypedApi<ChainId>;
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
   chainId: string | number | symbol;
   address: SS58String;
   handlers: Record<string, {
@@ -11,7 +13,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pen
     onError?: (error: Error) => void;
     priority: number;
   }>
-  pendingTx: Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>;
+  pendingTx: Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any }>;
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   useEffect(() => {

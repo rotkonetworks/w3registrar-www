@@ -35,6 +35,7 @@ import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -44,7 +45,7 @@ type MainContentProps = {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   chainStore: ChainInfo, 
-  typedApi: TypedApi<keyof config.chains>, 
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
   chainConstants, 
   isDark: boolean, 

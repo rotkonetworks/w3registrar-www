@@ -16,6 +16,7 @@ import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { Observable } from 'rxjs'
+import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -37,7 +38,7 @@ export const IdentityForm = forwardRef((
     identityStore: IdentityStore,
     chainStore: ChainInfo,
     accountStore: AccountData,
-    typedApi: TypedApi<Chain>,
+    typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
     chainConstants: Record<string, any>,
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
