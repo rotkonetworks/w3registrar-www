@@ -113,7 +113,7 @@ const MainContent = ({
     },
   ]
   const enabledTabsIndexes = tabs
-    .map((tab, index) => ({ index, id: tab.id }))
+    .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
     .filter(tab => !tab.disabled)
   
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
@@ -296,7 +296,7 @@ export function IdentityRegistrarComponent() {
     }
     const accountData = getAccountData(urlParams.address);
     if (import.meta.env.DEV) console.log({ accountData });
-    if (accountData) {
+    if (accountData.polkadotSigner) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
