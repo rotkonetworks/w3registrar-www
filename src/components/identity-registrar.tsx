@@ -19,13 +19,13 @@ import {
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { IdentityForm } from "./tabs/IdentityForm"
+import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
-import { IdentityJudgement } from "@polkadot-api/descriptors"
+import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { HexString, PolkadotSigner, SS58String, TxEntry, TypedApi } from "polkadot-api"
-import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
+import { NotifyAccountState, useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
@@ -55,17 +55,18 @@ type MainContentProps = {
   formatAmount: any, 
   requestVerificationSecret: any, 
   verifyIdentity: any, 
-  removeNotificatio: any,
   signSubmitAndWatch: any,
-  identityFormRef: Ref,
+  removeNotification: any,
+  identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
   updateUrlParams: any,
+  setOpenDialog: any,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef, urlParams,
-  addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
-  signSubmitAndWatch, updateUrlParams,
+  addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+  signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
     {
@@ -289,7 +290,7 @@ export function IdentityRegistrarComponent() {
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount: { name: string, polkadotSigner: PolkadotSigner, address: SS58String } | null;
+    let foundAccount: AccountData | null;
     let decodedAddress: Uint8Array;
     try {
       decodedAddress = decodeAddress(address); // Validate address as well
@@ -340,7 +341,7 @@ export function IdentityRegistrarComponent() {
     }
   }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
-  const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
+  const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
@@ -349,11 +350,11 @@ export function IdentityRegistrarComponent() {
   //#endregion accounts
 
   //#region identity
-  const identityFormRef = useRef()
+  const identityFormRef = useRef<{ reset: () => void, }>()
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
-  const fetchIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
     .getValue(accountStore.address)
     .then((result) => {
       if (import.meta.env.DEV) console.log({ identityOf: result });
@@ -688,11 +689,11 @@ export function IdentityRegistrarComponent() {
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
-  const mainProps = { 
+  const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
     challengeStore, identityFormRef, urlParams,
-    removeNotification, addNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
-    signSubmitAndWatch, updateAccount, updateUrlParams,
+    addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
   
   return <>

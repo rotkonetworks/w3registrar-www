@@ -23,7 +23,7 @@ interface VerificationState {
   fields: Record<string, boolean>;
 }
 
-interface NotifyAccountState {
+export interface NotifyAccountState {
   account: string;
   network?: string;
   info: IdentityInfo;

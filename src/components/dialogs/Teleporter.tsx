@@ -15,17 +15,18 @@ import {
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
-import { ApiConfig } from "~/api/config2"
+import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { AccountData } from "~/store/AccountStore"
 
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
 }: {
   address: SS58String,
-  accounts: { address: SS58String, name: string, encodedAddress: SS58String }[],
+  accounts: AccountData[],
   chainId: string | number | symbol,
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   config: ApiConfig,
