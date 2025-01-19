@@ -29,7 +29,7 @@ export type IdentityOf = StorageDescriptor<[Key: SS58String], [{
     web: IdentityData;
   };
   judgements: [number, IdentityJudgement][];
-}, Binary | undefined], true>
+}, Binary | undefined], true, "identityOf">;
 
 export type IdentityOfResult = {
   type: string;
@@ -49,7 +49,7 @@ export interface Judgement {
   registrar: {
     index: number;
   };
-  state: keyof IdentityJudgement;
+  state: "FeePaid" | "OutOfDate" | "Reasonable" | "KnownGood" | "Erroneous" | "LowQuality";
   fee: bigint;
 }
 

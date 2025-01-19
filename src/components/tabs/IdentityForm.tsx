@@ -17,6 +17,7 @@ import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
+import { ApiTx } from '~/types/api'
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -40,7 +41,7 @@ export const IdentityForm = forwardRef((
     chainConstants: Record<string, any>,
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
-      call: TxEntry<0, string, string, any, any>,
+      call: ApiTx,
       messages: {
         broadcasted?: string,
         loading?: string,
@@ -80,9 +81,9 @@ export const IdentityForm = forwardRef((
   }
 
   const getCall = useCallback((): (
-    TxEntry<0, "Identity", "set_identity", any, any>
-    | TxEntry<0, "Identity", "request_judgement", any, any>
-    | null
+    UnsafeTransaction<unknown | any, string, string, any>
+    | Transaction<unknown | any, string, string, any>
+    | null 
   ) => {
     if (actionType === "judgement") {
       return typedApi.tx.Identity.request_judgement({

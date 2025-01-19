@@ -36,6 +36,7 @@ import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { ApiTx } from "~/types/api"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -360,8 +361,10 @@ export function IdentityRegistrarComponent() {
         // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
         const identityOf = result[0] || result;
         const identityData = Object.fromEntries(Object.entries(identityOf.info)
-          .filter(([_, value]) => value?.type?.startsWith("Raw"))
-          .map(([key, value]) => [key, value.value.asText()])
+          .filter(([_, value]: [never, IdentityData]) => value?.type?.startsWith("Raw"))
+          .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
+            (value.value as Binary).asText()
+          ])
         );
         identityStore.deposit = identityOf.deposit
         identityStore.info = identityData;
@@ -378,13 +381,10 @@ export function IdentityRegistrarComponent() {
           identityStore.judgements = judgementsData;
           identityStore.status = verifiyStatuses.JudgementRequested;
         }
-        if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
+        if (judgementsData.find(j => j.state === "FeePaid")) {
           identityStore.status = verifiyStatuses.FeePaid;
         }
-        if (judgementsData.find(j => [
-          IdentityJudgement.Reasonable().type,
-          IdentityJudgement.KnownGood().type,
-        ].includes(j.state))) {
+        if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
           identityStore.status = verifiyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
@@ -415,7 +415,7 @@ export function IdentityRegistrarComponent() {
   //#endregion identity
   
   //#region chains
-  const chainClient = useClient({ chainId: chainStore.id })
+  const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
   
   useEffect(() => {
     ((async () => {
@@ -440,7 +440,7 @@ export function IdentityRegistrarComponent() {
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
-    updateUrlParams({ ...urlParams, chain: chainId })
+    updateUrlParams({ ...urlParams, chain: chainId as string })
     chainStore.id = chainId
   }, [urlParams])
   
@@ -496,7 +496,7 @@ export function IdentityRegistrarComponent() {
   }), [])
 
   const [pendingTx, setPendingTx] = useState<
-    Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>
+    Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
   >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
@@ -543,6 +543,7 @@ export function IdentityRegistrarComponent() {
           }
 
           challenges[key] = {
+            type: "matrixChallenge",
             status,
             code: !value && pendingChallenges[key],
           };
@@ -568,7 +569,7 @@ export function IdentityRegistrarComponent() {
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const signSubmitAndWatch = useCallback(async (
-    call: TxEntry<0, string, string, any, any>,
+    call: ApiTx,
     messages: {
       broadcasted?: string,
       loading?: string,
@@ -622,7 +623,7 @@ export function IdentityRegistrarComponent() {
     return signedCall
   }, [accountStore.polkadotSigner])
 
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     signSubmitAndWatch(_clearIdentity(), 
       {
@@ -642,7 +643,7 @@ export function IdentityRegistrarComponent() {
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState({})
+  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
   useEffect(() => {
     if (openDialog === "clearIdentity") {
       _clearIdentity().getEstimatedFees(accountStore.address)
@@ -661,7 +662,7 @@ export function IdentityRegistrarComponent() {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
     if (import.meta.env.DEV) console.log({ newValue })
     switch (newValue.type) {
       case "Wallets":
