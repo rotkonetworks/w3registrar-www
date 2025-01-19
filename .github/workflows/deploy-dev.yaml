@@ -51,6 +51,6 @@ jobs:
           scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
-            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
+            cd ${{ env.DEPLOY_PATH }}
             NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
           EOF
