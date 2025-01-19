@@ -147,37 +147,6 @@ const MainContent = ({
     }
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
-  const [currentPage, setCurrentPage] = useState(0)
-    
-  useEffect(() => {
-    if (!urlParams) {
-      return;
-    }
-    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
-    if (tab) {
-      setCurrentTabIndex(tabs.indexOf(tab))
-    }
-  }, [urlParams.tab])
-  const changeCurrentTab = useCallback((index: number) => {
-    const page = tabs[index];
-    updateUrlParams({ ...urlParams, tab: page.id })
-    setCurrentTabIndex(index)
-  }, [urlParams, tabs, updateUrlParams])
-
-  const advanceToPrevTab = useCallback(() => {
-    const prevIndex = enabledTabsIndexes.slice().reverse()
-      .find(({ index }) => index < currentTabIndex)
-    if (prevIndex) {
-      changeCurrentTab(prevIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-  const advanceToNextTab = useCallback(() => {
-    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
-    if (nextIndex) {
-      changeCurrentTab(nextIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-
   return <>
     {[...alertsStore.entries()].map(([, alert]) => (
       <Alert
