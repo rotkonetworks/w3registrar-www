@@ -24,17 +24,15 @@ export function ChallengePage({
   verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
   // TODO Review when API changes are made
-  const testChallengeStore = useMemo(() => {
-    return {
-      ...Object.fromEntries(Object.entries(challengeStore)
-        .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
-      ),
-      email: {
-        type: 'input',
-        status: ChallengeStatus.Pending,
-      },
-    }
-  }, [challengeStore])
+  const testChallengeStore = useMemo<ChallengeStore>(() => ({
+    ...Object.fromEntries(Object.entries(challengeStore)
+      .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
+    ),
+    email: {
+      type: 'input',
+      status: ChallengeStatus.Pending,
+    },
+  }), [challengeStore])
 
   const [formData, setFormData] = useState<Record<string, {
     value: string,
@@ -181,7 +179,7 @@ export function ChallengePage({
                           setPendingTransaction(true)
                           verifyField(field, code)
                             .then(result => {
-                              onVerifyStatusReceived(field, result)
+                              onVerifyStatusReceived(field as keyof ChallengeStore, result)
                               addNotification({
                                 type: result ? 'success' : 'error',
                                 message: result
@@ -193,7 +191,7 @@ export function ChallengePage({
                             .finally(() => setPendingTransaction(false))
                         } else if (type === "input") {
                           // TODO Implement actual verification when API is ready
-                          onVerifyStatusReceived(field, true)
+                          onVerifyStatusReceived(field as keyof ChallengeStore, true)
                           console.log("Verification successful")
                         }
                       }}
@@ -214,7 +212,7 @@ export function ChallengePage({
               .filter(([key, { status }]) => status === ChallengeStatus.Pending)
               .map(([key, { code }]) => verifyField(key, code)
                 .then(result => {
-                  onVerifyStatusReceived(result)
+                  onVerifyStatusReceived(key as keyof ChallengeStore, result)
                 })
                 .catch(error => { if (import.meta.env.DEV) console.error(error) })
               )

@@ -4,11 +4,12 @@ import { Sun, Moon } from "lucide-react";
 import { appStore as _appStore } from '~/store/AppStore';
 import { useProxy } from "valtio/utils";
 import { useState } from "react";
-import { ApiConfig } from "~/api/config2";
+import { ApiConfig } from "~/api/config";
 import { useConnectedWallets } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
+import { AccountData } from "~/store/AccountStore";
 
 const AccountListing = ({ address, name }) => <>
   <PolkadotIdenticon address={address} />
@@ -22,7 +23,7 @@ const Header = ({
   config, chainStore, accountStore, identityStore, accounts, 
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
-  accounts: { name: string, address: string, encodedAddress: string }[];
+  accounts: AccountData[];
   config: ApiConfig;
   chainStore: { id: string | number | symbol, name: string };
   accountStore: { address: string, name: string };

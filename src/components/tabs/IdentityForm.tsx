@@ -1,5 +1,4 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { AlertProps } from '@/store/AlertStore'
 import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
 import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
 
@@ -10,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Binary, TxEntry, TypedApi } from 'polkadot-api'
+import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
@@ -49,9 +48,9 @@ export const IdentityForm = forwardRef((
         error?: string,
       },
       eventType: string,
-    ) => Observable,
+    ) => Observable<unknown>,
   },
-  ref: Ref & { reset: () => void },
+  ref: Ref<unknown> & { reset: () => void },
 ) => {
   const _reset = useCallback(() => Object.fromEntries(
     ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
@@ -80,11 +79,7 @@ export const IdentityForm = forwardRef((
     setShowCostModal(true);
   }
 
-  const getCall = useCallback((): (
-    UnsafeTransaction<unknown | any, string, string, any>
-    | Transaction<unknown | any, string, string, any>
-    | null 
-  ) => {
+  const getCall = useCallback((): ApiTx | null => {
     if (actionType === "judgement") {
       return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,

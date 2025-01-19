@@ -119,7 +119,7 @@ export const useIdentityWebSocket = ({
   const pendingRequests = useRef<Map<string, { 
     resolve: (value: any) => void;
     reject: (reason: any) => void;
-    timeout: NodeJS.Timeout;
+    timeout: number;
   }>>(new Map());
 
   const generateRequestId = () => Math.random().toString(36).substring(7);
