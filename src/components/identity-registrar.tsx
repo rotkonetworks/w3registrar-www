@@ -167,7 +167,7 @@ const MainContent = ({
               size="sm"
               onClick={() => removeNotification(alert.key)}
               className={`${isDark
-                ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
+                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
                 : 'text-[#670D35] hover:text-[#E6007A]'
               }`}
             >
