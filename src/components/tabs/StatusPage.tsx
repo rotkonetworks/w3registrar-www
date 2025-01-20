@@ -1,6 +1,6 @@
 import { AlertProps } from "~/store/AlertStore"
 import { Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -70,7 +70,7 @@ export function StatusPage({
                 <AlertCircle className="h-4 w-4" />
                 Judgement:
               </strong> 
-              <span>{ verifiyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
+              <span>{ verifyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
             </div>
             <div className="flex justify-between items-center">
               <strong className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function StatusPage({
           <Button variant="outline" 
             onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-            disabled={onChainIdentity <= verifiyStatuses.NoIdentity}
+            disabled={onChainIdentity <= verifyStatuses.NoIdentity}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity

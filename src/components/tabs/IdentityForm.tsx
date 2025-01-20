@@ -1,5 +1,5 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
+import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
 import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -312,9 +312,9 @@ export const IdentityForm = forwardRef((
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
+                {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifiyStatuses.IdentitySet && (
+              {onChainIdentity === verifyStatuses.IdentitySet && (
                 <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)

@@ -36,7 +36,7 @@ export type IdentityOfResult = {
   value: IdentityOf;
 }
 
-export enum verifiyStatuses {
+export enum verifyStatuses {
   Unknown = -1,
   NoIdentity = 0,
   IdentitySet = 1,
@@ -56,13 +56,13 @@ export interface Judgement {
 export interface IdentityStore {
   info?: IdentityFormData;
   judgements?: Judgement[];
-  status: verifiyStatuses;
+  status: verifyStatuses;
   hash?: Uint16Array;
   deposit?: bigint;
 }
 
 export const identityStore = proxy<IdentityStore>({
-  status: verifiyStatuses.Unknown,
+  status: verifyStatuses.Unknown,
 });
 export const updateIdentity = (info: IdentityFormData) => {
   identityStore.info = info

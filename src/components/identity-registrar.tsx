@@ -10,7 +10,7 @@ import Header from "./Header"
 import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { 
   challengeStore as _challengeStore, Challenge, ChallengeStatus, 
   ChallengeStore
@@ -89,7 +89,7 @@ const MainContent = ({
       id: "challenges",
       name: "Challenges",
       icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.FeePaid,
+      disabled: identityStore.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
         identityStore={identityStore}
         addNotification={addNotification}
@@ -102,7 +102,7 @@ const MainContent = ({
       id: "status",
       name: "Status",
       icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.NoIdentity,
+      disabled: identityStore.status < verifyStatuses.NoIdentity,
       content: <MemoStatusPage
         identityStore={identityStore}
         addNotification={addNotification}
@@ -338,7 +338,7 @@ export function IdentityRegistrarComponent() {
         );
         identityStore.deposit = identityOf.deposit
         identityStore.info = identityData;
-        identityStore.status = verifiyStatuses.IdentitySet;
+        identityStore.status = verifyStatuses.IdentitySet;
         const idJudgementOfId = identityOf.judgements;
         const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
           registrar: {
@@ -349,19 +349,19 @@ export function IdentityRegistrarComponent() {
         }));
         if (judgementsData.length > 0) {
           identityStore.judgements = judgementsData;
-          identityStore.status = verifiyStatuses.JudgementRequested;
+          identityStore.status = verifyStatuses.JudgementRequested;
         }
         if (judgementsData.find(j => j.state === "FeePaid")) {
-          identityStore.status = verifiyStatuses.FeePaid;
+          identityStore.status = verifyStatuses.FeePaid;
         }
         if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
-          identityStore.status = verifiyStatuses.IdentityVerified;
+          identityStore.status = verifyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
         // TODO Compute approximate reserve
         if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
       } else {
-        identityStore.status = verifiyStatuses.NoIdentity;
+        identityStore.status = verifyStatuses.NoIdentity;
         identityStore.info = null
         identityStore.deposit = null
       }
@@ -377,7 +377,7 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
-    identityStore.status = verifiyStatuses.Unknown;
+    identityStore.status = verifyStatuses.Unknown;
     if (accountStore.address) {
       fetchIdAndJudgement();
     }
@@ -506,7 +506,7 @@ export function IdentityRegistrarComponent() {
       Object.entries(verifyState)
         .forEach(([key, value]) => {
           let status;
-          if (identityStore.status === verifiyStatuses.IdentityVerified) {
+          if (identityStore.status === verifyStatuses.IdentityVerified) {
             status = ChallengeStatus.Passed;
           } else {
             status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
@@ -696,7 +696,7 @@ export function IdentityRegistrarComponent() {
             return <MainContent {...mainProps} />;
           }
 
-          if (identityStore.status === verifiyStatuses.Unknown) {
+          if (identityStore.status === verifyStatuses.Unknown) {
             return (
               <div className="flex flex-grow flex-col flex-stretch">
                 <LoadingTabs />
