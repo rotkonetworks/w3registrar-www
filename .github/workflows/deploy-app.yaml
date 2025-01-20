@@ -6,6 +6,7 @@ env:
   DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
   BACKUP_PATH: '/home/w3reg/backups'
   STAGING_PATH: '/home/w3reg/staging.w3reg.org'
+  NGINX_HOST: '127.0.0.3'
 
 on:
   workflow_dispatch:
@@ -36,5 +37,5 @@ jobs:
             fi
             cp -r ${{ env.STAGING_PATH }} ${{ env.DEPLOY_PATH }}
             cd ${{ env.DEPLOY_PATH }}
-            docker compose up --build -d web-nginx
+            NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
           EOF
