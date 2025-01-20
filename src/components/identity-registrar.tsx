@@ -10,7 +10,7 @@ import Header from "./Header"
 import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, IdentityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { 
   challengeStore as _challengeStore, Challenge, ChallengeStatus, 
   ChallengeStore
@@ -18,14 +18,14 @@ import {
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
-import { accountStore as _accountStore } from "~/store/AccountStore"
-import { IdentityForm } from "./tabs/IdentityForm"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
+import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
-import { IdentityJudgement } from "@polkadot-api/descriptors"
+import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { HexString, PolkadotSigner, SS58String, TxEntry, TypedApi } from "polkadot-api"
-import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
+import { NotifyAccountState, useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
@@ -35,6 +35,8 @@ import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { ApiTx } from "~/types/api"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -44,7 +46,7 @@ type MainContentProps = {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   chainStore: ChainInfo, 
-  typedApi: TypedApi<keyof config.chains>, 
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
   chainConstants, 
   isDark: boolean, 
@@ -53,17 +55,18 @@ type MainContentProps = {
   formatAmount: any, 
   requestVerificationSecret: any, 
   verifyIdentity: any, 
-  removeNotificatio: any,
   signSubmitAndWatch: any,
-  identityFormRef: Ref,
+  removeNotification: any,
+  identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
   updateUrlParams: any,
+  setOpenDialog: any,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef, urlParams,
-  addNotification, formatAmount, requestVerificationSecret, verifyIdentity, removeNotification,
-  signSubmitAndWatch, updateUrlParams,
+  addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+  signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
     {
@@ -73,7 +76,6 @@ const MainContent = ({
       disabled: false,
       content: <MemoIdeitityForm
         ref={identityFormRef}
-        addNotification={addNotification}
         identityStore={identityStore}
         chainStore={chainStore}
         typedApi={typedApi}
@@ -87,7 +89,7 @@ const MainContent = ({
       id: "challenges",
       name: "Challenges",
       icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.FeePaid,
+      disabled: identityStore.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
         identityStore={identityStore}
         addNotification={addNotification}
@@ -100,7 +102,7 @@ const MainContent = ({
       id: "status",
       name: "Status",
       icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.NoIdentity,
+      disabled: identityStore.status < verifyStatuses.NoIdentity,
       content: <MemoStatusPage
         identityStore={identityStore}
         addNotification={addNotification}
@@ -111,8 +113,8 @@ const MainContent = ({
     },
   ]
   const enabledTabsIndexes = tabs
+    .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
     .filter(tab => !tab.disabled)
-    .map((tab, index) => ({ index, id: tab.id }))
   
   const [currentTabIndex, setCurrentTabIndex] = useState(0)
     
@@ -121,7 +123,7 @@ const MainContent = ({
       return;
     }
     const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
-    if (tab) {
+    if (tab && !tab.disabled) {
       setCurrentTabIndex(tabs.indexOf(tab))
     }
   }, [urlParams.tab])
@@ -152,10 +154,9 @@ const MainContent = ({
         variant={alert.type === 'error' ? "destructive" : "default"}
         className={`mb-4 ${alert.type === 'error'
           ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-          : isDark
-            ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]'
-            : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-          }`}
+          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+          }`
+        }
       >
         <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
         <AlertDescription className="flex justify-between items-center">
@@ -166,9 +167,9 @@ const MainContent = ({
               size="sm"
               onClick={() => removeNotification(alert.key)}
               className={`${isDark
-                ? 'text-[#FFFFFF] h</>over:text-[#E6007A]'
+                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
                 : 'text-[#670D35] hover:text-[#E6007A]'
-                }`}
+              }`}
             >
               Dismiss
             </Button>
@@ -258,7 +259,7 @@ export function IdentityRegistrarComponent() {
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount: { name: string, polkadotSigner: PolkadotSigner, address: SS58String } | null;
+    let foundAccount: AccountData | null;
     let decodedAddress: Uint8Array;
     try {
       decodedAddress = decodeAddress(address); // Validate address as well
@@ -295,7 +296,7 @@ export function IdentityRegistrarComponent() {
     }
     const accountData = getAccountData(urlParams.address);
     if (import.meta.env.DEV) console.log({ accountData });
-    if (accountData) {
+    if (accountData.polkadotSigner) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
@@ -309,7 +310,7 @@ export function IdentityRegistrarComponent() {
     }
   }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
-  const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
+  const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
@@ -318,11 +319,11 @@ export function IdentityRegistrarComponent() {
   //#endregion accounts
 
   //#region identity
-  const identityFormRef = useRef()
+  const identityFormRef = useRef<{ reset: () => void, }>()
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
-  const fetchIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
     .getValue(accountStore.address)
     .then((result) => {
       if (import.meta.env.DEV) console.log({ identityOf: result });
@@ -330,12 +331,14 @@ export function IdentityRegistrarComponent() {
         // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
         const identityOf = result[0] || result;
         const identityData = Object.fromEntries(Object.entries(identityOf.info)
-          .filter(([_, value]) => value?.type?.startsWith("Raw"))
-          .map(([key, value]) => [key, value.value.asText()])
+          .filter(([_, value]: [never, IdentityData]) => value?.type?.startsWith("Raw"))
+          .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
+            (value.value as Binary).asText()
+          ])
         );
         identityStore.deposit = identityOf.deposit
         identityStore.info = identityData;
-        identityStore.status = verifiyStatuses.IdentitySet;
+        identityStore.status = verifyStatuses.IdentitySet;
         const idJudgementOfId = identityOf.judgements;
         const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
           registrar: {
@@ -346,22 +349,19 @@ export function IdentityRegistrarComponent() {
         }));
         if (judgementsData.length > 0) {
           identityStore.judgements = judgementsData;
-          identityStore.status = verifiyStatuses.JudgementRequested;
+          identityStore.status = verifyStatuses.JudgementRequested;
         }
-        if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-          identityStore.status = verifiyStatuses.FeePaid;
+        if (judgementsData.find(j => j.state === "FeePaid")) {
+          identityStore.status = verifyStatuses.FeePaid;
         }
-        if (judgementsData.find(j => [
-          IdentityJudgement.Reasonable().type,
-          IdentityJudgement.KnownGood().type,
-        ].includes(j.state))) {
-          identityStore.status = verifiyStatuses.IdentityVerified;
+        if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
+          identityStore.status = verifyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
         // TODO Compute approximate reserve
         if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
       } else {
-        identityStore.status = verifiyStatuses.NoIdentity;
+        identityStore.status = verifyStatuses.NoIdentity;
         identityStore.info = null
         identityStore.deposit = null
       }
@@ -377,7 +377,7 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
-    identityStore.status = verifiyStatuses.Unknown;
+    identityStore.status = verifyStatuses.Unknown;
     if (accountStore.address) {
       fetchIdAndJudgement();
     }
@@ -385,7 +385,7 @@ export function IdentityRegistrarComponent() {
   //#endregion identity
   
   //#region chains
-  const chainClient = useClient({ chainId: chainStore.id })
+  const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
   
   useEffect(() => {
     ((async () => {
@@ -410,7 +410,7 @@ export function IdentityRegistrarComponent() {
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
-    updateUrlParams({ ...urlParams, chain: chainId })
+    updateUrlParams({ ...urlParams, chain: chainId as string })
     chainStore.id = chainId
   }, [urlParams])
   
@@ -466,7 +466,7 @@ export function IdentityRegistrarComponent() {
   }), [])
 
   const [pendingTx, setPendingTx] = useState<
-    Array<{ hash: HexString, type: string, who: SS58String, [key]: any }>
+    Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
   >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
@@ -481,7 +481,7 @@ export function IdentityRegistrarComponent() {
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.encodedAddress,
-    network: chainStore.name ? chainStore.name.split(' ')[0].toLowerCase() : import.meta.env.VITE_APP_DEFAULT_CHAIN.split(' ')[0].toLowerCase(),
+    network: chainStore.id as string,
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
@@ -504,11 +504,19 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
-        .forEach(([key, value]) => challenges[key] = {
-          status: identityStore.status === verifiyStatuses.IdentityVerified
-            ? ChallengeStatus.Passed
-            : value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
-          code: !value && pendingChallenges[key],
+        .forEach(([key, value]) => {
+          let status;
+          if (identityStore.status === verifyStatuses.IdentityVerified) {
+            status = ChallengeStatus.Passed;
+          } else {
+            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+          }
+
+          challenges[key] = {
+            type: "matrixChallenge",
+            status,
+            code: !value && pendingChallenges[key],
+          };
         })
       Object.assign(challengeStore, challenges)
 
@@ -531,7 +539,7 @@ export function IdentityRegistrarComponent() {
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const signSubmitAndWatch = useCallback(async (
-    call: TxEntry<0, string, string, any, any>,
+    call: ApiTx,
     messages: {
       broadcasted?: string,
       loading?: string,
@@ -585,7 +593,7 @@ export function IdentityRegistrarComponent() {
     return signedCall
   }, [accountStore.polkadotSigner])
 
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     signSubmitAndWatch(_clearIdentity(), 
       {
@@ -605,7 +613,7 @@ export function IdentityRegistrarComponent() {
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState({})
+  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
   useEffect(() => {
     if (openDialog === "clearIdentity") {
       _clearIdentity().getEstimatedFees(accountStore.address)
@@ -624,7 +632,7 @@ export function IdentityRegistrarComponent() {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
     if (import.meta.env.DEV) console.log({ newValue })
     switch (newValue.type) {
       case "Wallets":
@@ -650,11 +658,11 @@ export function IdentityRegistrarComponent() {
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
-  const mainProps = { 
+  const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
     challengeStore, identityFormRef, urlParams,
-    removeNotification, addNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
-    signSubmitAndWatch, updateAccount, updateUrlParams,
+    addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
   
   return <>
@@ -683,26 +691,24 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
         />
 
-        {accountStore.address && chainStore.id 
-          ? <>
-            {identityStore.status === verifiyStatuses.Unknown
-              ? <>
-                <div className="flex flex-grow flex-col flex-stretch">
-                  <LoadingTabs />
-                  <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                    Loading Identity Data...
-                  </LoadingContent>
-                </div>
-              </>
-              : <>
-                <MainContent {...mainProps} />
-              </>
-            }
-          </>
-          : <>
-            <MainContent {...mainProps} />
-          </>
-        }
+        {(() => {
+          if (!accountStore.address || !chainStore.id) {
+            return <MainContent {...mainProps} />;
+          }
+
+          if (identityStore.status === verifyStatuses.Unknown) {
+            return (
+              <div className="flex flex-grow flex-col flex-stretch">
+                <LoadingTabs />
+                <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                  Loading Identity Data...
+                </LoadingContent>
+              </div>
+            );
+          }
+
+          return <MainContent {...mainProps} />;
+        })()}
       </div>
     </div>
 

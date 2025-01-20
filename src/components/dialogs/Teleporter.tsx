@@ -1,4 +1,4 @@
-import React from "react"
+import React, { ReactNode } from "react"
 import { ArrowDownUp, ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -15,18 +15,20 @@ import {
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
-import { ApiConfig } from "~/api/config2"
+import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { AccountData } from "~/store/AccountStore"
 
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
 }: {
   address: SS58String,
-  accounts: { address: SS58String, name: string, encodedAddress: SS58String }[],
+  accounts: AccountData[],
   chainId: string | number | symbol,
-  typedApi: TypedApi,
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   config: ApiConfig,
   open: boolean,
   tokenSymbol: string,
@@ -47,14 +49,17 @@ export default function TeleporterDialog({
 
   const [isReversed, setIsReversed] = React.useState(false)
   const [amount, setAmount] = React.useState("")
-  const relayChainId = React.useMemo(() => (chainId as string).replace("_people", ""), [chainId])
-  const [selectedChain, setSelectedChain] = React.useState(relayChainId)
-
-  const fromChainId = React.useMemo(
-    () => isReversed ? chainId : selectedChain, [isReversed, selectedChain, chainId]
+  const relayChainId = React.useMemo<keyof Chains>(
+    () => (chainId as string).replace("_people", "") as keyof Chains, 
+    [chainId]
   )
-  const toChainId = React.useMemo(
-    () => isReversed ? selectedChain : chainId, [isReversed, selectedChain, chainId]
+  const [selectedChain, setSelectedChain] = React.useState<keyof Chains>(relayChainId)
+
+  const fromChainId = React.useMemo<keyof Chains>(
+    () => (isReversed ? chainId : selectedChain) as keyof Chains, [isReversed, selectedChain, chainId]
+  )
+  const toChainId = React.useMemo<keyof Chains>(
+    () => (isReversed ? selectedChain : chainId) as keyof Chains, [isReversed, selectedChain, chainId]
   )
 
   const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
@@ -90,7 +95,10 @@ export default function TeleporterDialog({
   const relayChainTypedApi = useTypedApi({ chainId: relayChainId })
   const selectedChainApi = useTypedApi({ chainId: selectedChain })
 
-  const _getParachainId = (typedApi: TypedApi, setter: (id: number | null) => void) => {
+  const _getParachainId = (
+    typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
+    setter: (id: number | null) => void
+  ) => {
     if (typedApi) {
       (async () => {
         try {
@@ -302,13 +310,15 @@ export default function TeleporterDialog({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Select value={fromChainId} onValueChange={setSelectedChain} disabled={isReversed}>
+                    <Select value={fromChainId} disabled={isReversed}
+                      onValueChange={setSelectedChain as (value: string) => void} 
+                    >
                       <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
                         <SelectValue placeholder="Select chain" />
                       </SelectTrigger>
                       <SelectContent>
                         {isReversed ? (
-                          <SelectItem value={chainId}>{config.chains[chainId].name}</SelectItem>
+                          <SelectItem value={chainId as string}>{config.chains[chainId as string].name}</SelectItem>
                         ) : parachains.map((chain) => (
                           <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
                         ))}
@@ -316,7 +326,7 @@ export default function TeleporterDialog({
                     </Select>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                    <p>{isReversed ? chainId : selectedChain}</p>
+                    <p>{(isReversed ? chainId : selectedChain) as ReactNode}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -335,7 +345,7 @@ export default function TeleporterDialog({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Select value={toChainId} onValueChange={setSelectedChain} disabled={!isReversed}>
+                    <Select value={toChainId} onValueChange={setSelectedChain as (value: string) => void} disabled={!isReversed}>
                       <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
                         <SelectValue placeholder="Select chain" />
                       </SelectTrigger>
@@ -343,13 +353,13 @@ export default function TeleporterDialog({
                         {isReversed ? parachains.map((chain) => (
                           <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
                         )) : (
-                          <SelectItem value={chainId}>{config.chains[chainId].name}</SelectItem>
+                          <SelectItem value={chainId as string}>{config.chains[chainId as string].name}</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                    <p>{isReversed ? selectedChain : chainId}</p>
+                    <p>{(isReversed ? selectedChain : chainId) as ReactNode}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

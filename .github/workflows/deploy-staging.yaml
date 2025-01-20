@@ -53,6 +53,7 @@ jobs:
           chmod 644 ~/.ssh/known_hosts
       - name: Deploy to server
         run: |
+          set -euo pipefail
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF 
             set -euo pipefail
             rm -fr ${{ env.DEPLOY_PATH }}/nginx || true

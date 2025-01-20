@@ -1,6 +1,5 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { AlertProps } from '@/store/AlertStore'
-import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
+import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
 import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -10,12 +9,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
-import { Binary, TxEntry, TypedApi } from 'polkadot-api'
+import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { Observable } from 'rxjs'
+import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
+import { ApiTx } from '~/types/api'
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -24,7 +25,6 @@ export type IdentityFormData = Record<string, {
 
 export const IdentityForm = forwardRef((
   {
-    addNotification,
     identityStore,
     chainStore,
     accountStore,
@@ -33,15 +33,14 @@ export const IdentityForm = forwardRef((
     formatAmount,
     signSubmitAndWatch,
   }: {
-    addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
     identityStore: IdentityStore,
     chainStore: ChainInfo,
     accountStore: AccountData,
-    typedApi: TypedApi<Chain>,
+    typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
     chainConstants: Record<string, any>,
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
-      call: TxEntry<0, string, string, any, any>,
+      call: ApiTx,
       messages: {
         broadcasted?: string,
         loading?: string,
@@ -49,9 +48,9 @@ export const IdentityForm = forwardRef((
         error?: string,
       },
       eventType: string,
-    ) => Observable,
+    ) => Observable<unknown>,
   },
-  ref: Ref & { reset: () => void },
+  ref: Ref<unknown> & { reset: () => void },
 ) => {
   const _reset = useCallback(() => Object.fromEntries(
     ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
@@ -80,11 +79,7 @@ export const IdentityForm = forwardRef((
     setShowCostModal(true);
   }
 
-  const getCall = useCallback((): (
-    TxEntry<0, "Identity", "set_identity", any, any>
-    | TxEntry<0, "Identity", "request_judgement", any, any>
-    | null
-  ) => {
+  const getCall = useCallback((): ApiTx | null => {
     if (actionType === "judgement") {
       return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
@@ -317,9 +312,9 @@ export const IdentityForm = forwardRef((
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
+                {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifiyStatuses.IdentitySet && (
+              {onChainIdentity === verifyStatuses.IdentitySet && (
                 <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)
