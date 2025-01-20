@@ -1,5 +1,6 @@
 name: Deploy Beeper Synapse
 
+#NOTE: this wf assumed we need to configure haproxy ourselves
 on:
   workflow_dispatch:
 
