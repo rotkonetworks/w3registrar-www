@@ -1,0 +1,63 @@
+name: Deploy Beeper Synapse
+
+on:
+  workflow_dispatch:
+
+env:
+  SERVER_USER: "w3reg"
+  SERVER_IP: "135.181.202.179"
+  DEPLOY_PATH: "/home/w3reg/synapse.w3reg.org"
+  SYNAPSE_SERVER_NAME: "synapse.w3reg.org"
+  NGINX_HOST: "127.0.0.4"
+  DOCKER_CONTAINER_NAME: "synapse-w3reg"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add known hosts
+        run: |
+          ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << 'EOF'
+            set -euo pipefail
+            
+            mkdir -p ${{ env.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
+
+            if [ -d "synapse" ]; then
+              cd synapse
+              git pull
+            else
+              git clone https://github.com/beeper/synapse.git
+              cd synapse
+            fi
+
+            # Build Docker image
+            docker build -t beeper-synapse -f docker/Dockerfile .
+
+            # Generate configuration if it doesn't exist
+            if [ ! -f "${{ env.DEPLOY_PATH }}/data/homeserver.yaml" ]; then
+              docker run -it --rm \
+                --mount type=bind,src=${{ env.DEPLOY_PATH }}/data,dst=/data \
+                -e SYNAPSE_SERVER_NAME=${{ env.SYNAPSE_SERVER_NAME }} \
+                -e SYNAPSE_REPORT_STATS=no \
+                beeper-synapse:latest generate
+            fi
+
+            docker stop ${{ env.DOCKER_CONTAINER_NAME }} || true
+            # docker rm ${{ env.DOCKER_CONTAINER_NAME }} || true
+
+            docker run -d --name synapse-w3reg \
+              --mount type=bind,src=${{ env.DEPLOY_PATH }}/data,dst=/data \
+              -p ${{ env.NGINX_HOST }}:8008:8008 \
+              --restart unless-stopped \
+              beeper-synapse:latest
+          EOF
