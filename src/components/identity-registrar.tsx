@@ -296,7 +296,7 @@ export function IdentityRegistrarComponent() {
     }
     const accountData = getAccountData(urlParams.address);
     if (import.meta.env.DEV) console.log({ accountData });
-    if (accountData.polkadotSigner) {
+    if (accountData) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
