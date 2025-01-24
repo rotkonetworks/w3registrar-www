@@ -504,6 +504,7 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
+        .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
           let status;
           if (identityStore.status === verifyStatuses.IdentityVerified) {
