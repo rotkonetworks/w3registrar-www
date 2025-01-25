@@ -208,15 +208,6 @@ export function ChallengePage({
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
-                    {code &&
-                      <Button variant="outline" size="icon" 
-                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                        disabled={pendingFields[field]}
-                        onClick={() => refreshChallengeCode(field)}
-                      >
-                        <RefreshCcw className="h-4 w-4" />
-                      </Button>
-                    }
                     <Button variant="outline" size="icon" 
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                       disabled={pendingFields[field]}
