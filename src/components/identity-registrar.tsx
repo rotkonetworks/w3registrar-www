@@ -440,7 +440,6 @@ export function IdentityRegistrarComponent() {
     chainId: chainStore.id,
     address: accountStore.encodedAddress,
     handlers: eventHandlers,
-    pendingTx,
   })
   //#endregion chains
   
@@ -537,9 +536,6 @@ export function IdentityRegistrarComponent() {
           })
           fetchIdAndJudgement()
         }
-        if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
-          setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
-        }
         if (import.meta.env.DEV) console.log({ result })
       },
       error: (error) => {
@@ -547,7 +543,6 @@ export function IdentityRegistrarComponent() {
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
-        setPendingTx((prev) => prev.filter(tx => tx.txHash !== txHash))
       }
     })
     return signedCall

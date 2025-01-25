@@ -3,7 +3,7 @@ import { HexString, SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
 
-export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pendingTx }: {
+export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
   chainId: string | number | symbol;
   address: SS58String;
@@ -12,7 +12,6 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pen
     onError?: (error: Error) => void;
     priority: number;
   }>
-  pendingTx: Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any }>;
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   useEffect(() => {
@@ -44,10 +43,6 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pen
         .sort((b1, b2) => 
           b2.neta.block.number*100 + handlers[b2.type].priority - b1.neta.block.number*100 + handlers[b1.type].priority 
         )
-        .filter(block => !pendingTx.find(tx =>
-          block.type === tx.type
-          && [block.payload.who, block.payload.target].includes(tx.who)
-        ))
         .forEach(block => {
           handlers[block.type].onEvent(block)
           if (import.meta.env.DEV) console.log({ block, })
@@ -121,7 +116,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pen
     return () => {
       subscriptions.forEach(cleanup => cleanup?.())
     }
-  }, [chainId, address, handlerEntries, pendingTx])
+  }, [chainId, address, handlerEntries])
 
   return { constants, }
 }
