@@ -324,7 +324,7 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
   const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
-    .getValue(accountStore.address)
+    .getValue(accountStore.address, { at: "best" })
     .then((result) => {
       if (import.meta.env.DEV) console.log({ identityOf: result });
       if (result) {
@@ -563,14 +563,6 @@ export function IdentityRegistrarComponent() {
           })
         }
         if (result.type === "txBestBlocksState") {
-          addNotification({
-            key: result.txHash,
-            type: "success",
-            closable: false,
-            message: messages.loading || "Waiting for finalization",
-          })
-        }
-        if (result.type === "finalized") {
           addNotification({
             key: result.txHash,
             type: "success",
