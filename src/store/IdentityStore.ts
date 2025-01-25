@@ -29,14 +29,14 @@ export type IdentityOf = StorageDescriptor<[Key: SS58String], [{
     web: IdentityData;
   };
   judgements: [number, IdentityJudgement][];
-}, Binary | undefined], true>
+}, Binary | undefined], true, "identityOf">;
 
 export type IdentityOfResult = {
   type: string;
   value: IdentityOf;
 }
 
-export enum verifiyStatuses {
+export enum verifyStatuses {
   Unknown = -1,
   NoIdentity = 0,
   IdentitySet = 1,
@@ -49,20 +49,20 @@ export interface Judgement {
   registrar: {
     index: number;
   };
-  state: keyof IdentityJudgement;
+  state: "FeePaid" | "OutOfDate" | "Reasonable" | "KnownGood" | "Erroneous" | "LowQuality";
   fee: bigint;
 }
 
 export interface IdentityStore {
   info?: IdentityFormData;
   judgements?: Judgement[];
-  status: verifiyStatuses;
+  status: verifyStatuses;
   hash?: Uint16Array;
   deposit?: bigint;
 }
 
 export const identityStore = proxy<IdentityStore>({
-  status: verifiyStatuses.Unknown,
+  status: verifyStatuses.Unknown,
 });
 export const updateIdentity = (info: IdentityFormData) => {
   identityStore.info = info

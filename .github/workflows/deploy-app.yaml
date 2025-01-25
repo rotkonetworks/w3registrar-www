@@ -6,6 +6,7 @@ env:
   DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
   BACKUP_PATH: '/home/w3reg/backups'
   STAGING_PATH: '/home/w3reg/staging.w3reg.org'
+  NGINX_HOST: '127.0.0.3'
 
 on:
   workflow_dispatch:
@@ -31,10 +32,10 @@ jobs:
             set -euo pipefail
             TIMESTAMP=\$(date +%Y%m%d%H%M%S)
             mkdir -p ${{ env.BACKUP_PATH }}
-            if [ -d "${{ env.DEPLOY_PATH }}/w3registrar-www" ]; then
-              mv ${{ env.DEPLOY_PATH }}/w3registrar-www ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
+            if [ -d "${{ env.DEPLOY_PATH }}" ]; then
+              mv ${{ env.DEPLOY_PATH }} ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
             fi
-            cp -r ${{ env.STAGING_PATH }}/w3registrar-www ${{ env.DEPLOY_PATH }}/
-            cd ${{ env.DEPLOY_PATH }}/w3registrar-www
-            docker compose up --build -d web-nginx
+            cp -r ${{ env.STAGING_PATH }} ${{ env.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
+            NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
           EOF

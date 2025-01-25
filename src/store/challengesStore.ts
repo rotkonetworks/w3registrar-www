@@ -9,8 +9,9 @@ export enum ChallengeStatus {
 }
 
 export interface Challenge {
+  type: string;
   status: ChallengeStatus;
-  code: string;
+  code?: string;
 }
 
 export interface ChallengeStore {

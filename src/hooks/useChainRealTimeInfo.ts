@@ -1,23 +1,18 @@
-import { TypedApi } from "polkadot-api";
-import { useEffect, useRef, useState } from "react";
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import { HexString, SS58String, TypedApi } from "polkadot-api";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
-import { AccountData } from "~/store/AccountStore";
-import { ChainInfo } from "~/store/ChainStore";
 
-export const useChainRealTimeInfo = ({
-  typedApi,
-  chainId,
-  address,
-  handlers,
-}: {
-  typedApi: TypedApi<ChainId>;
-  chainId: string;
-  address: string;
+export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers, pendingTx }: {
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
+  chainId: string | number | symbol;
+  address: SS58String;
   handlers: Record<string, {
     onEvent: (data: any) => void;
     onError?: (error: Error) => void;
     priority: number;
   }>
+  pendingTx: Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any }>;
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   useEffect(() => {
@@ -49,27 +44,42 @@ export const useChainRealTimeInfo = ({
         .sort((b1, b2) => 
           b2.neta.block.number*100 + handlers[b2.type].priority - b1.neta.block.number*100 + handlers[b1.type].priority 
         )
+        .filter(block => !pendingTx.find(tx =>
+          block.type === tx.type
+          && [block.payload.who, block.payload.target].includes(tx.who)
+        ))
         .forEach(block => {
           handlers[block.type].onEvent(block)
           if (import.meta.env.DEV) console.log({ block, })
         })
       ;
-      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+      _pendingBlocks.current = []
     },  CHAIN_UPDATE_INTERVAL)
     return () => {
       window.clearInterval(timer)
-      _pendingBlocks.current.splice(0, _pendingBlocks.current.length)
+      _pendingBlocks.current = []
     }
   }, [])
 
+  // Since a single account is used, we can keep track of the last block per relevant event type. 
+  // This way we can avoid processing the same event multiple times.
+  const _lastBlockPerEvent = useRef({})
   const waitForEvent = ({ type: { pallet, call }, }) => {
     const type = `${pallet}.${call}`;
-    const { onEvent, onError } = handlers[type]
+    const { onError } = handlers[type]
     typedApi.event[pallet][call].pull()
       .then(data => {
-        data.filter(item => [item.payload.who, item.payload.target].includes(address))
+        if (data.length === 0) {
+          return
+        }
+        if (import.meta.env.DEV) console.log({ data, type, address })
+        data.filter(item => 
+          [item.payload.who, item.payload.target].includes(address)
+            && item.meta.block.number > (_lastBlockPerEvent.current[type] || 0)
+        )
           .forEach(item => {
             _pendingBlocks.current.push({ ...item, type })
+            _lastBlockPerEvent.current[type] = item.meta.block.number
           })
       })
       .catch(error => {
@@ -89,21 +99,29 @@ export const useChainRealTimeInfo = ({
       return () => window.clearInterval(timer)
     }
   }
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "IdentitySet" },
-  }), [chainId, address])
 
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "IdentityCleared" },
-  }), [chainId, address])
-
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "JudgementRequested" },
-  }), [chainId, address])
-
-  useEffect(getEffectCallback({
-    type: { pallet: "Identity", call: "JudgementGiven" },
-  }), [chainId, address])
+  // Convert handlers to array and memoize
+  const handlerEntries = useMemo(() => 
+    Object.entries(handlers).map(([key, handler]) => {
+      const [pallet, call] = key.split('.')
+      return { pallet, call, handler }
+    }), 
+    [handlers]
+  )
+  
+  // Single effect to handle all subscriptions
+  useEffect(() => {
+    const subscriptions = handlerEntries.map(({ pallet, call }) => 
+      getEffectCallback({
+        type: { pallet, call },
+      })()
+    )
+  
+    // Cleanup function
+    return () => {
+      subscriptions.forEach(cleanup => cleanup?.())
+    }
+  }, [chainId, address, handlerEntries, pendingTx])
 
   return { constants, }
 }

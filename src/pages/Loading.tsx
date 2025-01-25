@@ -62,7 +62,7 @@ export function Loading() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div className="flex gap-2 w-full sm:w-auto">
-            <div className="flex-1 min-w-[240px] h-2.5em">
+            <div className="flex-1 min-w-[140px] h-2.5em">
               <LoadingPlaceholder className="min-w-[140px] h-100%" />
             </div>
             <div className="flex-1 min-w-[140px] h-2.5em">

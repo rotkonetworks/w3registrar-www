@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, startTransition } from "react"
+import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -7,24 +7,25 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
+import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifiyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { 
-  challengeStore as _challengeStore, Challenge, ChallengeStatus 
+  challengeStore as _challengeStore, Challenge, ChallengeStatus, 
+  ChallengeStore
 } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
-import { accountStore as _accountStore } from "~/store/AccountStore"
-import { IdentityForm } from "./tabs/IdentityForm"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
+import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
-import { IdentityJudgement } from "@polkadot-api/descriptors"
+import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { SS58String, TypedApi } from "polkadot-api"
-import { useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
+import { NotifyAccountState, useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
@@ -33,10 +34,194 @@ import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
-import { LoadingContent, LoadingPlaceholder, LoadingTabs } from "~/pages/Loading"
+import { LoadingContent, LoadingTabs } from "~/pages/Loading"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { ApiTx } from "~/types/api"
+
+const MemoIdeitityForm = memo(IdentityForm)
+const MemoChallengesPage = memo(ChallengePage)
+const MemoStatusPage = memo(StatusPage)
+
+type MainContentProps = {
+  identityStore: IdentityStore,
+  challengeStore: ChallengeStore,
+  chainStore: ChainInfo, 
+  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
+  accountStore: AccountData,
+  chainConstants, 
+  isDark: boolean, 
+  alertsStore: Map<string, AlertProps>,
+  addNotification: any, 
+  formatAmount: any, 
+  requestVerificationSecret: any, 
+  verifyIdentity: any, 
+  signSubmitAndWatch: any,
+  removeNotification: any,
+  identityFormRef: Ref<unknown>,
+  urlParams: Record<string, string>,
+  updateUrlParams: any,
+  setOpenDialog: any,
+}
+const MainContent = ({
+  identityStore, challengeStore, chainStore, typedApi, accountStore,
+  chainConstants, isDark, alertsStore, identityFormRef, urlParams,
+  addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+  signSubmitAndWatch, updateUrlParams, setOpenDialog,
+}: MainContentProps) => {
+  const tabs = [
+    {
+      id: "identityForm",
+      name: "Identity Form",
+      icon: <UserCircle className="h-5 w-5" />,
+      disabled: false,
+      content: <MemoIdeitityForm
+        ref={identityFormRef}
+        identityStore={identityStore}
+        chainStore={chainStore}
+        typedApi={typedApi}
+        accountStore={accountStore}
+        chainConstants={chainConstants}
+        formatAmount={formatAmount}
+        signSubmitAndWatch={signSubmitAndWatch}
+      />
+    },
+    {
+      id: "challenges",
+      name: "Challenges",
+      icon: <Shield className="h-5 w-5" />,
+      disabled: identityStore.status < verifyStatuses.FeePaid,
+      content: <MemoChallengesPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        requestVerificationSecret={requestVerificationSecret}
+        verifyField={verifyIdentity}
+      />
+    },
+    {
+      id: "status",
+      name: "Status",
+      icon: <FileCheck className="h-5 w-5" />,
+      disabled: identityStore.status < verifyStatuses.NoIdentity,
+      content: <MemoStatusPage
+        identityStore={identityStore}
+        addNotification={addNotification}
+        challengeStore={challengeStore}
+        formatAmount={formatAmount}
+        onIdentityClear={() => setOpenDialog("clearIdentity")}
+      />
+    },
+  ]
+  const enabledTabsIndexes = tabs
+    .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
+    .filter(tab => !tab.disabled)
+  
+  const [currentTabIndex, setCurrentTabIndex] = useState(0)
+    
+  useEffect(() => {
+    if (!urlParams) {
+      return;
+    }
+    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
+    if (tab && !tab.disabled) {
+      setCurrentTabIndex(tabs.indexOf(tab))
+    }
+  }, [urlParams.tab])
+  const changeCurrentTab = useCallback((index: number) => {
+    const tab = tabs[index];
+    updateUrlParams({ ...urlParams, tab: tab.id })
+    setCurrentTabIndex(index)
+  }, [urlParams, tabs, updateUrlParams])
+
+  const advanceToPrevTab = useCallback(() => {
+    const prevIndex = enabledTabsIndexes.slice().reverse()
+      .find(({ index }) => index < currentTabIndex)
+    if (prevIndex) {
+      changeCurrentTab(prevIndex.index)
+    }
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+  const advanceToNextTab = useCallback(() => {
+    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
+    if (nextIndex) {
+      changeCurrentTab(nextIndex.index)
+    }
+  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
+
+  return <>
+    {[...alertsStore.entries()].map(([, alert]) => (
+      <Alert
+        key={alert.key}
+        variant={alert.type === 'error' ? "destructive" : "default"}
+        className={`mb-4 ${alert.type === 'error'
+          ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
+          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+          }`
+        }
+      >
+        <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+        <AlertDescription className="flex justify-between items-center">
+          {alert.message}
+          {alert.closable === true && <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeNotification(alert.key)}
+              className={`${isDark
+                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
+                : 'text-[#670D35] hover:text-[#E6007A]'
+              }`}
+            >
+              Dismiss
+            </Button>
+          </>}
+        </AlertDescription>
+      </Alert>
+    ))}
+
+    <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
+      <TabsList
+        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
+      >
+        {tabs.map((tab, index) => (
+          <TabsTrigger
+            key={index}
+            value={tab.name}
+            onClick={() => changeCurrentTab(index)}
+            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+            disabled={tab.disabled}
+          >
+            {tab.icon}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {tabs.map((tab, index) => (
+        <TabsContent key={index} value={tab.name} className="p-4">
+          {tab.content}
+        </TabsContent>
+      ))}
+    </Tabs>
+
+    <div className="flex justify-between mt-6">
+      <Button
+        variant="outline"
+        onClick={advanceToPrevTab}
+        disabled={enabledTabsIndexes.slice().reverse().findIndex(({ index }) => index < currentTabIndex) === -1}
+        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+      </Button>
+      <Button
+        onClick={advanceToNextTab}
+        disabled={enabledTabsIndexes.findIndex(({ index }) => index > currentTabIndex) === -1}
+        className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+      >
+        Next <ChevronRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  </>
+}
 
 export function IdentityRegistrarComponent() {
-  const [currentPage, setCurrentPage] = useState(0)
   const alertsStore = useProxy(_alertsStore);
   const { isDark, setDark } = useDark()
 
@@ -49,27 +234,10 @@ export function IdentityRegistrarComponent() {
 
   const { urlParams, updateUrlParams } = useUrlParams()
 
-  const pages = [
-    { 
-      name: "Identity Form", 
-      icon: <UserCircle className="h-5 w-5" />,
-    },
-    { 
-      name: "Challenges", 
-      icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.FeePaid,
-    },
-    { 
-      name: "Status", 
-      icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifiyStatuses.NoIdentity,
-    },
-  ]
-
   //#region notifications
   const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
-    pushAlert({ ...alert, key });
+    pushAlert({ ...alert, key, closable: alert.closable ?? true });
   }, [pushAlert])
 
   const removeNotification = useCallback((key: string) => {
@@ -91,21 +259,18 @@ export function IdentityRegistrarComponent() {
   })), [accounts, chainStore.ss58Format])
 
   const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount = accounts.find(account => account.address === address);
-
-    if (foundAccount) {
-      return {
-        name: foundAccount.name,
-        polkadotSigner: foundAccount.polkadotSigner,
-        address: foundAccount.address,
-        encodedAddress: foundAccount.address,
-      };
-    }
-    let decodedAddress;
+    let foundAccount: AccountData | null;
+    let decodedAddress: Uint8Array;
     try {
-      decodedAddress = decodeAddress(address); // Validate addressZ
+      decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
+      addNotification({
+        type: "error",
+        message: "Invalid address in URL. Could not decode",
+        closable: false,
+        key: "invalidAddress",
+      })
       return null;
     }
     foundAccount = accounts.find(account => {
@@ -130,62 +295,77 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getAccountData(urlParams.address);
-    if (accountData) {
+    if (import.meta.env.DEV) console.log({ accountData });
+    if (accountData.polkadotSigner) {
       Object.assign(accountStore, accountData);
+      removeAlert("invalidAccount");
+      removeAlert("invalidAddress");
+    } else {
+      addNotification({
+        type: "error",
+        message: "Please pick an account that is registered in your wallets from account dropdown.",
+        closable: false,
+        key: "invalidAccount",
+      })
     }
-  }, [accountStore.polkadotSigner, accountStore.address, urlParams.address, getAccountData])
+  }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
 
-  const updateAccount = useCallback(({ name, address, polkadotSigner }) => {
+  const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
-    updateUrlParams({ address })
-  }, [accountStore, updateUrlParams]);
+    updateUrlParams({ ...urlParams, address,  })
+  }, [accountStore, urlParams]);
   //#endregion accounts
 
   //#region identity
-  const getIdAndJudgement = useCallback(() => typedApi.query.Identity.IdentityOf
+  const identityFormRef = useRef<{ reset: () => void, }>()
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ identityFormRef })
+  }, [identityFormRef.current])
+  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
     .getValue(accountStore.address)
     .then((result) => {
-      if (import.meta.env.DEV) console.log({ identityOf: result })
-      if (!result) {
-        identityStore.status = verifiyStatuses.NoIdentity;
+      if (import.meta.env.DEV) console.log({ identityOf: result });
+      if (result) {
+        // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
+        const identityOf = result[0] || result;
+        const identityData = Object.fromEntries(Object.entries(identityOf.info)
+          .filter(([_, value]: [never, IdentityData]) => value?.type?.startsWith("Raw"))
+          .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
+            (value.value as Binary).asText()
+          ])
+        );
+        identityStore.deposit = identityOf.deposit
+        identityStore.info = identityData;
+        identityStore.status = verifyStatuses.IdentitySet;
+        const idJudgementOfId = identityOf.judgements;
+        const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
+          registrar: {
+            index: judgement[0],
+          },
+          state: judgement[1].type,
+          fee: judgement[1].value,
+        }));
+        if (judgementsData.length > 0) {
+          identityStore.judgements = judgementsData;
+          identityStore.status = verifyStatuses.JudgementRequested;
+        }
+        if (judgementsData.find(j => j.state === "FeePaid")) {
+          identityStore.status = verifyStatuses.FeePaid;
+        }
+        if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
+          identityStore.status = verifyStatuses.IdentityVerified;
+        }
+        const idDeposit = identityOf.deposit;
+        // TODO Compute approximate reserve
+        if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      } else {
+        identityStore.status = verifyStatuses.NoIdentity;
         identityStore.info = null
-        return;
+        identityStore.deposit = null
       }
-      // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
-      const identityOf = result[0] || result;
-      const identityData = Object.fromEntries(Object.entries(identityOf.info)
-        .filter(([_, value]) => value?.type?.startsWith("Raw"))
-        .map(([key, value]) => [key, value.value.asText()])
-      );
-      identityStore.deposit = identityOf.deposit
-      identityStore.info = identityData;
-      identityStore.status = verifiyStatuses.IdentitySet;
-      const idJudgementOfId = identityOf.judgements;
-      const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
-        registrar: {
-          index: judgement[0],
-        },
-        state: judgement[1].type,
-        fee: judgement[1].value,
-      }));
-      if (judgementsData.length > 0) {
-        identityStore.judgements = judgementsData;
-        identityStore.status = verifiyStatuses.JudgementRequested;
-      }
-      if (judgementsData.find(j => j.state === IdentityJudgement.FeePaid().type)) {
-        identityStore.status = verifiyStatuses.FeePaid;
-      }
-      if (judgementsData.find(j => [
-        IdentityJudgement.Reasonable().type,
-        IdentityJudgement.KnownGood().type,
-      ].includes(j.state))) {
-        identityStore.status = verifiyStatuses.IdentityVerified;
-      }
-      const idDeposit = identityOf.deposit;
-      // TODO Compute approximate reserve
-      if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
+      identityFormRef.current.reset()
     })
     .catch(e => {
       if (import.meta.env.DEV) {
@@ -197,15 +377,15 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ typedApi, accountStore })
     identityStore.deposit = null;
     identityStore.info = null
-    identityStore.status = verifiyStatuses.Unknown;
+    identityStore.status = verifyStatuses.Unknown;
     if (accountStore.address) {
-      getIdAndJudgement();
+      fetchIdAndJudgement();
     }
-  }, [accountStore.address, getIdAndJudgement])
+  }, [accountStore.address, fetchIdAndJudgement])
   //#endregion identity
   
   //#region chains
-  const chainClient = useClient({ chainId: chainStore.id })
+  const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
   
   useEffect(() => {
     ((async () => {
@@ -230,14 +410,18 @@ export function IdentityRegistrarComponent() {
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
-    updateUrlParams({ ...urlParams, chain: chainId })
+    updateUrlParams({ ...urlParams, chain: chainId as string })
     chainStore.id = chainId
-  }, [])
+  }, [urlParams])
   
-  const eventHandlers = useMemo<Record<string, { onEvent: (data: any) => void; onError?: (error: Error) => void; priority: number }>>(() => ({
+  const eventHandlers = useMemo<Record<string, { 
+    onEvent: (data: any) => void; 
+    onError?: (error: Error) => void; 
+    priority: number 
+  }>>(() => ({
     "Identity.IdentitySet": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info", 
           message: "Identity Set for this account",
@@ -248,7 +432,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.IdentityCleared": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Identity cleared for this account",
@@ -259,7 +443,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementRequested": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Requested for this account",
@@ -270,7 +454,7 @@ export function IdentityRegistrarComponent() {
     },
     "Identity.JudgementGiven": {
       onEvent: data => {
-        getIdAndJudgement()
+        fetchIdAndJudgement()
         addNotification({
           type: "info",
           message: "Judgement Given for this account",
@@ -279,23 +463,29 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [accountStore.address, chainStore.id])  
+  }), [])
+
+  const [pendingTx, setPendingTx] = useState<
+    Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
+  >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
-    address: accountStore.address,
+    address: accountStore.encodedAddress,
     handlers: eventHandlers,
+    pendingTx,
   })
   //#endregion chains
   
   //#region challenges
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: accountStore.address,
+    account: accountStore.encodedAddress,
+    network: chainStore.id as string,
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
-  const idWsDeps = [accountState, error, accountStore.address, identityStore.info, chainStore.id]
+  const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
       if (import.meta.env.DEV) console.error(error)
@@ -314,11 +504,19 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
-        .forEach(([key, value]) => challenges[key] = {
-          status: identityStore.status === verifiyStatuses.IdentityVerified
-            ? ChallengeStatus.Passed
-            : value ? ChallengeStatus.Passed : ChallengeStatus.Pending,
-          code: !value && pendingChallenges[key],
+        .forEach(([key, value]) => {
+          let status;
+          if (identityStore.status === verifyStatuses.IdentityVerified) {
+            status = ChallengeStatus.Passed;
+          } else {
+            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+          }
+
+          challenges[key] = {
+            type: "matrixChallenge",
+            status,
+            code: !value && pendingChallenges[key],
+          };
         })
       Object.assign(challengeStore, challenges)
 
@@ -340,10 +538,73 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity(), [typedApi])
-  const onIdentityClear = useCallback(() => _clearIdentity().signAndSubmit(
-    accountStore?.polkadotSigner
-  ), [_clearIdentity])
+  const signSubmitAndWatch = useCallback(async (
+    call: ApiTx,
+    messages: {
+      broadcasted?: string,
+      loading?: string,
+      success?: string,
+      error?: string,
+    },
+    eventType: string,
+  ) => {
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner)
+    let txHash: HexString | null = null
+    signedCall.subscribe({
+      next: (result) => {
+        txHash = result.txHash
+        if (result.type === "broadcasted") {
+          addNotification({
+            key: result.txHash,
+            type: "loading",
+            closable: false,
+            message: messages.broadcasted || "Transaction broadcasted",
+          })
+        }
+        if (result.type === "txBestBlocksState") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            closable: false,
+            message: messages.loading || "Waiting for finalization",
+          })
+        }
+        if (result.type === "finalized") {
+          addNotification({
+            key: result.txHash,
+            type: "success",
+            message: messages.success || "Transaction finalized",
+          })
+          fetchIdAndJudgement()
+        }
+        if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
+          setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
+        }
+        if (import.meta.env.DEV) console.log({ result })
+      },
+      error: (error) => {
+        if (import.meta.env.DEV) console.error({ error })
+      },
+      complete: () => {
+        if (import.meta.env.DEV) console.log("Completed")
+        setPendingTx((prev) => prev.filter(tx => tx.txHash !== txHash))
+      }
+    })
+    return signedCall
+  }, [accountStore.polkadotSigner])
+
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
+  const onIdentityClear = useCallback(async () => {
+    signSubmitAndWatch(_clearIdentity(), 
+      {
+        broadcasted: "Clearing identity...",
+        loading: "Waiting for finalization...",
+        success: "Identity cleared",
+        error: "Error clearing identity",
+      },
+      "Identity.IdentityCleared"
+    )
+  }, [_clearIdentity])
   
   const connectedWallets = useConnectedWallets()
   const [_, disconnectWallet] = useWalletDisconnector()
@@ -352,7 +613,7 @@ export function IdentityRegistrarComponent() {
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState({})
+  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
   useEffect(() => {
     if (openDialog === "clearIdentity") {
       _clearIdentity().getEstimatedFees(accountStore.address)
@@ -371,7 +632,7 @@ export function IdentityRegistrarComponent() {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, [key]: string }) => {
+  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
     if (import.meta.env.DEV) console.log({ newValue })
     switch (newValue.type) {
       case "Wallets":
@@ -396,6 +657,13 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+
+  const mainProps: MainContentProps = { 
+    chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
+    challengeStore, identityFormRef, urlParams,
+    addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    signSubmitAndWatch, updateUrlParams, setOpenDialog,
+  }
   
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -423,113 +691,24 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
         />
 
-        {identityStore.status === verifiyStatuses.Unknown
-          ? <>
-            <div className="flex flex-grow flex-col flex-stretch">
-              <LoadingTabs />
-              <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                Loading Identity Data...
-              </LoadingContent>
-            </div>
-          </>
-          : <>
-            {[...alertsStore.entries()].map(([, alert]) => (
-              <Alert 
-                key={alert.key} 
-                variant={alert.type === 'error' ? "destructive" : "default"} 
-                className={`mb-4 ${
-                  alert.type === 'error' 
-                    ? 'bg-[#FFCCCB] border-[#E6007A] text-[#670D35]' 
-                    : isDark 
-                      ? 'bg-[#393838] border-[#E6007A] text-[#FFFFFF]' 
-                      : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35]'
-                }`}
-              >
-                <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                <AlertDescription className="flex justify-between items-center">
-                  {alert.message}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeNotification(alert.key)} 
-                    className={`${
-                      isDark 
-                        ? 'text-[#FFFFFF] hover:text-[#E6007A]' 
-                        : 'text-[#670D35] hover:text-[#E6007A]'
-                    }`}
-                  >
-                    Dismiss
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            ))}
+        {(() => {
+          if (!accountStore.address || !chainStore.id) {
+            return <MainContent {...mainProps} />;
+          }
 
-            <Tabs defaultValue={pages[0].name} value={pages[currentPage].name} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-[#393838] overflow-hidden">
-                {pages.map((page, index) => (
-                  <TabsTrigger 
-                    key={index} 
-                    value={page.name} 
-                    onClick={() => setCurrentPage(index)}
-                    className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-                    disabled={page.disabled}
-                  >
-                    {page.icon}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <TabsContent value={pages[0].name}>
-                <IdentityForm 
-                  addNotification={addNotification}
-                  identityStore={identityStore}
-                  chainStore={chainStore}
-                  typedApi={typedApi as TypedApi<ChainInfo.id>}
-                  accountStore={accountStore}
-                  chainConstants={chainConstants}
-                  formatAmount={formatAmount}
-                />
-              </TabsContent>
-              <TabsContent value={pages[1].name}>
-                <ChallengePage 
-                  identityStore={identityStore}
-                  addNotification={addNotification}
-                  challengeStore={challengeStore}
-                  requestVerificationSecret={requestVerificationSecret}
-                  verifyField={verifyIdentity}
-                />
-              </TabsContent>
-              <TabsContent value={pages[2].name}>
-                <StatusPage 
-                  identityStore={identityStore}
-                  addNotification={addNotification}
-                  challengeStore={challengeStore}
-                  formatAmount={formatAmount}
-                  onIdentityClear={() => setOpenDialog("clearIdentity")}
-                />
-              </TabsContent>
-            </Tabs>
+          if (identityStore.status === verifyStatuses.Unknown) {
+            return (
+              <div className="flex flex-grow flex-col flex-stretch">
+                <LoadingTabs />
+                <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
+                  Loading Identity Data...
+                </LoadingContent>
+              </div>
+            );
+          }
 
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
-                disabled={currentPage === 0 || pages[Math.max(0, currentPage - 1)].disabled}
-                className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
-              <Button
-                onClick={() => setCurrentPage((prev) => Math.min(pages.length - 1, prev + 1))}
-                disabled={currentPage === pages.length - 1 
-                  || pages[Math.min(pages.length - 1, currentPage + 1)].disabled
-                }
-                className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-              >
-                Next <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </>
-        }
+          return <MainContent {...mainProps} />;
+        })()}
       </div>
     </div>
 
@@ -601,8 +780,8 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <TeleporterDialog accounts={accounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.address}
+    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}

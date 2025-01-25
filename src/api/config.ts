@@ -35,7 +35,7 @@ const getProviders = () => {
   };};
 export let providers = getProviders();
 
-type ApiConfig = Config & {
+export type ApiConfig = Config & {
   chains: Record<
     string,
     ChainConfig & {

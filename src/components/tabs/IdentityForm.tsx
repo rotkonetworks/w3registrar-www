@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertProps } from '@/store/AlertStore'
-import { IdentityStore, verifiyStatuses } from '@/store/IdentityStore'
+import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
 import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -15,52 +14,59 @@ import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
+import { Observable } from 'rxjs'
+import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
+import { ApiTx } from '~/types/api'
 
-export function IdentityForm<Chain>({
-  addNotification,
-  identityStore,
-  chainStore,
-  accountStore,
-  typedApi,
-  chainConstants,
-  formatAmount,
-}: {
-  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  identityStore: IdentityStore,
-  chainStore: ChainInfo,
-  accountStore: AccountData,
-  typedApi: TypedApi<Chain>,
-  chainConstants: Record<string, any>,
-  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
-}) {
-  const [formData, setFormData] = useState<Record<string, {
-    value: string,
-    error: string | null,
-  }>>({
-    display: {
-      value: "",
-      error: null,
-    },
-    matrix: {
-      value: "",
-      error: null,
-    },
-    email: {
-      value: "",
-      error: null,
-    },
-    discord: {
-      value: "",
-      error: null,
-    },
-    twitter: {
-      value: "",
-      error: null,
-    },
-  })
+export type IdentityFormData = Record<string, {
+  value: string
+  error: string | null
+}>
 
-  const [showCostModal, setShowCostModal] = useState(false)
+export const IdentityForm = forwardRef((
+  {
+    identityStore,
+    chainStore,
+    accountStore,
+    typedApi,
+    chainConstants,
+    formatAmount,
+    signSubmitAndWatch,
+  }: {
+    identityStore: IdentityStore,
+    chainStore: ChainInfo,
+    accountStore: AccountData,
+    typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
+    chainConstants: Record<string, any>,
+    formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
+    signSubmitAndWatch: (
+      call: ApiTx,
+      messages: {
+        broadcasted?: string,
+        loading?: string,
+        success?: string,
+        error?: string,
+      },
+      eventType: string,
+    ) => Observable<unknown>,
+  },
+  ref: Ref<unknown> & { reset: () => void },
+) => {
+  const _reset = useCallback(() => Object.fromEntries(
+    ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
+      key,
+      { value: "", error: null }
+    ])
+  ), [])
+  const [formData, setFormData] = useState<IdentityFormData>(_reset())
+
   const [actionType, setActionType] = useState<"judgement" | "identity" | null>(null)
+  const [showCostModal, setShowCostModal] = useState(false)
+  useEffect(() => {
+    if (!showCostModal) {
+      setActionType(null)
+    }
+  }, [showCostModal])
 
   const onChainIdentity = identityStore.status
 
@@ -73,23 +79,14 @@ export function IdentityForm<Chain>({
     setShowCostModal(true);
   }
 
-  const [estimatedCosts, setEstimatedCosts] = useState<{
-    fees?: number | bigint | BigNumber,
-    deposits?: number | bigint | BigNumber
-  }>({})
-  useEffect(() => {
+  const getCall = useCallback((): ApiTx | null => {
     if (actionType === "judgement") {
-      typedApi.tx.Identity.request_judgement({
+      return typedApi.tx.Identity.request_judgement({
         max_fee: 0n,
         reg_index: chainStore.registrarIndex,
-      }).getEstimatedFees(accountStore.address)
-        .then(fees =>  setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({  })
-        })
+      })
     } else if (actionType === "identity") {
-      typedApi.tx.Identity.set_identity({
+      return typedApi.tx.Identity.set_identity({
         info: {
           ...(Object.fromEntries(Object.entries(formData)
             .map(([key, { value }]) => [key, value
@@ -115,7 +112,30 @@ export function IdentityForm<Chain>({
             type: "None",
           },
         },
-      }).getEstimatedFees(accountStore.address)
+      });
+    } 
+    else if (actionType === null) {
+      return null
+    } else {
+      throw new Error("Unexpected action type")
+    }
+  }, [actionType, chainStore, formData])
+
+  const [estimatedCosts, setEstimatedCosts] = useState<{
+    fees?: number | bigint | BigNumber,
+    deposits?: number | bigint | BigNumber
+  }>({})
+  useEffect(() => {
+    const call = getCall()
+    if (actionType === "judgement") {
+      call.getEstimatedFees(accountStore.address)
+        .then(fees =>  setEstimatedCosts({ fees, }))
+        .catch(error => {
+          if (import.meta.env.DEV) console.error(error)
+          setEstimatedCosts({  })
+        })
+    } else if (actionType === "identity") {
+      call.getEstimatedFees(accountStore.address)
         .then(fees => setEstimatedCosts({ fees, 
           deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
             .times(Object.values(formData)
@@ -128,49 +148,31 @@ export function IdentityForm<Chain>({
           setEstimatedCosts({})
         })
     }
-  }, [actionType, chainStore, formData])
-  const confirmAction = () => {
-    let call;
-    if (actionType === "judgement") {
-      call = typedApi.tx.Identity.request_judgement({
-        max_fee: 0n,
-        reg_index: chainStore.registrarIndex,
+    else if (actionType === null) {
+      setEstimatedCosts({  })
+      return
+    }
+    call.getEncodedData()
+      .then(encodedCall => {
+        if (import.meta.env.DEV) console.log({ encodedCall: encodedCall.asHex() });
       })
-    } else if (actionType === "identity") {
-      call = typedApi.tx.Identity.set_identity({
-        info: {
-          ...(Object.fromEntries(Object.entries(formData)
-            .map(([key, { value }]) => [key, value
-              ?{
-                type: `Raw${value.length}`,
-                value: Binary.fromText(value),
-              }
-              :{
-                type: "None",
-              }
-            ])
-          )),
-          legal: {
-            type: "None",
-          },
-          github: {
-            type: "None",
-          },
-          image: {
-            type: "None",
-          },
-          web: {
-            type: "None",
-          },
-        },
+      .catch(error => {
+        if (import.meta.env.DEV) console.error(error);
       });
+  }, [actionType, chainStore, formData])
+  const confirmAction = useCallback(() => {
+    const call = getCall();
+    if (!call) {
+      return
     }
-    else {
-      throw new Error("Unexpected action type")
-    }
-    call.signAndSubmit(accountStore.polkadotSigner)
+    signSubmitAndWatch(call, {
+      broadcasted: `Broadcasted ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      loading: `Processing ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
+      success: `${actionType === "judgement" ? "judgement requested" : "identity set"}`,
+      error: `Failed to ${actionType === "judgement" ? "request judgement" : "set identity"}`,
+    }, actionType === "judgement" ? "Identity.JudgementRequested" : "Identity.IdentitySet")
     setShowCostModal(false)
-  }
+  }, [getCall])
 
   const identityFormFields = {
     display: {
@@ -186,7 +188,9 @@ export function IdentityForm<Chain>({
       icon: <AtSign className="h-4 w-4" />,
       key: "matrix",
       placeholder: '@alice:matrix.org',
-      checkForErrors: (v) => v.length > 0 && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 
+        && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null
+      ,
       required: false,
     },
     email: {
@@ -194,7 +198,8 @@ export function IdentityForm<Chain>({
       icon: <Mail className="h-4 w-4" />,
       key: "email",
       placeholder: 'alice@example.org',
-      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      checkForErrors: (v) => v.length > 0 
+        && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
       required: false,
     },
     discord: {
@@ -216,30 +221,34 @@ export function IdentityForm<Chain>({
       required: false,
     },
   }
+  const _resetFromIdStore = useCallback((identityStoreInfo) => (
+    {...(Object.entries(identityFormFields).reduce((all, [key]) => {
+      all[key] = {
+        value: identityStore.info![key] || "",
+        error: null,
+      }
+      return all
+    }, { })
+    )}
+  ), [])
+
+  const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
+    if (!formResetFlag) {
+      return
+    }
+    setFormResetFlag(false)
     if (identityStore.info) {
       if (import.meta.env.DEV) console.log({ identityStore })
-      setFormData({
-        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
-          all[key] = {
-            value: identityStore.info![key] || "",
-            error: null,
-          }
-          return all;
-        }, {}))
-      })
+      setFormData(() => _resetFromIdStore(identityStore))
     } else {
-      setFormData({
-        ...(Object.entries(identityFormFields).reduce((all, [key, value]) => {
-          all[key] = {
-            value: "",
-            error: null,
-          }
-          return all;
-        }, {}))
-      })
+      setFormData(_reset)
     }
-  }, [identityStore.info])
+  }, [identityStore.info, formResetFlag])
+  
+  useImperativeHandle(ref, () => ({
+    reset: () => setFormResetFlag(true)
+  }), [identityStore])
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ formData })
@@ -270,6 +279,7 @@ export function IdentityForm<Chain>({
                   id={props.key}
                   name={props.key}
                   value={formData[key].value}
+                  disabled={!accountStore.address}
                   onChange={event => setFormData(_formData => {
                     const newValue = event.target.value
                     _formData = { ..._formData }
@@ -302,9 +312,9 @@ export function IdentityForm<Chain>({
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === verifiyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
+                {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifiyStatuses.IdentitySet && (
+              {onChainIdentity === verifyStatuses.IdentitySet && (
                 <Button type="button" variant="outline"
                   onClick={() => {
                     setShowCostModal(true)
@@ -372,4 +382,4 @@ export function IdentityForm<Chain>({
       </Dialog>
     </>
   )
-}
+})
