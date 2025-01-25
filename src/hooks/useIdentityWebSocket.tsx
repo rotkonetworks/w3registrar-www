@@ -284,14 +284,14 @@ export const useIdentityWebSocket = ({
     }
     const response = await sendMessage({
       type: 'VerifyIdentity',
-      payload: { account, field, secret }
+      payload: { account, field: internalFieldIds[field], challenge: secret, network }
     });
 
     if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
       return response.payload.message.VerificationResult;
     }
     throw new Error('Verification failed');
-  }, [account, sendMessage]);
+  }, [account, network, sendMessage]);
 
   return {
     isConnected,
