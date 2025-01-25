@@ -46,7 +46,8 @@ interface RequestVerificationSecret {
 interface VerifyIdentity {
   account: string;
   field: string;
-  secret: string;
+  challenge: string;
+  network: string;
 }
 
 type ResponsePayload = {
@@ -270,16 +271,27 @@ export const useIdentityWebSocket = ({
   }, [account, sendMessage]);
 
   const verifyIdentity = useCallback(async (field: string, secret: string): Promise<boolean> => {
+    const internalFieldIds = {
+      discord: "Discord",
+      display_name: "display_name",
+      email: "Email",
+      matrix: "Matrix",
+      twitter: "Twitter",
+      github: "Github",
+      legal: "Legal",
+      web: "Web",
+      pgp: "PGPFingerprint",
+    }
     const response = await sendMessage({
       type: 'VerifyIdentity',
-      payload: { account, field, secret }
+      payload: { account, field: internalFieldIds[field], challenge: secret, network }
     });
 
     if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
       return response.payload.message.VerificationResult;
     }
     throw new Error('Verification failed');
-  }, [account, sendMessage]);
+  }, [account, network, sendMessage]);
 
   return {
     isConnected,

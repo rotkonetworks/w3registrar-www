@@ -296,7 +296,7 @@ export function IdentityRegistrarComponent() {
     }
     const accountData = getAccountData(urlParams.address);
     if (import.meta.env.DEV) console.log({ accountData });
-    if (accountData.polkadotSigner) {
+    if (accountData) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
@@ -324,7 +324,7 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
   const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
-    .getValue(accountStore.address)
+    .getValue(accountStore.address, { at: "best" })
     .then((result) => {
       if (import.meta.env.DEV) console.log({ identityOf: result });
       if (result) {
@@ -419,39 +419,6 @@ export function IdentityRegistrarComponent() {
     onError?: (error: Error) => void; 
     priority: number 
   }>>(() => ({
-    "Identity.IdentitySet": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info", 
-          message: "Identity Set for this account",
-        })
-      },
-      onError: error => { },
-      priority: 2,
-    },
-    "Identity.IdentityCleared": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Identity cleared for this account",
-        })
-      },
-      onError: error => { },
-      priority: 1,
-    },
-    "Identity.JudgementRequested": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Judgement Requested for this account",
-        })
-      },
-      onError: error => { },
-      priority: 3,
-    },
     "Identity.JudgementGiven": {
       onEvent: data => {
         fetchIdAndJudgement()
@@ -473,7 +440,6 @@ export function IdentityRegistrarComponent() {
     chainId: chainStore.id,
     address: accountStore.encodedAddress,
     handlers: eventHandlers,
-    pendingTx,
   })
   //#endregion chains
   
@@ -481,7 +447,7 @@ export function IdentityRegistrarComponent() {
   const identityWebSocket = useIdentityWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.encodedAddress,
-    network: chainStore.id as string,
+    network: (chainStore.id as string).split("_")[0],
     onNotification: onNotification
   });
   const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
@@ -504,6 +470,7 @@ export function IdentityRegistrarComponent() {
 
       const challenges: Record<string, Challenge> = {};
       Object.entries(verifyState)
+        .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
           let status;
           if (identityStore.status === verifyStatuses.IdentityVerified) {
@@ -565,20 +532,9 @@ export function IdentityRegistrarComponent() {
           addNotification({
             key: result.txHash,
             type: "success",
-            closable: false,
-            message: messages.loading || "Waiting for finalization",
-          })
-        }
-        if (result.type === "finalized") {
-          addNotification({
-            key: result.txHash,
-            type: "success",
             message: messages.success || "Transaction finalized",
           })
           fetchIdAndJudgement()
-        }
-        if (!pendingTx.find(tx => tx.txHash === result.txHash)) {
-          setPendingTx((prev) => [...prev, { ...result, type: eventType, who: accountStore.encodedAddress, }])
         }
         if (import.meta.env.DEV) console.log({ result })
       },
@@ -587,7 +543,6 @@ export function IdentityRegistrarComponent() {
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
-        setPendingTx((prev) => prev.filter(tx => tx.txHash !== txHash))
       }
     })
     return signedCall
