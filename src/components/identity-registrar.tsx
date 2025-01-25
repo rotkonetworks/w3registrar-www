@@ -419,39 +419,6 @@ export function IdentityRegistrarComponent() {
     onError?: (error: Error) => void; 
     priority: number 
   }>>(() => ({
-    "Identity.IdentitySet": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info", 
-          message: "Identity Set for this account",
-        })
-      },
-      onError: error => { },
-      priority: 2,
-    },
-    "Identity.IdentityCleared": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Identity cleared for this account",
-        })
-      },
-      onError: error => { },
-      priority: 1,
-    },
-    "Identity.JudgementRequested": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Judgement Requested for this account",
-        })
-      },
-      onError: error => { },
-      priority: 3,
-    },
     "Identity.JudgementGiven": {
       onEvent: data => {
         fetchIdAndJudgement()
