@@ -270,6 +270,17 @@ export const useIdentityWebSocket = ({
   }, [account, sendMessage]);
 
   const verifyIdentity = useCallback(async (field: string, secret: string): Promise<boolean> => {
+    const internalFieldIds = {
+      discord: "Discord",
+      display_name: "display_name",
+      email: "Email",
+      matrix: "Matrix",
+      twitter: "Twitter",
+      github: "Github",
+      legal: "Legal",
+      web: "Web",
+      pgp: "PGPFingerprint",
+    }
     const response = await sendMessage({
       type: 'VerifyIdentity',
       payload: { account, field, secret }
