@@ -30,10 +30,6 @@ export function ChallengePage({
     ...Object.fromEntries(Object.entries(localChallengeStore)
       .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
     ),
-    email: {
-      type: 'input',
-      status: ChallengeStatus.Pending,
-    },
   }), [localChallengeStore])
 
   const [formData, setFormData] = useState<Record<string, {
