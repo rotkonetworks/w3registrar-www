@@ -46,7 +46,8 @@ interface RequestVerificationSecret {
 interface VerifyIdentity {
   account: string;
   field: string;
-  secret: string;
+  challenge: string;
+  network: string;
 }
 
 type ResponsePayload = {
