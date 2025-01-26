@@ -9,6 +9,7 @@ import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
+import { LoadingPlaceholder } from "~/pages/Loading"
 
 export function ChallengePage({
   addNotification,
@@ -162,8 +163,10 @@ export function ChallengePage({
     }
   }, [pendingFields, requestVerificationSecret, challengeStore])
 
-  return (
-    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+  const noChallenges = Object.keys(challengeStore).length
+
+  return noChallenges > 0 
+    ?<Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
           {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
@@ -247,5 +250,7 @@ export function ChallengePage({
         </Button>
       </CardContent>
     </Card>
-  )
+    : <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
+      Loading Challenges...
+    </LoadingPlaceholder>
 }
