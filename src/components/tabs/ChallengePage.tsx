@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, Copy, CheckCircle, RefreshCcw, Check } from "lucide-react"
+import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Twitter } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
@@ -165,6 +165,14 @@ export function ChallengePage({
 
   const noChallenges = Object.keys(challengeStore).length
 
+  const inviteLinkIcons = {
+    matrix: <AtSign className="h-4 w-4" />,
+    email: <Mail className="h-4 w-4" />,
+    discord: <MessageSquare className="h-4 w-4" />,
+    twitter: <Twitter className="h-4 w-4" />, // TODO Deprecated. Will get removed in future.
+    // TODO use https://simpleicons.org/?q=x for the icon
+  }
+
   return noChallenges > 0 
     ?<Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
@@ -207,19 +215,16 @@ export function ChallengePage({
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" 
-                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      disabled={pendingFields[field]}
-                      onClick={() => {
-                        if (code) {
-                          verifyChallenge(field, code)
-                        } else if (type === "input") {
-                          verifyChallenge(field, formData[field]?.value || "")
-                        }
-                      }}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
+                    
+                    {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
+                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} target="_blank" rel="noreferrer">
+                        <Button variant="outline" size="icon" 
+                          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                        >
+                          {inviteLinkIcons[field]}
+                        </Button>
+                      </a>
+                    }
                   </>
                 }
               </div>
