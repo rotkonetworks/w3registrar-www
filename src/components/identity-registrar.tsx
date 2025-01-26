@@ -91,10 +91,8 @@ const MainContent = ({
       icon: <Shield className="h-5 w-5" />,
       disabled: identityStore.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
-        identityStore={identityStore}
         addNotification={addNotification}
         challengeStore={challengeStore}
-        requestVerificationSecret={requestVerificationSecret}
         verifyField={verifyIdentity}
       />
     },

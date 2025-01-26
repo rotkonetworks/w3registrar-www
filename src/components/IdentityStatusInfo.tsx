@@ -1,7 +1,7 @@
 import { Info } from "lucide-react";
 import { verifyStatuses } from "~/store/IdentityStore";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 export const IdentityStatusInfo = ({ status }: { status: verifyStatuses }) => {
   const verifiyStatusColor = useMemo(() => {

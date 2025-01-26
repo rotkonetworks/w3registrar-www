@@ -5,23 +5,17 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Twitter } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
-import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { VerificationStatusBadge } from "../VerificationStatusBadge"
 import { LoadingPlaceholder } from "~/pages/Loading"
 
 export function ChallengePage({
   addNotification,
-  identityStore,
   challengeStore,
-  requestVerificationSecret,
   verifyField,
 }: {
-  identityStore: IdentityStore,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   challengeStore: ChallengeStore,
-  requestVerificationSecret: (field: string) => Promise<string>,
   verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
   const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
@@ -138,30 +132,6 @@ export function ChallengePage({
     }
   }, [pendingFields, verifyField, updateChallengeStatus, addNotification])
 
-  const refreshChallengeCode = useCallback(async (field: string) => {
-    if (pendingFields[field]) return
-
-    try {
-      setPendingFields(prev => ({ ...prev, [field]: true }))
-      const challenge = await requestVerificationSecret(field)
-      setLocalChallengeStore(prev => ({
-        ...prev,
-        [field]: {
-          ...prev[field],
-          code: challenge
-        }
-      }))
-      challengeStore[field].code = challenge
-    } catch (error) {
-      console.error('Failed to refresh challenge:', error)
-      addNotification({
-        type: 'error',
-        message: `Failed to refresh ${field} challenge`
-      })
-    } finally {
-      setPendingFields(prev => ({ ...prev, [field]: false }))
-    }
-  }, [pendingFields, requestVerificationSecret, challengeStore])
 
   const noChallenges = Object.keys(challengeStore).length
 

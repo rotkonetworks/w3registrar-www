@@ -1,4 +1,3 @@
-import { getWsProvider } from "@polkadot-api/ws-provider/node";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 
 export const getProviders = () => {
