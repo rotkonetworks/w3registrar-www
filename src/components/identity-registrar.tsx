@@ -153,8 +153,7 @@ const MainContent = ({
         className={`mb-4 ${alert.type === 'error'
           ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
           : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-          }`
-        }
+        }`}
       >
         <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
         <AlertDescription className="flex justify-between items-center">

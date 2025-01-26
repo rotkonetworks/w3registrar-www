@@ -92,10 +92,15 @@ export function StatusPage({
                       {field.charAt(0).toUpperCase() + field.slice(1)}:
                     </span>
                     <Badge 
-                      variant={
-                        status === ChallengeStatus.Passed ? "success" 
-                        : status === ChallengeStatus.Failed ? "destructive" : "secondary"
-                      }
+                      variant={(() => {
+                        if (status === ChallengeStatus.Passed) {
+                          return "success";
+                        }
+                        else if (status === ChallengeStatus.Failed) {
+                          return "destructive";
+                        }
+                        return "secondary";
+                      })()}
                     >
                       {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
                     </Badge>
