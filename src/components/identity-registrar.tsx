@@ -36,7 +36,7 @@ import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiTx } from "~/types/api"
+import { ApiStorage, ApiTx } from "~/types/api"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -323,7 +323,7 @@ export function IdentityRegistrarComponent() {
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
-  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiTx)
+  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiStorage)
     .getValue(accountStore.address, { at: "best" })
     .then((result) => {
       if (import.meta.env.DEV) console.log({ identityOf: result });
