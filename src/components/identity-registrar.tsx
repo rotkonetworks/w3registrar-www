@@ -503,6 +503,27 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
+  const [nonce, setNonce] = useState<number | null>()
+  useEffect(() => {
+    typedApi.apis.AccountNonceApi.account_nonce(accountStore.address)
+      .then(_nonce => {
+        setNonce(_nonce)
+        if (import.meta.env.DEV) console.log({ _nonce })
+      })
+      .catch(error => {
+        if (import.meta.env.DEV) console.error(error)
+      })
+  }, [accountStore.address, typedApi])
+  const refreshNonce = useCallback(() => {
+    if (!nonce) {
+      return
+    }
+    const _nonce = nonce
+    setNonce(_nonce + 1)
+    if (import.meta.env.DEV) console.log({ _nonce, nextNonce: _nonce + 1 })
+    return _nonce
+  }, [nonce, accountStore.address, typedApi])
+
   const signSubmitAndWatch = useCallback(async (
     call: ApiTx,
     messages: {
@@ -513,7 +534,9 @@ export function IdentityRegistrarComponent() {
     },
     eventType: string,
   ) => {
-    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, { at: "best" })
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
+      { at: "best", nonce: refreshNonce() }
+    )
     let txHash: HexString | null = null
     signedCall.subscribe({
       next: (result) => {
@@ -544,9 +567,11 @@ export function IdentityRegistrarComponent() {
       }
     })
     return signedCall
-  }, [accountStore.polkadotSigner])
+  }, [accountStore.polkadotSigner, refreshNonce])
 
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), 
+    [typedApi, refreshNonce]
+  )
   const onIdentityClear = useCallback(async () => {
     signSubmitAndWatch(_clearIdentity(), 
       {
