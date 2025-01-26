@@ -560,7 +560,11 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ result })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error({ error })
+        if (import.meta.env.DEV) console.error(error)
+        addNotification({
+          type: "error",
+          message: messages.error || "Error submitting transaction. Please try again.",
+        })
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
