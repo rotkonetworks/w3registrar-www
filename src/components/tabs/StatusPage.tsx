@@ -97,11 +97,6 @@ export function StatusPage({
                         status === ChallengeStatus.Passed ? "success" 
                         : status === ChallengeStatus.Failed ? "destructive" : "secondary"
                       }
-                      className={
-                        status === ChallengeStatus.Passed ? "bg-[#E6007A] text-[#FFFFFF]" 
-                        : status === ChallengeStatus.Failed ? "bg-[#670D35] text-[#FFFFFF]"
-                        : "text-[#FFFFFF]"
-                      }
                     >
                       {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
                     </Badge>

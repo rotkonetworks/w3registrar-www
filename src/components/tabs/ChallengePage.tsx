@@ -85,7 +85,7 @@ export function ChallengePage({
       case ChallengeStatus.Failed:
         return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
       default:
-        return <Badge variant="secondary" className="bg-[#706D6D] text-[#FFFFFF]">Pending</Badge>
+        return <Badge variant="secondary">Pending</Badge>
     }
   }
 
