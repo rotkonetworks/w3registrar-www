@@ -36,7 +36,7 @@ import { useDark } from "~/hooks/useDark"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiStorage, ApiTx } from "~/types/api"
+import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -505,7 +505,7 @@ export function IdentityRegistrarComponent() {
   
   const [nonce, setNonce] = useState<number | null>()
   useEffect(() => {
-    typedApi.apis.AccountNonceApi.account_nonce(accountStore.address)
+    ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
       .then(_nonce => {
         setNonce(_nonce)
         if (import.meta.env.DEV) console.log({ _nonce })
