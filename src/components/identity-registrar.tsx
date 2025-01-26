@@ -515,7 +515,7 @@ export function IdentityRegistrarComponent() {
     },
     eventType: string,
   ) => {
-    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner)
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, { at: "best" })
     let txHash: HexString | null = null
     signedCall.subscribe({
       next: (result) => {
