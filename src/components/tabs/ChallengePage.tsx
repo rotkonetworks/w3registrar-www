@@ -3,11 +3,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Twitter } from "lucide-react"
+import { AtSign, Mail, MessageSquare, Copy, CheckCircle } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
+import { XIcon } from "~/assets/icons/x"
+import { DiscordIcon } from "~/assets/icons/discord"
 
 export function ChallengePage({
   addNotification,
@@ -138,9 +140,8 @@ export function ChallengePage({
   const inviteLinkIcons = {
     matrix: <AtSign className="h-4 w-4" />,
     email: <Mail className="h-4 w-4" />,
-    discord: <MessageSquare className="h-4 w-4" />,
-    twitter: <Twitter className="h-4 w-4" />, // TODO Deprecated. Will get removed in future.
-    // TODO use https://simpleicons.org/?q=x for the icon
+    discord: <DiscordIcon className="h-4 w-4" />,
+    twitter: <XIcon className="h-4 w-4" />,
   }
 
   return noChallenges > 0 
