@@ -202,28 +202,6 @@ export function ChallengePage({
             </div>
           ))}
         </div>
-        <Button 
-          className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] w-full"
-          disabled={Object.values(pendingFields).some(Boolean)}
-          onClick={() => {
-            const pendingChallenges = Object.entries(localChallengeStore)
-              .filter(([_, { status }]) => status === ChallengeStatus.Pending)
-
-            Promise.all(
-              pendingChallenges.map(async ([field, { code }]) => {
-                await verifyChallenge(field, code)
-              })
-            ).then(() => {
-              addNotification({
-                type: 'info',
-                message: 'Challenge verifications completed',
-              })
-            })
-          }}
-        >
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Verify Challenges
-        </Button>
       </CardContent>
     </Card>
     : <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
