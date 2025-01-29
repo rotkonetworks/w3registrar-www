@@ -122,6 +122,12 @@ export function ChallengePage({
     twitter: <XIcon className="h-4 w-4" />,
     web: <Globe className="h-4 w-4" />,
   }
+  const inviteInstreuctions = {
+    matrix: "Accept the invite and paste it in the Matrix chat",
+    email: "Send an emaiol to the provided address with the code",
+    discord: "Join the Discord server and paste the code in the #verification channel",
+    twitter: "Send a DM to the provided Twitter account with the code",
+  }
 
 
   if (challengeStore.error) {
@@ -192,7 +198,9 @@ export function ChallengePage({
                     </Button>
                     
                     {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
-                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} target="_blank" rel="noreferrer">
+                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
+                        target="_blank" rel="noreferrer" title={inviteInstreuctions[field]}
+                      >
                         <Button variant="outline" size="icon" 
                           className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                         >
