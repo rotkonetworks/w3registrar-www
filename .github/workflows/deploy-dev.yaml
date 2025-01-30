@@ -19,13 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1.1.39
-        
       - name: Build the Vite app
+        uses: cachix/install-nix-action@v30 
         run: |
           cat .env.example | grep -v "#" > .env
-          bash scripts/build.sh
+          nix-shell --command "bash scripts/build.sh"
 
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
