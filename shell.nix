@@ -19,7 +19,7 @@ pkgs.mkShell {
     # Wait for the descriptors to be downloaded. This is a workaround because it's likely to fail
     # by not generating the descriptors on the first try.
     attempts=10
-    while [ ! -d .papi/descriptors ]; do
+    while [ ! -d .papi/descriptors/dist ]; do
       bunx polkadot-api@1.8.0 update || true
       attempts=$((attempts - 1))
       if [ $attempts -eq 0 ]; then
