@@ -38,17 +38,6 @@ for var in "${REQUIRED_VARS[@]}"; do
 done
 
 bun install
-bunx polkadot-api@1.8.0 update
-
-cat << EOF > ./node_modules/css-tree/lib/data-patch.js
-import * as patch from "../data/patch.json"
-
-export default patch;
-EOF
-
-cat << EOF > ./node_modules/css-tree/lib/version.js
-export { version } from "../package.json";
-EOF
 
 # vite build will fail with 
 #   error during build:

@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import 'uno.css'
 import '@unocss/reset/tailwind-compat.css'
+import "./css/uno.css"
 
-import "./css/tailwind.css"
 import { Loading } from './pages/Loading'
 
 const Main: React.FC = () => {
