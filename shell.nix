@@ -13,14 +13,14 @@ pkgs.mkShell {
     fi
 
     if [ ! -d node_modules ]; then
-      bun install
+      bun install || true
     fi
 
     # Wait for the descriptors to be downloaded. This is a workaround because it's likely to fail
     # by not generating the descriptors on the first try.
     attempts=10
     while [ ! -d .papi/descriptors ]; do
-      bunx polkadot-api@1.8.0 update
+      bunx polkadot-api@1.8.0 update || true
       attempts=$((attempts - 1))
       if [ $attempts -eq 0 ]; then
         echo "Failed to download descriptors"
