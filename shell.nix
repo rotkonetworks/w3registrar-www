@@ -3,12 +3,6 @@
 pkgs.mkShell {
   buildInputs = with pkgs; [ curl unzip ];
 
-  /* LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [
-    openssl
-    sqlite
-    stdenv.cc.cc.lib
-  ]; */
-
   shellHook = ''
     set -euo pipefail
     export BUN_INSTALL="$HOME/.bun"
