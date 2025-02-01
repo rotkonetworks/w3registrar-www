@@ -523,6 +523,7 @@ export function IdentityRegistrarComponent() {
     return _nonce
   }, [nonce, accountStore.address, typedApi])
 
+  const [isTxBusy, setTxBusy] = useState(false)
   const signSubmitAndWatch = useCallback(async (
     call: ApiTx,
     messages: {
@@ -533,6 +534,11 @@ export function IdentityRegistrarComponent() {
     },
     eventType: string,
   ) => {
+    if (isTxBusy) {
+      return
+    }
+    setTxBusy(true)
+
     const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
       { at: "best", nonce: refreshNonce() }
     )
@@ -564,6 +570,7 @@ export function IdentityRegistrarComponent() {
               message: messages.success || "Transaction finalized",
             })
             fetchIdAndJudgement()
+            setTxBusy(false)
           }
         }
         else if (_result.type === "finalized") {
@@ -574,6 +581,7 @@ export function IdentityRegistrarComponent() {
               message: messages.error || "Transaction failed",
             })
             fetchIdAndJudgement()
+            setTxBusy(false)
           }
         }
         if (import.meta.env.DEV) console.log({ _result })
@@ -584,6 +592,7 @@ export function IdentityRegistrarComponent() {
           type: "error",
           message: messages.error || "Error submitting transaction. Please try again.",
         })
+        setTxBusy(false)
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
