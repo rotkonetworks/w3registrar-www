@@ -539,7 +539,15 @@ export function IdentityRegistrarComponent() {
     let txHash: HexString | null = null
     signedCall.subscribe({
       next: (result) => {
-        txHash = result.txHash
+        txHash = result.txHash;
+        const _result: (typeof result) & {
+          found: boolean,
+          ok: boolean,
+        } = { 
+          found: result["found"] || false,
+          ok: result["ok"] || false,
+          ...result,
+        };
         if (result.type === "broadcasted") {
           addNotification({
             key: result.txHash,
@@ -548,15 +556,27 @@ export function IdentityRegistrarComponent() {
             message: messages.broadcasted || "Transaction broadcasted",
           })
         }
-        if (result.type === "txBestBlocksState") {
-          addNotification({
-            key: result.txHash,
-            type: "success",
-            message: messages.success || "Transaction finalized",
-          })
-          fetchIdAndJudgement()
+        else if (_result.type === "txBestBlocksState") {
+          if (_result.ok && _result.found) {
+            addNotification({
+              key: _result.txHash,
+              type: "success",
+              message: messages.success || "Transaction finalized",
+            })
+            fetchIdAndJudgement()
+          }
         }
-        if (import.meta.env.DEV) console.log({ result })
+        else if (_result.type === "finalized") {
+          if (!_result.ok || !_result.found) {
+            addNotification({
+              key: _result.txHash,
+              type: "error",
+              message: messages.error || "Transaction failed",
+            })
+            fetchIdAndJudgement()
+          }
+        }
+        if (import.meta.env.DEV) console.log({ _result })
       },
       error: (error) => {
         if (import.meta.env.DEV) console.error(error)
