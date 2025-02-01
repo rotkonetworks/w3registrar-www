@@ -4,8 +4,15 @@ frontend to submit setIdentity + requestJudgement on polkadot-sdk chains using p
 
 ## Usage
 
-### Development
+Setting it up with Nix is the recommended way, since it takes care of setting up dependencies & environment. Visit https://nixos.org/download/ and follow the installation instructions.
 
+Once you have cloned the repo, and opened a terminal within this repo, you can run `nix-shell` to start. 
+
+For debugging, simply run `nix-shell --command "bun dev"`
+
+For building, just run `nix-shell --command "bun run build"`
+
+### Setup
 First of all, make sure you set up your environment correctly. Those versons are recommended to prevent issues on debug or building. Please make sure you
 
 ```sh
@@ -25,6 +32,7 @@ cp .env.example .env
 ```
 You might edit it to set your endpoints. If debugging, Vite will restart on edit.
 
+### Debug
 ```sh
 bun dev
 ```
@@ -38,7 +46,7 @@ bunx polkadot-api@1.8.0 update # or bun metadata
 
 To build the App, run
 ```sh
-bun build
+bun run build
 ```
 
 ### Chain docs
