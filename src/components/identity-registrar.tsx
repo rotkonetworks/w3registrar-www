@@ -502,6 +502,7 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
+  const [isTxBusy, setTxBusy] = useState(true)
   const [nonce, setNonce] = useState<number | null>()
   useEffect(() => {
     ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
@@ -511,6 +512,10 @@ export function IdentityRegistrarComponent() {
       })
       .catch(error => {
         if (import.meta.env.DEV) console.error(error)
+      })
+      .finally(() => {
+        if (import.meta.env.DEV) console.log("Completed fetching nonce");
+        setTxBusy(false)
       })
   }, [accountStore.address, typedApi])
   const refreshNonce = useCallback(() => {
@@ -523,7 +528,6 @@ export function IdentityRegistrarComponent() {
     return _nonce
   }, [nonce, accountStore.address, typedApi])
 
-  const [isTxBusy, setTxBusy] = useState(false)
   const signSubmitAndWatch = useCallback(async (
     call: ApiTx,
     messages: {
