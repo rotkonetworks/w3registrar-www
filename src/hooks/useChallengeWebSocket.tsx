@@ -1,4 +1,6 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
+import { verifyStatuses } from '~/store/IdentityStore';
 
 // Types matching your Rust backend
 type Data = {
@@ -85,7 +87,71 @@ interface UseIdentityWebSocketReturn {
   challengeState: ResponseAccountState | null;
 }
 
-export const useChallengeWebSocket = ({
+const useChallengeWebSocketWrapper = ({ 
+  url, accountStore, chainStore, onNotification, identityStore, challengeStore
+}: {
+  url: string;
+  accountStore: { encodedAddress: SS58String };
+  onNotification?: (notification: NotifyAccountState) => void;
+  chainStore: { id: string };
+  identityStore: { info: IdentityInfo, status: verifyStatuses };
+  challengeStore: ChallengeStore;
+}) => {
+  const challengeWebSocket = useChallengeWebSocket({ 
+    url, 
+    account: accountStore.encodedAddress,  
+    network: (chainStore.id as string).split("_")[0], 
+    onNotification, 
+  });
+  const { challengeState, error, } = challengeWebSocket
+
+  const idWsDeps = [challengeState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
+  useEffect(() => {
+    if (error) {
+      if (import.meta.env.DEV) console.error(error)
+      return
+    }
+    if (idWsDeps.some((value) => value === undefined)) {
+      return
+    }
+    if (import.meta.env.DEV) console.log({ challengeState })
+    if (challengeState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = challengeState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const challenges: ChallengeStore = {};
+      Object.entries(verifyState)
+        .filter(([key, value]) => pendingChallenges[key] || value)
+        .forEach(([key, value]) => {
+          let status;
+          if (identityStore.status === verifyStatuses.IdentityVerified) {
+            status = ChallengeStatus.Passed;
+          } else {
+            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+          }
+
+          challenges[key] = {
+            type: "matrixChallenge",
+            status,
+            code: !value && pendingChallenges[key],
+          };
+        })
+      Object.assign(challengeStore, challenges)
+
+      if (import.meta.env.DEV) console.log({
+        origin: "challengeState",
+        pendingChallenges,
+        verifyState,
+        challenges,
+      })
+    }
+  }, idWsDeps)
+}
+
+const useChallengeWebSocket = ({
   url,
   account,
   network,
@@ -245,3 +311,4 @@ export const useChallengeWebSocket = ({
   };
 };
 
+export { useChallengeWebSocketWrapper as useChallengeWebSocket };
