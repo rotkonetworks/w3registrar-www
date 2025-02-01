@@ -61,10 +61,11 @@ type MainContentProps = {
   urlParams: Record<string, string>,
   updateUrlParams: any,
   setOpenDialog: any,
+  isTxBusy: boolean,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, isDark, alertsStore, identityFormRef, urlParams,
+  chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
   addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
@@ -83,6 +84,7 @@ const MainContent = ({
         chainConstants={chainConstants}
         formatAmount={formatAmount}
         signSubmitAndWatch={signSubmitAndWatch}
+        isTxBusy={isTxBusy}
       />
     },
     {
@@ -107,6 +109,7 @@ const MainContent = ({
         challengeStore={challengeStore}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
+        isTxBusy={isTxBusy}
       />
     },
   ]
@@ -503,6 +506,10 @@ export function IdentityRegistrarComponent() {
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const [isTxBusy, setTxBusy] = useState(true)
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ isTxBusy })
+  }, [isTxBusy])
+
   const [nonce, setNonce] = useState<number | null>()
   useEffect(() => {
     ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
@@ -674,7 +681,7 @@ export function IdentityRegistrarComponent() {
 
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    challengeStore, identityFormRef, urlParams,
+    challengeStore, identityFormRef, urlParams, isTxBusy,
     addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
@@ -703,6 +710,7 @@ export function IdentityRegistrarComponent() {
             id: chainStore.id,
           }} 
           onToggleDark={() => setDark(!isDark)}
+          isTxBusy={isTxBusy}
         />
 
         {(() => {

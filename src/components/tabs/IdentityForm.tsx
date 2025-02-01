@@ -30,6 +30,7 @@ export const IdentityForm = forwardRef((
     accountStore,
     typedApi,
     chainConstants,
+    isTxBusy,
     formatAmount,
     signSubmitAndWatch,
   }: {
@@ -38,6 +39,7 @@ export const IdentityForm = forwardRef((
     accountStore: AccountData,
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
     chainConstants: Record<string, any>,
+    isTxBusy: boolean,
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
       call: ApiTx,
@@ -308,7 +310,7 @@ export const IdentityForm = forwardRef((
             )}
             <IdentityStatusInfo status={identityStore.status} />
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button type="submit" disabled={forbiddenSubmission}
+              <Button type="submit" disabled={forbiddenSubmission || isTxBusy}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
@@ -321,7 +323,7 @@ export const IdentityForm = forwardRef((
                     setActionType("judgement")
                   }}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
-                  disabled={forbiddenSubmission}
+                  disabled={forbiddenSubmission || isTxBusy}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement

@@ -13,12 +13,14 @@ import { VerificationStatusBadge } from "../VerificationStatusBadge"
 export function StatusPage({
   identityStore,
   challengeStore,
+  isTxBusy,
   addNotification,
   formatAmount,
   onIdentityClear,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
+  isTxBusy: boolean,
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
@@ -115,7 +117,7 @@ export function StatusPage({
           <Button variant="outline" 
             onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-            disabled={onChainIdentity <= verifyStatuses.NoIdentity}
+            disabled={onChainIdentity <= verifyStatuses.NoIdentity || isTxBusy}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity
