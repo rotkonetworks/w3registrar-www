@@ -163,10 +163,7 @@ const MainContent = ({
               variant="ghost"
               size="sm"
               onClick={() => removeNotification(alert.key)}
-              className={`${isDark
-                ? 'text-[#FFFFFF] hover:text-[#E6007A]'
-                : 'text-[#670D35] hover:text-[#E6007A]'
-              }`}
+              className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
             >
               Dismiss
             </Button>
