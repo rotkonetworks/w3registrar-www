@@ -27,5 +27,9 @@ pkgs.mkShell {
         exit 1
       fi
     done
+
+    if [ ! -f .env ]; then
+      cp .env.example .env
+    fi
   '';
 }
