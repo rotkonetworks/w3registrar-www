@@ -82,10 +82,10 @@ interface UseIdentityWebSocketProps {
 interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
-  accountState: ResponseAccountState | null;
+  challengeState: ResponseAccountState | null;
 }
 
-export const useIdentityWebSocket = ({
+export const useChallengeWebSocket = ({
   url,
   account,
   network,
@@ -94,7 +94,7 @@ export const useIdentityWebSocket = ({
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accountState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
@@ -241,7 +241,7 @@ export const useIdentityWebSocket = ({
   return {
     isConnected,
     error,
-    accountState,
+    challengeState,
   };
 };
 

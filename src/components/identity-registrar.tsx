@@ -25,7 +25,7 @@ import { StatusPage } from "./tabs/StatusPage"
 import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
-import { NotifyAccountState, useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
@@ -441,14 +441,14 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   //#region challenges
-  const identityWebSocket = useIdentityWebSocket({
+  const challengeWebSocket = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
     account: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
     onNotification: onNotification
   });
-  const { accountState, error, } = identityWebSocket
-  const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
+  const { challengeState, error, } = challengeWebSocket
+  const idWsDeps = [challengeState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
       if (import.meta.env.DEV) console.error(error)
@@ -457,12 +457,12 @@ export function IdentityRegistrarComponent() {
     if (idWsDeps.some((value) => value === undefined)) {
       return
     }
-    if (import.meta.env.DEV) console.log({ accountState })
-    if (accountState) {
+    if (import.meta.env.DEV) console.log({ challengeState })
+    if (challengeState) {
       const {
         pending_challenges,
         verification_state: { fields: verifyState },
-      } = accountState;
+      } = challengeState;
       const pendingChallenges = Object.fromEntries(pending_challenges)
 
       const challenges: Record<string, Challenge> = {};
@@ -485,7 +485,7 @@ export function IdentityRegistrarComponent() {
       Object.assign(challengeStore, challenges)
 
       if (import.meta.env.DEV) console.log({
-        origin: "accountState",
+        origin: "challengeState",
         pendingChallenges,
         verifyState,
         challenges,
