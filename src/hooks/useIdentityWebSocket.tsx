@@ -38,18 +38,6 @@ interface ResponseAccountState {
   pending_challenges: [string, string][];
 }
 
-interface RequestVerificationSecret {
-  account: string;
-  field: string;
-}
-
-interface VerifyIdentity {
-  account: string;
-  field: string;
-  challenge: string;
-  network: string;
-}
-
 type ResponsePayload = {
   AccountState: ResponseAccountState;
   Secret: string;
@@ -67,12 +55,6 @@ type WebSocketMessage = {
   } | { 
     type: 'NotifyAccountState'; 
     payload: NotifyAccountState 
-  } | { 
-    type: 'RequestVerificationSecret'; 
-    payload: RequestVerificationSecret 
-  } | { 
-    type: 'VerifyIdentity'; 
-    payload: VerifyIdentity 
   } | { 
     type: 'JsonResult'; 
     payload: { 
@@ -101,8 +83,6 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   accountState: ResponseAccountState | null;
-  requestVerificationSecret: (field: string) => Promise<string>;
-  verifyIdentity: (field: string, secret: string) => Promise<boolean>;
 }
 
 export const useIdentityWebSocket = ({
@@ -258,47 +238,10 @@ export const useIdentityWebSocket = ({
     }
   }, [account, network, sendMessage, ws.current?.readyState])
 
-  const requestVerificationSecret = useCallback(async (field: string): Promise<string> => {
-    const response = await sendMessage({
-      type: 'RequestVerificationSecret',
-      payload: { account, field }
-    });
-
-    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
-      return response.payload.message.Secret;
-    }
-    throw new Error('Failed to get verification secret');
-  }, [account, sendMessage]);
-
-  const verifyIdentity = useCallback(async (field: string, secret: string): Promise<boolean> => {
-    const internalFieldIds = {
-      discord: "Discord",
-      display_name: "display_name",
-      email: "Email",
-      matrix: "Matrix",
-      twitter: "Twitter",
-      github: "Github",
-      legal: "Legal",
-      web: "Web",
-      pgp: "PGPFingerprint",
-    }
-    const response = await sendMessage({
-      type: 'VerifyIdentity',
-      payload: { account, field: internalFieldIds[field], challenge: secret, network }
-    });
-
-    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
-      return response.payload.message.VerificationResult;
-    }
-    throw new Error('Verification failed');
-  }, [account, network, sendMessage]);
-
   return {
     isConnected,
     error,
     accountState,
-    requestVerificationSecret,
-    verifyIdentity
   };
 };
 

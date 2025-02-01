@@ -53,8 +53,6 @@ type MainContentProps = {
   alertsStore: Map<string, AlertProps>,
   addNotification: any, 
   formatAmount: any, 
-  requestVerificationSecret: any, 
-  verifyIdentity: any, 
   signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
@@ -66,7 +64,7 @@ type MainContentProps = {
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
-  addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+  addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
@@ -95,7 +93,6 @@ const MainContent = ({
       content: <MemoChallengesPage
         addNotification={addNotification}
         challengeStore={challengeStore}
-        verifyField={verifyIdentity}
       />
     },
     {
@@ -450,7 +447,7 @@ export function IdentityRegistrarComponent() {
     network: (chainStore.id as string).split("_")[0],
     onNotification: onNotification
   });
-  const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
+  const { accountState, error, } = identityWebSocket
   const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
   useEffect(() => {
     if (error) {
@@ -682,7 +679,7 @@ export function IdentityRegistrarComponent() {
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
     challengeStore, identityFormRef, urlParams, isTxBusy,
-    addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
   

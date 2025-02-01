@@ -14,11 +14,9 @@ import { DiscordIcon } from "~/assets/icons/discord"
 export function ChallengePage({
   addNotification,
   challengeStore,
-  verifyField,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   challengeStore: ChallengeStore,
-  verifyField: (field: string, secret: string) => Promise<boolean>,
 }) {
   const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore)
@@ -109,30 +107,6 @@ export function ChallengePage({
     }))
     challengeStore[field].status = newStatus
   }, [challengeStore])
-
-  const verifyChallenge = useCallback(async (field: string, code: string) => {
-    if (pendingFields[field]) return
-
-    try {
-      setPendingFields(prev => ({ ...prev, [field]: true }))
-      const result = await verifyField(field, code)
-      updateChallengeStatus(field as keyof ChallengeStore, result)
-      addNotification({
-        type: result ? 'success' : 'error',
-        message: result
-          ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
-          : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
-      })
-    } catch (error) {
-      console.error('Verification failed:', error)
-      addNotification({
-        type: 'error',
-        message: `Failed to verify ${field}`
-      })
-    } finally {
-      setPendingFields(prev => ({ ...prev, [field]: false }))
-    }
-  }, [pendingFields, verifyField, updateChallengeStatus, addNotification])
 
 
   const noChallenges = Object.keys(challengeStore).length
