@@ -291,7 +291,7 @@ const useChallengeWebSocket = (
   }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
 
   useEffect(() => {
-    if (ws.current?.readyState === WebSocket.OPEN && account) {
+    if (ws.current?.readyState === WebSocket.OPEN && account && network) {
       if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
       // Subscribe to account state on connection
       sendMessage({
