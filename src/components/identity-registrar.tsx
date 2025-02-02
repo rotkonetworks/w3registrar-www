@@ -44,7 +44,7 @@ const MemoStatusPage = memo(StatusPage)
 
 type MainContentProps = {
   identityStore: IdentityStore,
-  challengeStore: ChallengeStore,
+  challenges: ChallengeStore,
   chainStore: ChainInfo, 
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
@@ -62,7 +62,7 @@ type MainContentProps = {
   isTxBusy: boolean,
 }
 const MainContent = ({
-  identityStore, challengeStore, chainStore, typedApi, accountStore,
+  identityStore, challenges: challenges, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
   addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
@@ -92,7 +92,7 @@ const MainContent = ({
       disabled: identityStore.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
         addNotification={addNotification}
-        challengeStore={challengeStore}
+        challengeStore={challenges}
       />
     },
     {
@@ -103,7 +103,7 @@ const MainContent = ({
       content: <MemoStatusPage
         identityStore={identityStore}
         addNotification={addNotification}
-        challengeStore={challengeStore}
+        challengeStore={challenges}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
         isTxBusy={isTxBusy}
@@ -223,7 +223,6 @@ export function IdentityRegistrarComponent() {
   const { isDark, setDark } = useDark()
 
   const identityStore = useProxy(_identityStore);
-  const challengeStore = useProxy(_challengeStore);
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
 
@@ -393,7 +392,7 @@ export function IdentityRegistrarComponent() {
         chainProperties = (await chainClient.getChainSpecData()).properties
         if (import.meta.env.DEV) console.log({ id, chainProperties })
       } catch {
-        if (import.meta.env.DEV) console.error({ id, error })
+        if (import.meta.env.DEV) console.error({ id, })
       }
       const newChainData = {
         name: config.chains[id].name,
@@ -441,57 +440,13 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   //#region challenges
-  const challengeWebSocket = useChallengeWebSocket({
-    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: accountStore.encodedAddress,
+  const { challenges, error, isConnected } = useChallengeWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
+    address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
-    onNotification: onNotification
+    onNotification: onNotification,
+    identityStore: { info: identityStore.info, status: identityStore.status, },
   });
-  const { challengeState, error, } = challengeWebSocket
-  const idWsDeps = [challengeState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
-  useEffect(() => {
-    if (error) {
-      if (import.meta.env.DEV) console.error(error)
-      return
-    }
-    if (idWsDeps.some((value) => value === undefined)) {
-      return
-    }
-    if (import.meta.env.DEV) console.log({ challengeState })
-    if (challengeState) {
-      const {
-        pending_challenges,
-        verification_state: { fields: verifyState },
-      } = challengeState;
-      const pendingChallenges = Object.fromEntries(pending_challenges)
-
-      const challenges: Record<string, Challenge> = {};
-      Object.entries(verifyState)
-        .filter(([key, value]) => pendingChallenges[key] || value)
-        .forEach(([key, value]) => {
-          let status;
-          if (identityStore.status === verifyStatuses.IdentityVerified) {
-            status = ChallengeStatus.Passed;
-          } else {
-            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
-          }
-
-          challenges[key] = {
-            type: "matrixChallenge",
-            status,
-            code: !value && pendingChallenges[key],
-          };
-        })
-      Object.assign(challengeStore, challenges)
-
-      if (import.meta.env.DEV) console.log({
-        origin: "challengeState",
-        pendingChallenges,
-        verifyState,
-        challenges,
-      })
-    }
-  }, idWsDeps)
   //#endregion challenges
 
   const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
@@ -678,7 +633,7 @@ export function IdentityRegistrarComponent() {
 
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    challengeStore, identityFormRef, urlParams, isTxBusy,
+    challenges, identityFormRef, urlParams, isTxBusy,
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
