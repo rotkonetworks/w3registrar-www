@@ -1,6 +1,7 @@
+import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
-import { verifyStatuses } from '~/store/IdentityStore';
+import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
 
 // Types matching your Rust backend
 type Data = {
@@ -89,25 +90,26 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, accountStore, chainStore, onNotification, identityStore, challengeStore
+  url, address, network, onNotification, identityStore, challengeStore
 }: {
   url: string;
-  accountStore: { encodedAddress: SS58String };
+  address: SS58String;
   onNotification?: (notification: NotifyAccountState) => void;
-  chainStore: { id: string };
-  identityStore: { info: IdentityInfo, status: verifyStatuses };
+  network: string;
+  identityStore: { info: IdentityFormData, status: verifyStatuses };
   challengeStore: ChallengeStore;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 
-    account: accountStore.encodedAddress,  
-    network: (chainStore.id as string).split("_")[0], 
+    account: address,  
+    network: network.split("_")[0], 
     onNotification, 
   });
-  const { challengeState, error, } = challengeWebSocket
+  const { challengeState, error, isConnected, } = challengeWebSocket
 
-  const idWsDeps = [challengeState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
+  const idWsDeps = [challengeState, error, address, identityStore.info, network]
   useEffect(() => {
+    if (import.meta.env.DEV) console.log({ idWsDeps })
     if (error) {
       if (import.meta.env.DEV) console.error(error)
       return
@@ -150,6 +152,8 @@ const useChallengeWebSocketWrapper = ({
       })
     }
   }, idWsDeps)
+
+  return { challengeStore, error, isConnected, }
 }
 
 const useChallengeWebSocket = (
