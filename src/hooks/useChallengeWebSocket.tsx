@@ -151,12 +151,9 @@ const useChallengeWebSocketWrapper = ({
   }, idWsDeps)
 }
 
-const useChallengeWebSocket = ({
-  url,
-  account,
-  network,
-  onNotification
-}: UseIdentityWebSocketProps): UseIdentityWebSocketReturn => {
+const useChallengeWebSocket = (
+  { url, account, network, onNotification }: UseIdentityWebSocketProps
+): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
