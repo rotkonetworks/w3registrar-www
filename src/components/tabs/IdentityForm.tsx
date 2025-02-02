@@ -18,6 +18,7 @@ import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { ApiTx } from '~/types/api'
 
+// BUG Comflicts with IdentityFormData from ~/store/IdentityStore
 export type IdentityFormData = Record<string, {
   value: string
   error: string | null

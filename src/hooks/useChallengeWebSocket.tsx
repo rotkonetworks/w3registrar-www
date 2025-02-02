@@ -8,6 +8,7 @@ type Data = {
   value?: Uint8Array | [number, number, number, number];
 };
 
+// FIX Confllicts with IdentityFormData
 interface IdentityInfo {
   display: Data;
   legal: Data;
