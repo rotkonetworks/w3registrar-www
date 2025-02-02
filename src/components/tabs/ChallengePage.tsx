@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
 import { XIcon } from "~/assets/icons/x"
 import { DiscordIcon } from "~/assets/icons/discord"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 
 export function ChallengePage({
   addNotification,
@@ -119,8 +120,33 @@ export function ChallengePage({
     twitter: <XIcon className="h-4 w-4" />,
   }
 
-  return noChallenges > 0 
-    ?<Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+
+  if (challengeStore.error) {
+    return (
+      <Alert
+        key={"challengeError"}
+        variant="destructive"
+        className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+      >
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription className="flex justify-between items-center">
+          There was an error loading the challenges. Please reload the page and try again later.
+          {/* TODO Add reload button */}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (noChallenges === 0) {
+    return (
+      <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
+        Loading Challenges...
+      </LoadingPlaceholder>
+    );
+  }
+
+  return (
+    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
           {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
@@ -179,7 +205,5 @@ export function ChallengePage({
         </div>
       </CardContent>
     </Card>
-    : <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
-      Loading Challenges...
-    </LoadingPlaceholder>
+  );
 }
