@@ -44,7 +44,7 @@ const MemoStatusPage = memo(StatusPage)
 
 type MainContentProps = {
   identityStore: IdentityStore,
-  challenges: ChallengeStore,
+  challengeStore: { challenges: ChallengeStore, error: string | null },
   chainStore: ChainInfo, 
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
@@ -62,7 +62,7 @@ type MainContentProps = {
   isTxBusy: boolean,
 }
 const MainContent = ({
-  identityStore, challenges: challenges, chainStore, typedApi, accountStore,
+  identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
   addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
@@ -92,7 +92,7 @@ const MainContent = ({
       disabled: identityStore.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
         addNotification={addNotification}
-        challengeStore={challenges}
+        challengeStore={challengeStore}
       />
     },
     {
@@ -103,7 +103,7 @@ const MainContent = ({
       content: <MemoStatusPage
         identityStore={identityStore}
         addNotification={addNotification}
-        challengeStore={challenges}
+        challengeStore={challengeStore.challenges}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
         isTxBusy={isTxBusy}
@@ -440,7 +440,10 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   //#region challenges
-  const { challenges, error, isConnected } = useChallengeWebSocket({
+  const { challenges, 
+    error: challengeError, 
+    isConnected: isChallengeWsConnected 
+  } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
@@ -633,7 +636,7 @@ export function IdentityRegistrarComponent() {
 
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    challenges, identityFormRef, urlParams, isTxBusy,
+    challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }

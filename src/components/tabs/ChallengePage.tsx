@@ -16,10 +16,10 @@ export function ChallengePage({
   challengeStore,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  challengeStore: ChallengeStore,
+  challengeStore: { challenges: ChallengeStore, error: string | null };
 }) {
   const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
-  const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore)
+  const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
     ...Object.fromEntries(Object.entries(localChallengeStore)
@@ -33,7 +33,7 @@ export function ChallengePage({
   }>>({})
 
   useEffect(() => {
-    setLocalChallengeStore(challengeStore)
+    setLocalChallengeStore(challengeStore.challenges)
   }, [challengeStore])
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export function ChallengePage({
   }, [challengeStore])
 
 
-  const noChallenges = Object.keys(challengeStore).length
+  const noChallenges = Object.keys(challengeStore.challenges).length
 
   const inviteLinkIcons = {
     matrix: <AtSign className="h-4 w-4" />,
