@@ -90,14 +90,13 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, address, network, onNotification, identityStore, challengeStore
+  url, address, network, onNotification, identityStore
 }: {
   url: string;
   address: SS58String;
   onNotification?: (notification: NotifyAccountState) => void;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
-  challengeStore: ChallengeStore;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 
@@ -107,6 +106,7 @@ const useChallengeWebSocketWrapper = ({
   });
   const { challengeState, error, isConnected, } = challengeWebSocket
 
+  const [challenges, setChallenges] = useState<ChallengeStore>({});
   const idWsDeps = [challengeState, error, address, identityStore.info, network]
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ idWsDeps })
@@ -125,7 +125,7 @@ const useChallengeWebSocketWrapper = ({
       } = challengeState;
       const pendingChallenges = Object.fromEntries(pending_challenges)
 
-      const challenges: ChallengeStore = {};
+      const _challenges: ChallengeStore = {};
       Object.entries(verifyState)
         .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
@@ -136,24 +136,24 @@ const useChallengeWebSocketWrapper = ({
             status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
           }
 
-          challenges[key] = {
+          _challenges[key] = {
             type: "matrixChallenge",
             status,
             code: !value && pendingChallenges[key],
           };
         })
-      Object.assign(challengeStore, challenges)
+      setChallenges(_challenges)
 
       if (import.meta.env.DEV) console.log({
         origin: "challengeState",
         pendingChallenges,
         verifyState,
-        challenges,
+        challenges: _challenges,
       })
     }
   }, idWsDeps)
 
-  return { challengeStore, error, isConnected, }
+  return { challenges, error, isConnected, }
 }
 
 const useChallengeWebSocket = (
