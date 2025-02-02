@@ -13,6 +13,7 @@ import { DiscordIcon } from "~/assets/icons/discord"
 
 export function ChallengePage({
   addNotification,
+  // TODO Add status as in IdentityInfo
   challengeStore,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
