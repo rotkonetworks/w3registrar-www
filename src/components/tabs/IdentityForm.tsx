@@ -5,7 +5,7 @@ import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircl
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
@@ -290,18 +290,21 @@ export const IdentityForm = forwardRef((
   return (
     <>
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
-        <CardContent className="space-y-6 p-6">
-          <h1 className="dark:text-white text-black text-2xl font-semibold">
+        <CardHeader>
+          <CardTitle className="text-inherit flex items-center gap-2">
+            <UserCircle className="h-5 w-5" />
             Identity Information
-          </h1>
-          <span className='text-[#706D6D]'>
+          </CardTitle>
+          <CardDescription className="text-[#706D6D]">
             This form allows you to 
             {identityStore.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
             your identity data. It has all the fields that 
             {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
             supports for identity verification. Please make sure that all contact information is 
-            accurate before proceeding.
-          </span>
+            accurate before proceeding. 
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 p-6">
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries(identityFormFields).map(([key, props]) =>
