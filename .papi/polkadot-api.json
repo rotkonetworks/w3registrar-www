@@ -7,7 +7,7 @@
       "metadata": ".papi/metadata/polkadot.scale"
     },
     "rococo": {
-      "wsUrl": "wss://testnet.71walceli.beauty/alice",
+      "wsUrl": "wss://dev.rotko.net/paseo",
       "metadata": ".papi/metadata/rococo.scale"
     },
     "paseo": {
@@ -31,7 +31,7 @@
       "metadata": ".papi/metadata/westend2.scale"
     },
     "rococo_people": {
-      "wsUrl": "wss://testnet.71walceli.beauty/people-01",
+      "wsUrl": "wss://dev.rotko.net/people-paseo",
       "metadata": ".papi/metadata/rococo_people.scale"
     },
     "paseo_people": {
