@@ -270,7 +270,19 @@ export const IdentityForm = forwardRef((
   return (
     <>
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
-        <CardContent className="space-y-6 p-4">
+        <CardContent className="space-y-6 p-6">
+          <h1 className="dark:text-white text-black text-2xl font-semibold">
+            Identity Information
+          </h1>
+          <span className='text-[#706D6D]'>
+            This form allows you to 
+            {identityStore.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
+            your identity data. It has all the fields that 
+            {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
+            supports for identity verification. Please make sure that all contact information is 
+            accurate before proceeding.
+          </span>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries(identityFormFields).map(([key, props]) =>
               <div className="space-y-2" key={props.key}>
