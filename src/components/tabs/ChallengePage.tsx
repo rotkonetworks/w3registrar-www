@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle } from "lucide-react"
+import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -93,6 +93,8 @@ export function ChallengePage({
         return <Mail className="h-4 w-4" />
       case "discord":
         return <MessageSquare className="h-4 w-4" />
+      case "web":
+        return <Globe className="h-4 w-4" />
       default:
         return null
     }
@@ -134,7 +136,6 @@ export function ChallengePage({
     }
   }, [pendingFields, verifyField, updateChallengeStatus, addNotification])
 
-
   const noChallenges = Object.keys(challengeStore).length
 
   const inviteLinkIcons = {
@@ -142,10 +143,11 @@ export function ChallengePage({
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
+    web: <Globe className="h-4 w-4" />,
   }
 
   return noChallenges > 0 
-    ?<Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+    ? <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
           {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
@@ -195,6 +197,17 @@ export function ChallengePage({
                           {inviteLinkIcons[field]}
                         </Button>
                       </a>
+                    }
+                    
+                    {field === "web" &&
+                      <Button
+                        variant="outline"
+                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+                        disabled={pendingFields[field]}
+                        onClick={() => verifyChallenge(field, formData[field]?.value || "")}
+                      >
+                        Verify
+                      </Button>
                     }
                   </>
                 }

@@ -1,6 +1,6 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
-import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle } from 'lucide-react'
+import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -53,7 +53,7 @@ export const IdentityForm = forwardRef((
   ref: Ref<unknown> & { reset: () => void },
 ) => {
   const _reset = useCallback(() => Object.fromEntries(
-    ['display', 'matrix', 'email', 'discord', 'twitter'].map(key => [
+    ['display', 'matrix', 'email', 'discord', 'twitter', 'web'].map(key => [
       key,
       { value: "", error: null }
     ])
@@ -108,9 +108,9 @@ export const IdentityForm = forwardRef((
           image: {
             type: "None",
           },
-          web: {
-            type: "None",
-          },
+          // web: {
+          //   type: "None",
+          // },
         },
       });
     } 
@@ -218,6 +218,26 @@ export const IdentityForm = forwardRef((
       key: "twitter",
       placeholder: '@alice',
       checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+    web: {
+      label: "Website",
+      icon: <Globe className="h-4 w-4" />,
+      key: "web",
+      placeholder: 'alice.org',
+      checkForErrors: (v) => {
+        if (v.length === 0) return null;
+        try {
+          const url = new URL(v.startsWith('http') ? v : `https://${v}`);
+          return null;
+        } catch {
+          return "Invalid URL format";
+        }
+      },
+      transform: (value: string) => {
+        if (!value) return "";
+        return value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+      },
       required: false,
     },
   }
