@@ -24,7 +24,7 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, 
+  config, chainStore, accountStore, identityStore, accounts, isTxBusy,
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
     accounts: AccountData[];
@@ -32,6 +32,7 @@ const Header = ({
     chainStore: { id: string | number | symbol, name: string };
     accountStore: { address: string, name: string };
     identityStore: IdentityStore;
+    isTxBusy: boolean;
     onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
     onAccountSelect: SelectChangeHandler;
     onRequestWalletConnections: () => void;
@@ -59,6 +60,7 @@ const Header = ({
                 onRequestWalletConnections()
               }
             }}
+            disabled={isTxBusy}
           >
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0">
               <div className="w-full min-w-0">
@@ -113,6 +115,7 @@ const Header = ({
             open={isNetDropdownOpen} 
             onOpenChange={setNetDropdownOpen} 
             onValueChange={onChainSelect}
+            disabled={isTxBusy}
           >
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
               <SelectValue placeholder={chainStore.name?.replace("People", "")} />

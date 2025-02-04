@@ -1,4 +1,7 @@
+import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
+import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
 
 // Types matching your Rust backend
 type Data = {
@@ -6,6 +9,7 @@ type Data = {
   value?: Uint8Array | [number, number, number, number];
 };
 
+// FIX Confllicts with IdentityFormData
 interface IdentityInfo {
   display: Data;
   legal: Data;
@@ -38,18 +42,6 @@ interface ResponseAccountState {
   pending_challenges: [string, string][];
 }
 
-interface RequestVerificationSecret {
-  account: string;
-  field: string;
-}
-
-interface VerifyIdentity {
-  account: string;
-  field: string;
-  challenge: string;
-  network: string;
-}
-
 type ResponsePayload = {
   AccountState: ResponseAccountState;
   Secret: string;
@@ -67,12 +59,6 @@ type WebSocketMessage = {
   } | { 
     type: 'NotifyAccountState'; 
     payload: NotifyAccountState 
-  } | { 
-    type: 'RequestVerificationSecret'; 
-    payload: RequestVerificationSecret 
-  } | { 
-    type: 'VerifyIdentity'; 
-    payload: VerifyIdentity 
   } | { 
     type: 'JsonResult'; 
     payload: { 
@@ -100,21 +86,83 @@ interface UseIdentityWebSocketProps {
 interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
-  accountState: ResponseAccountState | null;
-  requestVerificationSecret: (field: string) => Promise<string>;
-  verifyIdentity: (field: string, secret: string) => Promise<boolean>;
+  challengeState: ResponseAccountState | null;
 }
 
-export const useIdentityWebSocket = ({
-  url,
-  account,
-  network,
-  onNotification
-}: UseIdentityWebSocketProps): UseIdentityWebSocketReturn => {
+const useChallengeWebSocketWrapper = ({ 
+  url, address, network, onNotification, identityStore
+}: {
+  url: string;
+  address: SS58String;
+  onNotification?: (notification: NotifyAccountState) => void;
+  network: string;
+  identityStore: { info: IdentityFormData, status: verifyStatuses };
+}) => {
+  const challengeWebSocket = useChallengeWebSocket({ 
+    url, 
+    account: address,  
+    network: network.split("_")[0], 
+    onNotification, 
+  });
+  const { challengeState, error, isConnected, } = challengeWebSocket
+
+  const [challenges, setChallenges] = useState<ChallengeStore>({});
+  const idWsDeps = [challengeState, error, address, identityStore.info, network]
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ idWsDeps })
+    if (error) {
+      if (import.meta.env.DEV) console.error(error)
+      return
+    }
+    if (idWsDeps.some((value) => value === undefined)) {
+      return
+    }
+    if (import.meta.env.DEV) console.log({ challengeState })
+    if (challengeState) {
+      const {
+        pending_challenges,
+        verification_state: { fields: verifyState },
+      } = challengeState;
+      const pendingChallenges = Object.fromEntries(pending_challenges)
+
+      const _challenges: ChallengeStore = {};
+      Object.entries(verifyState)
+        .filter(([key, value]) => pendingChallenges[key] || value)
+        .forEach(([key, value]) => {
+          let status;
+          if (identityStore.status === verifyStatuses.IdentityVerified) {
+            status = ChallengeStatus.Passed;
+          } else {
+            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+          }
+
+          _challenges[key] = {
+            type: "matrixChallenge",
+            status,
+            code: !value && pendingChallenges[key],
+          };
+        })
+      setChallenges(_challenges)
+
+      if (import.meta.env.DEV) console.log({
+        origin: "challengeState",
+        pendingChallenges,
+        verifyState,
+        challenges: _challenges,
+      })
+    }
+  }, idWsDeps)
+
+  return { challenges, error, isConnected, }
+}
+
+const useChallengeWebSocket = (
+  { url, account, network, onNotification }: UseIdentityWebSocketProps
+): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [accountState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
@@ -248,7 +296,7 @@ export const useIdentityWebSocket = ({
   }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
 
   useEffect(() => {
-    if (ws.current?.readyState === WebSocket.OPEN && account) {
+    if (ws.current?.readyState === WebSocket.OPEN && account && network) {
       if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
       // Subscribe to account state on connection
       sendMessage({
@@ -258,47 +306,11 @@ export const useIdentityWebSocket = ({
     }
   }, [account, network, sendMessage, ws.current?.readyState])
 
-  const requestVerificationSecret = useCallback(async (field: string): Promise<string> => {
-    const response = await sendMessage({
-      type: 'RequestVerificationSecret',
-      payload: { account, field }
-    });
-
-    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
-      return response.payload.message.Secret;
-    }
-    throw new Error('Failed to get verification secret');
-  }, [account, sendMessage]);
-
-  const verifyIdentity = useCallback(async (field: string, secret: string): Promise<boolean> => {
-    const internalFieldIds = {
-      discord: "Discord",
-      display_name: "Display name",
-      email: "Email",
-      matrix: "Matrix",
-      twitter: "Twitter",
-      github: "Github",
-      legal: "Legal",
-      web: "Website",
-      pgp: "PGP Fingerprint",
-    }
-    const response = await sendMessage({
-      type: 'VerifyIdentity',
-      payload: { account, field: internalFieldIds[field], challenge: secret, network }
-    });
-
-    if (response.type === 'JsonResult' && 'ok' === response.payload.type) {
-      return response.payload.message.VerificationResult;
-    }
-    throw new Error('Verification failed');
-  }, [account, network, sendMessage]);
-
   return {
     isConnected,
     error,
-    accountState,
-    requestVerificationSecret,
-    verifyIdentity
+    challengeState,
   };
 };
 
+export { useChallengeWebSocketWrapper as useChallengeWebSocket };

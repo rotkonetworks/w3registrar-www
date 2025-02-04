@@ -10,18 +10,18 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
 import { XIcon } from "~/assets/icons/x"
 import { DiscordIcon } from "~/assets/icons/discord"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 
 export function ChallengePage({
   addNotification,
+  // TODO Add status as in IdentityInfo
   challengeStore,
-  verifyField,
 }: {
   addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
-  challengeStore: ChallengeStore,
-  verifyField: (field: string, secret: string) => Promise<boolean>,
+  challengeStore: { challenges: ChallengeStore, error: string | null };
 }) {
   const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
-  const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore)
+  const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
     ...Object.fromEntries(Object.entries(localChallengeStore)
@@ -35,7 +35,7 @@ export function ChallengePage({
   }>>({})
 
   useEffect(() => {
-    setLocalChallengeStore(challengeStore)
+    setLocalChallengeStore(challengeStore.challenges)
   }, [challengeStore])
 
   useEffect(() => {
@@ -112,31 +112,8 @@ export function ChallengePage({
     challengeStore[field].status = newStatus
   }, [challengeStore])
 
-  const verifyChallenge = useCallback(async (field: string, code: string) => {
-    if (pendingFields[field]) return
 
-    try {
-      setPendingFields(prev => ({ ...prev, [field]: true }))
-      const result = await verifyField(field, code)
-      updateChallengeStatus(field as keyof ChallengeStore, result)
-      addNotification({
-        type: result ? 'success' : 'error',
-        message: result
-          ? `${field.charAt(0).toUpperCase() + field.slice(1)} verification successful`
-          : `${field.charAt(0).toUpperCase() + field.slice(1)} verification failed - please try again`
-      })
-    } catch (error) {
-      console.error('Verification failed:', error)
-      addNotification({
-        type: 'error',
-        message: `Failed to verify ${field}`
-      })
-    } finally {
-      setPendingFields(prev => ({ ...prev, [field]: false }))
-    }
-  }, [pendingFields, verifyField, updateChallengeStatus, addNotification])
-
-  const noChallenges = Object.keys(challengeStore).length
+  const noChallenges = Object.keys(challengeStore.challenges).length
 
   const inviteLinkIcons = {
     matrix: <AtSign className="h-4 w-4" />,
@@ -146,8 +123,33 @@ export function ChallengePage({
     web: <Globe className="h-4 w-4" />,
   }
 
-  return noChallenges > 0 
-    ? <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+
+  if (challengeStore.error) {
+    return (
+      <Alert
+        key={"challengeError"}
+        variant="destructive"
+        className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+      >
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription className="flex justify-between items-center">
+          There was an error loading the challenges. Please reload the page and try again later.
+          {/* TODO Add reload button */}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (noChallenges === 0) {
+    return (
+      <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
+        Loading Challenges...
+      </LoadingPlaceholder>
+    );
+  }
+
+  return (
+    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
           {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
@@ -217,7 +219,5 @@ export function ChallengePage({
         </div>
       </CardContent>
     </Card>
-    : <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
-      Loading Challenges...
-    </LoadingPlaceholder>
+  );
 }

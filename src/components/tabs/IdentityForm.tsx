@@ -18,6 +18,7 @@ import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { ApiTx } from '~/types/api'
 
+// BUG Comflicts with IdentityFormData from ~/store/IdentityStore
 export type IdentityFormData = Record<string, {
   value: string
   error: string | null
@@ -30,6 +31,7 @@ export const IdentityForm = forwardRef((
     accountStore,
     typedApi,
     chainConstants,
+    isTxBusy,
     formatAmount,
     signSubmitAndWatch,
   }: {
@@ -38,6 +40,7 @@ export const IdentityForm = forwardRef((
     accountStore: AccountData,
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
     chainConstants: Record<string, any>,
+    isTxBusy: boolean,
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
       call: ApiTx,
@@ -287,7 +290,19 @@ export const IdentityForm = forwardRef((
   return (
     <>
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
-        <CardContent className="space-y-6 p-4">
+        <CardContent className="space-y-6 p-6">
+          <h1 className="dark:text-white text-black text-2xl font-semibold">
+            Identity Information
+          </h1>
+          <span className='text-[#706D6D]'>
+            This form allows you to 
+            {identityStore.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
+            your identity data. It has all the fields that 
+            {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
+            supports for identity verification. Please make sure that all contact information is 
+            accurate before proceeding.
+          </span>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {Object.entries(identityFormFields).map(([key, props]) =>
               <div className="space-y-2" key={props.key}>
@@ -328,7 +343,7 @@ export const IdentityForm = forwardRef((
             )}
             <IdentityStatusInfo status={identityStore.status} />
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
-              <Button type="submit" disabled={forbiddenSubmission}
+              <Button type="submit" disabled={forbiddenSubmission || isTxBusy}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
@@ -341,7 +356,7 @@ export const IdentityForm = forwardRef((
                     setActionType("judgement")
                   }}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
-                  disabled={forbiddenSubmission}
+                  disabled={forbiddenSubmission || isTxBusy}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
