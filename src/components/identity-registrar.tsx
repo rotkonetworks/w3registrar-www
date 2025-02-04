@@ -106,6 +106,7 @@ const MainContent = ({
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
         isTxBusy={isTxBusy}
+        chainName={chainStore.name?.replace(/ People/g, " ")}
       />
     },
   ]

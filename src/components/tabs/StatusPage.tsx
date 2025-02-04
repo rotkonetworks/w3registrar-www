@@ -14,12 +14,14 @@ export function StatusPage({
   identityStore,
   challengeStore,
   isTxBusy,
+  chainName,
   formatAmount,
   onIdentityClear,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   isTxBusy: boolean,
+  chainName: string,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
 }) {
@@ -45,7 +47,9 @@ export function StatusPage({
           <FileCheck className="h-5 w-5" />
           Identity Status
         </CardTitle>
-        <CardDescription className="text-[#706D6D]">Current status of your Polkadot identity</CardDescription>
+        <CardDescription className="text-[#706D6D]">
+          This is the current status of your identity on the {chainName} chain.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
         <div className="min-w-[300px]">
