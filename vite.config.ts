@@ -30,5 +30,6 @@ export default defineConfig(({ mode }) => {
         drop: !isDevelopment ? ['console'] : [],
       },
     },
+    exclude: ['node_modules/.cache'],
   }
 })
