@@ -214,7 +214,6 @@ export function ChallengePage({
                         variant="outline"
                         className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
                         disabled={pendingFields[field]}
-                        onClick={() => verifyChallenge(field, formData[field]?.value || "")}
                       >
                         Verify
                       </Button>
