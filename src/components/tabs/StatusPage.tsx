@@ -14,14 +14,12 @@ export function StatusPage({
   identityStore,
   challengeStore,
   isTxBusy,
-  addNotification,
   formatAmount,
   onIdentityClear,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
   isTxBusy: boolean,
-  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
 }) {

@@ -102,7 +102,6 @@ const MainContent = ({
       disabled: identityStore.status < verifyStatuses.NoIdentity,
       content: <MemoStatusPage
         identityStore={identityStore}
-        addNotification={addNotification}
         challengeStore={challengeStore.challenges}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
