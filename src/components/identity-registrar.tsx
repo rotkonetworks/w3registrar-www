@@ -481,7 +481,7 @@ export function IdentityRegistrarComponent() {
       })
   }, [accountStore.address, typedApi])
   const refreshNonce = useCallback(() => {
-    if (!nonce) {
+    if (nonce === null) {
       return
     }
     const _nonce = nonce
