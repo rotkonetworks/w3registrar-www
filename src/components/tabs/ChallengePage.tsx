@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
 import { AlertProps } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -156,6 +156,17 @@ export function ChallengePage({
 
   return (
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+      <CardHeader>
+        <CardTitle className="text-inherit flex items-center gap-2">
+          <Shield className="h-5 w-5" />
+          Identity Challenges
+        </CardTitle>
+        <CardDescription className="text-[#706D6D]">
+          Complete these identity verification challenges by copying each code and submitting it via
+          the chat link. All challenges must be passed for affirmative judgment. You can hover over 
+          the link for more info.
+        </CardDescription>
+      </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         <div className="min-w-[300px]">
           {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
