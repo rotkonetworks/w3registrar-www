@@ -681,6 +681,7 @@ export function IdentityRegistrarComponent() {
             id: chainStore.id,
           }} 
           onToggleDark={() => setDark(!isDark)}
+          isDark={isDark}
           isTxBusy={isTxBusy}
         />
 

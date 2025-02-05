@@ -24,7 +24,7 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, isTxBusy,
+  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark,
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
 }: { 
     accounts: AccountData[];
@@ -33,6 +33,7 @@ const Header = ({
     accountStore: { address: string, name: string };
     identityStore: IdentityStore;
     isTxBusy: boolean;
+    isDark: boolean;
     onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
     onAccountSelect: SelectChangeHandler;
     onRequestWalletConnections: () => void;
@@ -145,7 +146,7 @@ const Header = ({
           className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           onClick={() => onToggleDark()} 
         >
-          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
     </div>
