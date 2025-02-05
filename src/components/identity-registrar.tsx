@@ -32,7 +32,7 @@ import { config } from "~/api/config"
 import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
-import { useDark } from "~/hooks/useDark"
+import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
@@ -217,7 +217,7 @@ const MainContent = ({
 
 export function IdentityRegistrarComponent() {
   const alertsStore = useProxy(_alertsStore);
-  const { isDark, setDark } = useDark()
+  const { isDark, setDark } = useDarkMode()
 
   const identityStore = useProxy(_identityStore);
   const chainStore = useProxy(_chainStore);

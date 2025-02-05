@@ -1,6 +1,6 @@
 import { Circle } from "lucide-react";
 import React from "react";
-import { useDark } from "~/hooks/useDark";
+import { useDarkMode } from "~/hooks/useDarkMode";
 
 export const LoadingPlaceholder = ({ className, children, ...props }: {
   className?: string,
@@ -51,7 +51,7 @@ export const LoadingContent = ({ className, children, ...props }: {
 </>
 
 export function Loading() {
-  const { isDark } = useDark();
+  const { isDark } = useDarkMode();
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-300 flex items-stretch ${isDark
