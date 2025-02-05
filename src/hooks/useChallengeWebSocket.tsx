@@ -156,6 +156,7 @@ const useChallengeWebSocketWrapper = ({
   return { challenges, error, isConnected, }
 }
 
+// TODO Rename as a generic WebSocket hook
 const useChallengeWebSocket = (
   { url, account, network, onNotification }: UseIdentityWebSocketProps
 ): UseIdentityWebSocketReturn => {
