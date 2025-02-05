@@ -301,6 +301,12 @@ export function IdentityRegistrarComponent() {
   }, [connectedWallets.length])
   useEffect(() => {
     if (!urlParams.address) {
+      addNotification({
+        type: "error",
+        message: "Please pick an account that is registered in your wallets from account dropdown.",
+        closable: false,
+        key: "invalidAccount",
+      })
       return;
     }
     const accountData = getAccountData(urlParams.address);
