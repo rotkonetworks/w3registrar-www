@@ -9,9 +9,9 @@ import { Loading } from './pages/Loading'
 
 const Main: React.FC = () => {
   return <>
-  <Suspense fallback={<Loading />}>
-    <App />
-  </Suspense>
+    <Suspense fallback={<Loading />}>
+      <App />
+    </Suspense>
   </>
 }
 
