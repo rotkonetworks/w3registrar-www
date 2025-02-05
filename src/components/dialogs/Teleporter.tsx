@@ -21,6 +21,7 @@ import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 
+// TODO Consider for removal
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
