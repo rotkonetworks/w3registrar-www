@@ -374,7 +374,7 @@ export const IdentityForm = forwardRef((
         setShowCostModal(value)
         setActionType(_actionType => value ? _actionType : null)
       }}>
-        <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
+        <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
           <DialogHeader>
             <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
             <DialogDescription>

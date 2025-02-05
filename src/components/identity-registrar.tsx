@@ -689,7 +689,7 @@ export function IdentityRegistrarComponent() {
     <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
       onOpenChange={handleOpenChange}
     >
-      <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
+      <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
           <DialogDescription>
