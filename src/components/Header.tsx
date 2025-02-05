@@ -1,8 +1,6 @@
 import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue, TypedSelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Sun, Moon } from "lucide-react";
-import { appStore as _appStore } from '~/store/AppStore';
-import { useProxy } from "valtio/utils";
 import { useState } from "react";
 import { ApiConfig } from "~/api/config";
 import { useConnectedWallets } from "@reactive-dot/react";
@@ -39,9 +37,6 @@ const Header = ({
     onRequestWalletConnections: () => void;
     onToggleDark: () => void;
   }) => {
-  const appStore = useProxy(_appStore);
-  const isDarkMode = appStore.isDarkMode;
-
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
