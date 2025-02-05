@@ -283,6 +283,22 @@ export function IdentityRegistrarComponent() {
     };
   }, [accounts, chainStore.ss58Format]);
 
+  const connectedWallets = useConnectedWallets()
+  const [_, disconnectWallet] = useWalletDisconnector()
+
+  useEffect(() => {
+    if (!connectedWallets.length) {
+      addNotification({
+        type: "error",
+        message: "Please connect a wallet so that you can choose an account and continue.",
+        closable: false,
+        key: "noConnectedWallets",
+      })
+      return;
+    } else {
+      removeAlert("noConnectedWallets");
+    }
+  }, [connectedWallets.length])
   useEffect(() => {
     if (!urlParams.address) {
       return;
@@ -578,9 +594,6 @@ export function IdentityRegistrarComponent() {
       "Identity.IdentityCleared"
     )
   }, [_clearIdentity])
-  
-  const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
   
   type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
