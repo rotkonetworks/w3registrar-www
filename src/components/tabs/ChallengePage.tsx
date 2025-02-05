@@ -61,10 +61,6 @@ export function ChallengePage({
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      addNotification({
-        type: 'info',
-        message: 'Challenge code copied to clipboard',
-      })
     } catch (error) {
       console.error('Failed to copy:', error)
       addNotification({
