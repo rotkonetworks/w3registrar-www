@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import 'uno.css'
@@ -8,6 +8,14 @@ import "./css/uno.css"
 import { Loading } from './pages/Loading'
 
 const Main: React.FC = () => {
+  useEffect(() => {
+    if (!import.meta.env.DEV) {
+      if (location.protocol !== 'https:') {
+        location.replace(`https:${location.href.substring(location.protocol.length)}`);
+      }
+    }
+  }, []);
+
   return <>
     <Suspense fallback={<Loading />}>
       <App />
