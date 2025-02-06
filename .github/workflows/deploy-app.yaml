@@ -38,7 +38,7 @@ jobs:
               mv ${{ env.DEPLOY_PATH }} ${{ env.BACKUP_PATH }}/w3registrar-www-\$TIMESTAMP
             fi
             cp -r ${{ env.STAGING_PATH }} ${{ env.DEPLOY_PATH }}
-            EOF
+          EOF
             
       - name: Deploy specific docker-compose
         run: |
