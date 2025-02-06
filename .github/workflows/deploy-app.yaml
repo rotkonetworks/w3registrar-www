@@ -28,7 +28,7 @@ jobs:
           ssh-keyscan -t ed25519 ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Deploy app.w3reg.org
+      - name: Backup current app.w3reg.org
         run: |
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
@@ -40,11 +40,15 @@ jobs:
             cp -r ${{ env.STAGING_PATH }} ${{ env.DEPLOY_PATH }}
             EOF
             
+      - name: Deploy specific docker-compose
+        run: |
             # Copy the app-specific docker-compose file
             scp dockers/docker-compose-app.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
             
+      - name: Deploy/Build with docker compose
+        run: |
             ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
               set -euo pipefail
               cd ${{ env.DEPLOY_PATH }}
               docker compose up --build -d web-nginx
-          EOF
+            EOF
