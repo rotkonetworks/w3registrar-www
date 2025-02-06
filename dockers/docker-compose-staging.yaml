@@ -12,5 +12,5 @@ services:
       context: .
       dockerfile: ./nginx/Dockerfile
     ports:
-      - 127.0.0.2:63999:80
+      - 127.0.0.1:53999:80
     restart: unless-stopped

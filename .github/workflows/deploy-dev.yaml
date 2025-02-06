@@ -4,7 +4,7 @@ env:
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
-  BUILD_TARGET: 'production'
+  # BUILD_TARGET: 'production'
 
 on:
   pull_request:
