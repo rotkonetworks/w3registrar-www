@@ -706,6 +706,7 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
+    {/* TODO Refactor into GenericDialog */}
     <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
       onOpenChange={handleOpenChange}
     >

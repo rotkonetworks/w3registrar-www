@@ -225,6 +225,7 @@ export default function TeleporterDialog({
  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      {/* TODO Refactor into GenericDialog */}
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">Teleporter</DialogTitle>

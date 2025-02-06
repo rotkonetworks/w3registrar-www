@@ -370,6 +370,7 @@ export const IdentityForm = forwardRef((
         </CardContent>
       </Card>
 
+      {/* TODO Refactor into GenericDialog */}
       <Dialog open={showCostModal} onOpenChange={value => {
         setShowCostModal(value)
         setActionType(_actionType => value ? _actionType : null)
