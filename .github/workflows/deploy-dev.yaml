@@ -5,7 +5,6 @@ env:
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
   BUILD_TARGET: 'production'
-  NGINX_HOST: '127.0.0.1'
 
 on:
   pull_request:
@@ -51,9 +50,9 @@ jobs:
           EOF
           scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
-          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
+          scp dockers/docker-compose-dev.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
-            NGINX_HOST=${{ env.NGINX_HOST }} docker compose up --build -d web-nginx
+            docker compose up --build -d web-nginx
           EOF

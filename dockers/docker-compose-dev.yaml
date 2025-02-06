@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: ${BUILD_TARGET:-development}
+      target: development
     container_name: web
     ports:
       - "${PORT:-3000}:3000"
@@ -12,5 +12,5 @@ services:
       context: .
       dockerfile: ./nginx/Dockerfile
     ports:
-      - ${NGINX_HOST:-127.0.0.1}:63999:80
+      - 127.0.0.1:63999:80
     restart: unless-stopped
