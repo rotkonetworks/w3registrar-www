@@ -1,6 +1,6 @@
 import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue, TypedSelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, ShieldQuestion } from "lucide-react";
 import { useState } from "react";
 import { ApiConfig } from "~/api/config";
 import { useConnectedWallets } from "@reactive-dot/react";
@@ -23,7 +23,7 @@ const AccountListing = ({ address, name }) => (
 
 const Header = ({ 
   config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark,
-  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
+  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark, openHelpDialog,
 }: { 
     accounts: AccountData[];
     config: ApiConfig;
@@ -36,6 +36,7 @@ const Header = ({
     onAccountSelect: SelectChangeHandler;
     onRequestWalletConnections: () => void;
     onToggleDark: () => void;
+    openHelpDialog: () => void;
   }) => {
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
@@ -135,6 +136,14 @@ const Header = ({
         </div>
       </div>
       <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+          onClick={() => openHelpDialog()} 
+        >
+          <ShieldQuestion className="h-4 w-4" />
+        </Button>
         <Button 
           variant="outline" 
           size="icon" 

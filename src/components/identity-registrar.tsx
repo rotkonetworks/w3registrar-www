@@ -603,7 +603,7 @@ export function IdentityRegistrarComponent() {
     )
   }, [_clearIdentity])
   
-  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
+  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
@@ -658,6 +658,8 @@ export function IdentityRegistrarComponent() {
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
+
+  const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -685,6 +687,7 @@ export function IdentityRegistrarComponent() {
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
+          openHelpDialog={openHelpDialog}
         />
 
         {(() => {
