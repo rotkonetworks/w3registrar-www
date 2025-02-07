@@ -18,8 +18,8 @@ export const GenericDialog = ({ open, onOpenChange, description, title, children
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         {children}
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
-      {footer && <DialogFooter>{footer}</DialogFooter>}
     </Dialog>
   )
 }
