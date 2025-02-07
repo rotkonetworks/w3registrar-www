@@ -1,6 +1,6 @@
 
-export const GeneralDescription = () => <>
-  <h1 className="text-2xl font-bold">General Description</h1>
+export const W3Registrar = () => <>
+  <h1 className="text-2xl font-bold">W3 Registrar</h1>
   <p>
     W3 Registrar makes it easy for you to get verified on Polikadot blockchain. Our system helps you
     prove your identity across multiple social media, messaging services and your Web conten, 
