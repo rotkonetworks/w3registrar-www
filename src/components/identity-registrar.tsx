@@ -37,6 +37,8 @@ import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
+import { GenericDialog } from "./dialogs/GenericDialog"
+import { CallToActionMessage, W3Registrar } from "~/help"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -775,6 +777,13 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
+      title="Help"
+      description={<W3Registrar />}
+      footer={<CallToActionMessage />}
+    >
+      ...
+    </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
