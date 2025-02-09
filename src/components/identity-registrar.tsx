@@ -35,7 +35,7 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
-import { CallToActionMessage, W3Registrar } from "~/help"
+import { Overview } from "~/help"
 import { HelpCarousel } from "~/help/helpCarousel"
 
 const MemoIdeitityForm = memo(IdentityForm)
@@ -786,7 +786,7 @@ export function IdentityRegistrarComponent() {
     </Dialog>
     <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
       title="Quick start guide"
-      description={<W3Registrar />}
+      //description={<Overview />}
       footer={<>
         <Button variant="outline" onClick={() => {
             setOpenDialog(null)

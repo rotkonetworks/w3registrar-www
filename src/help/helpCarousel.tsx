@@ -1,21 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel } from 'react-responsive-carousel';
-import { CallToActionMessage, Faq, HowItWorks, VerificationStatesOverview, WhatYouGet } from '~/help';
+import { 
+  Features,
+  Steps,
+  FAQ,
+  States,
+  StartGuide
+} from '~/help';
 
-interface CarouselWrapperProps {
+interface CarouselProps {
   autoPlayInterval?: number;
   currentSlideIndex?: number;
   onSlideIndexChange?: (index: number) => void;
   [rest: string]: any;
 }
 
-export const HelpCarousel: React.FC<CarouselWrapperProps> = ({ 
+export const HelpCarousel: React.FC<CarouselProps> = ({ 
   autoPlayInterval = 0, 
   currentSlideIndex = 0, 
   onSlideIndexChange = () => {},
   ...rest
 }) => {
   const [currentSlide, setCurrentSlide] = useState(currentSlideIndex);
+
   useEffect(() => {
     setCurrentSlide(currentSlideIndex);
   }, [currentSlideIndex]);
@@ -38,19 +45,19 @@ export const HelpCarousel: React.FC<CarouselWrapperProps> = ({
       onChange={handleChange}
     >
       <div className="max-w-[27rem]">
-        <WhatYouGet />
+        <Features />
       </div>
       <div className="max-w-[27rem]">
-        <HowItWorks />
+        <Steps />
       </div>
       <div className="max-w-[27rem]">
-        <Faq />
+        <FAQ />
       </div>
       <div className="max-w-[27rem]">
-        <VerificationStatesOverview />
+        <States />
       </div>
       <div className="max-w-[27rem]">
-        <CallToActionMessage />
+        <StartGuide />
       </div>
     </Carousel>
   );
