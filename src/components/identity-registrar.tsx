@@ -696,10 +696,15 @@ export function IdentityRegistrarComponent() {
 
           if (identityStore.status === verifyStatuses.Unknown) {
             return (
-              <div className="flex flex-grow flex-col flex-stretch">
+              <div className="w-full flex flex-grow flex-col flex-stretch">
                 <LoadingTabs />
-                <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                  Loading Identity Data...
+                <LoadingContent>
+                  <div className="flex flex-col items-stretch border-primary">
+                    <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" currentSlideIndex={4} />
+                    <span className="text-3xl text-center font-bold pt-4">
+                      Loading identity data...
+                    </span>
+                  </div>
                 </LoadingContent>
               </div>
             );
