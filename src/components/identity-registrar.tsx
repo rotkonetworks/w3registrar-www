@@ -11,10 +11,7 @@ import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
-import { 
-  challengeStore as _challengeStore, Challenge, ChallengeStatus, 
-  ChallengeStore
-} from "~/store/challengesStore"
+import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
@@ -38,10 +35,8 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
-import { 
-  CallToActionMessage, Faq, HowItWorks, VerificationStatesOverview, W3Registrar, WhatYouGet 
-} from "~/help"
-import { Carousel } from 'react-responsive-carousel';
+import { CallToActionMessage, W3Registrar } from "~/help"
+import { HelpCarousel } from "~/help/helpCarousel"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -663,6 +658,7 @@ export function IdentityRegistrarComponent() {
   }
 
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
+  const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -784,26 +780,28 @@ export function IdentityRegistrarComponent() {
       </DialogContent>
     </Dialog>
     <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
-      title="Help"
+      title="Quick start guide"
       description={<W3Registrar />}
-      footer={<CallToActionMessage />}
+      footer={<>
+        <Button variant="outline" onClick={() => {
+            setOpenDialog(null)
+            setHelpSlideIndex(0)
+        }}>Skip</Button>
+        <Button 
+          onClick={() => {
+            if (helpSlideIndex === 4) {
+              setOpenDialog(null)
+              setHelpSlideIndex(0)
+            } else {
+              setHelpSlideIndex(prev => prev + 1)
+            }
+          }}
+        >
+          {helpSlideIndex === 4 ? "Close" : "Next"}
+        </Button>
+      </>}
     >
-      <Carousel className="max-w-[29rem]" showArrows={false} showThumbs={false} showStatus={false} 
-        infiniteLoop={true} 
-      >
-        <div className="max-w-[27rem]">
-          <WhatYouGet />
-        </div>
-        <div className="max-w-[27rem]">
-          <HowItWorks />
-        </div>
-        <div className="max-w-[27rem]">
-          <Faq />
-        </div>
-        <div className="max-w-[27rem]">
-          <VerificationStatesOverview />
-        </div>
-      </Carousel>
+      <HelpCarousel currentSlideIndex={helpSlideIndex} />
     </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
