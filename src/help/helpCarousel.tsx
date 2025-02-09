@@ -43,16 +43,16 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       selectedItem={currentSlide}
       onChange={handleChange}
     >
-      <div className="max-w-[27rem]">
+      <div className="max-w-[27rem] pb-[2rem]">
         <Features />
       </div>
-      <div className="max-w-[27rem]">
+      <div className="max-w-[27rem] pb-[2rem]">
         <Steps />
       </div>
-      <div className="max-w-[27rem]">
+      <div className="max-w-[27rem] pb-[2rem]">
         <FAQ />
       </div>
-      <div className="max-w-[27rem]">
+      <div className="max-w-[27rem] pb-[2rem]">
         <States />
       </div>
     </Carousel>
