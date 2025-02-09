@@ -601,7 +601,7 @@ export function IdentityRegistrarComponent() {
     )
   }, [_clearIdentity])
   
-  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | "help" | null
+  type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
@@ -634,7 +634,7 @@ export function IdentityRegistrarComponent() {
         setOpenDialog("disconnect")
         break;
       case "Teleport":
-        setOpenDialog("teleposr")
+        setOpenDialog("teleport")
         break;
       case "RemoveIdentity":
         setOpenDialog("clearIdentity")
@@ -700,7 +700,7 @@ export function IdentityRegistrarComponent() {
                 <LoadingTabs />
                 <LoadingContent>
                   <div className="flex flex-col items-stretch border-primary">
-                    <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" currentSlideIndex={4} />
+                    <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" currentSlideIndex={3} />
                     <span className="text-3xl text-center font-bold pt-4">
                       Loading identity data...
                     </span>
@@ -786,7 +786,7 @@ export function IdentityRegistrarComponent() {
     </Dialog>
     <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
       title="Quick start guide"
-      //description={<Overview />}
+      // description={<Overview />}
       footer={<>
         <Button variant="outline" onClick={() => {
             setOpenDialog(null)
@@ -794,7 +794,7 @@ export function IdentityRegistrarComponent() {
         }}>Skip</Button>
         <Button 
           onClick={() => {
-            if (helpSlideIndex === 4) {
+            if (helpSlideIndex === 3) {
               setOpenDialog(null)
               setHelpSlideIndex(0)
             } else {
@@ -802,14 +802,14 @@ export function IdentityRegistrarComponent() {
             }
           }}
         >
-          {helpSlideIndex === 4 ? "Close" : "Next"}
+          {helpSlideIndex === 3 ? "Close" : "Next"}
         </Button>
       </>}
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} />
     </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
+      typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}

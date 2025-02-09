@@ -5,7 +5,6 @@ import {
   Steps,
   FAQ,
   States,
-  StartGuide
 } from '~/help';
 
 interface CarouselProps {
@@ -55,9 +54,6 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       </div>
       <div className="max-w-[27rem]">
         <States />
-      </div>
-      <div className="max-w-[27rem]">
-        <StartGuide />
       </div>
     </Carousel>
   );
