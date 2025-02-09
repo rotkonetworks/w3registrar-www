@@ -38,7 +38,10 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
-import { CallToActionMessage, W3Registrar } from "~/help"
+import { 
+  CallToActionMessage, Faq, HowItWorks, VerificationStatesOverview, W3Registrar, WhatYouGet 
+} from "~/help"
+import { Carousel } from 'react-responsive-carousel';
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -785,7 +788,20 @@ export function IdentityRegistrarComponent() {
       description={<W3Registrar />}
       footer={<CallToActionMessage />}
     >
-      ...
+      <Carousel showArrows={false} showThumbs={false} showStatus={false} infiniteLoop={true} className="max-w-[29rem]">
+        <div className="max-w-[27rem]">
+          <WhatYouGet />
+        </div>
+        <div className="max-w-[27rem]">
+          <HowItWorks />
+        </div>
+        <div className="max-w-[27rem]">
+          <Faq />
+        </div>
+        <div className="max-w-[27rem]">
+          <VerificationStatesOverview />
+        </div>
+      </Carousel>
     </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
