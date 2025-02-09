@@ -6,12 +6,14 @@ interface CarouselWrapperProps {
   autoPlayInterval?: number;
   currentSlideIndex?: number;
   onSlideIndexChange?: (index: number) => void;
+  [rest: string]: any;
 }
 
 export const HelpCarousel: React.FC<CarouselWrapperProps> = ({ 
   autoPlayInterval = 0, 
   currentSlideIndex = 0, 
-  onSlideIndexChange = () => {}
+  onSlideIndexChange = () => {},
+  ...rest
 }) => {
   const [currentSlide, setCurrentSlide] = useState(currentSlideIndex);
   useEffect(() => {
