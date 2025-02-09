@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel } from 'react-responsive-carousel';
-import { Faq, HowItWorks, VerificationStatesOverview, WhatYouGet } from '~/help';
+import { CallToActionMessage, Faq, HowItWorks, VerificationStatesOverview, WhatYouGet } from '~/help';
 
 interface CarouselWrapperProps {
   autoPlayInterval?: number;
@@ -46,6 +46,9 @@ export const HelpCarousel: React.FC<CarouselWrapperProps> = ({
       </div>
       <div className="max-w-[27rem]">
         <VerificationStatesOverview />
+      </div>
+      <div className="max-w-[27rem]">
+        <CallToActionMessage />
       </div>
     </Carousel>
   );
