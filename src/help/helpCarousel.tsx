@@ -27,7 +27,7 @@ export const HelpCarousel: React.FC<CarouselWrapperProps> = ({
 
   return (
     <Carousel 
-      className="max-w-[29rem]" 
+      className={"max-w-[29rem] " + rest.className} 
       showArrows={false} 
       showThumbs={false} 
       showStatus={false}
