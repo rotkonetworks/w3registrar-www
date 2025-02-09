@@ -58,3 +58,5 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
     </Carousel>
   );
 };
+
+export const SLIDES_COUNT = 4;

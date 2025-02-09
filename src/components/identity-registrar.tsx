@@ -36,7 +36,7 @@ import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { Overview } from "~/help"
-import { HelpCarousel } from "~/help/helpCarousel"
+import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -788,7 +788,7 @@ export function IdentityRegistrarComponent() {
       title="Quick start guide"
       // description={<Overview />}
       footer={<>
-        {helpSlideIndex < 4 && (
+        {helpSlideIndex < SLIDES_COUNT && (
           <Button variant="outline" onClick={() => {
               setOpenDialog(null)
               setHelpSlideIndex(0)
@@ -796,7 +796,7 @@ export function IdentityRegistrarComponent() {
         )}
         <Button 
           onClick={() => {
-            if (helpSlideIndex === 3) {
+            if (helpSlideIndex === SLIDES_COUNT - 1) {
               setOpenDialog(null)
               setHelpSlideIndex(0)
             } else {
