@@ -788,7 +788,9 @@ export function IdentityRegistrarComponent() {
       description={<W3Registrar />}
       footer={<CallToActionMessage />}
     >
-      <Carousel showArrows={false} showThumbs={false} showStatus={false} infiniteLoop={true} className="max-w-[29rem]">
+      <Carousel className="max-w-[29rem]" showArrows={false} showThumbs={false} showStatus={false} 
+        infiniteLoop={true} 
+      >
         <div className="max-w-[27rem]">
           <WhatYouGet />
         </div>
