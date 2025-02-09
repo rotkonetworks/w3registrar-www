@@ -788,10 +788,12 @@ export function IdentityRegistrarComponent() {
       title="Quick start guide"
       description={<W3Registrar />}
       footer={<>
-        <Button variant="outline" onClick={() => {
-            setOpenDialog(null)
-            setHelpSlideIndex(0)
-        }}>Skip</Button>
+        {helpSlideIndex < 4 && (
+          <Button variant="outline" onClick={() => {
+              setOpenDialog(null)
+              setHelpSlideIndex(0)
+          }}>Skip</Button>
+        )}
         <Button 
           onClick={() => {
             if (helpSlideIndex === 4) {
