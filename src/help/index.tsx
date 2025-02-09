@@ -99,88 +99,42 @@ export const StartGuide = () => (
   </section>
 )
 
-export const Features = () => (
-  <section className="max-w-3xl mx-auto px-4 py-4">
-    <h2 className="text-2xl font-bold text-center mb-3">Features</h2>
-    <div className="grid gap-3">
-      {FEATURES.map(({ title, description }) => (
-        <div 
-          key={title}
-          className="bg-white rounded-lg shadow-sm p-6 text-center"
-        >
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
-            {title}
-          </h3>
-          <p className="text-gray-600">
-            {description}
-          </p>
-        </div>
+const Item = ({ key, title, description }) => {
+  return (
+    <div key={key}
+      className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center w-[13rem]"
+    >
+      <h3 className="font-semibold text-md mb-2 dark:text-gray-200">{title}</h3>
+      <p className="dark:text-gray-400 text-sm">{description}</p>
+    </div>
+  )
+}
+
+const Collection = ({ title, items }) => {
+  return <>
+    <h2 className="text-2xl font-bold text-center mb-3">{title}</h2>
+    <div className="grid grid-cols-2 gap-2">
+      {items.map(({ title, description }) => (
+        <Item key={title} title={title} description={description} />
       ))}
     </div>
-  </section>
+  </>
+}
+
+export const Features = () => (
+  <Collection title="Features" items={FEATURES} />
 )
 
 export const Steps = () => (
-  <section className="max-w-3xl mx-auto px-4 py-4">
-    <h2 className="text-2xl font-bold text-center mb-3">Verification Process</h2>
-    <div className="grid gap-3">
-      {STEPS.map(({ title, description }, index) => (
-        <div 
-          key={title}
-          className="bg-white rounded-lg shadow-sm p-6 text-center"
-        >
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
-            {title}
-          </h3>
-          <p className="text-gray-600">
-            {description}
-          </p>
-        </div>
-      ))}
-    </div>
-  </section>
+  <Collection title="Verification Process" items={STEPS} />
 )
 
 export const FAQ = () => (
-  <section className="max-w-3xl mx-auto px-4 py-4">
-    <h2 className="text-2xl font-bold text-center mb-3">FAQ</h2>
-    <div className="grid gap-3">
-      {FAQ_ITEMS.map(({ title, description }) => (
-        <div 
-          key={title}
-          className="bg-white rounded-lg shadow-sm p-6"
-        >
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
-            {title}
-          </h3>
-          <p className="text-gray-600">
-            {description}
-          </p>
-        </div>
-      ))}
-    </div>
-  </section>
+  <Collection title="FAQ" items={FAQ_ITEMS} />
 )
 
 export const States = () => (
-  <section className="max-w-3xl mx-auto px-4 py-4">
-    <h2 className="text-2xl font-bold text-center mb-3">Verification States</h2>
-    <div className="grid gap-3">
-      {STATES.map(({ title, description }, index) => (
-        <div 
-          key={title}
-          className="bg-white rounded-lg shadow-sm p-6"
-        >
-          <h3 className="font-semibold text-lg mb-2 text-gray-800">
-            {title}
-          </h3>
-          <p className="text-gray-600">
-            {description}
-          </p>
-        </div>
-      ))}
-    </div>
-  </section>
+  <Collection title="Verification States" items={STATES} />
 )
 
 // Main container component
