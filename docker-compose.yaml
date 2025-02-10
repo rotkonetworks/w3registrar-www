@@ -11,6 +11,8 @@ services:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
+    depends_on:
+      - web
     ports:
       - "127.0.0.1:${NGINX_PORT:-63999}:80"
     restart: unless-stopped
