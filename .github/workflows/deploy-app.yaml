@@ -42,13 +42,12 @@ jobs:
             
       - name: Deploy specific docker-compose
         run: |
-            # Copy the app-specific docker-compose file
-            scp dockers/docker-compose-app.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
+            scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
             
       - name: Deploy/Build with docker compose
         run: |
             ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
               set -euo pipefail
               cd ${{ env.DEPLOY_PATH }}
-              docker compose up --build -d web-nginx
+              NGINX_PORT=63999 docker compose up --build -d web-nginx
             EOF

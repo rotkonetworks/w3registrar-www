@@ -1,7 +1,6 @@
 name: Build and Deploy preproduction
 env:
   NODE_VERSION: '18'
-  GCP_PROJECT_ID: 'rbl-common'
   SERVER_USER: 'w3reg'
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/staging.w3reg.org'
@@ -42,6 +41,7 @@ jobs:
           echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO }}" >> .env
           echo "VITE_APP_AVAILABLE_CHAINS=${{ env.VITE_APP_AVAILABLE_CHAINS }}" >> .env
           echo "VITE_APP_DEFAULT_CHAIN=${{ env.VITE_APP_DEFAULT_CHAIN }}" >> .env
+          echo "VITE_APP_CHALLENGES_API_URL=${{ vars.WS_API_URL }}" >> .env
           cat .env | wc -l
           nix-shell --command "bash scripts/build.sh"
       
@@ -65,9 +65,9 @@ jobs:
           EOF
           scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
-          scp dockers/docker-compose-staging.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
+          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
-            docker compose up --build -d web-nginx
+            NGINX_PORT=53999 docker compose up --build -d web-nginx
           EOF

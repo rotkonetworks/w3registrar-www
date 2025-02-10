@@ -5,6 +5,18 @@ env:
   SERVER_IP: '135.181.202.179'
   DEPLOY_PATH: '/home/w3reg/dev.w3reg.org'
   # BUILD_TARGET: 'production'
+  NODE_VERSION: '18'
+  VITE_APP_WALLET_CONNECT_PROJECT_ID: w3reg
+  VITE_APP_DEFAULT_WS_URL: "wss://dev.rotko.net/people-rococo"
+  VITE_APP_DEFAULT_WS_URL_RELAY: "wss://dev.rotko.net/rococo"
+  VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT: 5
+  VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA: 7
+  VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO: 1
+  VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO: 0
+  VITE_APP_AVAILABLE_CHAINS: polkadot_people,ksmcc3_people,paseo_people,rococo_people
+  VITE_APP_DEFAULT_CHAIN: paseo_people
+  # we using staging api
+  #VITE_APP_CHALLENGES_API_URL=${{ vars.WS_SAPI_URL }}"
 
 on:
   pull_request:
@@ -24,8 +36,25 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Build the Vite app
+        env:
+          BUILD_TARGET: 'production'
         run: |
+          curl -fsSL https://bun.sh/install | bash -s "canary"
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH=$BUN_INSTALL/bin:$PATH
           cat .env.example | grep -v "#" > .env
+          # our overrides will be appended last, so even duplicate, they'll take precedence
+          echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=${{ env.VITE_APP_WALLET_CONNECT_PROJECT_ID }}" >> .env
+          echo "VITE_APP_DEFAULT_WS_URL=${{ env.VITE_APP_DEFAULT_WS_URL }}" >> .env
+          echo "VITE_APP_DEFAULT_WS_URL_RELAY=${{ env.VITE_APP_DEFAULT_WS_URL_RELAY }}" >> .env
+          echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO }}" >> .env
+          echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT }}" >> .env
+          echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA }}" >> .env
+          echo "VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO=${{ env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO }}" >> .env
+          echo "VITE_APP_AVAILABLE_CHAINS=${{ env.VITE_APP_AVAILABLE_CHAINS }}" >> .env
+          echo "VITE_APP_DEFAULT_CHAIN=${{ env.VITE_APP_DEFAULT_CHAIN }}" >> .env
+          echo "VITE_APP_CHALLENGES_API_URL=${{ vars.WS_SAPI_URL }}" >> .env
+          cat .env | wc -l
           nix-shell --command "bash scripts/build.sh"
 
       - name: Set up SSH agent
@@ -50,9 +79,9 @@ jobs:
           EOF
           scp -r ./nginx ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
           scp -r ./dist ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
-          scp dockers/docker-compose-dev.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
+          scp docker-compose.yaml ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}/docker-compose.yaml
           ssh ${{ env.SERVER_USER }}@${{ env.SERVER_IP }} << EOF
             set -euo pipefail
             cd ${{ env.DEPLOY_PATH }}
-            docker compose up --build -d web-nginx
+            NGINX_PORT=43999 docker compose up --build -d web-nginx
           EOF
