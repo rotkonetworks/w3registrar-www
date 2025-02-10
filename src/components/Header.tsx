@@ -1,8 +1,6 @@
 import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue, TypedSelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { Sun, Moon } from "lucide-react";
-import { appStore as _appStore } from '~/store/AppStore';
-import { useProxy } from "valtio/utils";
+import { Sun, Moon, ShieldQuestion } from "lucide-react";
 import { useState } from "react";
 import { ApiConfig } from "~/api/config";
 import { useConnectedWallets } from "@reactive-dot/react";
@@ -24,22 +22,22 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, 
-  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark: onToggleDark
+  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark,
+  onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark, openHelpDialog,
 }: { 
     accounts: AccountData[];
     config: ApiConfig;
     chainStore: { id: string | number | symbol, name: string };
     accountStore: { address: string, name: string };
     identityStore: IdentityStore;
+    isTxBusy: boolean;
+    isDark: boolean;
     onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
     onAccountSelect: SelectChangeHandler;
     onRequestWalletConnections: () => void;
     onToggleDark: () => void;
+    openHelpDialog: () => void;
   }) => {
-  const appStore = useProxy(_appStore);
-  const isDarkMode = appStore.isDarkMode;
-
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
@@ -59,6 +57,7 @@ const Header = ({
                 onRequestWalletConnections()
               }
             }}
+            disabled={isTxBusy}
           >
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0">
               <div className="w-full min-w-0">
@@ -113,6 +112,7 @@ const Header = ({
             open={isNetDropdownOpen} 
             onOpenChange={setNetDropdownOpen} 
             onValueChange={onChainSelect}
+            disabled={isTxBusy}
           >
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
               <SelectValue placeholder={chainStore.name?.replace("People", "")} />
@@ -140,9 +140,17 @@ const Header = ({
           variant="outline" 
           size="icon" 
           className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+          onClick={() => openHelpDialog()} 
+        >
+          <ShieldQuestion className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           onClick={() => onToggleDark()} 
         >
-          {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
       </div>
     </div>

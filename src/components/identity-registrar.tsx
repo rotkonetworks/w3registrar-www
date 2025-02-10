@@ -11,10 +11,7 @@ import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
 import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
-import { 
-  challengeStore as _challengeStore, Challenge, ChallengeStatus, 
-  ChallengeStore
-} from "~/store/challengesStore"
+import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
@@ -25,18 +22,21 @@ import { StatusPage } from "./tabs/StatusPage"
 import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
-import { NotifyAccountState, useIdentityWebSocket } from "~/hooks/useIdentityWebSocket"
+import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
 import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
-import { useDark } from "~/hooks/useDark"
+import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
+import { GenericDialog } from "./dialogs/GenericDialog"
+import { Overview } from "~/help"
+import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -44,7 +44,7 @@ const MemoStatusPage = memo(StatusPage)
 
 type MainContentProps = {
   identityStore: IdentityStore,
-  challengeStore: ChallengeStore,
+  challengeStore: { challenges: ChallengeStore, error: string | null },
   chainStore: ChainInfo, 
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
@@ -53,19 +53,18 @@ type MainContentProps = {
   alertsStore: Map<string, AlertProps>,
   addNotification: any, 
   formatAmount: any, 
-  requestVerificationSecret: any, 
-  verifyIdentity: any, 
   signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
   updateUrlParams: any,
   setOpenDialog: any,
+  isTxBusy: boolean,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, isDark, alertsStore, identityFormRef, urlParams,
-  addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity,
+  chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
+  addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
@@ -83,6 +82,7 @@ const MainContent = ({
         chainConstants={chainConstants}
         formatAmount={formatAmount}
         signSubmitAndWatch={signSubmitAndWatch}
+        isTxBusy={isTxBusy}
       />
     },
     {
@@ -93,7 +93,6 @@ const MainContent = ({
       content: <MemoChallengesPage
         addNotification={addNotification}
         challengeStore={challengeStore}
-        verifyField={verifyIdentity}
       />
     },
     {
@@ -103,10 +102,11 @@ const MainContent = ({
       disabled: identityStore.status < verifyStatuses.NoIdentity,
       content: <MemoStatusPage
         identityStore={identityStore}
-        addNotification={addNotification}
-        challengeStore={challengeStore}
+        challengeStore={challengeStore.challenges}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
+        isTxBusy={isTxBusy}
+        chainName={chainStore.name?.replace(/ People/g, " ")}
       />
     },
   ]
@@ -217,10 +217,9 @@ const MainContent = ({
 
 export function IdentityRegistrarComponent() {
   const alertsStore = useProxy(_alertsStore);
-  const { isDark, setDark } = useDark()
+  const { isDark, setDark } = useDarkMode()
 
   const identityStore = useProxy(_identityStore);
-  const challengeStore = useProxy(_challengeStore);
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
 
@@ -284,8 +283,30 @@ export function IdentityRegistrarComponent() {
     };
   }, [accounts, chainStore.ss58Format]);
 
+  const connectedWallets = useConnectedWallets()
+  const [_, disconnectWallet] = useWalletDisconnector()
+
+  useEffect(() => {
+    if (!connectedWallets.length) {
+      addNotification({
+        type: "error",
+        message: "Please connect a wallet so that you can choose an account and continue.",
+        closable: false,
+        key: "noConnectedWallets",
+      })
+      return;
+    } else {
+      removeAlert("noConnectedWallets");
+    }
+  }, [connectedWallets.length])
   useEffect(() => {
     if (!urlParams.address) {
+      addNotification({
+        type: "error",
+        message: "Please pick an account that is registered in your wallets from account dropdown.",
+        closable: false,
+        key: "invalidAccount",
+      })
       return;
     }
     const accountData = getAccountData(urlParams.address);
@@ -390,7 +411,7 @@ export function IdentityRegistrarComponent() {
         chainProperties = (await chainClient.getChainSpecData()).properties
         if (import.meta.env.DEV) console.log({ id, chainProperties })
       } catch {
-        if (import.meta.env.DEV) console.error({ id, error })
+        if (import.meta.env.DEV) console.error({ id, })
       }
       const newChainData = {
         name: config.chains[id].name,
@@ -438,57 +459,16 @@ export function IdentityRegistrarComponent() {
   //#endregion chains
   
   //#region challenges
-  const identityWebSocket = useIdentityWebSocket({
-    url: import.meta.env.VITE_APP_CHALLENGES_API_URL,
-    account: accountStore.encodedAddress,
+  const { challenges, 
+    error: challengeError, 
+    isConnected: isChallengeWsConnected 
+  } = useChallengeWebSocket({
+    url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
+    address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
-    onNotification: onNotification
+    onNotification: onNotification,
+    identityStore: { info: identityStore.info, status: identityStore.status, },
   });
-  const { accountState, error, requestVerificationSecret, verifyIdentity } = identityWebSocket
-  const idWsDeps = [accountState, error, accountStore.encodedAddress, identityStore.info, chainStore.id]
-  useEffect(() => {
-    if (error) {
-      if (import.meta.env.DEV) console.error(error)
-      return
-    }
-    if (idWsDeps.some((value) => value === undefined)) {
-      return
-    }
-    if (import.meta.env.DEV) console.log({ accountState })
-    if (accountState) {
-      const {
-        pending_challenges,
-        verification_state: { fields: verifyState },
-      } = accountState;
-      const pendingChallenges = Object.fromEntries(pending_challenges)
-
-      const challenges: Record<string, Challenge> = {};
-      Object.entries(verifyState)
-        .filter(([key, value]) => pendingChallenges[key] || value)
-        .forEach(([key, value]) => {
-          let status;
-          if (identityStore.status === verifyStatuses.IdentityVerified) {
-            status = ChallengeStatus.Passed;
-          } else {
-            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
-          }
-
-          challenges[key] = {
-            type: "matrixChallenge",
-            status,
-            code: !value && pendingChallenges[key],
-          };
-        })
-      Object.assign(challengeStore, challenges)
-
-      if (import.meta.env.DEV) console.log({
-        origin: "accountState",
-        pendingChallenges,
-        verifyState,
-        challenges,
-      })
-    }
-  }, idWsDeps)
   //#endregion challenges
 
   const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
@@ -499,6 +479,11 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
+  const [isTxBusy, setTxBusy] = useState(true)
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ isTxBusy })
+  }, [isTxBusy])
+
   const [nonce, setNonce] = useState<number | null>()
   useEffect(() => {
     ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
@@ -509,9 +494,13 @@ export function IdentityRegistrarComponent() {
       .catch(error => {
         if (import.meta.env.DEV) console.error(error)
       })
+      .finally(() => {
+        if (import.meta.env.DEV) console.log("Completed fetching nonce");
+        setTxBusy(false)
+      })
   }, [accountStore.address, typedApi])
   const refreshNonce = useCallback(() => {
-    if (!nonce) {
+    if (nonce === null) {
       return
     }
     const _nonce = nonce
@@ -530,13 +519,26 @@ export function IdentityRegistrarComponent() {
     },
     eventType: string,
   ) => {
+    if (isTxBusy) {
+      return
+    }
+    setTxBusy(true)
+
     const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
       { at: "best", nonce: refreshNonce() }
     )
     let txHash: HexString | null = null
     signedCall.subscribe({
       next: (result) => {
-        txHash = result.txHash
+        txHash = result.txHash;
+        const _result: (typeof result) & {
+          found: boolean,
+          ok: boolean,
+        } = { 
+          found: result["found"] || false,
+          ok: result["ok"] || false,
+          ...result,
+        };
         if (result.type === "broadcasted") {
           addNotification({
             key: result.txHash,
@@ -545,15 +547,29 @@ export function IdentityRegistrarComponent() {
             message: messages.broadcasted || "Transaction broadcasted",
           })
         }
-        if (result.type === "txBestBlocksState") {
-          addNotification({
-            key: result.txHash,
-            type: "success",
-            message: messages.success || "Transaction finalized",
-          })
-          fetchIdAndJudgement()
+        else if (_result.type === "txBestBlocksState") {
+          if (_result.ok && _result.found) {
+            addNotification({
+              key: _result.txHash,
+              type: "success",
+              message: messages.success || "Transaction finalized",
+            })
+            fetchIdAndJudgement()
+            setTxBusy(false)
+          }
         }
-        if (import.meta.env.DEV) console.log({ result })
+        else if (_result.type === "finalized") {
+          if (!_result.ok || !_result.found) {
+            addNotification({
+              key: _result.txHash,
+              type: "error",
+              message: messages.error || "Transaction failed",
+            })
+            fetchIdAndJudgement()
+            setTxBusy(false)
+          }
+        }
+        if (import.meta.env.DEV) console.log({ _result })
       },
       error: (error) => {
         if (import.meta.env.DEV) console.error(error)
@@ -561,6 +577,7 @@ export function IdentityRegistrarComponent() {
           type: "error",
           message: messages.error || "Error submitting transaction. Please try again.",
         })
+        setTxBusy(false)
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
@@ -584,10 +601,7 @@ export function IdentityRegistrarComponent() {
     )
   }, [_clearIdentity])
   
-  const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
-  
-  type DialogMode = "clearIdentity" | "disconnect" | "teleposr" | null
+  type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
@@ -620,7 +634,7 @@ export function IdentityRegistrarComponent() {
         setOpenDialog("disconnect")
         break;
       case "Teleport":
-        setOpenDialog("teleposr")
+        setOpenDialog("teleport")
         break;
       case "RemoveIdentity":
         setOpenDialog("clearIdentity")
@@ -638,10 +652,13 @@ export function IdentityRegistrarComponent() {
 
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
-    challengeStore, identityFormRef, urlParams,
-    addNotification, removeNotification, formatAmount, requestVerificationSecret, verifyIdentity, 
+    challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
+    addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
+
+  const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
+  const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -667,6 +684,9 @@ export function IdentityRegistrarComponent() {
             id: chainStore.id,
           }} 
           onToggleDark={() => setDark(!isDark)}
+          isDark={isDark}
+          isTxBusy={isTxBusy}
+          openHelpDialog={openHelpDialog}
         />
 
         {(() => {
@@ -676,10 +696,15 @@ export function IdentityRegistrarComponent() {
 
           if (identityStore.status === verifyStatuses.Unknown) {
             return (
-              <div className="flex flex-grow flex-col flex-stretch">
+              <div className="w-full flex flex-grow flex-col flex-stretch">
                 <LoadingTabs />
-                <LoadingContent className="flex flex-grow w-full flex-center font-bold text-3xl">
-                  Loading Identity Data...
+                <LoadingContent>
+                  <div className="flex flex-col items-stretch border-primary">
+                    <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" currentSlideIndex={3} />
+                    <span className="text-3xl text-center font-bold pt-4">
+                      Loading identity data...
+                    </span>
+                  </div>
                 </LoadingContent>
               </div>
             );
@@ -690,10 +715,11 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
+    {/* TODO Refactor into GenericDialog */}
     <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
       onOpenChange={handleOpenChange}
     >
-      <DialogContent className="bg-[#2C2B2B] text-[#FFFFFF] border-[#E6007A]">
+      <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
           <DialogDescription>
@@ -758,8 +784,34 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
+      title="Quick start guide"
+      // description={<Overview />}
+      footer={<>
+        {helpSlideIndex < SLIDES_COUNT && (
+          <Button variant="outline" onClick={() => {
+              setOpenDialog(null)
+              setHelpSlideIndex(0)
+          }}>Skip</Button>
+        )}
+        <Button 
+          onClick={() => {
+            if (helpSlideIndex === SLIDES_COUNT - 1) {
+              setOpenDialog(null)
+              setHelpSlideIndex(0)
+            } else {
+              setHelpSlideIndex(prev => prev + 1)
+            }
+          }}
+        >
+          {helpSlideIndex === 3 ? "Close" : "Next"}
+        </Button>
+      </>}
+    >
+      <HelpCarousel currentSlideIndex={helpSlideIndex} />
+    </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleposr"} address={accountStore.encodedAddress}
+      typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
       onOpenChange={handleOpenChange} formatAmount={formatAmount}
       tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
       signer={accountStore.polkadotSigner}

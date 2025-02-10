@@ -5,7 +5,7 @@ import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Info, Trash } from "lucide-react"
+import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck } from "lucide-react"
 import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
@@ -13,13 +13,15 @@ import { VerificationStatusBadge } from "../VerificationStatusBadge"
 export function StatusPage({
   identityStore,
   challengeStore,
-  addNotification,
+  isTxBusy,
+  chainName,
   formatAmount,
   onIdentityClear,
 }: {
   identityStore: IdentityStore,
   challengeStore: ChallengeStore,
-  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+  isTxBusy: boolean,
+  chainName: string,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
 }) {
@@ -42,10 +44,12 @@ export function StatusPage({
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)] overflow-x-auto">
       <CardHeader>
         <CardTitle className="text-inherit flex items-center gap-2">
-          <UserCircle className="h-5 w-5" />
+          <FileCheck className="h-5 w-5" />
           Identity Status
         </CardTitle>
-        <CardDescription className="text-[#706D6D]">Current status of your Polkadot identity</CardDescription>
+        <CardDescription className="text-[#706D6D]">
+          This is the current status of your identity on the {chainName} chain.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
         <div className="min-w-[300px]">
@@ -115,7 +119,7 @@ export function StatusPage({
           <Button variant="outline" 
             onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
-            disabled={onChainIdentity <= verifyStatuses.NoIdentity}
+            disabled={onChainIdentity <= verifyStatuses.NoIdentity || isTxBusy}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity

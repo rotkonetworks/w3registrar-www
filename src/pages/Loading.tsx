@@ -1,6 +1,7 @@
 import { Circle } from "lucide-react";
 import React from "react";
-import { useDark } from "~/hooks/useDark";
+import { HelpCarousel } from "~/help/helpCarousel";
+import { useDarkMode } from "~/hooks/useDarkMode";
 
 export const LoadingPlaceholder = ({ className, children, ...props }: {
   className?: string,
@@ -35,7 +36,7 @@ export const LoadingContent = ({ className, children, ...props }: {
       + className || ""
     }
   >
-    <LoadingPlaceholder className="flex flex-grow w-full flex-center font-bold text-3xl">
+    <LoadingPlaceholder className="flex flex-grow w-full flex-center font-bold">
       {children}
     </LoadingPlaceholder>
 
@@ -51,7 +52,7 @@ export const LoadingContent = ({ className, children, ...props }: {
 </>
 
 export function Loading() {
-  const { isDark } = useDark();
+  const { isDark } = useDarkMode();
 
   return (
     <div className={`min-h-screen p-4 transition-colors duration-300 flex items-stretch ${isDark
@@ -80,7 +81,14 @@ export function Loading() {
         
         <div className="w-full flex flex-grow flex-col flex-stretch">
           <LoadingTabs />
-          <LoadingContent>Syncing light client...</LoadingContent>
+          <LoadingContent>
+            <div className="flex flex-col items-stretch border-primary">
+              <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" autoPlayInterval={4000} />
+              <span className="text-3xl text-center font-bold pt-4">
+                Syncing light client...
+              </span>
+            </div>
+          </LoadingContent>
         </div>
       </div>
     </div>

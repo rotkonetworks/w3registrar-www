@@ -21,6 +21,7 @@ import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 
+// TODO Consider for removal
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   onOpenChange, formatAmount
@@ -224,7 +225,8 @@ export default function TeleporterDialog({
  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1E1E1E] text-[#FFFFFF] border-[#E6007A] sm:max-w-[425px]">
+      {/* TODO Refactor into GenericDialog */}
+      <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A] sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">Teleporter</DialogTitle>
         </DialogHeader>

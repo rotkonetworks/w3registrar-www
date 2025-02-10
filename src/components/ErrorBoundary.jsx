@@ -88,7 +88,7 @@ export class ErrorBoundary extends React.Component {
             <h2 className="text-xl font-bold">Technical Details</h2>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="component-stack">
-                <AccordionTrigger className="text-[#E6007A]">
+                <AccordionTrigger className="bg-background text-[#E6007A]">
                   Show Component Stack
                 </AccordionTrigger>
                 <AccordionContent>
@@ -98,7 +98,7 @@ export class ErrorBoundary extends React.Component {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="error-message">
-                <AccordionTrigger className="text-[#E6007A]">
+                <AccordionTrigger className="bg-background text-[#E6007A]">
                   Show Error Message
                 </AccordionTrigger>
                 <AccordionContent>
