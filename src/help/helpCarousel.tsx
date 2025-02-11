@@ -29,7 +29,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
 
   return (
     <Carousel 
-      className={"max-w-[29rem] " + rest.className} 
+      className={twMerge("sm:w-[29rem] w-sm", rest.className)} 
       showArrows={false} 
       showThumbs={false} 
       showStatus={false}
@@ -60,7 +60,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       }}
     >
       {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
-        <div key={key} className="pb-[3rem] flex-center flex-col">
+        <div key={key} className="sm:pb-[3rem] pb-[4rem] flex-center flex-col">
           <Collection title={title} items={items} />
         </div>
       ))}
