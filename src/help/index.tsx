@@ -1,3 +1,5 @@
+import { Link } from "lucide-react"
+
 // Data structures
 export const HELP_SLIDES = {
   features: {
@@ -87,6 +89,20 @@ export const HELP_SLIDES = {
         description: "Verification complete. Judgement registered on-chain confirming account ownership."
       }
     ]
+  },
+  support: {
+    title: "Support",
+    items: Object.entries(import.meta.env)
+      .filter(([key]) => key.startsWith("VITE_APP_CONTACT_LINK_"))
+      .map(([key, value]) => {
+        const contactLinkName = key.replace("VITE_APP_CONTACT_LINK_", "").replace("_", " ")
+        return ({
+          title: <><Link className="inline h-4 w-4" />  {contactLinkName}</>,
+          description: <a href={value} target="_blank" rel="noreferrer" className="break-words">
+            {value}
+          </a>,
+        })
+      })
   }
 } as const
 
