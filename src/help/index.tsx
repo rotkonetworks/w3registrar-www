@@ -131,15 +131,3 @@ export const Collection = ({ title, items }) => {
     </div>
   </>
 }
-
-// Main container component
-export const IdentityVerification = () => (
-  <div className="min-h-screen bg-gray-50">
-    <Overview />
-    <StartGuide />
-    <Features />
-    <Steps />
-    <States />
-    <FAQ />
-  </div>
-)
