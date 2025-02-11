@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel } from 'react-responsive-carousel';
-import { 
-  Features,
-  Steps,
-  FAQ,
-  States,
-} from '~/help';
+import { HELP_SLIDES, Collection, } from '~/help';
 
 interface CarouselProps {
   autoPlayInterval?: number;
@@ -43,20 +38,13 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       selectedItem={currentSlide}
       onChange={handleChange}
     >
-      <div className="max-w-[27rem] pb-[2rem]">
-        <Features />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <Steps />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <FAQ />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <States />
-      </div>
+      {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
+        <div key={key} className="max-w-[27rem] pb-[2rem]">
+          <Collection title={title} items={items} />
+        </div>
+      ))}
     </Carousel>
   );
 };
 
-export const SLIDES_COUNT = 4;
+export const SLIDES_COUNT = Object.keys(HELP_SLIDES).length;

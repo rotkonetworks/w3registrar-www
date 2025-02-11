@@ -1,83 +1,94 @@
 // Data structures
-const FEATURES = [
-  {
-    title: "Platform Verification",
-    description: "Prove ownership of your Discord, Twitter, Matrix, and email accounts through automated challenge-response verification."
+export const HELP_SLIDES = {
+  features: {
+    title: "Features",
+    items: [
+      {
+        title: "Platform Verification",
+        description: "Prove ownership of your Discord, Twitter, Matrix, and email accounts through automated challenge-response verification."
+      },
+      {
+        title: "Automated Validation",
+        description: "Simple challenge-response system confirms your control of declared accounts using one-time verification codes."
+      },
+      {
+        title: "Status Monitoring",
+        description: "Track your verification progress with real-time status updates throughout the process."
+      },
+      {
+        title: "On-chain Registration",
+        description: "Successfully verified identities are registered directly on-chain, providing transparent proof of ownership."
+      }
+    ]
   },
-  {
-    title: "Automated Validation",
-    description: "Simple challenge-response system confirms your control of declared accounts using one-time verification codes."
+  steps: {
+    title: "Verification Process",
+    items: [
+      {
+        title: "Wallet Connection",
+        description: "Connect your Polkadot wallet and select the account for verification."
+      },
+      {
+        title: "Identity Declaration",
+        description: "Declare the accounts and domains you want to verify as part of your on-chain identity."
+      },
+      {
+        title: "Validation",
+        description: "Complete automated challenge-response verification for each declared platform."
+      },
+      {
+        title: "Judgement",
+        description: "Receive an on-chain judgement confirming verified ownership of your declared accounts."
+      }
+    ]
   },
-  {
-    title: "Status Monitoring",
-    description: "Track your verification progress with real-time status updates throughout the process."
+  faq: {
+    title: "FAQ",
+    items: [
+      {
+        title: "Verification Duration",
+        description: "The automated process typically completes within 5 minutes, depending on how quickly you complete the challenges."
+      },
+      {
+        title: "Failed Validations",
+        description: "Failed challenges can be reattempted immediately. Contact support for persistent issues."
+      },
+      {
+        title: "On-chain Data",
+        description: "All verified identity information is stored publicly on-chain. Only declare accounts you want publicly associated with your address."
+      },
+      {
+        title: "Multiple Accounts",
+        description: "Each account requires separate verification. The same external accounts cannot be used across multiple verifications."
+      }
+    ]
   },
-  {
-    title: "On-chain Registration",
-    description: "Successfully verified identities are registered directly on-chain, providing transparent proof of ownership."
+  states: {
+    title: "Verification States",
+    items: [
+      {
+        title: "Uninitialized",
+        description: "No on-chain identity declared. Set your identity information to begin verification."
+      },
+      {
+        title: "Initialized",
+        description: "Identity information declared on-chain. Ready to request judgement."
+      },
+      {
+        title: "Pending",
+        description: "Judgement requested and awaiting processing."
+      },
+      {
+        title: "Processing",
+        description: "Payment confirmed. Challenge-response verification in progress."
+      },
+      {
+        title: "Verified",
+        description: "Verification complete. Judgement registered on-chain confirming account ownership."
+      }
+    ]
   }
-] as const
-
-const STEPS = [
-  {
-    title: "Wallet Connection",
-    description: "Connect your Polkadot wallet and select the account for verification."
-  },
-  {
-    title: "Identity Declaration",
-    description: "Declare the accounts and domains you want to verify as part of your on-chain identity."
-  },
-  {
-    title: "Validation",
-    description: "Complete automated challenge-response verification for each declared platform."
-  },
-  {
-    title: "Judgement",
-    description: "Receive an on-chain judgement confirming verified ownership of your declared accounts."
-  }
-] as const
-
-const FAQ_ITEMS = [
-  {
-    title: "Verification Duration",
-    description: "The automated process typically completes within 5 minutes, depending on how quickly you complete the challenges."
-  },
-  {
-    title: "Failed Validations",
-    description: "Failed challenges can be reattempted immediately. Contact support for persistent issues."
-  },
-  {
-    title: "On-chain Data",
-    description: "All verified identity information is stored publicly on-chain. Only declare accounts you want publicly associated with your address."
-  },
-  {
-    title: "Multiple Accounts",
-    description: "Each account requires separate verification. The same external accounts cannot be used across multiple verifications."
-  }
-] as const
-
-const STATES = [
-  {
-    title: "Uninitialized",
-    description: "No on-chain identity declared. Set your identity information to begin verification."
-  },
-  {
-    title: "Initialized",
-    description: "Identity information declared on-chain. Ready to request judgement."
-  },
-  {
-    title: "Pending",
-    description: "Judgement requested and awaiting processing."
-  },
-  {
-    title: "Processing",
-    description: "Payment confirmed. Challenge-response verification in progress."
-  },
-  {
-    title: "Verified",
-    description: "Verification complete. Judgement registered on-chain confirming account ownership."
-  }
-] as const
+} as const
 
 export const Overview = () => (
   <section className="max-w-3xl mx-auto px-4 py-4 text-center">
@@ -110,7 +121,7 @@ const Item = ({ key, title, description }) => {
   )
 }
 
-const Collection = ({ title, items }) => {
+export const Collection = ({ title, items }) => {
   return <>
     <h2 className="text-2xl font-bold text-center mb-3">{title}</h2>
     <div className="grid grid-cols-2 gap-2">
@@ -120,22 +131,6 @@ const Collection = ({ title, items }) => {
     </div>
   </>
 }
-
-export const Features = () => (
-  <Collection title="Features" items={FEATURES} />
-)
-
-export const Steps = () => (
-  <Collection title="Verification Process" items={STEPS} />
-)
-
-export const FAQ = () => (
-  <Collection title="FAQ" items={FAQ_ITEMS} />
-)
-
-export const States = () => (
-  <Collection title="Verification States" items={STATES} />
-)
 
 // Main container component
 export const IdentityVerification = () => (
