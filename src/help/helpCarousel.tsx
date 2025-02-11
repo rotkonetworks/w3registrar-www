@@ -60,7 +60,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       }}
     >
       {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
-        <div key={key} className="max-w-[27rem] pb-[3rem]">
+        <div key={key} className="pb-[3rem] flex-center flex-col">
           <Collection title={title} items={items} />
         </div>
       ))}
