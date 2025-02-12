@@ -597,7 +597,8 @@ export function IdentityRegistrarComponent() {
           }
         }
         else if (_result.type === "finalized") {
-          if (!_result.ok || !_result.found) {
+          // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
+          if (!_result.ok) {
             addNotification({
               key: _result.txHash,
               type: "error",
