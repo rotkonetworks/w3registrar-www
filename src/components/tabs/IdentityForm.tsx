@@ -360,38 +360,41 @@ export const IdentityForm = forwardRef((
         <CardContent className="space-y-6 p-6">
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {Object.entries(identityFormFields).map(([key, props]) =>
-              <div className="space-y-2" key={props.key}>
-                <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
-                  {props.icon}
-                  {props.label}
-                </Label>
-                <Input
-                  id={props.key}
-                  name={props.key}
-                  value={formData[key].value}
-                  disabled={!accountStore.address}
-                  onChange={event => setFormData(_formData => {
-                    const newValue = event.target.value
-                    _formData = { ..._formData }
-                    _formData[key] = { ..._formData[key] }
-                    _formData[key].value = newValue;
-                    _formData[key].error = props.checkForErrors(newValue);
-                    if (identityFormFields[key].required && _formData[key].value === "") {
-                      _formData[key].error = "Required";
-                    }
-                    return _formData;
-                  })}
-                  placeholder={props.placeholder}
-                  className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
-                />
-                {formData[key].error && (
-                  <div className="text-[#E6007A] text-sm mt-1">
-                    <p>{formData[key].error}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            {Object.entries(identityFormFields)
+              .filter(([key]) => supportedFields.includes(key))
+              .map(([key, props]) =>
+                <div className="space-y-2" key={props.key}>
+                  <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
+                    {props.icon}
+                    {props.label}
+                  </Label>
+                  <Input
+                    id={props.key}
+                    name={props.key}
+                    value={formData[key]?.value || ""}
+                    disabled={!accountStore.address}
+                    onChange={event => setFormData(_formData => {
+                      const newValue = event.target.value
+                      _formData = { ..._formData }
+                      _formData[key] = { ..._formData[key] }
+                      _formData[key].value = newValue;
+                      _formData[key].error = props.checkForErrors(newValue);
+                      if (identityFormFields[key].required && _formData[key].value === "") {
+                        _formData[key].error = "Required";
+                      }
+                      return _formData;
+                    })}
+                    placeholder={props.placeholder}
+                    className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
+                  />
+                  {formData[key]?.error && (
+                    <div className="text-[#E6007A] text-sm mt-1">
+                      <p>{formData[key].error}</p>
+                    </div>
+                  )}
+                </div>
+              )
+            }
             {forbiddenSubmission && (
               <div className="text-[#E6007A] text-sm mt-5">
                 <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
