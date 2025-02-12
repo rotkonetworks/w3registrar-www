@@ -350,6 +350,7 @@ export function IdentityRegistrarComponent() {
           .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
             (value.value as Binary).asText()
           ])
+          // TODO Handle other formats, like Blake2_256, etc.
         );
         identityStore.deposit = identityOf.deposit
         identityStore.info = identityData;
