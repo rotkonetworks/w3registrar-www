@@ -49,7 +49,6 @@ type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
   chainConstants, 
-  isDark: boolean, 
   alertsStore: Map<string, AlertProps>,
   addNotification: any, 
   formatAmount: any, 
@@ -63,7 +62,7 @@ type MainContentProps = {
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
+  chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
@@ -688,7 +687,7 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
+    chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
