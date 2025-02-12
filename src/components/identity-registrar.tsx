@@ -402,6 +402,42 @@ export function IdentityRegistrarComponent() {
   
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
+
+  const IdentityField = {
+    display: 1 << 0,
+    legal: 1 << 1,
+    web: 1 << 2,
+    matrix: 1 << 3,
+    email: 1 << 4,
+    pgpFingerprint: 1 << 5,
+    image: 1 << 6,
+    twitter: 1 << 7,
+    gitHub: 1 << 8,
+    discord: 1 << 9,
+  } as const;
+  const getSupportedFields = (bitfield: number): string[] => {
+    const result: string[] = [];
+    for (const key in IdentityField) {
+      if (bitfield & IdentityField[key as keyof typeof IdentityField]) {
+        result.push(key);
+      }
+    }
+    return result;
+  }
+
+  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
+  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
+  const [supportedFields, setSupportedFields] = useState<string[]>([])
+  useEffect(() => {
+    (typedApi.query.Identity.Registrars as ApiStorage)
+      .getValue()
+      .then((result) => {
+        const fields = result[registrarIndex].fields
+        const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) -1)
+        setSupportedFields(_supportedFields)
+        if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result })
+      })
+  }, [chainStore.id, typedApi, registrarIndex])
   
   useEffect(() => {
     ((async () => {
