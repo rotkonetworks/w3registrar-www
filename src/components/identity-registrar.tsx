@@ -410,10 +410,10 @@ export function IdentityRegistrarComponent() {
     web: 1 << 2,
     matrix: 1 << 3,
     email: 1 << 4,
-    pgpFingerprint: 1 << 5,
+    pgp_fingerprint: 1 << 5,
     image: 1 << 6,
     twitter: 1 << 7,
-    gitHub: 1 << 8,
+    github: 1 << 8,
     discord: 1 << 9,
   } as const;
   const getSupportedFields = (bitfield: number): string[] => {
