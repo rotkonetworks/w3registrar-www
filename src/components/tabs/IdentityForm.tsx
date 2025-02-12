@@ -32,6 +32,7 @@ export const IdentityForm = forwardRef((
     typedApi,
     chainConstants,
     isTxBusy,
+    supportedFields,
     formatAmount,
     signSubmitAndWatch,
   }: {
@@ -41,6 +42,7 @@ export const IdentityForm = forwardRef((
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
     chainConstants: Record<string, any>,
     isTxBusy: boolean,
+    supportedFields: string[],
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     signSubmitAndWatch: (
       call: ApiTx,

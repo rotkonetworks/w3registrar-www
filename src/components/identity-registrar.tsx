@@ -52,6 +52,7 @@ type MainContentProps = {
   alertsStore: Map<string, AlertProps>,
   addNotification: any, 
   formatAmount: any, 
+  supportedFields: string[],
   signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
@@ -79,6 +80,7 @@ const MainContent = ({
         typedApi={typedApi}
         accountStore={accountStore}
         chainConstants={chainConstants}
+        supportedFields={supportedFields}
         formatAmount={formatAmount}
         signSubmitAndWatch={signSubmitAndWatch}
         isTxBusy={isTxBusy}
@@ -689,6 +691,7 @@ export function IdentityRegistrarComponent() {
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
+    supportedFields,
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
