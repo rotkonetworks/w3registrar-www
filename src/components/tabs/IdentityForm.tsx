@@ -1,6 +1,8 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
-import { UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe } from 'lucide-react'
+import { 
+  UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe, Fingerprint, Github, Image, IdCard 
+} from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -84,6 +86,128 @@ export const IdentityForm = forwardRef((
     setShowCostModal(true);
   }
 
+  const identityFormFields = {
+    display: {
+      label: "Display Name",
+      icon: <UserCircle className="h-4 w-4" />,
+      key: "display",
+      placeholder: 'Alice',
+      checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+      required: false,
+    },
+    matrix: {
+      label: "Matrix",
+      icon: <AtSign className="h-4 w-4" />,
+      key: "matrix",
+      placeholder: '@alice:matrix.org',
+      checkForErrors: (v) => v.length > 0
+        && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null
+      ,
+      required: false,
+    },
+    email: {
+      label: "Email",
+      icon: <Mail className="h-4 w-4" />,
+      key: "email",
+      placeholder: 'alice@example.org',
+      checkForErrors: (v) => v.length > 0
+        && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+    discord: {
+      label: "Discord",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "discord",
+      placeholder: 'alice#1234',
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}(#\d+)?$/.test(v)
+        ? "Invalid format"
+        : null,
+      required: false,
+    },
+    twitter: {
+      label: "Twitter",
+      icon: <MessageSquare className="h-4 w-4" />,
+      key: "twitter",
+      placeholder: '@alice',
+      checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
+      required: false,
+    },
+    web: {
+      label: "Website",
+      icon: <Globe className="h-4 w-4" />,
+      key: "web",
+      placeholder: 'alice.org',
+      checkForErrors: (v) => {
+        if (v.length === 0) return null;
+        try {
+          const url = new URL(v.startsWith('http') ? v : `https://${v}`);
+          return null;
+        } catch {
+          return "Invalid URL format";
+        }
+      },
+      transform: (value: string) => {
+        if (!value) return "";
+        return value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+      },
+      required: false,
+    },
+    legal: {
+      label: "Legal Name",
+      icon: <IdCard className="h-4 w-4" />,
+      key: "legal",
+      placeholder: 'Alice',
+      checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
+      required: false,
+    },
+    image: {
+      label: "Image",
+      icon: <Image className="h-4 w-4" />,
+      key: "image",
+      placeholder: 'https://example.org/alice.png',
+      checkForErrors: (v) => {
+        if (v.length === 0) return null;
+        try {
+          new URL(v);
+          return null;
+        } catch {
+          return "Invalid URL format";
+        }
+      },
+      required: false,
+    },
+    github: {
+      label: "GitHub",
+      icon: <Github className="h-4 w-4" />,
+      key: "github",
+      placeholder: 'alice',
+      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$/.test(v)
+        ? "Invalid format"
+        : null,
+      required: false,
+    },
+    pgp_fingerprint: {
+      label: "PGP Fingerprint",
+      icon: <Fingerprint className="h-4 w-4" />,
+      key: "pgp_fingerprint",
+      placeholder: '0x1234...',
+      checkForErrors: (v) => v.length > 0 && !/^0x[a-fA-F0-9]{40}$/.test(v)
+        ? "Invalid format"
+        : null,
+      required: false,
+    }
+  }
+  const setId_requiredFields = [
+    "display", 
+    "legal",
+    "web", 
+    "matrix", 
+    "email", 
+    "image",
+    "twitter", 
+    "github", 
+    "discord", 
+  ]
   const getCall = useCallback((): ApiTx | null => {
     if (actionType === "judgement") {
       return typedApi.tx.Identity.request_judgement({
@@ -93,7 +217,12 @@ export const IdentityForm = forwardRef((
     } else if (actionType === "identity") {
       return typedApi.tx.Identity.set_identity({
         info: {
+          ...Object.fromEntries(setId_requiredFields.map(key => [ key, {type: "None"} ])),
           ...(Object.fromEntries(Object.entries(formData)
+            .map(([key, { value }]) => [key, identityFormFields[key].transform 
+              ? identityFormFields[key].transform(value)
+              : value
+            ])
             .map(([key, { value }]) => [key, value
               ? {
                 type: `Raw${value.length}`,
@@ -103,19 +232,8 @@ export const IdentityForm = forwardRef((
                 type: "None",
               }
             ])
+            // TODO Handle other field formats, e.g. Blake2_256, etc.
           )),
-          legal: {
-            type: "None",
-          },
-          github: {
-            type: "None",
-          },
-          image: {
-            type: "None",
-          },
-          // web: {
-          //   type: "None",
-          // },
         },
       });
     } 
@@ -179,73 +297,6 @@ export const IdentityForm = forwardRef((
     setShowCostModal(false)
   }, [getCall])
 
-  const identityFormFields = {
-    display: {
-      label: "Display Name",
-      icon: <UserCircle className="h-4 w-4" />,
-      key: "display",
-      placeholder: 'Alice',
-      checkForErrors: (v) => v.length > 0 && v.length < 3 ? "At least 3 characters" : null,
-      required: false,
-    },
-    matrix: {
-      label: "Matrix",
-      icon: <AtSign className="h-4 w-4" />,
-      key: "matrix",
-      placeholder: '@alice:matrix.org',
-      checkForErrors: (v) => v.length > 0 
-        && !/@[a-zA-Z0-9._=-]+:[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(v) ? "Invalid format" : null
-      ,
-      required: false,
-    },
-    email: {
-      label: "Email",
-      icon: <Mail className="h-4 w-4" />,
-      key: "email",
-      placeholder: 'alice@example.org',
-      checkForErrors: (v) => v.length > 0 
-        && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v) ? "Invalid format" : null,
-      required: false,
-    },
-    discord: {
-      label: "Discord",
-      icon: <MessageSquare className="h-4 w-4" />,
-      key: "discord",
-      placeholder: 'alice#1234',
-      checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}(#\d+)?$/.test(v) 
-        ? "Invalid format" 
-        : null,
-      required: false,
-    },
-    twitter: {
-      label: "Twitter",
-      icon: <MessageSquare className="h-4 w-4" />,
-      key: "twitter",
-      placeholder: '@alice',
-      checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
-      required: false,
-    },
-    web: {
-      label: "Website",
-      icon: <Globe className="h-4 w-4" />,
-      key: "web",
-      placeholder: 'alice.org',
-      checkForErrors: (v) => {
-        if (v.length === 0) return null;
-        try {
-          const url = new URL(v.startsWith('http') ? v : `https://${v}`);
-          return null;
-        } catch {
-          return "Invalid URL format";
-        }
-      },
-      transform: (value: string) => {
-        if (!value) return "";
-        return value.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-      },
-      required: false,
-    },
-  }
   const _resetFromIdStore = useCallback((identityStoreInfo) => (
     {...(Object.entries(identityFormFields).reduce((all, [key]) => {
       all[key] = {
