@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Carousel } from 'react-responsive-carousel';
-import { 
-  Features,
-  Steps,
-  FAQ,
-  States,
-} from '~/help';
+import { twMerge } from 'tailwind-merge';
+import { HELP_SLIDES, Collection, } from '~/help';
 
 interface CarouselProps {
   autoPlayInterval?: number;
@@ -33,7 +29,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
 
   return (
     <Carousel 
-      className={"max-w-[29rem] " + rest.className} 
+      className={twMerge("sm:w-[29rem] w-sm", rest.className)} 
       showArrows={false} 
       showThumbs={false} 
       showStatus={false}
@@ -42,21 +38,34 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
       interval={autoPlayInterval}
       selectedItem={currentSlide}
       onChange={handleChange}
+      renderIndicator={(_: never, isSelected, index, label) => {
+        const title = HELP_SLIDES[Object.keys(HELP_SLIDES)[index]].title;
+        return (
+          <li
+            className={twMerge('text-sm inline-block p-1', 
+              isSelected ? 'text-primary font-bold' : 'bg-transparent'
+            )}
+            onClick={setCurrentSlide.bind(null, index)}
+            onKeyDown={setCurrentSlide.bind(null, index)}
+            value={index}
+            key={index}
+            role="button"
+            tabIndex={0}
+            title={title}
+            aria-label={title}
+          >
+            {title}
+          </li>
+        );
+      }}
     >
-      <div className="max-w-[27rem] pb-[2rem]">
-        <Features />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <Steps />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <FAQ />
-      </div>
-      <div className="max-w-[27rem] pb-[2rem]">
-        <States />
-      </div>
+      {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
+        <div key={key} className="sm:pb-[3rem] pb-[4rem] flex-center flex-col">
+          <Collection title={title} items={items} />
+        </div>
+      ))}
     </Carousel>
   );
 };
 
-export const SLIDES_COUNT = 4;
+export const SLIDES_COUNT = Object.keys(HELP_SLIDES).length;
