@@ -3,8 +3,17 @@ import {
   polkadot_people,
   ksmcc3,
   ksmcc3_people,
-  rococo,
-  rococo_people,
+  // rococo,
+  // rococo_people,
+  //  to enable add in .papi/polkadot-api.json and fetch metadata
+  // "rococo": {
+  //    "wsUrl": "wss://dev.rotko.net/paseo",
+  //    "metadata": ".papi/metadata/rococo.scale"
+  //  },
+  // "rococo_people": {
+  //    "wsUrl": "wss://dev.rotko.net/people-paseo",
+  //    "metadata": ".papi/metadata/rococo_people.scale"
+  //  },
   westend2,
   westend2_people,
   paseo,

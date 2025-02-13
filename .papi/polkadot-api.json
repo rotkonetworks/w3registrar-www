@@ -6,10 +6,6 @@
       "wsUrl": "wss://polkadot.dotters.network",
       "metadata": ".papi/metadata/polkadot.scale"
     },
-    "rococo": {
-      "wsUrl": "wss://dev.rotko.net/paseo",
-      "metadata": ".papi/metadata/rococo.scale"
-    },
     "paseo": {
       "chain": "paseo",
       "metadata": ".papi/metadata/paseo.scale"
@@ -29,10 +25,6 @@
     "westend2": {
       "chain": "westend2",
       "metadata": ".papi/metadata/westend2.scale"
-    },
-    "rococo_people": {
-      "wsUrl": "wss://dev.rotko.net/people-paseo",
-      "metadata": ".papi/metadata/rococo_people.scale"
     },
     "paseo_people": {
       "chain": "paseo_people",

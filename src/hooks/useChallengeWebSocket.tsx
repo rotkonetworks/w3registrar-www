@@ -215,7 +215,7 @@ const useChallengeWebSocket = (
               if (import.meta.env.DEV) console.log({ response })
               setAccountState({
                 ...response,
-                network: response.network || 'rococo'
+                network: response.network || 'paseo'
               });
             }
           } else {
@@ -226,12 +226,12 @@ const useChallengeWebSocket = (
         case 'NotifyAccountState':{
           const notifyPayload = { 
             ...message.payload,
-            network: message.payload.network || 'rococo'
+            network: message.payload.network || 'paseo'
           };
           onNotification?.(notifyPayload);
           setAccountState(prev => ({ ...prev,
             verification_state: message.payload.verification_state,
-            network: message.payload.network || 'rococo'
+            network: message.payload.network || 'paseo'
           }))
           break;
         }
