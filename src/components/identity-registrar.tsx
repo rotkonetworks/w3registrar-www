@@ -49,10 +49,10 @@ type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
   accountStore: AccountData,
   chainConstants, 
-  isDark: boolean, 
   alertsStore: Map<string, AlertProps>,
   addNotification: any, 
   formatAmount: any, 
+  supportedFields: string[],
   signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
@@ -63,7 +63,7 @@ type MainContentProps = {
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, isDark, alertsStore, identityFormRef, urlParams, isTxBusy,
+  chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount,
   signSubmitAndWatch, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
@@ -80,6 +80,7 @@ const MainContent = ({
         typedApi={typedApi}
         accountStore={accountStore}
         chainConstants={chainConstants}
+        supportedFields={supportedFields}
         formatAmount={formatAmount}
         signSubmitAndWatch={signSubmitAndWatch}
         isTxBusy={isTxBusy}
@@ -350,6 +351,7 @@ export function IdentityRegistrarComponent() {
           .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
             (value.value as Binary).asText()
           ])
+          // TODO Handle other formats, like Blake2_256, etc.
         );
         identityStore.deposit = identityOf.deposit
         identityStore.info = identityData;
@@ -401,6 +403,42 @@ export function IdentityRegistrarComponent() {
   
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
+
+  const IdentityField = {
+    display: 1 << 0,
+    legal: 1 << 1,
+    web: 1 << 2,
+    matrix: 1 << 3,
+    email: 1 << 4,
+    pgp_fingerprint: 1 << 5,
+    image: 1 << 6,
+    twitter: 1 << 7,
+    github: 1 << 8,
+    discord: 1 << 9,
+  } as const;
+  const getSupportedFields = (bitfield: number): string[] => {
+    const result: string[] = [];
+    for (const key in IdentityField) {
+      if (bitfield & IdentityField[key as keyof typeof IdentityField]) {
+        result.push(key);
+      }
+    }
+    return result;
+  }
+
+  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
+  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
+  const [supportedFields, setSupportedFields] = useState<string[]>([])
+  useEffect(() => {
+    (typedApi.query.Identity.Registrars as ApiStorage)
+      .getValue()
+      .then((result) => {
+        const fields = result[registrarIndex].fields
+        const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) -1)
+        setSupportedFields(_supportedFields)
+        if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result })
+      })
+  }, [chainStore.id, typedApi, registrarIndex])
   
   useEffect(() => {
     ((async () => {
@@ -559,7 +597,8 @@ export function IdentityRegistrarComponent() {
           }
         }
         else if (_result.type === "finalized") {
-          if (!_result.ok || !_result.found) {
+          // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
+          if (!_result.ok) {
             addNotification({
               key: _result.txHash,
               type: "error",
@@ -651,8 +690,9 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, isDark, alertsStore,
+    chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
+    supportedFields,
     addNotification, removeNotification, formatAmount, 
     signSubmitAndWatch, updateUrlParams, setOpenDialog,
   }
