@@ -103,6 +103,7 @@ export const config = defineConfig({
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
 
+    /* Please refer to the note above to enable rococo chains
     rococo: {
       name: "Rococo",
       descriptor: rococo,
@@ -113,7 +114,8 @@ export const config = defineConfig({
       descriptor: rococo_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
-    },
+    }, 
+    */
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
     ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
