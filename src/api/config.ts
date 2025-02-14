@@ -103,21 +103,22 @@ export const config = defineConfig({
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
 
-    rococo: {
-      name: "Rococo",
-      descriptor: rococo,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
-    },
-    rococo_people: {
-      name: "Rococo People",
-      descriptor: rococo_people,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
-    },
+    // rococo: {
+    //   name: "Rococo",
+    //   descriptor: rococo,
+    //   provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+    // },
+    // rococo_people: {
+    //   name: "Rococo People",
+    //   descriptor: rococo_people,
+    //   provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+    //   registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
+    // },
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
     ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
-    : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
+    // : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
+    : ["polkadot_people", "ksmcc3_people", "westend2_people"]
   ,
   wallets: [
     new InjectedWalletProvider(),
@@ -138,7 +139,7 @@ export const config = defineConfig({
         "polkadot:c1af4cb4eb3918e5db15086c0cc5ec17", // people-ksmcc3
       ],
       optionalChainIds: [
-        "polkadot:42a6fe2a73c2a8920a8ece6bdbaa63fc", // people-rococo
+        // "polkadot:42a6fe2a73c2a8920a8ece6bdbaa63fc", // people-rococo
         "polkadot:91b171bb158e2d3848fa23a9f1c25182", // polkadot
         "polkadot:b0a8d493285c2df73290dfb7e61f870f", // ksmcc3
         "polkadot:e143f23803ac50e8f6f8e62695d1ce9e", // westend
