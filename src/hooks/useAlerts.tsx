@@ -5,6 +5,7 @@ export interface AlertProps {
   title: string;
   message: string;
   key: string;
+  closable?: boolean;
 }
 
 export const useAlerts = (context: Record<string, AlertProps>) => {
