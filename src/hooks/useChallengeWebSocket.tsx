@@ -223,16 +223,28 @@ const useChallengeWebSocket = (
           }
           break;
           
-        case 'NotifyAccountState':{
-          const notifyPayload = { 
-            ...message.payload,
-            network: message.payload.network || 'paseo'
-          };
-          onNotification?.(notifyPayload);
-          setAccountState(prev => ({ ...prev,
-            verification_state: message.payload.verification_state,
-            network: message.payload.network || 'paseo'
-          }))
+        case 'AccountState': {
+          // TODO Implement onNotification
+          
+          const verificationStateFields: Record<string, boolean> = {};
+          const pendingChallenges: [string, string][] = [];
+          
+          // Extract verification states and pending challenges from the new format
+          if (message.verification_state?.challenges) {
+            Object.entries(message.verification_state.challenges).forEach(([key, value]: [string, any]) => {
+              verificationStateFields[key] = value.done;
+              if (!value.done && value.token) {
+                pendingChallenges.push([key, value.token]);
+              }
+            });
+          }
+
+          setAccountState(prev => ({ 
+            ...prev,
+            verification_state: { fields: verificationStateFields },
+            pending_challenges: pendingChallenges,
+            network: message.network || network
+          }));
           break;
         }
       }
