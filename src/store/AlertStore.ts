@@ -11,6 +11,8 @@ export interface AlertProps {
 }
 export const alertsStore = proxyMap<string, AlertProps>(); // Map to ensure insertion order
 
+export type AlertPropsOptionalKey = AlertProps | Omit<AlertProps, "key">
+
 export const pushAlert = (alert: AlertProps) => {
   alertsStore.set(alert.key, alert);
 };

@@ -1,6 +1,6 @@
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { AlertProps } from '~/store/AlertStore';
+import { AlertPropsOptionalKey } from '~/store/AlertStore';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
 import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
 
@@ -102,7 +102,7 @@ interface UseIdentityWebSocketProps {
   url: string;
   account: string;
   network: string;
-  onNotification?: (notification: NotifyAccountState) => void;
+  addNotification: (alert: AlertPropsOptionalKey) => void;
 }
 
 interface UseIdentityWebSocketReturn {
@@ -118,7 +118,7 @@ const useChallengeWebSocketWrapper = ({
   address: SS58String;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
-  addNotification?: (alert: AlertProps | Omit<AlertProps, "key">) => void;
+  addNotification: (alert: AlertPropsOptionalKey) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 

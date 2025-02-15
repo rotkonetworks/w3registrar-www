@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
-import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps } from '~/store/AlertStore'
+import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps, AlertPropsOptionalKey } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
@@ -229,7 +229,7 @@ export function IdentityRegistrarComponent() {
   const { urlParams, updateUrlParams } = useUrlParams()
 
   //#region notifications
-  const addNotification = useCallback((alert: AlertProps | Omit<AlertProps, "key">) => {
+  const addNotification = useCallback((alert: AlertPropsOptionalKey) => {
     const key = (alert as AlertProps).key || (new Date()).toISOString();
     pushAlert({ ...alert, key, closable: alert.closable ?? true });
   }, [pushAlert])
