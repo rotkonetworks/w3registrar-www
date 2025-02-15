@@ -2,6 +2,7 @@ import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
 import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
+import { AlertProps } from './useAlerts';
 
 // Types matching your Rust backend
 type Data = {
@@ -111,12 +112,13 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, address, network, identityStore
+  url, address, network, identityStore, addNotification
 }: {
   url: string;
   address: SS58String;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
+    addNotification?: (alert: AlertProps | Omit<AlertProps, "key">) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 

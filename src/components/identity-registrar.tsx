@@ -501,6 +501,7 @@ export function IdentityRegistrarComponent() {
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
     identityStore: { info: identityStore.info, status: identityStore.status, },
+    addNotification,
   });
   //#endregion challenges
 
