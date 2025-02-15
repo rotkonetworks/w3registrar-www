@@ -118,7 +118,7 @@ const useChallengeWebSocketWrapper = ({
   address: SS58String;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
-    addNotification?: (alert: AlertProps | Omit<AlertProps, "key">) => void;
+  addNotification?: (alert: AlertProps | Omit<AlertProps, "key">) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 
