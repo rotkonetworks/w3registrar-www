@@ -53,6 +53,27 @@ type SubscribeAccountState = {
   account: string;
 };
 
+type Challenge = {
+  done: boolean;
+  name: string;
+  token?: string;
+}
+
+type VerificationStateNew = {
+  all_done: boolean;
+  challenges: Record<string, Challenge>;
+  created_at: string;
+  updated_at: string;
+  network: string;
+}
+
+type AccountStateMessage = {
+  network: string;
+  operation: 'set';
+  type: 'AccountState';
+  verification_state: VerificationStateNew;
+}
+
 type WebSocketMessage = { 
     type: 'SubscribeAccountState'; 
     payload: SubscribeAccountState 
@@ -202,9 +223,12 @@ const useChallengeWebSocket = (
     });
   }, []);
 
-  const handleMessage = useCallback((event: MessageEvent) => {
+  // Note union of types for event.data. it's done because AccountStateMessage does not have `payload` field.
+  type ChallengeMessageType = WebSocketMessage | AccountStateMessage;
+
+  const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
-      const message = JSON.parse(event.data) as WebSocketMessage;
+      const message = JSON.parse(event.data as any) as ChallengeMessageType;
       if (import.meta.env.DEV) console.log({message})
 
       switch (message.type) {
