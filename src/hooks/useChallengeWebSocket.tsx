@@ -111,11 +111,10 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, address, network, onNotification, identityStore
+  url, address, network, identityStore
 }: {
   url: string;
   address: SS58String;
-  onNotification?: (notification: NotifyAccountState) => void;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
 }) => {
@@ -123,7 +122,6 @@ const useChallengeWebSocketWrapper = ({
     url, 
     account: address,  
     network: network.split("_")[0], 
-    onNotification, 
   });
   const { challengeState, error, isConnected, } = challengeWebSocket
 

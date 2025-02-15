@@ -237,10 +237,6 @@ export function IdentityRegistrarComponent() {
   const removeNotification = useCallback((key: string) => {
     removeAlert(key)
   }, [removeAlert])
-
-  const onNotification = useCallback((notification: NotifyAccountState): void => {
-    if (import.meta.env.DEV) console.log('Received notification:', notification)
-  }, [])
   //#endregion notifications
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
@@ -504,7 +500,6 @@ export function IdentityRegistrarComponent() {
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
-    onNotification: onNotification,
     identityStore: { info: identityStore.info, status: identityStore.status, },
   });
   //#endregion challenges
