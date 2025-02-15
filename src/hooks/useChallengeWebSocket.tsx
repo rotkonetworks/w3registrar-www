@@ -124,6 +124,7 @@ const useChallengeWebSocketWrapper = ({
     url, 
     account: address,  
     network: network.split("_")[0], 
+    addNotification,
   });
   const { challengeState, error, isConnected, } = challengeWebSocket
 
@@ -179,7 +180,7 @@ const useChallengeWebSocketWrapper = ({
 
 // TODO Rename as a generic WebSocket hook
 const useChallengeWebSocket = (
-  { url, account, network, onNotification }: UseIdentityWebSocketProps
+  { url, account, network, addNotification }: UseIdentityWebSocketProps
 ): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -248,8 +249,6 @@ const useChallengeWebSocket = (
           break;
           
         case 'AccountState': {
-          // TODO Implement onNotification
-          
           const verificationStateFields: Record<string, boolean> = {};
           const pendingChallenges: [string, string][] = [];
           
@@ -257,6 +256,12 @@ const useChallengeWebSocket = (
           if (message.verification_state?.challenges) {
             Object.entries(message.verification_state.challenges).forEach(([key, value]: [string, any]) => {
               verificationStateFields[key] = value.done;
+              if (value.done) {
+                addNotification({
+                  message: `Challenge ${key} has been verified successfully`,
+                  type: 'info'
+                });
+              }
               if (!value.done && value.token) {
                 pendingChallenges.push([key, value.token]);
               }
@@ -282,7 +287,7 @@ const useChallengeWebSocket = (
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse message');
     }
-  }, [onNotification]);
+  }, [addNotification]);
 
   // Set up WebSocket connection
   useEffect(() => {
