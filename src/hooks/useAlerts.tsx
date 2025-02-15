@@ -8,6 +8,8 @@ export interface AlertProps {
   closable?: boolean;
 }
 
+export type AlertPropsOptionalKey = AlertProps | Omit<AlertProps, "key">
+
 export const useAlerts = (context: Record<string, AlertProps>) => {
   const alerts = useProxy(context)
 
