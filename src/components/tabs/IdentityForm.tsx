@@ -218,22 +218,16 @@ export const IdentityForm = forwardRef((
       const info = {
         ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
         ...(Object.fromEntries(Object.entries(formData)
-          .map(([key, { value }]) => [key, identityFormFields[key].transform
-            ? identityFormFields[key].transform(value)
+          .filter(([_, { value }]) => value && value !== "")
+          .map(([key, { value }]): [string, { value: string }] => [key, {
+            value: identityFormFields[key].transform 
+              ? identityFormFields[key].transform(value)
+              : value
+          }])
+          .map(([key, { value }]) => [key, key !== "pgp_fingerprint" 
+            ? { type: `Raw${value.length}`, value: Binary.fromText(value) }
             : value
           ])
-          .map(([key, { value }]) => {
-            if (key !== "pgp_fingerprint") {
-              if (value) {
-                return [key, { type: `Raw${value.length}`, value: Binary.fromText(value), }]
-              } else {
-                return [key, { type: "None", }]
-              }
-            } else {
-              return [key, value]
-            }
-          })
-          .filter(([_, value]) => value)
         )),
       }
       if (import.meta.env.DEV) console.log({ info })
