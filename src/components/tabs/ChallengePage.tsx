@@ -164,73 +164,70 @@ export function ChallengePage({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
-        <div className="min-w-[300px]">
-          {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
-            <div key={field} className="mb-4 last:mb-0">
-              <div className="flex justify-between items-center mb-2">
-                <Label htmlFor={field} className="text-inherit flex items-center gap-2">
-                  {getIcon(field)}
-                  <span className="hidden sm:inline">{field.charAt(0).toUpperCase() + field.slice(1)} Challenge</span>
-                  <span className="sm:hidden">{field.charAt(0).toUpperCase()}</span>
-                </Label>
-                {getStatusBadge(status)}
-              </div>
-              <div className="flex space-x-2 items-center">
-                {code &&
-                  <Input id={field} value={code} readOnly 
-                    className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
-                  />
-                }
-                {type === "input" &&
-                  <Input id={field + "-challenge"} value={formData[field]?.value || ""}
-                    onChange={event => setFormField(field, event.target.value)}
-                    className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
-                  />
-                }
-                {status === ChallengeStatus.Pending &&
-                  <>
-                    <Button variant="outline" size="icon" 
-                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      disabled={pendingFields[field]}
-                      onClick={async () => {
-                        if (type === "input") {
-                          const clipText = await window.navigator.clipboard.readText()
-                          setFormField(field, clipText)
-                        } else if (code) {
-                          await copyToClipboard(code)
-                        }
-                      }} 
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    
-                    {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
-                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
-                        target="_blank" rel="noreferrer" title={inviteInstreuctions[field]}
-                      >
-                        <Button variant="outline" size="icon" 
-                          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                        >
-                          {inviteLinkIcons[field]}
-                        </Button>
-                      </a>
-                    }
-                    
-                    {field === "web" &&
-                      <Button
-                        variant="outline"
-                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                        disabled={pendingFields[field]}
-                      >
-                        Verify
-                      </Button>
-                    }
-                  </>
-                }
-              </div>
+        {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
+          <div key={field} className="mb-4 last:mb-0">
+            <div className="flex justify-between items-center mb-2">
+              <Label htmlFor={field} className="text-inherit flex items-center gap-2">
+                {getIcon(field)}
+                <span>{field.charAt(0).toUpperCase() + field.slice(1)} Code</span>
+              </Label>
+              {getStatusBadge(status)}
             </div>
-          ))}
-        </div>
+            <div className="flex space-x-2 items-center">
+              {code &&
+                <Input id={field} value={code} readOnly 
+                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                />
+              }
+              {type === "input" &&
+                <Input id={field + "-challenge"} value={formData[field]?.value || ""}
+                  onChange={event => setFormField(field, event.target.value)}
+                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                />
+              }
+              {status === ChallengeStatus.Pending &&
+                <>
+                  <Button variant="outline" size="icon" 
+                    className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                    disabled={pendingFields[field]}
+                    onClick={async () => {
+                      if (type === "input") {
+                        const clipText = await window.navigator.clipboard.readText()
+                        setFormField(field, clipText)
+                      } else if (code) {
+                        await copyToClipboard(code)
+                      }
+                    }} 
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  
+                  {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
+                    <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
+                      target="_blank" rel="noreferrer" title={inviteInstreuctions[field]}
+                    >
+                      <Button variant="outline" size="icon" 
+                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                      >
+                        {inviteLinkIcons[field]}
+                      </Button>
+                    </a>
+                  }
+                  
+                  {field === "web" &&
+                    <Button
+                      variant="outline"
+                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+                      disabled={pendingFields[field]}
+                    >
+                      Verify
+                    </Button>
+                  }
+                </>
+              }
+            </div>
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
