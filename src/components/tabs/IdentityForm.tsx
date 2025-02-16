@@ -215,27 +215,29 @@ export const IdentityForm = forwardRef((
         reg_index: chainStore.registrarIndex,
       })
     } else if (actionType === "identity") {
-      return typedApi.tx.Identity.set_identity({
-        info: {
-          ...Object.fromEntries(setId_requiredFields.map(key => [ key, {type: "None"} ])),
-          ...(Object.fromEntries(Object.entries(formData)
-            .map(([key, { value }]) => [key, identityFormFields[key].transform 
-              ? identityFormFields[key].transform(value)
-              : value
-            ])
-            .map(([key, { value }]) => [key, value
-              ? {
-                type: `Raw${value.length}`,
-                value: Binary.fromText(value),
+      const info = {
+        ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
+        ...(Object.fromEntries(Object.entries(formData)
+          .map(([key, { value }]) => [key, identityFormFields[key].transform
+            ? identityFormFields[key].transform(value)
+            : value
+          ])
+          .map(([key, { value }]) => {
+            if (key !== "pgp_fingerprint") {
+              if (value) {
+                return [key, { type: `Raw${value.length}`, value: Binary.fromText(value), }]
+              } else {
+                return [key, { type: "None", }]
               }
-              : {
-                type: "None",
-              }
-            ])
-            // TODO Handle other field formats, e.g. Blake2_256, etc.
-          )),
-        },
-      });
+            } else {
+              return [key, value]
+            }
+          })
+          .filter(([_, value]) => value)
+        )),
+      }
+      if (import.meta.env.DEV) console.log({ info })
+      return typedApi.tx.Identity.set_identity({ info, });
     } 
     else if (actionType === null) {
       return null
