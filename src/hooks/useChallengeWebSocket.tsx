@@ -1,5 +1,6 @@
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
+import { AlertPropsOptionalKey } from '~/store/AlertStore';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
 import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
 
@@ -53,6 +54,27 @@ type SubscribeAccountState = {
   account: string;
 };
 
+type Challenge = {
+  done: boolean;
+  name: string;
+  token?: string;
+}
+
+type VerificationStateNew = {
+  all_done: boolean;
+  challenges: Record<string, Challenge>;
+  created_at: string;
+  updated_at: string;
+  network: string;
+}
+
+type AccountStateMessage = {
+  network: string;
+  operation: 'set';
+  type: 'AccountState';
+  verification_state: VerificationStateNew;
+}
+
 type WebSocketMessage = { 
     type: 'SubscribeAccountState'; 
     payload: SubscribeAccountState 
@@ -80,7 +102,7 @@ interface UseIdentityWebSocketProps {
   url: string;
   account: string;
   network: string;
-  onNotification?: (notification: NotifyAccountState) => void;
+  addNotification: (alert: AlertPropsOptionalKey) => void;
 }
 
 interface UseIdentityWebSocketReturn {
@@ -90,19 +112,19 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, address, network, onNotification, identityStore
+  url, address, network, identityStore, addNotification
 }: {
   url: string;
   address: SS58String;
-  onNotification?: (notification: NotifyAccountState) => void;
   network: string;
   identityStore: { info: IdentityFormData, status: verifyStatuses };
+  addNotification: (alert: AlertPropsOptionalKey) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
     url, 
     account: address,  
     network: network.split("_")[0], 
-    onNotification, 
+    addNotification,
   });
   const { challengeState, error, isConnected, } = challengeWebSocket
 
@@ -158,7 +180,7 @@ const useChallengeWebSocketWrapper = ({
 
 // TODO Rename as a generic WebSocket hook
 const useChallengeWebSocket = (
-  { url, account, network, onNotification }: UseIdentityWebSocketProps
+  { url, account, network, addNotification }: UseIdentityWebSocketProps
 ): UseIdentityWebSocketReturn => {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -202,9 +224,12 @@ const useChallengeWebSocket = (
     });
   }, []);
 
-  const handleMessage = useCallback((event: MessageEvent) => {
+  // Note union of types for event.data. it's done because AccountStateMessage does not have `payload` field.
+  type ChallengeMessageType = WebSocketMessage | AccountStateMessage;
+
+  const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
-      const message = JSON.parse(event.data) as WebSocketMessage;
+      const message = JSON.parse(event.data as any) as ChallengeMessageType;
       if (import.meta.env.DEV) console.log({message})
 
       switch (message.type) {
@@ -223,16 +248,32 @@ const useChallengeWebSocket = (
           }
           break;
           
-        case 'NotifyAccountState':{
-          const notifyPayload = { 
-            ...message.payload,
-            network: message.payload.network || 'paseo'
-          };
-          onNotification?.(notifyPayload);
-          setAccountState(prev => ({ ...prev,
-            verification_state: message.payload.verification_state,
-            network: message.payload.network || 'paseo'
-          }))
+        case 'AccountState': {
+          const verificationStateFields: Record<string, boolean> = {};
+          const pendingChallenges: [string, string][] = [];
+          
+          // Extract verification states and pending challenges from the new format
+          if (message.verification_state?.challenges) {
+            Object.entries(message.verification_state.challenges).forEach(([key, value]: [string, any]) => {
+              verificationStateFields[key] = value.done;
+              if (value.done) {
+                addNotification({
+                  message: `Challenge ${key} has been verified successfully`,
+                  type: 'info'
+                });
+              }
+              if (!value.done && value.token) {
+                pendingChallenges.push([key, value.token]);
+              }
+            });
+          }
+
+          setAccountState(prev => ({ 
+            ...prev,
+            verification_state: { fields: verificationStateFields },
+            pending_challenges: pendingChallenges,
+            network: message.network || network
+          }));
           break;
         }
       }
@@ -246,7 +287,7 @@ const useChallengeWebSocket = (
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse message');
     }
-  }, [onNotification]);
+  }, [addNotification]);
 
   // Set up WebSocket connection
   useEffect(() => {

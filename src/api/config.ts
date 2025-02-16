@@ -102,18 +102,19 @@ export const config = defineConfig({
       provider: providers.westend.addParachain({ id: "westend_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
-
-    // rococo: {
-    //   name: "Rococo",
-    //   descriptor: rococo,
-    //   provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
-    // },
-    // rococo_people: {
-    //   name: "Rococo People",
-    //   descriptor: rococo_people,
-    //   provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-    //   registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
-    // },
+    /* Please refer to the note above to enable rococo chains
+    rococo: {
+      name: "Rococo",
+      descriptor: rococo,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+    },
+    rococo_people: {
+      name: "Rococo People",
+      descriptor: rococo_people,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
+    }, 
+    */
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
     ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())

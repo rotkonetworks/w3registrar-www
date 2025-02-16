@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
-import { AlertProps } from "~/store/AlertStore"
+import { AlertPropsOptionalKey } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
@@ -17,7 +17,7 @@ export function ChallengePage({
   // TODO Add status as in IdentityInfo
   challengeStore,
 }: {
-  addNotification: (alert: AlertProps | Omit<AlertProps, "key">) => void,
+  addNotification: (alert: AlertPropsOptionalKey) => void,
   challengeStore: { challenges: ChallengeStore, error: string | null };
 }) {
   const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
