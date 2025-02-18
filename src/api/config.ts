@@ -3,17 +3,8 @@ import {
   polkadot_people,
   ksmcc3,
   ksmcc3_people,
-  // rococo,
-  // rococo_people,
-  //  to enable add in .papi/polkadot-api.json and fetch metadata
-  // "rococo": {
-  //    "wsUrl": "wss://dev.rotko.net/paseo",
-  //    "metadata": ".papi/metadata/rococo.scale"
-  //  },
-  // "rococo_people": {
-  //    "wsUrl": "wss://dev.rotko.net/people-paseo",
-  //    "metadata": ".papi/metadata/rococo_people.scale"
-  //  },
+  rococo,
+  rococo_people,
   westend2,
   westend2_people,
   paseo,
@@ -102,7 +93,6 @@ export const config = defineConfig({
       provider: providers.westend.addParachain({ id: "westend_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
-    /* Please refer to the note above to enable rococo chains
     rococo: {
       name: "Rococo",
       descriptor: rococo,
@@ -114,12 +104,10 @@ export const config = defineConfig({
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO,
     }, 
-    */
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS 
     ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
-    // : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
-    : ["polkadot_people", "ksmcc3_people", "westend2_people"]
+    : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
   ,
   wallets: [
     new InjectedWalletProvider(),
