@@ -43,9 +43,9 @@ const Header = ({
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
 
   return (
-    <div className="flex sm:flex-row justify-between items-center mb-6 gap-4">
-      <div className="flex gap-2 w-full sm:w-auto min-w-0">
-        <div className="flex-1 sm:min-w-[140px] min-w-0">
+    <div className="flex max-[450px]:flex-col sm:flex-row flex-nowrap justify-between items-center mb-6 gap-4">
+      <div className="flex gap-2 w-full sm:w-auto max-w-[300px]">
+        <div className="flex-1 min-w-[180px]">
           <Select 
             onValueChange={onAccountSelect} 
             open={isUserDropdownOpen}
@@ -107,7 +107,7 @@ const Header = ({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex-1 sm:min-w-[140px]">
+        <div className="flex-1 min-w-[100px]">
           <Select 
             open={isNetDropdownOpen} 
             onOpenChange={setNetDropdownOpen} 

@@ -52,66 +52,64 @@ export function StatusPage({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
-        <div className="min-w-[300px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex justify-between items-center">
-              <strong className="flex items-center gap-2">
-                <UserCircle className="h-4 w-4" />
-                Display Name:
-              </strong> 
-              <span>{identityStore.info?.display || "<Not Set>"}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <strong className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Verification:
-              </strong> 
-              <VerificationStatusBadge status={identityStore.status} />
-            </div>
-            <div className="flex justify-between items-center">
-              <strong className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Judgement:
-              </strong> 
-              <span>{ verifyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <strong className="flex items-center gap-2">
-                <Coins className="h-4 w-4" />
-                Deposit:
-              </strong> 
-              <span>{formatAmount(identityStore.deposit)}</span>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex justify-between items-center">
+            <strong className="flex items-center gap-2">
+              <UserCircle className="h-4 w-4" />
+              Display Name:
+            </strong> 
+            <span>{identityStore.info?.display || "<Not Set>"}</span>
           </div>
-          <div className="mt-4">
-            <strong>Field Statuses:</strong>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {Object.entries(challengeStore)
-                .map(([field, { status, code }]: 
-                  [string, Challenge]
-                ) => (
-                  <div key={field} className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      {getIcon(field)}
-                      {field.charAt(0).toUpperCase() + field.slice(1)}:
-                    </span>
-                    <Badge 
-                      variant={(() => {
-                        if (status === ChallengeStatus.Passed) {
-                          return "success";
-                        }
-                        else if (status === ChallengeStatus.Failed) {
-                          return "destructive";
-                        }
-                        return "secondary";
-                      })()}
-                    >
-                      {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
-                    </Badge>
-                  </div>
-                ))
-              }
-            </div>
+          <div className="flex justify-between items-center max-[450px]:flex-wrap">
+            <strong className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Verification:
+            </strong> 
+            <VerificationStatusBadge status={identityStore.status} />
+          </div>
+          <div className="flex justify-between items-center">
+            <strong className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Judgement:
+            </strong> 
+            <span>{ verifyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <strong className="flex items-center gap-2">
+              <Coins className="h-4 w-4" />
+              Deposit:
+            </strong> 
+            <span>{formatAmount(identityStore.deposit)}</span>
+          </div>
+        </div>
+        <div className="mt-4">
+          <strong>Field Statuses:</strong>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            {Object.entries(challengeStore)
+              .map(([field, { status, code }]: 
+                [string, Challenge]
+              ) => (
+                <div key={field} className="flex justify-between items-center">
+                  <span className="flex items-center gap-2">
+                    {getIcon(field)}
+                    {field.charAt(0).toUpperCase() + field.slice(1)}:
+                  </span>
+                  <Badge 
+                    variant={(() => {
+                      if (status === ChallengeStatus.Passed) {
+                        return "success";
+                      }
+                      else if (status === ChallengeStatus.Failed) {
+                        return "destructive";
+                      }
+                      return "secondary";
+                    })()}
+                  >
+                    {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
+                  </Badge>
+                </div>
+              ))
+            }
           </div>
         </div>
         <IdentityStatusInfo status={identityStore.status} />
