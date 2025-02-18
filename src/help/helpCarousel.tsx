@@ -29,7 +29,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
 
   return (
     <Carousel 
-      className={twMerge("sm:w-[29rem] w-sm", rest.className)} 
+      className={twMerge("sm:w-[29rem] w-[74vw]", rest.className)} 
       showArrows={false} 
       showThumbs={false} 
       showStatus={false}

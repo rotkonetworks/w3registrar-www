@@ -129,7 +129,7 @@ export const StartGuide = () => (
 const Item = ({ key, title, description }) => {
   return (
     <div key={key}
-      className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center sm:w-[13rem] w-sm"
+      className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center sm:w-[13rem] w-[70vw]"
     >
       <h3 className="font-semibold text-md mb-2 dark:text-gray-200">{title}</h3>
       <p className="dark:text-gray-400 text-sm">{description}</p>
