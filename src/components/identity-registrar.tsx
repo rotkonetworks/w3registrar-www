@@ -619,7 +619,7 @@ export function IdentityRegistrarComponent() {
       }
     })
     return signedCall
-  }, [accountStore.polkadotSigner, refreshNonce])
+  }, [accountStore.polkadotSigner, refreshNonce, isTxBusy])
 
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), 
     [typedApi, refreshNonce]
