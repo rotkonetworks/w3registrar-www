@@ -28,43 +28,45 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
   };
 
   return (
-    <Carousel 
-      className={twMerge("sm:w-[29rem] w-[74vw]", rest.className)} 
-      showArrows={false} 
-      showThumbs={false} 
-      showStatus={false}
-      infiniteLoop={true}
-      autoPlay={autoPlayInterval > 0}
-      interval={autoPlayInterval}
-      selectedItem={currentSlide}
-      onChange={handleChange}
-      renderIndicator={(_: never, isSelected, index, label) => {
-        const title = HELP_SLIDES[Object.keys(HELP_SLIDES)[index]].title;
-        return (
-          <li
-            className={twMerge('text-sm inline-block p-1', 
-              isSelected ? 'text-primary font-bold' : 'bg-transparent'
-            )}
-            onClick={setCurrentSlide.bind(null, index)}
-            onKeyDown={setCurrentSlide.bind(null, index)}
-            value={index}
-            key={index}
-            role="button"
-            tabIndex={0}
-            title={title}
-            aria-label={title}
-          >
-            {title}
-          </li>
-        );
-      }}
-    >
-      {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
-        <div key={key} className="sm:pb-[3rem] pb-[4rem] flex-center flex-col">
-          <Collection title={title} items={items} />
-        </div>
-      ))}
-    </Carousel>
+    <div className="flex flex-col items-center">
+      <Carousel 
+        className={twMerge("sm:w-[29rem] w-[74vw]", rest.className)} 
+        showArrows={false} 
+        showThumbs={false} 
+        showStatus={false}
+        infiniteLoop={true}
+        autoPlay={autoPlayInterval > 0}
+        interval={autoPlayInterval}
+        selectedItem={currentSlide}
+        onChange={handleChange}
+        renderIndicator={(_: never, isSelected, index, label) => {
+          const title = HELP_SLIDES[Object.keys(HELP_SLIDES)[index]].title;
+          return (
+            <li
+              className={twMerge('text-sm inline-block p-1', 
+                isSelected ? 'text-primary font-bold' : 'bg-transparent'
+              )}
+              onClick={setCurrentSlide.bind(null, index)}
+              onKeyDown={setCurrentSlide.bind(null, index)}
+              value={index}
+              key={index}
+              role="button"
+              tabIndex={0}
+              title={title}
+              aria-label={title}
+            >
+              {title}
+            </li>
+          );
+        }}
+      >
+        {Object.entries(HELP_SLIDES).map(([key, { title, items }]) => (
+          <div key={key} className="sm:pb-[3rem] pb-[4rem] flex-center flex-col">
+            <Collection title={title} items={items} />
+          </div>
+        ))}
+      </Carousel>
+    </div>
   );
 };
 

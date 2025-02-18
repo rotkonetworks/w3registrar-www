@@ -847,9 +847,7 @@ export function IdentityRegistrarComponent() {
         </Button>
       </>}
     >
-      <div className="flex flex-col items-center">
-        <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
-      </div>
+      <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
     </GenericDialog>
     <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
       typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
