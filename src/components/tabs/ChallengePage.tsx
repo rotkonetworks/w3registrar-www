@@ -90,8 +90,12 @@ export function ChallengePage({
         return <Mail className="h-4 w-4" />
       case "discord":
         return <MessageSquare className="h-4 w-4" />
+      case "twitter":
+        return <MessageSquare className="h-4 w-4" />
       case "web":
         return <Globe className="h-4 w-4" />
+      case "display":
+        return <UserCircle className="h-4 w-4" />
       default:
         return null
     }
@@ -119,9 +123,9 @@ export function ChallengePage({
     twitter: <XIcon className="h-4 w-4" />,
     web: <Globe className="h-4 w-4" />,
   }
-  const inviteInstreuctions = {
+  const inviteInstructions = {
     matrix: "Accept the invite and paste it in the Matrix chat",
-    email: "Send an emaiol to the provided address with the code",
+    email: "Send an email to the provided address with the code",
     discord: "Join the Discord server and paste the code in the #verification channel",
     twitter: "Send a DM to the provided Twitter account with the code",
   }
@@ -210,8 +214,27 @@ export function ChallengePage({
                     <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
                       target="_blank" rel="noreferrer" title={inviteInstreuctions[field]}
                     >
-                      <Button variant="outline" size="icon" 
-                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    
+                    {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
+                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
+                        target="_blank" rel="noreferrer" title={inviteInstructions[field]}
+                      >
+                        <Button variant="outline" size="icon" 
+                          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+                        >
+                          {inviteLinkIcons[field]}
+                        </Button>
+                      </a>
+                    }
+                    
+                    {field === "web" &&
+                      <Button
+                        variant="outline"
+                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+                        disabled={pendingFields[field]}
                       >
                         {inviteLinkIcons[field]}
                       </Button>
