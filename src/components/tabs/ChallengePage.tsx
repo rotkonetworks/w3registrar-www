@@ -210,31 +210,12 @@ export function ChallengePage({
                     <Copy className="h-4 w-4" />
                   </Button>
                   
-                  {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
-                    <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
-                      target="_blank" rel="noreferrer" title={inviteInstreuctions[field]}
+                  {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
+                    <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
+                      target="_blank" rel="noreferrer" title={inviteInstructions[field]}
                     >
-
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    
-                    {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] && 
-                      <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]} 
-                        target="_blank" rel="noreferrer" title={inviteInstructions[field]}
-                      >
-                        <Button variant="outline" size="icon" 
-                          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                        >
-                          {inviteLinkIcons[field]}
-                        </Button>
-                      </a>
-                    }
-                    
-                    {field === "web" &&
-                      <Button
-                        variant="outline"
-                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                        disabled={pendingFields[field]}
+                      <Button variant="outline" size="icon"
+                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                       >
                         {inviteLinkIcons[field]}
                       </Button>
