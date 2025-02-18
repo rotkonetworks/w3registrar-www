@@ -736,8 +736,8 @@ export function IdentityRegistrarComponent() {
                 <LoadingTabs />
                 <LoadingContent>
                   <div className="flex flex-col items-stretch border-primary">
-                    <HelpCarousel className="border-primary border-4 rounded-lg bg-background/50" currentSlideIndex={3} />
-                    <span className="text-3xl text-center font-bold pt-4">
+                    <HelpCarousel className="rounded-lg bg-background/30" currentSlideIndex={3} />
+                    <span className="sm:text-3xl text-xl text-center font-bold pt-4">
                       Loading identity data...
                     </span>
                   </div>

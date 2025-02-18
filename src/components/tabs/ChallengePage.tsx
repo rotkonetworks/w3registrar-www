@@ -11,6 +11,7 @@ import { LoadingPlaceholder } from "~/pages/Loading"
 import { XIcon } from "~/assets/icons/x"
 import { DiscordIcon } from "~/assets/icons/discord"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
+import { HelpCarousel } from "~/help/helpCarousel"
 
 export function ChallengePage({
   addNotification,
@@ -144,8 +145,11 @@ export function ChallengePage({
 
   if (noChallenges === 0) {
     return (
-      <LoadingPlaceholder className="flex w-full h-[70vh] flex-center font-bold text-3xl">
-        Loading Challenges...
+      <LoadingPlaceholder className="flex flex-col w-full h-[70vh] flex-center">
+        <HelpCarousel className="rounded-lg bg-background/30" autoPlayInterval={4000} />
+        <span className="sm:text-3xl text-xl text-center font-bold pt-4">
+          Loading Challenges...
+        </span>
       </LoadingPlaceholder>
     );
   }
