@@ -820,14 +820,17 @@ export function IdentityRegistrarComponent() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <GenericDialog open={openDialog === "help"} onOpenChange={handleOpenChange} 
+    <GenericDialog open={openDialog === "help"} onOpenChange={(v) => {
+      handleOpenChange(v)
+      setHelpSlideIndex(0)
+    }} 
       title="Quick start guide"
       // description={<Overview />}
       footer={<>
-        {helpSlideIndex < SLIDES_COUNT && (
+        {helpSlideIndex < SLIDES_COUNT -1 && (
           <Button variant="outline" onClick={() => {
-              setOpenDialog(null)
-              setHelpSlideIndex(0)
+            setOpenDialog(null)
+            setHelpSlideIndex(0)
           }}>Skip</Button>
         )}
         <Button 
@@ -840,7 +843,7 @@ export function IdentityRegistrarComponent() {
             }
           }}
         >
-          {helpSlideIndex === 3 ? "Close" : "Next"}
+          {helpSlideIndex >= SLIDES_COUNT -1 ? "Close" : "Next"}
         </Button>
       </>}
     >
