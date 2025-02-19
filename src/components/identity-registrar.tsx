@@ -568,9 +568,11 @@ export function IdentityRegistrarComponent() {
         const _result: (typeof result) & {
           found: boolean,
           ok: boolean,
+          isValid: boolean,
         } = { 
           found: result["found"] || false,
           ok: result["ok"] || false,
+          isValid: result["isValid"],
           ...result,
         };
         if (result.type === "broadcasted") {
@@ -587,6 +589,15 @@ export function IdentityRegistrarComponent() {
               key: _result.txHash,
               type: "success",
               message: messages.success || "Transaction finalized",
+            })
+            fetchIdAndJudgement()
+            setTxBusy(false)
+          }
+          else if (!_result.isValid) {
+            addNotification({
+              key: _result.txHash,
+              type: "error",
+              message: messages.error || "Transaction failed because it's invalid",
             })
             fetchIdAndJudgement()
             setTxBusy(false)
