@@ -543,6 +543,9 @@ export function IdentityRegistrarComponent() {
     return _nonce
   }, [nonce, accountStore.address, typedApi])
 
+  // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
+  //  multiple notifications
+  const recentNotifsIds = useRef<string[]>([])
   const signSubmitAndWatch = useCallback(async (
     call: ApiTx,
     messages: {
@@ -592,15 +595,19 @@ export function IdentityRegistrarComponent() {
             })
             fetchIdAndJudgement()
             setTxBusy(false)
+            recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== _result.txHash)
           }
           else if (!_result.isValid) {
-            addNotification({
-              key: _result.txHash,
-              type: "error",
-              message: messages.error || "Transaction failed because it's invalid",
-            })
-            fetchIdAndJudgement()
-            setTxBusy(false)
+            if (!recentNotifsIds.current.includes(txHash)) {
+              recentNotifsIds.current = [...recentNotifsIds.current, txHash]
+              addNotification({
+                key: _result.txHash,
+                type: "error",
+                message: messages.error || "Transaction failed because it's invalid",
+              })
+              fetchIdAndJudgement()
+              setTxBusy(false)
+            }
           }
         }
         else if (_result.type === "finalized") {
@@ -615,18 +622,22 @@ export function IdentityRegistrarComponent() {
             setTxBusy(false)
           }
         }
-        if (import.meta.env.DEV) console.log({ _result })
+        if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error)
-        addNotification({
-          type: "error",
-          message: messages.error || "Error submitting transaction. Please try again.",
-        })
-        setTxBusy(false)
+        if (import.meta.env.DEV) console.error(error);
+        if (!recentNotifsIds.current.includes(txHash)) {
+          addNotification({
+            type: "error",
+            message: messages.error || "Error submitting transaction. Please try again.",
+          })
+          setTxBusy(false)
+          recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+        }
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
+        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
       }
     })
     return signedCall
