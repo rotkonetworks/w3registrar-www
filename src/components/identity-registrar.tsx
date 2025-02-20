@@ -587,7 +587,7 @@ export function IdentityRegistrarComponent() {
           })
         }
         else if (_result.type === "txBestBlocksState") {
-          if (_result.ok && _result.found) {
+          if (_result.ok) {
             addNotification({
               key: _result.txHash,
               type: "success",
