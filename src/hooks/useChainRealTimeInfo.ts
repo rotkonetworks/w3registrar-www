@@ -2,6 +2,7 @@ import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
 import { SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CHAIN_UPDATE_INTERVAL } from "~/constants";
+import { ApiStorage } from "~/types/api";
 
 export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
@@ -104,19 +105,23 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
     [handlers]
   )
   
-  // Single effect to handle all subscriptions
   useEffect(() => {
-    const subscriptions = handlerEntries.map(({ pallet, call }) => 
-      getEffectCallback({
-        type: { pallet, call },
-      })()
-    )
-  
-    // Cleanup function
+    const systemEventsSub = (typedApi.query.System.Events as ApiStorage)
+      .watchValue("best").subscribe({
+        next: (events) => {
+          if (import.meta.env.DEV) console.log({ events })
+        },
+        error: (error) => {
+          if (import.meta.env.DEV) console.error("Error fetching events", error)
+        },
+        complete: () => {
+          if (import.meta.env.DEV) console.log({ event: "complete fetching events" })
+        }
+      })
     return () => {
-      subscriptions.forEach(cleanup => cleanup?.())
+      systemEventsSub.unsubscribe?.()
     }
-  }, [chainId, address, handlerEntries])
+  }, [typedApi])
 
   return { constants, }
 }
