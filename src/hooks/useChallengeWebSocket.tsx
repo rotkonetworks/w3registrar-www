@@ -109,6 +109,8 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   challengeState: ResponseAccountState | null;
+  reset: () => void;
+  subscribe: () => void;
 }
 
 const useChallengeWebSocketWrapper = ({ 
@@ -175,7 +177,7 @@ const useChallengeWebSocketWrapper = ({
     }
   }, idWsDeps)
 
-  return { challenges, error, isConnected, }
+  return { challenges, error, isConnected, reset: challengeWebSocket.reset }
 }
 
 // TODO Rename as a generic WebSocket hook
@@ -289,6 +291,23 @@ const useChallengeWebSocket = (
     }
   }, [addNotification]);
 
+  const reset = useCallback(() => {
+    // Important. Socket explicitly checked if open. so it won't get closed before ones that are
+    //  connecting. ws.current in dependency array ensures updating on unmount. Otherwise, it's a
+    //  mess to work with it, as too many connections may be opened in vain, or expected events
+    //  may not really be fired as expected.
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.onopen = null
+      ws.current.onerror = null
+      ws.current.onmessage = null
+      ws.current.close();
+      // ws.current = null and any remaining cleanup happens on close handling.
+    }
+    if (ws.current?.readyState > WebSocket.OPEN) {
+      ws.current = null
+    }
+  }, [ws.current?.readyState]);
+
   // Set up WebSocket connection
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState })
@@ -318,23 +337,10 @@ const useChallengeWebSocket = (
       };
       ws.current.onmessage = handleMessage;
     }
+
+    // TODO Make it reconnect if failed to connect or disconnected
     
-    return () => {
-      // Important. Socket explicitly checked if open. so it won't get closed before ones that are
-      //  connecting. ws.current in dependency array ensures updating on unmount. Otherwise, it's a
-      //  mess to work with it, as too many connections may be opened in vain, or expected events
-      //  may not really be fired as expected.
-      if (ws.current?.readyState === WebSocket.OPEN) {
-        ws.current.onopen = null
-        ws.current.onerror = null
-        ws.current.onmessage = null
-        ws.current.close();
-        // ws.current = null and any remaining cleanup happens on close handling.
-      }
-      if (ws.current?.readyState > WebSocket.OPEN) {
-        ws.current = null
-      }
-    };
+    return reset;
   }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
 
   useEffect(() => {
@@ -349,6 +355,7 @@ const useChallengeWebSocket = (
   }, [account, network, sendMessage, ws.current?.readyState])
 
   return {
+    reset,
     isConnected,
     error,
     challengeState,
