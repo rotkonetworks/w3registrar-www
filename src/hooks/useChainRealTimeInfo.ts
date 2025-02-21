@@ -50,7 +50,43 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
     const systemEventsSub = (typedApi.query.System.Events as ApiStorage)
       .watchValue("best").subscribe({
         next: (events) => {
-          if (import.meta.env.DEV) console.log({ events })
+          if (import.meta.env.DEV) console.log({ events });
+          events
+            .filter(({ 
+              event: {
+                type: _pallet, 
+                value: { 
+                  type: _type,
+                  value: { who, target },
+                } 
+              }
+            }) => 
+              handlerEntries.some(({ pallet, call }) => pallet === _pallet && call === _type)
+                && [who, target].includes(address)
+            )
+            .map(({ 
+              event: {
+                type: _pallet,
+                value: {
+                  type: _type,
+                  value: { who, target },
+                }
+              }
+            }) => {
+              const type = `${_pallet}.${_type}`
+              const data = { type, who: who || target, priority: handlers[type].priority }
+              return data
+            })
+            .sort((b1, b2) => b2.priority - b1.priority)
+            .forEach(data => {
+              const { onEvent, onError } = handlers[data.type]
+              try {
+                onEvent(data)
+              } catch (error) {
+                onError?.(error)
+                if (import.meta.env.DEV) console.error(`Error processing ${data.type}`, error);
+              }
+            })
         },
         error: (error) => {
           if (import.meta.env.DEV) console.error("Error fetching events", error)
@@ -62,7 +98,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
     return () => {
       systemEventsSub.unsubscribe?.()
     }
-  }, [typedApi])
+  }, [typedApi, address, handlerEntries])
 
   return { constants, }
 }
