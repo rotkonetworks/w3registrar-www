@@ -398,6 +398,13 @@ export function IdentityRegistrarComponent() {
   }, [accountStore.address, fetchIdAndJudgement])
   //#endregion identity
   
+  // Make sure to clear anything else that might change according to the chain or account
+  useEffect(() => {
+    alertsStore.forEach(alert => {
+      alertsStore.delete(alert.key)
+    })
+  }, [chainStore.id, accountStore.address])
+
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
 
