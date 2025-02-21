@@ -379,6 +379,7 @@ export function IdentityRegistrarComponent() {
         identityStore.deposit = null
       }
       identityFormRef.current.reset()
+      return identityStore;
     })
     .catch(e => {
       if (import.meta.env.DEV) {
@@ -469,12 +470,19 @@ export function IdentityRegistrarComponent() {
     priority: number 
   }>>(() => ({
     "Identity.JudgementGiven": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Judgement Given for this account",
-        })
+      onEvent: async data => {
+        const newIdentity = await fetchIdAndJudgement()
+        if ((newIdentity as IdentityStore)?.status === verifyStatuses.IdentityVerified) {
+          addNotification({
+            type: "info",
+            message: "Judgement Given! Identity verified successfully. Congratulations!",
+          })
+        } else {
+          addNotification({
+            type: "error",
+            message: "Judgement Given! Identity not verified. Please remove it and try again.",
+          })
+        }
       },
       onError: error => { },
       priority: 4,
