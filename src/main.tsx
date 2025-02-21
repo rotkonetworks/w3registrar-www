@@ -9,14 +9,6 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Loading } from './pages/Loading'
 
 const Main: React.FC = () => {
-  useEffect(() => {
-    if (!import.meta.env.DEV) {
-      if (location.protocol !== 'https:') {
-        location.replace(`https:${location.href.substring(location.protocol.length)}`);
-      }
-    }
-  }, []);
-
   return <>
     <Suspense fallback={<Loading />}>
       <App />
