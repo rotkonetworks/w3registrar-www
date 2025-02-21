@@ -513,35 +513,10 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
-  const [isTxBusy, setTxBusy] = useState(true)
+  const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ isTxBusy })
   }, [isTxBusy])
-
-  const [nonce, setNonce] = useState<number | null>()
-  useEffect(() => {
-    ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
-      .then(_nonce => {
-        setNonce(_nonce)
-        if (import.meta.env.DEV) console.log({ _nonce })
-      })
-      .catch(error => {
-        if (import.meta.env.DEV) console.error(error)
-      })
-      .finally(() => {
-        if (import.meta.env.DEV) console.log("Completed fetching nonce");
-        setTxBusy(false)
-      })
-  }, [accountStore.address, typedApi])
-  const refreshNonce = useCallback(() => {
-    if (nonce === null) {
-      return
-    }
-    const _nonce = nonce
-    setNonce(_nonce + 1)
-    if (import.meta.env.DEV) console.log({ _nonce, nextNonce: _nonce + 1 })
-    return _nonce
-  }, [nonce, accountStore.address, typedApi])
 
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
@@ -561,8 +536,28 @@ export function IdentityRegistrarComponent() {
     }
     setTxBusy(true)
 
+    const nonce = await (async () => {
+      try {
+        return await ((typedApi.apis.AccountNonceApi as any)
+          .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall
+        )
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error)
+        return null
+      }
+    })()
+    if (import.meta.env.DEV) console.log({ nonce });
+    if (nonce === null) {
+      setTxBusy(false)
+      addNotification({
+        type: "error",
+        message: "Couldn't get nonce. Please try again.",
+      })
+      return
+    }
+
     const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
-      { at: "best", nonce: refreshNonce() }
+      { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
     signedCall.subscribe({
@@ -641,11 +636,9 @@ export function IdentityRegistrarComponent() {
       }
     })
     return signedCall
-  }, [accountStore.polkadotSigner, refreshNonce, isTxBusy])
+  }, [accountStore.polkadotSigner, isTxBusy])
 
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), 
-    [typedApi, refreshNonce]
-  )
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     signSubmitAndWatch(_clearIdentity(), 
       {
