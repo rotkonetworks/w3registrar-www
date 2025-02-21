@@ -510,7 +510,10 @@ export function IdentityRegistrarComponent() {
   //#region challenges
   const { challenges, 
     error: challengeError, 
-    isConnected: isChallengeWsConnected 
+    isConnected: isChallengeWsConnected,
+    subscribe: subscribeToChallenges,
+    connect: connectToChallenges,
+    disconnect: disconnectFromChallenges,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
@@ -518,6 +521,11 @@ export function IdentityRegistrarComponent() {
     identityStore: { info: identityStore.info, status: identityStore.status, },
     addNotification,
   });
+  useEffect(() => {
+    if (isChallengeWsConnected && identityStore.status === verifyStatuses.FeePaid) {
+      subscribeToChallenges()
+    }
+  }, [isChallengeWsConnected])
   //#endregion challenges
 
   const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
