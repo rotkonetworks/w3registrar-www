@@ -109,8 +109,9 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   challengeState: ResponseAccountState | null;
-  reset: () => void;
   subscribe: () => void;
+  connect: () => void;
+  disconnect: () => void;
 }
 
 const useChallengeWebSocketWrapper = ({ 
@@ -177,7 +178,11 @@ const useChallengeWebSocketWrapper = ({
     }
   }, idWsDeps)
 
-  return { challenges, error, isConnected, reset: challengeWebSocket.reset }
+  return { challenges, error, isConnected, 
+    subscribe: challengeWebSocket.subscribe,
+    connect: challengeWebSocket.connect,
+    disconnect: challengeWebSocket.disconnect,
+  }
 }
 
 // TODO Rename as a generic WebSocket hook
@@ -291,7 +296,7 @@ const useChallengeWebSocket = (
     }
   }, [addNotification]);
 
-  const reset = useCallback(() => {
+  const disconnect = useCallback(() => {
     // Important. Socket explicitly checked if open. so it won't get closed before ones that are
     //  connecting. ws.current in dependency array ensures updating on unmount. Otherwise, it's a
     //  mess to work with it, as too many connections may be opened in vain, or expected events
@@ -309,6 +314,24 @@ const useChallengeWebSocket = (
   }, [ws.current?.readyState]);
 
   // Set up WebSocket connection
+  const connect = () => {
+    ws.current = new WebSocket(url);
+
+    ws.current.onopen = () => {
+      if (import.meta.env.DEV) console.log({ callBack: "onopen" })
+      setIsConnected(true);
+      setError(null);
+    };
+    ws.current.onclose = (event) => {
+      if (import.meta.env.DEV) console.log({ callBack: "onclose", code: event.code })
+      setIsConnected(false);
+    };
+    ws.current.onerror = (error) => {
+      if (import.meta.env.DEV) console.error(error)
+      setError('WebSocket error occurred');
+    };
+    ws.current.onmessage = handleMessage;
+  }
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
@@ -320,42 +343,32 @@ const useChallengeWebSocket = (
       return;
     }
     if (!ws.current?.readyState || ws.current?.readyState > WebSocket.OPEN) {
-      ws.current = new WebSocket(url);
-      
-      ws.current.onopen = () => {
-        if (import.meta.env.DEV) console.log({ callBack: "onopen" })
-        setIsConnected(true);
-        setError(null);
-      };
-      ws.current.onclose = (event) => {
-        if (import.meta.env.DEV) console.log({ callBack: "onclose", code: event.code })
-        setIsConnected(false);
-      };
-      ws.current.onerror = (error) => {
-        if (import.meta.env.DEV) console.error(error)
-        setError('WebSocket error occurred');
-      };
-      ws.current.onmessage = handleMessage;
+      connect()
     }
 
     // TODO Make it reconnect if failed to connect or disconnected
     
-    return reset;
+    return disconnect;
   }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
 
+  const subscribe = () => {
+    sendMessage({
+      type: 'SubscribeAccountState',
+      payload: { account, network },
+    }).catch(err => setError(err.message));
+  }
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account && network) {
-      if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" })
+      if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
       // Subscribe to account state on connection
-      sendMessage({
-        type: 'SubscribeAccountState',
-        payload: {account, network},
-      }).catch(err => setError(err.message));
+      subscribe();
     }
   }, [account, network, sendMessage, ws.current?.readyState])
 
   return {
-    reset,
+    connect,
+    subscribe,
+    disconnect,
     isConnected,
     error,
     challengeState,
