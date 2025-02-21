@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle, Bell } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -37,6 +37,7 @@ import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { Overview } from "~/help"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -147,31 +148,46 @@ const MainContent = ({
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
-    {[...alertsStore.entries()].map(([, alert]) => (
-      <Alert
-        key={alert.key}
-        variant={alert.type === 'error' ? "destructive" : "default"}
-        className={`mb-4 ${alert.type === 'error'
-          ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-        }`}
-      >
-        <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-        <AlertDescription className="flex justify-between items-center">
-          {alert.message}
-          {alert.closable === true && <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeNotification(alert.key)}
-              className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+    {alertsStore.size > 0 && 
+      <div className="fixed bottom-[2rem] right-[2rem] z-50 max-w-sm max-h-sm">  
+        <Accordion type="single" collapsible defaultValue="notifications">
+          <AccordionItem value="notifications">
+            <AccordionTrigger 
+              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
             >
-              Dismiss
-            </Button>
-          </>}
-        </AlertDescription>
-      </Alert>
-    ))}
+              <Bell className="h-6 w-6" /> {alertsStore.size}
+            </AccordionTrigger>
+            <AccordionContent className="bg-black/30 p-2 rounded-lg">
+              {[...alertsStore.entries()].map(([, alert]) => (
+                <Alert
+                  key={alert.key}
+                  variant={alert.type === 'error' ? "destructive" : "default"}
+                  className={`mb-4 ${alert.type === 'error'
+                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
+                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+                  }`}
+                >
+                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                  <AlertDescription className="flex justify-between items-center">
+                    {alert.message}
+                    {alert.closable === true && <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeNotification(alert.key)}
+                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+                      >
+                        Dismiss
+                      </Button>
+                    </>}
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    }
 
     <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
