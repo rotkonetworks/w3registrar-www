@@ -1,7 +1,8 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
 import { 
-  UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe, Fingerprint, Github, Image, IdCard 
+  UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe, Fingerprint, Github, Image, IdCard, 
+  XIcon
 } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,7 @@ import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { ApiTx } from '~/types/api'
+import { DiscordIcon } from '~/assets/icons/discord'
 
 // BUG Comflicts with IdentityFormData from ~/store/IdentityStore
 export type IdentityFormData = Record<string, {
@@ -116,7 +118,7 @@ export const IdentityForm = forwardRef((
     },
     discord: {
       label: "Discord",
-      icon: <MessageSquare className="h-4 w-4" />,
+      icon: <DiscordIcon className="h-4 w-4" />,
       key: "discord",
       placeholder: 'alice#1234',
       checkForErrors: (v) => v.length > 0 && !/^[a-zA-Z0-9_]{2,32}(#\d+)?$/.test(v)
@@ -126,7 +128,7 @@ export const IdentityForm = forwardRef((
     },
     twitter: {
       label: "Twitter",
-      icon: <MessageSquare className="h-4 w-4" />,
+      icon: <XIcon className="h-4 w-4" />,
       key: "twitter",
       placeholder: '@alice',
       checkForErrors: (v) => v.length > 0 && !/^@?(\w){1,15}$/.test(v) ? "Invalid format" : null,
