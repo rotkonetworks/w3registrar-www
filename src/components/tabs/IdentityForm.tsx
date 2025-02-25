@@ -15,7 +15,6 @@ import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { DiscordIcon } from '~/assets/icons/discord'
 import { OpenTxDialogArgs } from '../identity-registrar'
 
-// BUG Comflicts with IdentityFormData from ~/store/IdentityStore
 export type IdentityFormData = Record<string, {
   value: string
   error: string | null
