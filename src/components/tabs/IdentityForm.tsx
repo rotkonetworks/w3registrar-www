@@ -1,25 +1,17 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
-import { 
-  UserCircle, AtSign, Mail, MessageSquare, CheckCircle, Coins, AlertCircle, Globe, Fingerprint, Github, Image, IdCard, 
-  XIcon
-} from 'lucide-react'
+import { UserCircle, AtSign, Mail, CheckCircle, Globe, Fingerprint, Github, Image, IdCard, XIcon } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog"
 import { Binary, TypedApi } from 'polkadot-api'
 import { ChainInfo } from '~/store/ChainStore'
 import { AccountData } from '~/store/AccountStore'
 import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
-import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
-import { ApiTx } from '~/types/api'
 import { DiscordIcon } from '~/assets/icons/discord'
 import { OpenTxDialogArgs } from '../identity-registrar'
 
@@ -61,13 +53,6 @@ export const IdentityForm = forwardRef((
   ), [])
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
-  const [actionType, setActionType] = useState<"judgement" | "identity" | null>(null)
-  const [showCostModal, setShowCostModal] = useState(false)
-  useEffect(() => {
-    if (!showCostModal) {
-      setActionType(null)
-    }
-  }, [showCostModal])
 
   const onChainIdentity = identityStore.status
 
@@ -243,90 +228,6 @@ export const IdentityForm = forwardRef((
     "github", 
     "discord", 
   ]
-  const getCall = useCallback((): ApiTx | null => {
-    if (actionType === "judgement") {
-      return typedApi.tx.Identity.request_judgement({
-        max_fee: 0n,
-        reg_index: chainStore.registrarIndex,
-      })
-    } else if (actionType === "identity") {
-      const info = {
-        ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
-        ...(Object.fromEntries(Object.entries(formData)
-          .filter(([_, { value }]) => value && value !== "")
-          .map(([key, { value }]): [string, { value: string }] => [key, {
-            value: identityFormFields[key].transform 
-              ? identityFormFields[key].transform(value)
-              : value
-          }])
-          .map(([key, { value }]) => [key, key !== "pgp_fingerprint" 
-            ? { type: `Raw${value.length}`, value: Binary.fromText(value) }
-            : value
-          ])
-        )),
-      }
-      if (import.meta.env.DEV) console.log({ info })
-      return typedApi.tx.Identity.set_identity({ info, });
-    } 
-    else if (actionType === null) {
-      return null
-    } else {
-      throw new Error("Unexpected action type")
-    }
-  }, [actionType, chainStore, formData])
-
-  const [estimatedCosts, setEstimatedCosts] = useState<{
-    fees?: number | bigint | BigNumber,
-    deposits?: number | bigint | BigNumber
-  }>({})
-  useEffect(() => {
-    const call = getCall()
-    if (actionType === "judgement") {
-      call.getEstimatedFees(accountStore.address)
-        .then(fees =>  setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({  })
-        })
-    } else if (actionType === "identity") {
-      call.getEstimatedFees(accountStore.address)
-        .then(fees => setEstimatedCosts({ fees, 
-          deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
-            .times(Object.values(formData)
-              .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
-            )
-          ),
-        }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({})
-        })
-    }
-    else if (actionType === null) {
-      setEstimatedCosts({  })
-      return
-    }
-    call.getEncodedData()
-      .then(encodedCall => {
-        if (import.meta.env.DEV) console.log({ encodedCall: encodedCall.asHex() });
-      })
-      .catch(error => {
-        if (import.meta.env.DEV) console.error(error);
-      });
-  }, [actionType, chainStore, formData])
-  const confirmAction = useCallback(() => {
-    const call = getCall();
-    if (!call) {
-      return
-    }
-    signSubmitAndWatch(call, {
-      broadcasted: `Broadcasted ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
-      loading: `Processing ${actionType === "judgement" ? "requesting judgement" : "setting identity"}`,
-      success: `${actionType === "judgement" ? "judgement requested" : "identity set"}`,
-      error: `Failed to ${actionType === "judgement" ? "request judgement" : "set identity"}`,
-    }, actionType === "judgement" ? "Identity.JudgementRequested" : "Identity.IdentitySet")
-    setShowCostModal(false)
-  }, [getCall])
 
   const _resetFromIdStore = useCallback((identityStoreInfo) => (
     {...(Object.entries(identityFormFields).reduce((all, [key]) => {
@@ -453,54 +354,6 @@ export const IdentityForm = forwardRef((
       </Card>
 
       {/* TODO Refactor into GenericDialog */}
-      <Dialog open={showCostModal} onOpenChange={value => {
-        setShowCostModal(value)
-        setActionType(_actionType => value ? _actionType : null)
-      }}>
-        <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
-          <DialogHeader>
-            <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
-            <DialogDescription>
-              Please review the following information before proceeding.
-            </DialogDescription>
-          </DialogHeader>
-          {Object.keys(estimatedCosts).length > 0 && 
-            <div className="py-4">
-              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <Coins className="h-5 w-5 text-[#E6007A]" />
-                Transaction Costs
-              </h4>
-              {estimatedCosts.fees &&
-                <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
-              }
-              {estimatedCosts.deposits && (
-                <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)} (refundable)</p>
-              )}
-            </div>
-          }
-          <div className="py-4">
-            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-              Important Notes
-            </h4>
-            <ul className="list-disc list-inside">
-              <li>This action cannot be undone easily.</li>
-              <li>Ensure all provided information is accurate.</li>
-              {actionType === "judgement" && (
-                <li>Judgement requests may take some time to process.</li>
-              )}
-            </ul>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCostModal(false)} className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]">
-              Cancel
-            </Button>
-            <Button onClick={confirmAction} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 })
