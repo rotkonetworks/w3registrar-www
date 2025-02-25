@@ -21,6 +21,7 @@ import { Observable } from 'rxjs'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { ApiTx } from '~/types/api'
 import { DiscordIcon } from '~/assets/icons/discord'
+import { OpenTxDialogArgs } from '../identity-registrar'
 
 // BUG Comflicts with IdentityFormData from ~/store/IdentityStore
 export type IdentityFormData = Record<string, {
@@ -70,13 +71,54 @@ export const IdentityForm = forwardRef((
 
   const onChainIdentity = identityStore.status
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmitIdentity = async (e: React.FormEvent) => {
     e.preventDefault()
     if (forbiddenSubmission) {
       return
     }
-    setActionType("identity")
-    setShowCostModal(true);
+    const info = {
+      ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
+      ...(Object.fromEntries(Object.entries(formData)
+        .filter(([_, { value }]) => value && value !== "")
+        .map(([key, { value }]): [string, { value: string }] => [key, {
+          value: identityFormFields[key].transform
+            ? identityFormFields[key].transform(value)
+            : value
+        }])
+        .map(([key, { value }]) => [key, key !== "pgp_fingerprint"
+          ? { type: `Raw${value.length}`, value: Binary.fromText(value) }
+          : value
+        ])
+      )),
+    }
+    if (import.meta.env.DEV) console.log({ info })
+    const tx = typedApi.tx.Identity.set_identity({ info, });
+
+    let estimatedCosts;
+    try {
+      estimatedCosts = {
+        fees: await tx.getEstimatedFees(accountStore.address),
+        deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
+          .times(Object.values(formData)
+            .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+          )
+        ),
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error)
+      estimatedCosts = {}
+      return
+    }
+
+    openTxDialog({ mode: "setIdentity", tx, estimatedCosts, })
+  }
+  const handleRequestJudgement = async () => {
+    const tx = typedApi.tx.Identity.request_judgement({
+      max_fee: 0n,
+      reg_index: chainStore.registrarIndex,
+    })
+    const estimatedCosts = { fees: await tx.getEstimatedFees(accountStore.address) }
+    openTxDialog({ mode: "requestJudgement", tx, estimatedCosts, })
   }
 
   const identityFormFields = {
@@ -347,8 +389,7 @@ export const IdentityForm = forwardRef((
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmitIdentity} className="space-y-4">
             {Object.entries(identityFormFields)
               .filter(([key]) => supportedFields.includes(key))
               .map(([key, props]) =>
@@ -398,13 +439,9 @@ export const IdentityForm = forwardRef((
                 {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
               {onChainIdentity === verifyStatuses.IdentitySet && (
-                <Button type="button" variant="outline"
-                  onClick={() => {
-                    setShowCostModal(true)
-                    setActionType("judgement")
-                  }}
+                <Button type="button" variant="outline" disabled={forbiddenSubmission || isTxBusy}
+                  onClick={handleRequestJudgement}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
-                  disabled={forbiddenSubmission || isTxBusy}
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
