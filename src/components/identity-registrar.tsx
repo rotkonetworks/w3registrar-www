@@ -399,7 +399,6 @@ export function IdentityRegistrarComponent() {
           identityStore.status = verifyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
-        // TODO Compute approximate reserve
         if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
       } else {
         identityStore.status = verifyStatuses.NoIdentity;

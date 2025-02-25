@@ -16,7 +16,6 @@ import { SOCIAL_ICONS } from "~/assets/icons"
 
 export function ChallengePage({
   addNotification,
-  // TODO Add status as in IdentityInfo
   challengeStore,
 }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,

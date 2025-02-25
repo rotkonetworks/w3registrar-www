@@ -273,6 +273,7 @@ export const IdentityForm = forwardRef((
 
   return (
     <>
+      {/* TODO Refactor into GenericDialog */}
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
         <CardHeader>
           <CardTitle className="text-inherit flex items-center gap-2">
@@ -351,8 +352,6 @@ export const IdentityForm = forwardRef((
           </form>
         </CardContent>
       </Card>
-
-      {/* TODO Refactor into GenericDialog */}
     </>
   )
 })

@@ -1,11 +1,10 @@
-import { AlertProps } from "~/store/AlertStore"
 import { Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Globe, XIcon } from "lucide-react"
+import { MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck } from "lucide-react"
 import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
