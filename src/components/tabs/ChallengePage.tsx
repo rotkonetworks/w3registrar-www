@@ -12,6 +12,7 @@ import { XIcon } from "~/assets/icons/x"
 import { DiscordIcon } from "~/assets/icons/discord"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { HelpCarousel } from "~/help/helpCarousel"
+import { SOCIAL_ICONS } from "~/assets/icons"
 
 export function ChallengePage({
   addNotification,
@@ -83,22 +84,7 @@ export function ChallengePage({
   }
 
   const getIcon = (field: string) => {
-    switch (field) {
-      case "matrix":
-        return <AtSign className="h-4 w-4" />
-      case "email":
-        return <Mail className="h-4 w-4" />
-      case "discord":
-        return <MessageSquare className="h-4 w-4" />
-      case "twitter":
-        return <MessageSquare className="h-4 w-4" />
-      case "web":
-        return <Globe className="h-4 w-4" />
-      case "display":
-        return <UserCircle className="h-4 w-4" />
-      default:
-        return null
-    }
+    return SOCIAL_ICONS[field]
   }
 
   const updateChallengeStatus = useCallback((field: keyof ChallengeStore, result: boolean) => {
