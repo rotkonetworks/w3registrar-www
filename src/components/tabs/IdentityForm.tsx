@@ -38,7 +38,7 @@ export const IdentityForm = forwardRef((
     isTxBusy,
     supportedFields,
     formatAmount,
-    signSubmitAndWatch,
+    openTxDialog,
   }: {
     identityStore: IdentityStore,
     chainStore: ChainInfo,
@@ -48,16 +48,7 @@ export const IdentityForm = forwardRef((
     isTxBusy: boolean,
     supportedFields: string[],
     formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
-    signSubmitAndWatch: (
-      call: ApiTx,
-      messages: {
-        broadcasted?: string,
-        loading?: string,
-        success?: string,
-        error?: string,
-      },
-      eventType: string,
-    ) => Observable<unknown>,
+    openTxDialog: (darams: OpenTxDialogArgs) => void,
   },
   ref: Ref<unknown> & { reset: () => void },
 ) => {

@@ -43,6 +43,20 @@ const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
+type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" | 
+  "setIdentity" | null
+export type EstimatedCostInfo = {
+  fees?: bigint | BigNumber
+  deposits?: bigint | BigNumber
+}
+
+type OpenTxDialogArgs_modeSet = {
+  mode: DialogMode
+  tx: ApiTx
+  estimatedCosts: EstimatedCostInfo
+}
+export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
+
 type MainContentProps = {
   identityStore: IdentityStore,
   challengeStore: { challenges: ChallengeStore, error: string | null },
@@ -54,19 +68,18 @@ type MainContentProps = {
   addNotification: any, 
   formatAmount: any, 
   supportedFields: string[],
-  signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
   updateUrlParams: any,
   setOpenDialog: any,
   isTxBusy: boolean,
+  openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount,
-  signSubmitAndWatch, updateUrlParams, setOpenDialog,
+  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
     {
@@ -83,7 +96,7 @@ const MainContent = ({
         chainConstants={chainConstants}
         supportedFields={supportedFields}
         formatAmount={formatAmount}
-        signSubmitAndWatch={signSubmitAndWatch}
+        openTxDialog={openTxDialog}
         isTxBusy={isTxBusy}
       />
     },
@@ -690,11 +703,10 @@ export function IdentityRegistrarComponent() {
     )
   }, [_clearIdentity])
   
-  type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
+  const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   useEffect(() => {
     if (openDialog === "clearIdentity") {
       _clearIdentity().getEstimatedFees(accountStore.address)
@@ -709,6 +721,21 @@ export function IdentityRegistrarComponent() {
   }, [openDialog, chainStore.id])
   //#endregion CostExtimations
   
+  const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
+  
+  const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
+    if (import.meta.env.DEV) console.log({ args })
+    if (args.mode) {
+      setOpenDialog(args.mode)
+      setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
+      setTxToConfirm((args as OpenTxDialogArgs_modeSet).tx)
+    } else {
+      setOpenDialog(null)
+      setEstimatedCosts({})
+      setTxToConfirm(null)
+    }
+  }, [])
+
   const handleOpenChange = useCallback((nextState: boolean): void => {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
@@ -743,8 +770,7 @@ export function IdentityRegistrarComponent() {
     chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
-    addNotification, removeNotification, formatAmount, 
-    signSubmitAndWatch, updateUrlParams, setOpenDialog,
+    addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
@@ -806,7 +832,8 @@ export function IdentityRegistrarComponent() {
     </div>
 
     {/* TODO Refactor into GenericDialog */}
-    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
+    <Dialog 
+      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
       onOpenChange={handleOpenChange}
     >
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
@@ -863,6 +890,12 @@ export function IdentityRegistrarComponent() {
                 connectedWallets.forEach(w => disconnectWallet(w));
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
                 updateUrlParams({ ...urlParams, address: null, })
+                break;
+              case "setIdentity":
+                signSubmitAndWatch(txToConfirm, {}, "Identity.set_identity")
+                break;
+              case "requestJudgement":
+                signSubmitAndWatch(txToConfirm, {}, "Identity.request_judgement")
                 break;
               default:
                 throw new Error("Unexpected openDialog value");
