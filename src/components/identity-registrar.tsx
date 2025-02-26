@@ -830,7 +830,7 @@ export function IdentityRegistrarComponent() {
           </DialogDescription>
         </DialogHeader>
         {Object.keys(estimatedCosts).length > 0 &&
-          <div className="py-4">
+          <div>
             <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
               <Coins className="h-5 w-5 text-[#E6007A]" />
               Transaction Costs
@@ -843,7 +843,7 @@ export function IdentityRegistrarComponent() {
             )}
           </div>
         }
-        <div className="py-4">
+        <div>
           <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-[#E6007A]" />
             Important Notes
