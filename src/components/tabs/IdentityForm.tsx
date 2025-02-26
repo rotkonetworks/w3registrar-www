@@ -29,7 +29,6 @@ export const IdentityForm = forwardRef((
     chainConstants,
     isTxBusy,
     supportedFields,
-    formatAmount,
     openTxDialog,
   }: {
     identityStore: IdentityStore,
@@ -39,7 +38,6 @@ export const IdentityForm = forwardRef((
     chainConstants: Record<string, any>,
     isTxBusy: boolean,
     supportedFields: string[],
-    formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
     openTxDialog: (darams: OpenTxDialogArgs) => void,
   },
   ref: Ref<unknown> & { reset: () => void },
