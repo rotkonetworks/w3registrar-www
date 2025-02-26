@@ -740,7 +740,14 @@ export function IdentityRegistrarComponent() {
         setOpenDialog("teleport")
         break;
       case "RemoveIdentity":
-        setOpenDialog("clearIdentity")
+        const tx = _clearIdentity()
+        openTxDialog({
+          mode: "clearIdentity",
+          tx: tx,
+          estimatedCosts: {
+            fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
+          },
+        })
         break;
       case "account":
         updateAccount({ ...newValue.account });
@@ -863,7 +870,7 @@ export function IdentityRegistrarComponent() {
           </ul>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpenDialog(null)} 
+          <Button variant="outline" onClick={closeTxDialog}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           >
             Cancel
@@ -887,7 +894,7 @@ export function IdentityRegistrarComponent() {
               default:
                 throw new Error("Unexpected openDialog value");
             }
-            setOpenDialog(null)
+            closeTxDialog()
           }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
             Confirm
           </Button>
