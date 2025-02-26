@@ -877,6 +877,17 @@ export function IdentityRegistrarComponent() {
             </>)}
           </ul>
         </div>
+        {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
+        <Accordion type="single" collapsible>
+          <AccordionItem value="teleport">
+            <AccordionTrigger className="bg-transparent">
+              Trasnfer from other account
+            </AccordionTrigger>
+            <AccordionContent>
+              ...
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
         <DialogFooter>
           <Button variant="outline" onClick={closeTxDialog}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
