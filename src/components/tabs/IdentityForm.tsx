@@ -79,7 +79,7 @@ export const IdentityForm = forwardRef((
     let estimatedCosts;
     try {
       estimatedCosts = {
-        fees: await tx.getEstimatedFees(accountStore.address),
+        fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
         deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
           .times(Object.values(formData)
             .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
@@ -99,7 +99,7 @@ export const IdentityForm = forwardRef((
       max_fee: 0n,
       reg_index: chainStore.registrarIndex,
     })
-    const estimatedCosts = { fees: await tx.getEstimatedFees(accountStore.address) }
+    const estimatedCosts = { fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }) }
     openTxDialog({ mode: "requestJudgement", tx, estimatedCosts, })
   }
 
