@@ -26,6 +26,7 @@ import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeW
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
+import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
