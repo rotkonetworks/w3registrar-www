@@ -705,18 +705,6 @@ export function IdentityRegistrarComponent() {
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
-  useEffect(() => {
-    if (openDialog === "clearIdentity") {
-      _clearIdentity().getEstimatedFees(accountStore.address)
-        .then(fees => setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({})
-        })
-    } else {
-      setEstimatedCosts({})
-    }
-  }, [openDialog, chainStore.id])
   //#endregion CostExtimations
   
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
