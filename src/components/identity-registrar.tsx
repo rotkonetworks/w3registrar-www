@@ -721,6 +721,7 @@ export function IdentityRegistrarComponent() {
       setTxToConfirm(null)
     }
   }, [])
+  const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
 
   const handleOpenChange = useCallback((nextState: boolean): void => {
     setOpenDialog(previousState => nextState ? previousState : null)
