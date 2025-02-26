@@ -770,12 +770,9 @@ export function IdentityRegistrarComponent() {
       onClose={() => { setWalletDialogOpen(false) }} 
       dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch 
-      ${isDark 
-        ? 'bg-[#2C2B2B] text-[#FFFFFF]' 
-        : 'bg-[#FFFFFF] text-[#1E1E1E]'
-      }`
-    }>
+    <div 
+      className="min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch bg-[#FFFFFF] text-[#1E1E1E] dark:bg-[#2C2B2B] dark:text-[#FFFFFF]"
+    >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identityStore={identityStore} 
