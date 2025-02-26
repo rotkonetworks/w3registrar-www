@@ -859,6 +859,23 @@ export function IdentityRegistrarComponent() {
               <li>No data will be removed on chain.</li>
               <li>Current account and wallet will be disconnected.</li>
             </>)}
+            {openDialog === "setIdentity" && (<>
+              <li>Identity data will be set on chain.</li>
+              <li>
+                Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                released if you clear your identity.
+              </li>
+            </>)}
+            {openDialog === "requestJudgement" && (<>
+              <li>
+                After having fees paid, you will have go to second tab and complete all challenges 
+                in order to be verified.
+              </li>
+            </>)}
+            {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
+              <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
+              <li>Please ensure all provided information is accurate before continuing.</li>
+            </>)}
           </ul>
         </div>
         <DialogFooter>
