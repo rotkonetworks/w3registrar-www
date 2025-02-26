@@ -26,7 +26,6 @@ import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeW
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
-import TeleporterDialog from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
@@ -94,7 +93,6 @@ const MainContent = ({
         accountStore={accountStore}
         chainConstants={chainConstants}
         supportedFields={supportedFields}
-        formatAmount={formatAmount}
         openTxDialog={openTxDialog}
         isTxBusy={isTxBusy}
       />
@@ -736,9 +734,6 @@ export function IdentityRegistrarComponent() {
       case "Disconnect":
         setOpenDialog("disconnect")
         break;
-      case "Teleport":
-        setOpenDialog("teleport")
-        break;
       case "RemoveIdentity":
         const tx = _clearIdentity()
         openTxDialog({
@@ -906,7 +901,6 @@ export function IdentityRegistrarComponent() {
       setHelpSlideIndex(0)
     }} 
       title="Quick start guide"
-      // description={<Overview />}
       footer={<>
         {helpSlideIndex < SLIDES_COUNT -1 && (
           <Button variant="outline" onClick={() => {
@@ -930,11 +924,5 @@ export function IdentityRegistrarComponent() {
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
     </GenericDialog>
-    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
-      onOpenChange={handleOpenChange} formatAmount={formatAmount}
-      tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-      signer={accountStore.polkadotSigner}
-    />
   </>
 }
