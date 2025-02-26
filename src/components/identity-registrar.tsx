@@ -725,9 +725,9 @@ export function IdentityRegistrarComponent() {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue })
-    switch (newValue.type) {
+  const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
+    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
         break;
@@ -745,10 +745,10 @@ export function IdentityRegistrarComponent() {
         })
         break;
       case "account":
-        updateAccount({ ...newValue.account });
+        updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ newValue })
+        if (import.meta.env.DEV) console.log({ accountAction })
         throw new Error("Invalid action type");
     }
   }, [])
