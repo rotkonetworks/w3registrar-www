@@ -5,10 +5,11 @@ import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Globe } from "lucide-react"
+import { AtSign, Mail, MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Globe, XIcon } from "lucide-react"
 import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
+import { SOCIAL_ICONS } from "~/assets/icons"
 
 export function StatusPage({
   identityStore,
@@ -26,22 +27,7 @@ export function StatusPage({
   onIdentityClear: () =>  void,
 }) {
   const getIcon = (field: string) => {
-    switch (field) {
-      case "matrix":
-        return <AtSign className="h-4 w-4" />
-      case "email":
-        return <Mail className="h-4 w-4" />
-      case "discord":
-        return <MessageSquare className="h-4 w-4" />
-      case "twitter":
-        return <MessageSquare className="h-4 w-4" />
-      case "web":
-        return <Globe className="h-4 w-4" />
-      case "display":
-        return <UserCircle className="h-4 w-4" />
-      default:
-        return null
-    }
+    return SOCIAL_ICONS[field] || <MessageSquare className="h-4 w-4" />
   }
 
   const onChainIdentity = identityStore.status

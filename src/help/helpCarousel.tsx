@@ -28,7 +28,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center font-sans">
       <Carousel 
         className={twMerge("sm:w-[29rem] w-[74vw]", rest.className)} 
         showArrows={false} 

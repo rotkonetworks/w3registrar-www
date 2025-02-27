@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle, Bell } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -37,6 +37,7 @@ import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { Overview } from "~/help"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -147,31 +148,46 @@ const MainContent = ({
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
-    {[...alertsStore.entries()].map(([, alert]) => (
-      <Alert
-        key={alert.key}
-        variant={alert.type === 'error' ? "destructive" : "default"}
-        className={`mb-4 ${alert.type === 'error'
-          ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-          : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-        }`}
-      >
-        <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-        <AlertDescription className="flex justify-between items-center">
-          {alert.message}
-          {alert.closable === true && <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeNotification(alert.key)}
-              className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+    {alertsStore.size > 0 && 
+      <div className="fixed bottom-[2rem] right-[2rem] z-50 max-w-sm max-h-sm">  
+        <Accordion type="single" collapsible defaultValue="notifications">
+          <AccordionItem value="notifications">
+            <AccordionTrigger 
+              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
             >
-              Dismiss
-            </Button>
-          </>}
-        </AlertDescription>
-      </Alert>
-    ))}
+              <Bell className="h-6 w-6" /> {alertsStore.size}
+            </AccordionTrigger>
+            <AccordionContent className="bg-black/30 p-2 rounded-lg">
+              {[...alertsStore.entries()].map(([, alert]) => (
+                <Alert
+                  key={alert.key}
+                  variant={alert.type === 'error' ? "destructive" : "default"}
+                  className={`mb-4 ${alert.type === 'error'
+                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
+                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+                  }`}
+                >
+                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                  <AlertDescription className="flex justify-between items-center">
+                    {alert.message}
+                    {alert.closable === true && <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeNotification(alert.key)}
+                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+                      >
+                        Dismiss
+                      </Button>
+                    </>}
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    }
 
     <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
@@ -379,6 +395,7 @@ export function IdentityRegistrarComponent() {
         identityStore.deposit = null
       }
       identityFormRef.current.reset()
+      return identityStore;
     })
     .catch(e => {
       if (import.meta.env.DEV) {
@@ -397,6 +414,13 @@ export function IdentityRegistrarComponent() {
   }, [accountStore.address, fetchIdAndJudgement])
   //#endregion identity
   
+  // Make sure to clear anything else that might change according to the chain or account
+  useEffect(() => {
+    alertsStore.forEach(alert => {
+      delete alertsStore[alert.key]
+    })
+  }, [chainStore.id, accountStore.address])
+
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
 
@@ -469,12 +493,19 @@ export function IdentityRegistrarComponent() {
     priority: number 
   }>>(() => ({
     "Identity.JudgementGiven": {
-      onEvent: data => {
-        fetchIdAndJudgement()
-        addNotification({
-          type: "info",
-          message: "Judgement Given for this account",
-        })
+      onEvent: async data => {
+        const newIdentity = await fetchIdAndJudgement()
+        if ((newIdentity as IdentityStore)?.status === verifyStatuses.IdentityVerified) {
+          addNotification({
+            type: "info",
+            message: "Judgement Given! Identity verified successfully. Congratulations!",
+          })
+        } else {
+          addNotification({
+            type: "error",
+            message: "Judgement Given! Identity not verified. Please remove it and try again.",
+          })
+        }
       },
       onError: error => { },
       priority: 4,
@@ -495,7 +526,10 @@ export function IdentityRegistrarComponent() {
   //#region challenges
   const { challenges, 
     error: challengeError, 
-    isConnected: isChallengeWsConnected 
+    isConnected: isChallengeWsConnected,
+    subscribe: subscribeToChallenges,
+    connect: connectToChallenges,
+    disconnect: disconnectFromChallenges,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
@@ -503,6 +537,11 @@ export function IdentityRegistrarComponent() {
     identityStore: { info: identityStore.info, status: identityStore.status, },
     addNotification,
   });
+  useEffect(() => {
+    if (isChallengeWsConnected && identityStore.status === verifyStatuses.FeePaid) {
+      subscribeToChallenges()
+    }
+  }, [isChallengeWsConnected])
   //#endregion challenges
 
   const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
@@ -513,36 +552,14 @@ export function IdentityRegistrarComponent() {
     return `${newAmount} ${chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
-  const [isTxBusy, setTxBusy] = useState(true)
+  const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ isTxBusy })
   }, [isTxBusy])
 
-  const [nonce, setNonce] = useState<number | null>()
-  useEffect(() => {
-    ((typedApi.apis.AccountNonceApi as any).account_nonce(accountStore.address) as ApiRuntimeCall)
-      .then(_nonce => {
-        setNonce(_nonce)
-        if (import.meta.env.DEV) console.log({ _nonce })
-      })
-      .catch(error => {
-        if (import.meta.env.DEV) console.error(error)
-      })
-      .finally(() => {
-        if (import.meta.env.DEV) console.log("Completed fetching nonce");
-        setTxBusy(false)
-      })
-  }, [accountStore.address, typedApi])
-  const refreshNonce = useCallback(() => {
-    if (nonce === null) {
-      return
-    }
-    const _nonce = nonce
-    setNonce(_nonce + 1)
-    if (import.meta.env.DEV) console.log({ _nonce, nextNonce: _nonce + 1 })
-    return _nonce
-  }, [nonce, accountStore.address, typedApi])
-
+  // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
+  //  multiple notifications
+  const recentNotifsIds = useRef<string[]>([])
   const signSubmitAndWatch = useCallback(async (
     call: ApiTx,
     messages: {
@@ -558,8 +575,28 @@ export function IdentityRegistrarComponent() {
     }
     setTxBusy(true)
 
+    const nonce = await (async () => {
+      try {
+        return await ((typedApi.apis.AccountNonceApi as any)
+          .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall
+        )
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error)
+        return null
+      }
+    })()
+    if (import.meta.env.DEV) console.log({ nonce });
+    if (nonce === null) {
+      setTxBusy(false)
+      addNotification({
+        type: "error",
+        message: "Couldn't get nonce. Please try again.",
+      })
+      return
+    }
+
     const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
-      { at: "best", nonce: refreshNonce() }
+      { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
     signedCall.subscribe({
@@ -568,9 +605,11 @@ export function IdentityRegistrarComponent() {
         const _result: (typeof result) & {
           found: boolean,
           ok: boolean,
+          isValid: boolean,
         } = { 
           found: result["found"] || false,
           ok: result["ok"] || false,
+          isValid: result["isValid"],
           ...result,
         };
         if (result.type === "broadcasted") {
@@ -582,7 +621,7 @@ export function IdentityRegistrarComponent() {
           })
         }
         else if (_result.type === "txBestBlocksState") {
-          if (_result.ok && _result.found) {
+          if (_result.ok) {
             addNotification({
               key: _result.txHash,
               type: "success",
@@ -590,6 +629,19 @@ export function IdentityRegistrarComponent() {
             })
             fetchIdAndJudgement()
             setTxBusy(false)
+            recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== _result.txHash)
+          }
+          else if (!_result.isValid) {
+            if (!recentNotifsIds.current.includes(txHash)) {
+              recentNotifsIds.current = [...recentNotifsIds.current, txHash]
+              addNotification({
+                key: _result.txHash,
+                type: "error",
+                message: messages.error || "Transaction failed because it's invalid",
+              })
+              fetchIdAndJudgement()
+              setTxBusy(false)
+            }
           }
         }
         else if (_result.type === "finalized") {
@@ -604,26 +656,28 @@ export function IdentityRegistrarComponent() {
             setTxBusy(false)
           }
         }
-        if (import.meta.env.DEV) console.log({ _result })
+        if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error)
-        addNotification({
-          type: "error",
-          message: messages.error || "Error submitting transaction. Please try again.",
-        })
-        setTxBusy(false)
+        if (import.meta.env.DEV) console.error(error);
+        if (!recentNotifsIds.current.includes(txHash)) {
+          addNotification({
+            type: "error",
+            message: messages.error || "Error submitting transaction. Please try again.",
+          })
+          setTxBusy(false)
+          recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+        }
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
+        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
       }
     })
     return signedCall
-  }, [accountStore.polkadotSigner, refreshNonce, isTxBusy])
+  }, [accountStore.polkadotSigner, isTxBusy])
 
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), 
-    [typedApi, refreshNonce]
-  )
+  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     signSubmitAndWatch(_clearIdentity(), 
       {
