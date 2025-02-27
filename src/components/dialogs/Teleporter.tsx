@@ -33,7 +33,7 @@ const paraspellNodes = {
 }
 
 // TODO Consider for removal
-export default function TeleporterDialog({ 
+export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   formatAmount
 }: {

@@ -886,7 +886,7 @@ export function IdentityRegistrarComponent() {
                 Trasnfer from other account
               </AccordionTrigger>
               <AccordionContent>
-                <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+                <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
                   typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
                   onOpenChange={handleOpenChange} formatAmount={formatAmount}
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
