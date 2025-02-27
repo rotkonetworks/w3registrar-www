@@ -578,7 +578,7 @@ export function IdentityRegistrarComponent() {
       success?: string,
       error?: string,
     },
-    eventType: string,
+    name: string,
   ) => {
     if (isTxBusy) {
       return
@@ -906,10 +906,10 @@ export function IdentityRegistrarComponent() {
                 updateUrlParams({ ...urlParams, address: null, })
                 break;
               case "setIdentity":
-                signSubmitAndWatch(txToConfirm, {}, "Identity.set_identity")
+                signSubmitAndWatch(txToConfirm, {}, "Set Identity")
                 break;
               case "requestJudgement":
-                signSubmitAndWatch(txToConfirm, {}, "Identity.request_judgement")
+                signSubmitAndWatch(txToConfirm, {}, "Request Judgement")
                 break;
               default:
                 throw new Error("Unexpected openDialog value");
