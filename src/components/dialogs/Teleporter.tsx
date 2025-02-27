@@ -30,6 +30,8 @@ const paraspellNodes = {
   ksmcc3_people: { name: "PeopleKusama" },
   westend2: { name: "Westend" },
   westend2_people: { name: "PeopleWestend" },
+  paseo: { name: "Paseo" },
+  paseo_people: { name: "PeoplePaseo" },
 }
 
 // TODO Consider for removal
