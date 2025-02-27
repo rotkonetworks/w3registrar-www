@@ -88,7 +88,7 @@ export default function Teleporter({
   useEffect(() => {
     const transferDetails = {
       address: fromAddress,
-      node: paraspellNodes[fromChainId].name,
+      node: paraspellNodes[selectedChain].name,
       currency: { symbol: config.chains[fromChainId].symbol },
     }
     fetchBalance(transferDetails).then(setFromBalance)
@@ -99,7 +99,7 @@ export default function Teleporter({
   useEffect(() => {
     const transferDetails = {
       address: toAddress,
-      node: paraspellNodes[toChainId].name,
+      node: paraspellNodes[chainId].name,
       currency: { symbol: config.chains[toChainId].symbol },
     }
     fetchBalance(transferDetails).then(setToBalance)
