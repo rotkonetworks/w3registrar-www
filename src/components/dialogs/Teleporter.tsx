@@ -53,7 +53,7 @@ export default function TeleporterDialog({
   const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
   const [toAddress, setToAddres] = React.useState<SS58String>(address)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setFromAddress(address)
       setToAddres(address)
@@ -85,7 +85,7 @@ export default function TeleporterDialog({
     }
   }
   const [fromBalance, setFromBalance] = React.useState<bigint | null>()
-  React.useEffect(() => {
+  useEffect(() => {
     const transferDetails = {
       address: fromAddress,
       node: paraspellNodes[fromChainId],
@@ -96,7 +96,7 @@ export default function TeleporterDialog({
   }, [fromAddress, fromChainId])
 
   const [toBalance, setToBalance] = React.useState<bigint | null>()
-  React.useEffect(() => {
+  useEffect(() => {
     const transferDetails = {
       address: toAddress,
       node: paraspellNodes[toChainId],
@@ -116,7 +116,7 @@ export default function TeleporterDialog({
   ) 
   */
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       setSelectedChain(relayChainId)
     }
@@ -160,9 +160,9 @@ export default function TeleporterDialog({
   }
 
   const [firstParachainId, setFirstParachainId] = React.useState(null)
-  React.useEffect(() => _getParachainId(typedApi, setFirstParachainId), [typedApi])
+  useEffect(() => _getParachainId(typedApi, setFirstParachainId), [typedApi])
   const [secondParachainId, setSecondParachainId] = React.useState(null)
-  React.useEffect(() => _getParachainId(selectedChainApi, setSecondParachainId), [selectedChainApi])
+  useEffect(() => _getParachainId(selectedChainApi, setSecondParachainId), [selectedChainApi])
 
   const getTeleportParams = React.useCallback(({paraId, intoParachain, address, amount}) => ({
     dest: {
