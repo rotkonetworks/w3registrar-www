@@ -1,7 +1,6 @@
 import React, { ReactNode, useEffect } from "react"
 import { ArrowDownUp, ChevronDown } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { 
@@ -17,10 +16,10 @@ import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
-import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
+import { useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
-import { getTransferInfo, getBalanceForeign, getBalanceNative, getOriginFeeDetails, getMaxNativeTransferableAmount, getMaxForeignTransferableAmount, getTransferableAmount } from "@paraspell/sdk";
+import { getTransferableAmount } from "@paraspell/sdk";
 
 const paraspellNodes = {
   rococo: { name: "rococo" },
@@ -36,7 +35,7 @@ const paraspellNodes = {
 // TODO Consider for removal
 export default function TeleporterDialog({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
-  onOpenChange, formatAmount
+  formatAmount
 }: {
   address: SS58String,
   accounts: AccountData[],
@@ -47,7 +46,6 @@ export default function TeleporterDialog({
   tokenSymbol: string,
   tokenDecimals: number,
   signer: PolkadotSigner,
-  onOpenChange: (open: boolean) => void,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
 }) {
   const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
