@@ -763,9 +763,15 @@ export function IdentityRegistrarComponent() {
     addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
+  //#region HelpDialog
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
+  //#endregion HelpDialog  
   
+  //region TeleportAccordion
+  const [teleportExpanded, setTeleportExpanded] = useState(false)
+  //#endregion TeleportAccordion
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
