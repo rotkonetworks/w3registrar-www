@@ -73,12 +73,14 @@ export default function Teleporter({
     () => (isReversed ? selectedChain : chainId) as keyof Chains, [isReversed, selectedChain, chainId]
   )
 
-  const fetchBalance = async (getTransferableAmountArgs) => {
+  const fetchBalance = async (getTransferableAmountArgs: Parameters<typeof getTransferableAmount>[0]) => {
     try {
-      const balance = await getTransferableAmount(getTransferableAmountArgs)
-      return balance
+      return await getTransferableAmount(getTransferableAmountArgs as any)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error fetching from balance:', error)
+      if (import.meta.env.DEV) console.error('Error fetching balance for :', 
+        `${getBalanceForeignArgs.node} ${getBalanceForeignArgs.address}`, 
+        error
+      )
       return null
     }
   }
