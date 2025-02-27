@@ -19,7 +19,7 @@ import BigNumber from "bignumber.js"
 import { useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
-import { getTransferableAmount } from "@paraspell/sdk";
+import { getTransferableAmount, TNodeDotKsmWithRelayChains } from "@paraspell/sdk";
 
 const paraspellNodes = {
   rococo: { name: "rococo" },
@@ -90,7 +90,7 @@ export default function Teleporter({
   useEffect(() => {
     const transferDetails = {
       address: fromAddress,
-      node: paraspellNodes[selectedChain].name,
+      node: paraspellNodes[selectedChain].name as TNodeDotKsmWithRelayChains,
       currency: { symbol: config.chains[fromChainId].symbol },
     }
     fetchBalance(transferDetails).then(setFromBalance)
@@ -101,7 +101,7 @@ export default function Teleporter({
   useEffect(() => {
     const transferDetails = {
       address: toAddress,
-      node: paraspellNodes[chainId].name,
+      node: paraspellNodes[chainId].name as TNodeDotKsmWithRelayChains,
       currency: { symbol: config.chains[toChainId].symbol },
     }
     fetchBalance(transferDetails).then(setToBalance)
