@@ -357,11 +357,14 @@ export default function Teleporter({
                     <SelectValue placeholder="Select chain" />
                   </SelectTrigger>
                   <SelectContent>
-                    {isReversed ? (
-                      <SelectItem value={chainId as string}>{config.chains[chainId as string].name}</SelectItem>
-                    ) : parachains.map((chain) => (
-                      <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
-                    ))}
+                    {isReversed 
+                      ?(<SelectItem value={chainId as string}>
+                        {config.chains[chainId as string].name}
+                      </SelectItem>) 
+                      :chains.filter(([id]) => id !== toChainId).map(([id, { name }]) => (
+                        <SelectItem key={id} value={id}>{name}</SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               </TooltipTrigger>
@@ -390,11 +393,15 @@ export default function Teleporter({
                     <SelectValue placeholder="Select chain" />
                   </SelectTrigger>
                   <SelectContent>
-                    {isReversed ? parachains.map((chain) => (
-                      <SelectItem key={chain.id} value={chain.id}>{chain.name}</SelectItem>
-                    )) : (
-                      <SelectItem value={chainId as string}>{config.chains[chainId as string].name}</SelectItem>
-                    )}
+                    {isReversed 
+                      ?chains.filter(([id]) => id !== fromChainId).map(([id, { name }]) => (
+                        <SelectItem key={id} value={id}>{name}</SelectItem>
+                      )) 
+                      :(<SelectItem value={chainId as string}>
+                        {config.chains[chainId as string].name}
+                      </SelectItem>
+                      )
+                    }
                   </SelectContent>
                 </Select>
               </TooltipTrigger>
