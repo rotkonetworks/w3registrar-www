@@ -20,6 +20,18 @@ import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
+import { getTransferInfo, getBalanceForeign, getBalanceNative, getOriginFeeDetails, getMaxNativeTransferableAmount, getMaxForeignTransferableAmount, getTransferableAmount } from "@paraspell/sdk";
+
+const paraspellNodes = {
+  rococo: "rococo",
+  rococo_people: "rococo_people",
+  polkadot: "Polkadot",
+  polkadot_people: "PeoplePolkadot",
+  ksmcc3: "Kusama",
+  ksmcc3_people: "PeopleKusama",
+  westend2: "Westend",
+  westend2_people: "PeopleWestend",
+}
 
 // TODO Consider for removal
 export default function TeleporterDialog({ 
@@ -63,13 +75,46 @@ export default function TeleporterDialog({
     () => (isReversed ? selectedChain : chainId) as keyof Chains, [isReversed, selectedChain, chainId]
   )
 
+  const fetchBalance = async (getTransferableAmountArgs) => {
+    try {
+      const balance = await getTransferableAmount(getTransferableAmountArgs)
+      return balance
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error fetching from balance:', error)
+      return null
+    }
+  }
+  const [fromBalance, setFromBalance] = React.useState<bigint | null>()
+  React.useEffect(() => {
+    const transferDetails = {
+      address: fromAddress,
+      node: paraspellNodes[fromChainId],
+      currency: { symbol: config.chains[fromChainId].symbol },
+    }
+    fetchBalance(transferDetails).then(setFromBalance)
+    if (import.meta.env.DEV) console.log({ transferDetails, fromBalance })
+  }, [fromAddress, fromChainId])
+
+  const [toBalance, setToBalance] = React.useState<bigint | null>()
+  React.useEffect(() => {
+    const transferDetails = {
+      address: toAddress,
+      node: paraspellNodes[toChainId],
+      currency: { symbol: config.chains[toChainId].symbol },
+    }
+    fetchBalance(transferDetails).then(setToBalance)
+    if (import.meta.env.DEV) console.log({ transferDetails, toBalance })
+  }, [toAddress, toChainId])
+
+  /* 
   const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
   const fromBalance = BigNumber(
     useSpendableBalance(fromAddress || genericAddress, { chainId: fromChainId }).planck.toString()
   )
   const toBalance = BigNumber(
     useSpendableBalance(toAddress || genericAddress, { chainId: toChainId }).planck.toString()
-  )
+  ) 
+  */
   
   React.useEffect(() => {
     if (open) {
