@@ -79,9 +79,6 @@ const Header = ({
                 {identityStore.info && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
                 </>}
-                {accountStore.address && <>
-                  <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
-                </>}
                 <SelectSeparator />
                 <SelectGroup>
                   {accounts.length > 0 

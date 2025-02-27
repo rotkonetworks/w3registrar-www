@@ -26,7 +26,7 @@ import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeW
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
-import TeleporterDialog from "./dialogs/Teleporter"
+import Teleporter from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
@@ -35,13 +35,26 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
-import { Overview } from "~/help"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
+
+type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" | 
+  "setIdentity" | null
+export type EstimatedCostInfo = {
+  fees?: bigint | BigNumber
+  deposits?: bigint | BigNumber
+}
+
+type OpenTxDialogArgs_modeSet = {
+  mode: DialogMode
+  tx: ApiTx
+  estimatedCosts: EstimatedCostInfo
+}
+export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
 type MainContentProps = {
   identityStore: IdentityStore,
@@ -54,19 +67,18 @@ type MainContentProps = {
   addNotification: any, 
   formatAmount: any, 
   supportedFields: string[],
-  signSubmitAndWatch: any,
   removeNotification: any,
   identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
   updateUrlParams: any,
   setOpenDialog: any,
   isTxBusy: boolean,
+  openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount,
-  signSubmitAndWatch, updateUrlParams, setOpenDialog,
+  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
     {
@@ -82,8 +94,7 @@ const MainContent = ({
         accountStore={accountStore}
         chainConstants={chainConstants}
         supportedFields={supportedFields}
-        formatAmount={formatAmount}
-        signSubmitAndWatch={signSubmitAndWatch}
+        openTxDialog={openTxDialog}
         isTxBusy={isTxBusy}
       />
     },
@@ -387,7 +398,6 @@ export function IdentityRegistrarComponent() {
           identityStore.status = verifyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
-        // TODO Compute approximate reserve
         if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
       } else {
         identityStore.status = verifyStatuses.NoIdentity;
@@ -568,7 +578,7 @@ export function IdentityRegistrarComponent() {
       success?: string,
       error?: string,
     },
-    eventType: string,
+    name: string,
   ) => {
     if (isTxBusy) {
       return
@@ -690,49 +700,56 @@ export function IdentityRegistrarComponent() {
     )
   }, [_clearIdentity])
   
-  type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
-  useEffect(() => {
-    if (openDialog === "clearIdentity") {
-      _clearIdentity().getEstimatedFees(accountStore.address)
-        .then(fees => setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({})
-        })
-    } else {
-      setEstimatedCosts({})
-    }
-  }, [openDialog, chainStore.id])
+  const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
   
+  const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
+  
+  const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
+    if (import.meta.env.DEV) console.log({ args })
+    if (args.mode) {
+      setOpenDialog(args.mode)
+      setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
+      setTxToConfirm((args as OpenTxDialogArgs_modeSet).tx)
+    } else {
+      setOpenDialog(null)
+      setEstimatedCosts({})
+      setTxToConfirm(null)
+    }
+  }, [])
+  const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
+
   const handleOpenChange = useCallback((nextState: boolean): void => {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue })
-    switch (newValue.type) {
+  const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
+    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
         break;
       case "Disconnect":
         setOpenDialog("disconnect")
         break;
-      case "Teleport":
-        setOpenDialog("teleport")
-        break;
       case "RemoveIdentity":
-        setOpenDialog("clearIdentity")
+        const tx = _clearIdentity()
+        openTxDialog({
+          mode: "clearIdentity",
+          tx: tx,
+          estimatedCosts: {
+            fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
+          },
+        })
         break;
       case "account":
-        updateAccount({ ...newValue.account });
+        updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ newValue })
+        if (import.meta.env.DEV) console.log({ accountAction })
         throw new Error("Invalid action type");
     }
   }, [])
@@ -743,24 +760,26 @@ export function IdentityRegistrarComponent() {
     chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
-    addNotification, removeNotification, formatAmount, 
-    signSubmitAndWatch, updateUrlParams, setOpenDialog,
+    addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
+  //#region HelpDialog
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
+  //#endregion HelpDialog  
   
+  //region TeleportAccordion
+  const [teleportExpanded, setTeleportExpanded] = useState(false)
+  //#endregion TeleportAccordion
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
       dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch 
-      ${isDark 
-        ? 'bg-[#2C2B2B] text-[#FFFFFF]' 
-        : 'bg-[#FFFFFF] text-[#1E1E1E]'
-      }`
-    }>
+    <div 
+      className="min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch bg-[#FFFFFF] text-[#1E1E1E] dark:bg-[#2C2B2B] dark:text-[#FFFFFF]"
+    >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identityStore={identityStore} 
@@ -805,8 +824,8 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    {/* TODO Refactor into GenericDialog */}
-    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
+    <Dialog 
+      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
       onOpenChange={handleOpenChange}
     >
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
@@ -816,40 +835,74 @@ export function IdentityRegistrarComponent() {
             Please review the following information before proceeding.
           </DialogDescription>
         </DialogHeader>
-        {Object.keys(estimatedCosts).length > 0 &&
-          <div className="py-4">
-            <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Coins className="h-5 w-5 text-[#E6007A]" />
-              Transaction Costs
+        <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+          {Object.keys(estimatedCosts).length > 0 &&
+            <div>
+              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Coins className="h-5 w-5 text-[#E6007A]" />
+                Transaction Costs
+              </h4>
+              {estimatedCosts.fees &&
+                <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
+              }
+              {estimatedCosts.deposits && (
+                <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
+              )}
+            </div>
+          }
+          <div>
+            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+              Important Notes
             </h4>
-            {estimatedCosts.fees &&
-              <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
-            }
-            {estimatedCosts.deposits && (
-              <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
-            )}
+            <ul className="list-disc list-inside">
+              {openDialog === "clearIdentity" && (<>
+                <li>All identity data will be deleted from chain..</li>
+                <li>You will have to set identity again.</li>
+                <li>You will lose verification status.</li>
+                <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+              </>)}
+              {openDialog === "disconnect" && (<>
+                <li>No data will be removed on chain.</li>
+                <li>Current account and wallet will be disconnected.</li>
+              </>)}
+              {openDialog === "setIdentity" && (<>
+                <li>Identity data will be set on chain.</li>
+                <li>
+                  Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                  released if you clear your identity.
+                </li>
+              </>)}
+              {openDialog === "requestJudgement" && (<>
+                <li>
+                  After having fees paid, you will have go to second tab and complete all challenges 
+                  in order to be verified.
+                </li>
+              </>)}
+              {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
+                <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
+                <li>Please ensure all provided information is accurate before continuing.</li>
+              </>)}
+            </ul>
           </div>
-        }
-        <div className="py-4">
-          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-            Important Notes
-          </h4>
-          <ul className="list-disc list-inside">
-            {openDialog === "clearIdentity" && (<>
-              <li>All identity data will be deleted from chain..</li>
-              <li>You will have to set identity again.</li>
-              <li>You will lose verification status.</li>
-              <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
-            </>)}
-            {openDialog === "disconnect" && (<>
-              <li>No data will be removed on chain.</li>
-              <li>Current account and wallet will be disconnected.</li>
-            </>)}
-          </ul>
+          {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
+          <Accordion type="single" collapsible className="border-[#E6007A] border-1 p-3">
+            <AccordionItem value="teleport">
+              <AccordionTrigger className="bg-transparent">
+                Trasnfer from other account
+              </AccordionTrigger>
+              <AccordionContent>
+                <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+                  typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
+                  tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+                  signer={accountStore.polkadotSigner} formatAmount={formatAmount}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpenDialog(null)} 
+          <Button variant="outline" onClick={closeTxDialog}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           >
             Cancel
@@ -864,10 +917,16 @@ export function IdentityRegistrarComponent() {
                 Object.keys(accountStore).forEach((k) => delete accountStore[k]);
                 updateUrlParams({ ...urlParams, address: null, })
                 break;
+              case "setIdentity":
+                signSubmitAndWatch(txToConfirm, {}, "Set Identity")
+                break;
+              case "requestJudgement":
+                signSubmitAndWatch(txToConfirm, {}, "Request Judgement")
+                break;
               default:
                 throw new Error("Unexpected openDialog value");
             }
-            setOpenDialog(null)
+            closeTxDialog()
           }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
             Confirm
           </Button>
@@ -879,7 +938,6 @@ export function IdentityRegistrarComponent() {
       setHelpSlideIndex(0)
     }} 
       title="Quick start guide"
-      // description={<Overview />}
       footer={<>
         {helpSlideIndex < SLIDES_COUNT -1 && (
           <Button variant="outline" onClick={() => {
@@ -903,11 +961,5 @@ export function IdentityRegistrarComponent() {
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
     </GenericDialog>
-    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
-      onOpenChange={handleOpenChange} formatAmount={formatAmount}
-      tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-      signer={accountStore.polkadotSigner}
-    />
   </>
 }
