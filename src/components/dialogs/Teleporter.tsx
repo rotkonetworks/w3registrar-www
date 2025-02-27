@@ -78,7 +78,7 @@ export default function Teleporter({
       return await getTransferableAmount(getTransferableAmountArgs as any)
     } catch (error) {
       if (import.meta.env.DEV) console.error('Error fetching balance for :', 
-        `${getBalanceForeignArgs.node} ${getBalanceForeignArgs.address}`, 
+        `${getTransferableAmountArgs.node} ${getTransferableAmountArgs.address}`, 
         error
       )
       return null
