@@ -829,66 +829,73 @@ export function IdentityRegistrarComponent() {
             Please review the following information before proceeding.
           </DialogDescription>
         </DialogHeader>
-        {Object.keys(estimatedCosts).length > 0 &&
+        <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+          {Object.keys(estimatedCosts).length > 0 &&
+            <div>
+              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Coins className="h-5 w-5 text-[#E6007A]" />
+                Transaction Costs
+              </h4>
+              {estimatedCosts.fees &&
+                <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
+              }
+              {estimatedCosts.deposits && (
+                <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
+              )}
+            </div>
+          }
           <div>
-            <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Coins className="h-5 w-5 text-[#E6007A]" />
-              Transaction Costs
+            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+              Important Notes
             </h4>
-            {estimatedCosts.fees &&
-              <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
-            }
-            {estimatedCosts.deposits && (
-              <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
-            )}
+            <ul className="list-disc list-inside">
+              {openDialog === "clearIdentity" && (<>
+                <li>All identity data will be deleted from chain..</li>
+                <li>You will have to set identity again.</li>
+                <li>You will lose verification status.</li>
+                <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+              </>)}
+              {openDialog === "disconnect" && (<>
+                <li>No data will be removed on chain.</li>
+                <li>Current account and wallet will be disconnected.</li>
+              </>)}
+              {openDialog === "setIdentity" && (<>
+                <li>Identity data will be set on chain.</li>
+                <li>
+                  Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                  released if you clear your identity.
+                </li>
+              </>)}
+              {openDialog === "requestJudgement" && (<>
+                <li>
+                  After having fees paid, you will have go to second tab and complete all challenges 
+                  in order to be verified.
+                </li>
+              </>)}
+              {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
+                <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
+                <li>Please ensure all provided information is accurate before continuing.</li>
+              </>)}
+            </ul>
           </div>
-        }
-        <div>
-          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-            Important Notes
-          </h4>
-          <ul className="list-disc list-inside">
-            {openDialog === "clearIdentity" && (<>
-              <li>All identity data will be deleted from chain..</li>
-              <li>You will have to set identity again.</li>
-              <li>You will lose verification status.</li>
-              <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
-            </>)}
-            {openDialog === "disconnect" && (<>
-              <li>No data will be removed on chain.</li>
-              <li>Current account and wallet will be disconnected.</li>
-            </>)}
-            {openDialog === "setIdentity" && (<>
-              <li>Identity data will be set on chain.</li>
-              <li>
-                Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
-                released if you clear your identity.
-              </li>
-            </>)}
-            {openDialog === "requestJudgement" && (<>
-              <li>
-                After having fees paid, you will have go to second tab and complete all challenges 
-                in order to be verified.
-              </li>
-            </>)}
-            {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
-              <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
-              <li>Please ensure all provided information is accurate before continuing.</li>
-            </>)}
-          </ul>
+          {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
+          <Accordion type="single" collapsible>
+            <AccordionItem value="teleport">
+              <AccordionTrigger className="bg-transparent">
+                Trasnfer from other account
+              </AccordionTrigger>
+              <AccordionContent>
+                <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+                  typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
+                  onOpenChange={handleOpenChange} formatAmount={formatAmount}
+                  tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+                  signer={accountStore.polkadotSigner}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
-        {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
-        <Accordion type="single" collapsible>
-          <AccordionItem value="teleport">
-            <AccordionTrigger className="bg-transparent">
-              Trasnfer from other account
-            </AccordionTrigger>
-            <AccordionContent>
-              ...
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
         <DialogFooter>
           <Button variant="outline" onClick={closeTxDialog}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
