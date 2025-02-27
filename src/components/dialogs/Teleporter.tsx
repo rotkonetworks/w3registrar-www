@@ -265,8 +265,10 @@ export default function Teleporter({
       } catch (error) {
         if (import.meta.env.DEV) console.error("Error teleporting", error)
       }
-    }) ()
+    })()
   }, [amount, relayChainTypedApi])
+
+  const chains = Object.entries(config.chains)
  
   return (
     <div className="grid gap-4 py-4">
