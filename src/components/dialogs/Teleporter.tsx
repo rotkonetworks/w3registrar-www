@@ -23,14 +23,14 @@ import { AccountData } from "~/store/AccountStore"
 import { getTransferInfo, getBalanceForeign, getBalanceNative, getOriginFeeDetails, getMaxNativeTransferableAmount, getMaxForeignTransferableAmount, getTransferableAmount } from "@paraspell/sdk";
 
 const paraspellNodes = {
-  rococo: "rococo",
-  rococo_people: "rococo_people",
-  polkadot: "Polkadot",
-  polkadot_people: "PeoplePolkadot",
-  ksmcc3: "Kusama",
-  ksmcc3_people: "PeopleKusama",
-  westend2: "Westend",
-  westend2_people: "PeopleWestend",
+  rococo: { name: "rococo" },
+  rococo_people: { name: "rococo_people" },
+  polkadot: { name: "Polkadot" },
+  polkadot_people: { name: "PeoplePolkadot" },
+  ksmcc3: { name: "Kusama" },
+  ksmcc3_people: { name: "PeopleKusama" },
+  westend2: { name: "Westend" },
+  westend2_people: { name: "PeopleWestend" },
 }
 
 // TODO Consider for removal
@@ -88,7 +88,7 @@ export default function TeleporterDialog({
   useEffect(() => {
     const transferDetails = {
       address: fromAddress,
-      node: paraspellNodes[fromChainId],
+      node: paraspellNodes[fromChainId].name,
       currency: { symbol: config.chains[fromChainId].symbol },
     }
     fetchBalance(transferDetails).then(setFromBalance)
@@ -99,7 +99,7 @@ export default function TeleporterDialog({
   useEffect(() => {
     const transferDetails = {
       address: toAddress,
-      node: paraspellNodes[toChainId],
+      node: paraspellNodes[toChainId].name,
       currency: { symbol: config.chains[toChainId].symbol },
     }
     fetchBalance(transferDetails).then(setToBalance)
