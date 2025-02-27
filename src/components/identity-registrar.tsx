@@ -880,7 +880,7 @@ export function IdentityRegistrarComponent() {
             </ul>
           </div>
           {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
-          <Accordion type="single" collapsible>
+          <Accordion type="single" collapsible className="border-[#E6007A] border-1 p-3">
             <AccordionItem value="teleport">
               <AccordionTrigger className="bg-transparent">
                 Trasnfer from other account
