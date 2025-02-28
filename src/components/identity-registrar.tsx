@@ -558,7 +558,7 @@ export function IdentityRegistrarComponent() {
    decimals?: number, // TODO Actually use this by implementing rounding
    symbol?: string
   }) => {
-    if (amount === undefined) {
+    if (amount === undefined || amount === null) {
       return "---"
     }
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
