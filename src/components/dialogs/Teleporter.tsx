@@ -378,15 +378,6 @@ export default function Teleporter({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="flex flex-col items-center space-y-2">
-          <ArrowDownUp className="h-6 w-6 text-[#E6007A]" />
-          <Switch
-            id="direction-toggle"
-            checked={isReversed}
-            onCheckedChange={setIsReversed}
-            className="data-[state=checked]:bg-[#E6007A]"
-          />
-        </div>
         <div className="flex-1 space-y-2">
           <Label>To Chain:</Label>
           <TooltipProvider>
