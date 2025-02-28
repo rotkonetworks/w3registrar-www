@@ -415,13 +415,13 @@ export default function Teleporter({
             <div className="flex justify-between">
               <span>{config.chains[fromChainId].name}</span>
               <span>{formatAmount(!isReversed ? fromBalance : toBalance, {
-                symbol: config.chains[selectedChain].symbol,
+                symbol: config.chains[fromChainId].symbol,
               })}</span>
             </div>
             <div className="flex justify-between">
               <span>{config.chains[toChainId].name}</span>
               <span>{formatAmount(isReversed ? fromBalance : toBalance, {
-                symbol: config.chains[chainId].symbol,
+                symbol: config.chains[toChainId].symbol,
               })}</span>
             </div>
           </div>
