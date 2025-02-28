@@ -554,12 +554,15 @@ export function IdentityRegistrarComponent() {
   }, [isChallengeWsConnected])
   //#endregion challenges
 
-  const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
+  const formatAmount = useCallback((amount: number | bigint | BigNumber | string, options?: { 
+   decimals?: number, // TODO Actually use this by implementing rounding
+   symbol?: string
+  }) => {
     if (!amount) {
       return "---"
     }
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
-    return `${newAmount} ${chainStore.tokenSymbol}`;
+    return `${newAmount} ${options.symbol || chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const [isTxBusy, setTxBusy] = useState(false)
