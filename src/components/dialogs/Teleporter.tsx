@@ -317,7 +317,7 @@ export default function Teleporter({
           onOpenChange={(nextState) => setComboboxOpen(nextState ? "toAddress" : null)}
         >
           <PopoverTrigger asChild>
-            <Button
+            <Button disabled
               variant="outline"
               role="combobox"
               className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
