@@ -48,7 +48,7 @@ export default function Teleporter({
   tokenSymbol: string,
   tokenDecimals: number,
   signer: PolkadotSigner,
-  formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string,
+  formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
   const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
   const [toAddress, setToAddres] = React.useState<SS58String>(address)
@@ -423,11 +423,15 @@ export default function Teleporter({
           <div className="space-y-2 text-[#FFFFFF]">
             <div className="flex justify-between">
               <span>{config.chains[fromChainId].name}</span>
-              <span>{formatAmount(!isReversed ? fromBalance : toBalance)}</span>
+              <span>{formatAmount(!isReversed ? fromBalance : toBalance, {
+                symbol: config.chains[selectedChain].symbol,
+              })}</span>
             </div>
             <div className="flex justify-between">
               <span>{config.chains[toChainId].name}</span>
-              <span>{formatAmount(isReversed ? fromBalance : toBalance)}</span>
+              <span>{formatAmount(isReversed ? fromBalance : toBalance, {
+                symbol: config.chains[chainId].symbol,
+              })}</span>
             </div>
           </div>
         </CardContent>

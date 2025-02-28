@@ -562,7 +562,7 @@ export function IdentityRegistrarComponent() {
       return "---"
     }
     const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
-    return `${newAmount} ${options.symbol || chainStore.tokenSymbol}`;
+    return `${newAmount} ${options?.symbol || chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const [isTxBusy, setTxBusy] = useState(false)
