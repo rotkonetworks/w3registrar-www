@@ -898,7 +898,7 @@ export function IdentityRegistrarComponent() {
               </AccordionTrigger>
               <AccordionContent>
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-                  typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
+                  typedApi={typedApi} address={accountStore.encodedAddress} tx={txToConfirm}
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
                   signer={accountStore.polkadotSigner} xcmParams={xcmParams}
                   formatAmount={formatAmount}

@@ -23,7 +23,7 @@ import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
 
 export default function Teleporter({ 
-  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer, xcmParams,
+  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, signer, xcmParams,
   formatAmount
 }: {
   address: SS58String,
@@ -31,7 +31,6 @@ export default function Teleporter({
   chainId: string | number | symbol,
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   config: ApiConfig,
-  open: boolean,
   tokenSymbol: string,
   tokenDecimals: number,
   signer: PolkadotSigner,
