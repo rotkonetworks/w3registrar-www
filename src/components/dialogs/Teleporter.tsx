@@ -16,25 +16,10 @@ import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
-import { useTypedApi } from "@reactive-dot/react"
+import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
-import { getTransferableAmount, TNodeDotKsmWithRelayChains } from "@paraspell/sdk";
 
-const paraspellNodes = {
-  rococo: { name: "rococo" },
-  rococo_people: { name: "rococo_people" },
-  polkadot: { name: "Polkadot" },
-  polkadot_people: { name: "PeoplePolkadot" },
-  ksmcc3: { name: "Kusama" },
-  ksmcc3_people: { name: "PeopleKusama" },
-  westend2: { name: "Westend" },
-  westend2_people: { name: "PeopleWestend" },
-  paseo: { name: "Paseo" },
-  paseo_people: { name: "PeoplePaseo" },
-}
-
-// TODO Consider for removal
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
   formatAmount
@@ -75,40 +60,6 @@ export default function Teleporter({
     () => (isReversed ? selectedChain : chainId) as keyof Chains, [isReversed, selectedChain, chainId]
   )
 
-  const fetchBalance = async (getTransferableAmountArgs: Parameters<typeof getTransferableAmount>[0]) => {
-    try {
-      return await getTransferableAmount(getTransferableAmountArgs as any)
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Error fetching balance for :', 
-        `${getTransferableAmountArgs.node} ${getTransferableAmountArgs.address}`, 
-        error
-      )
-      return null
-    }
-  }
-  const [fromBalance, setFromBalance] = React.useState<bigint | null>()
-  useEffect(() => {
-    const transferDetails = {
-      address: fromAddress,
-      node: paraspellNodes[selectedChain].name as TNodeDotKsmWithRelayChains,
-      currency: { symbol: config.chains[fromChainId].symbol },
-    }
-    fetchBalance(transferDetails).then(setFromBalance)
-    if (import.meta.env.DEV) console.log({ transferDetails, fromBalance })
-  }, [fromAddress, fromChainId])
-
-  const [toBalance, setToBalance] = React.useState<bigint | null>()
-  useEffect(() => {
-    const transferDetails = {
-      address: toAddress,
-      node: paraspellNodes[chainId].name as TNodeDotKsmWithRelayChains,
-      currency: { symbol: config.chains[toChainId].symbol },
-    }
-    fetchBalance(transferDetails).then(setToBalance)
-    if (import.meta.env.DEV) console.log({ transferDetails, toBalance })
-  }, [toAddress, toChainId])
-
-  /* 
   const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
   const fromBalance = BigNumber(
     useSpendableBalance(fromAddress || genericAddress, { chainId: fromChainId }).planck.toString()
@@ -116,7 +67,6 @@ export default function Teleporter({
   const toBalance = BigNumber(
     useSpendableBalance(toAddress || genericAddress, { chainId: toChainId }).planck.toString()
   ) 
-  */
   
   useEffect(() => {
     if (open) {
