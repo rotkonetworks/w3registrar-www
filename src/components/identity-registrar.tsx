@@ -890,8 +890,9 @@ export function IdentityRegistrarComponent() {
               </>)}
             </ul>
           </div>
-          {/* </Accordion><Accordion type="single" className="bg-transparent border-[#E6007A] mt-4"> */}
-          <Accordion type="single" collapsible className="border-[#E6007A] border-1 p-3">
+          <Accordion type="single" collapsible value={teleportExpanded ? "teleport" : null} 
+            onValueChange={(v) => setTeleportExpanded(v === "teleport")}
+          >
             <AccordionItem value="teleport">
               <AccordionTrigger className="bg-transparent">
                 Trasnfer from other account
