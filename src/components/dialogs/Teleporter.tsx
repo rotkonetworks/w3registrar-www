@@ -35,6 +35,7 @@ export default function Teleporter({
   tokenSymbol: string,
   tokenDecimals: number,
   signer: PolkadotSigner,
+  xcmParams: XcmParameters,
   tx: ApiTx,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
