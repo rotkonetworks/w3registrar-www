@@ -222,8 +222,6 @@ export default function Teleporter({
       }
     })()
   }, [amount, relayChainTypedApi])
-
-  const chains = Object.entries(config.chains)
  
   return (
     <div className="grid gap-4 py-4">
@@ -318,7 +316,7 @@ export default function Teleporter({
                       ?(<SelectItem value={chainId as string}>
                         {config.chains[chainId as string].name}
                       </SelectItem>) 
-                      :chains.filter(([id]) => id !== toChainId).map(([id, { name }]) => (
+                      :parachains.filter(({ id }) => id !== toChainId).map(({ id, name }) => (
                         <SelectItem key={id} value={id}>{name}</SelectItem>
                       ))
                     }
@@ -342,7 +340,7 @@ export default function Teleporter({
                   </SelectTrigger>
                   <SelectContent>
                     {isReversed 
-                      ?chains.filter(([id]) => id !== fromChainId).map(([id, { name }]) => (
+                      ?parachains.filter(({id}) => id !== fromChainId).map(({ id, name }) => (
                         <SelectItem key={id} value={id}>{name}</SelectItem>
                       )) 
                       :(<SelectItem value={chainId as string}>
