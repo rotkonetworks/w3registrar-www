@@ -20,6 +20,7 @@ import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
+import { ApiTx } from "~/types/api"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer, xcmParams,
@@ -34,6 +35,7 @@ export default function Teleporter({
   tokenSymbol: string,
   tokenDecimals: number,
   signer: PolkadotSigner,
+  tx: ApiTx,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
   const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
