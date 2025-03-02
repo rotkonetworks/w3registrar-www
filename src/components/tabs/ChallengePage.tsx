@@ -21,7 +21,6 @@ export function ChallengePage({
   addNotification: (alert: AlertPropsOptionalKey) => void,
   challengeStore: { challenges: ChallengeStore, error: string | null };
 }) {
-  const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
@@ -182,7 +181,6 @@ export function ChallengePage({
                 <>
                   <Button variant="outline" size="icon" 
                     className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                    disabled={pendingFields[field]}
                     onClick={async () => {
                       if (type === "input") {
                         const clipText = await window.navigator.clipboard.readText()
@@ -211,7 +209,6 @@ export function ChallengePage({
                     <Button
                       variant="outline"
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                      disabled={pendingFields[field]}
                     >
                       Verify
                     </Button>
