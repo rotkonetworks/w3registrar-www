@@ -12,7 +12,6 @@ import {
   Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem 
 } from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
-import { Switch } from "../ui/switch"
 import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
 import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
