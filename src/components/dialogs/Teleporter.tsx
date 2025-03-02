@@ -19,9 +19,10 @@ import BigNumber from "bignumber.js"
 import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
+import { XcmParameters } from "~/store/XcmParameters"
 
 export default function Teleporter({ 
-  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer,
+  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, open, signer, xcmParams,
   formatAmount
 }: {
   address: SS58String,

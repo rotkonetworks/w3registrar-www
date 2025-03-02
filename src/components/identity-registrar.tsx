@@ -37,6 +37,7 @@ import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
+import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -773,6 +774,7 @@ export function IdentityRegistrarComponent() {
   
   //region TeleportAccordion
   const [teleportExpanded, setTeleportExpanded] = useState(false)
+  const xcmParams = useProxy(_xcmParams)
   //#endregion TeleportAccordion
 
   return <>
@@ -898,7 +900,8 @@ export function IdentityRegistrarComponent() {
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
                   typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  signer={accountStore.polkadotSigner} formatAmount={formatAmount}
+                  signer={accountStore.polkadotSigner} xcmParams={xcmParams}
+                  formatAmount={formatAmount}
                 />
               </AccordionContent>
             </AccordionItem>
