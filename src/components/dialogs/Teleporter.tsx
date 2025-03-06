@@ -54,7 +54,7 @@ export default function Teleporter({
   const isReversed = false
   const amount = BigNumber(Object.values(estimatedCosts).reduce((total, current) => {
     return BigNumber(total.toString()).plus(BigNumber(current.toString()))
-  }, 0n).toString()).times(1.1)
+  }, 0n).toString()).times(1.1).toString()
   const relayChainId = React.useMemo<keyof Chains>(
     () => (chainId as string).replace("_people", "") as keyof Chains, 
     [chainId]
