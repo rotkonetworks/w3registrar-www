@@ -3,6 +3,7 @@ import { proxy } from "valtio";
 import { EstimatedCostInfo } from "~/components/identity-registrar";
 
 export type XcmParameters = {
+  enabled: boolean;
   fromAddress: SS58String;
   fromChain: {
     name: string;
@@ -12,6 +13,7 @@ export type XcmParameters = {
 };
 
 export const xcmParameters = proxy<XcmParameters>({
+  enabled: false,
   fromAddress: "",
   fromChain: {
     name: "",
