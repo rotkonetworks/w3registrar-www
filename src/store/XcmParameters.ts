@@ -1,5 +1,6 @@
 import { SS58String } from "polkadot-api";
 import { proxy } from "valtio";
+import { EstimatedCostInfo } from "~/components/identity-registrar";
 
 export type XcmParameters = {
   fromAddress: SS58String;
@@ -7,7 +8,7 @@ export type XcmParameters = {
     name: string;
     id: number;
   };
-  txAmount: bigint;
+  txCosts: EstimatedCostInfo;
 };
 
 export const xcmParameters = proxy<XcmParameters>({
@@ -16,5 +17,5 @@ export const xcmParameters = proxy<XcmParameters>({
     name: "",
     id: 0,
   },
-  txAmount: 0n,
+  txCosts: {},
 })
