@@ -20,11 +20,9 @@ import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
-import { EstimatedCostInfo } from "../identity-registrar"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, signer, xcmParams,
-  estimatedCosts,
   formatAmount
 }: {
   address: SS58String,
@@ -36,7 +34,6 @@ export default function Teleporter({
   tokenDecimals: number,
   signer: PolkadotSigner,
   xcmParams: XcmParameters,
-  estimatedCosts: EstimatedCostInfo,
   tx: ApiTx,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
@@ -52,9 +49,7 @@ export default function Teleporter({
 
   // TODO Remove this
   const isReversed = false
-  const amount = BigNumber(Object.values(estimatedCosts).reduce((total, current) => {
-    return BigNumber(total.toString()).plus(BigNumber(current.toString()))
-  }, 0n).toString()).times(1.1).toString()
+  const amount = xcmParams.txTotalCost.toString()
   const relayChainId = React.useMemo<keyof Chains>(
     () => (chainId as string).replace("_people", "") as keyof Chains, 
     [chainId]

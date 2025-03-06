@@ -718,6 +718,16 @@ export function IdentityRegistrarComponent() {
   const setTeleportExpanded = (nextState: boolean) => {
     xcmParams.enabled = nextState
   }
+
+  useEffect(() => {
+    xcmParams.txTotalCost = BigNumber(Object.values(estimatedCosts)
+      .reduce(
+        (total, current) => BigNumber(total as BigNumber).plus(BigNumber(current as BigNumber)), 
+        0n
+      )
+      .toString()
+    ).times(1.1)
+  }, [estimatedCosts])
   //#endregion TeleportAccordion
 
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
