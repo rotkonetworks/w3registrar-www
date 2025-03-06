@@ -712,6 +712,14 @@ export function IdentityRegistrarComponent() {
   
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
   
+  //region TeleportAccordion
+  const xcmParams = useProxy(_xcmParams)
+  const teleportExpanded = xcmParams.enabled
+  const setTeleportExpanded = (nextState: boolean) => {
+    xcmParams.enabled = nextState
+  }
+  //#endregion TeleportAccordion
+
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
     if (import.meta.env.DEV) console.log({ args })
     if (args.mode) {
@@ -722,6 +730,7 @@ export function IdentityRegistrarComponent() {
       setOpenDialog(null)
       setEstimatedCosts({})
       setTxToConfirm(null)
+      xcmParams.enabled = false
     }
   }, [])
   const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
@@ -771,11 +780,6 @@ export function IdentityRegistrarComponent() {
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
-  
-  //region TeleportAccordion
-  const [teleportExpanded, setTeleportExpanded] = useState(false)
-  const xcmParams = useProxy(_xcmParams)
-  //#endregion TeleportAccordion
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
