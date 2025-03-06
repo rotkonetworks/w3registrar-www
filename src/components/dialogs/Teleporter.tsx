@@ -40,18 +40,21 @@ export default function Teleporter({
   tx: ApiTx,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
-  const [fromAddress, setFromAddress] = React.useState<SS58String>(address)
-  const [toAddress, setToAddres] = React.useState<SS58String>(address)
+  const fromAddress = xcmParams.fromAddress
+  const setFromAddress = (address: string) => xcmParams.fromAddress = address
+  const toAddress = address
 
   useEffect(() => {
     if (open) {
       setFromAddress(address)
-      setToAddres(address)
     }
   }, [address, open])
 
-  const [isReversed, setIsReversed] = React.useState(false)
-  const [amount, setAmount] = React.useState("")
+  // TODO Remove this
+  const isReversed = false
+  const amount = BigNumber(Object.values(estimatedCosts).reduce((total, current) => {
+    return BigNumber(total.toString()).plus(BigNumber(current.toString()))
+  }, 0n).toString()).times(1.1)
   const relayChainId = React.useMemo<keyof Chains>(
     () => (chainId as string).replace("_people", "") as keyof Chains, 
     [chainId]
@@ -91,7 +94,6 @@ export default function Teleporter({
   }, [])
   
   const handleToWalletChange = React.useCallback((address: string) => {
-    setToAddres(address)
     setComboboxOpen(null)
   }, [])
 
