@@ -905,7 +905,7 @@ export function IdentityRegistrarComponent() {
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
                   typedApi={typedApi} address={accountStore.encodedAddress} tx={txToConfirm}
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  signer={accountStore.polkadotSigner} xcmParams={xcmParams}
+                  signer={accountStore.polkadotSigner} xcmParams={xcmParams} estimatedCosts={estimatedCosts}
                   formatAmount={formatAmount}
                 />
               </AccordionContent>
