@@ -227,78 +227,49 @@ export default function Teleporter({
  
   return (
     <div className="grid gap-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="from-wallet">From Wallet</Label>
-        <Popover open={comboboxOpen === "fromAddress"}
-          onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
-        >
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
-            >
-              {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0 bg-[#2C2B2B] border-[#E6007A]">
-            <Command>
-              <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
-              <CommandEmpty>No wallet found.</CommandEmpty>
-              <CommandList>
-                <CommandGroup>
-                  {accounts.map((account) => (
-                    <CommandItem
-                      key={account.address}
-                      onSelect={() => handleFromWalletChange(account.encodedAddress)}
-                      className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                    >
-                      {account.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
+      <div className="flex items-start space-x-4">
+        <div className="flex-1 space-y-2">
+          <Label htmlFor="fromAddress">From Wallet</Label>
+          <Popover open={comboboxOpen === "fromAddress"}
+            onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
+          >
+            <PopoverTrigger id="fromAddress" asChild>
+              <Button variant="outline" role="combobox"
+                className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
+              >
+                {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0 bg-[#2C2B2B] border-[#E6007A]">
+              <Command>
+                <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
+                <CommandEmpty>No wallet found.</CommandEmpty>
+                <CommandList>
+                  <CommandGroup>
+                    {accounts.map((account) => (
+                      <CommandItem
+                        key={account.address}
+                        onSelect={() => handleFromWalletChange(account.encodedAddress)}
+                        className="text-[#FFFFFF] hover:bg-[#3A3939]"
+                      >
+                        {account.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="to-wallet">To Wallet</Label>
-        <Popover open={comboboxOpen === "toAddress"}
-          onOpenChange={(nextState) => setComboboxOpen(nextState ? "toAddress" : null)}
-        >
-          <PopoverTrigger asChild>
-            <Button disabled
-              variant="outline"
-              role="combobox"
-              className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
-            >
-              {toAddress ? accounts.find(account => account.encodedAddress === toAddress)?.name : "Select wallet"}
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0 bg-[#2C2B2B] border-[#E6007A]">
-            <Command>
-              <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
-              <CommandEmpty>No wallet found.</CommandEmpty>
-              <CommandList>
-                <CommandGroup>
-                  {accounts.map((account) => (
-                    <CommandItem
-                      key={account.address}
-                      onSelect={() => handleToWalletChange(account.encodedAddress)}
-                      className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                    >
-                      {account.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <div className="flex-1 space-y-2">
+          <Label htmlFor="toAddress">From Wallet</Label>
+          <Input readOnly id="toAddress"
+            value={accounts.find(({ encodedAddress }) => encodedAddress === toAddress).name} 
+            className="flex-1 bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D]"
+          />
+        </div>
       </div>
 
       <div className="flex items-start space-x-4">
@@ -333,31 +304,9 @@ export default function Teleporter({
         </div>
         <div className="flex-1 space-y-2">
           <Label>To Chain:</Label>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Select value={toChainId} onValueChange={setSelectedChain as (value: string) => void} disabled={!isReversed}>
-                  <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
-                    <SelectValue placeholder="Select chain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isReversed 
-                      ?parachains.filter(({id}) => id !== fromChainId).map(({ id, name }) => (
-                        <SelectItem key={id} value={id}>{name}</SelectItem>
-                      )) 
-                      :(<SelectItem value={chainId as string}>
-                        {config.chains[chainId as string].name}
-                      </SelectItem>
-                      )
-                    }
-                  </SelectContent>
-                </Select>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                <p>{(isReversed ? selectedChain : chainId) as ReactNode}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Input value={config.chains[toChainId].name} readOnly
+            className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D]"
+          />
         </div>
       </div>
 
@@ -388,14 +337,8 @@ export default function Teleporter({
             id="amount"
             type="text"
             inputMode="decimal"
-            placeholder="0.0000"
             value={amount}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^\d*\.?\d*$/.test(value) || value === '') {
-                setAmount(value);
-              }
-            }}
+            readOnly
             className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D] pr-16"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -403,13 +346,6 @@ export default function Teleporter({
           </div>
         </div>
       </div>
-
-      <Button className="w-full bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]" 
-        onClick={submitTeleport}
-      >
-        <ArrowDownUp className="mr-2 h-4 w-4" />
-        Teleport
-      </Button>
     </div>
   )
 }
