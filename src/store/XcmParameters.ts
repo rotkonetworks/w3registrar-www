@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import { SS58String } from "polkadot-api";
 import { proxy } from "valtio";
 import { EstimatedCostInfo } from "~/components/identity-registrar";
@@ -10,6 +11,7 @@ export type XcmParameters = {
     id: number;
   };
   txCosts: EstimatedCostInfo;
+  txTotalCost: BigNumber;
 };
 
 export const xcmParameters = proxy<XcmParameters>({
@@ -20,4 +22,5 @@ export const xcmParameters = proxy<XcmParameters>({
     id: 0,
   },
   txCosts: {},
+  txTotalCost: BigNumber(0),
 })
