@@ -49,7 +49,9 @@ export default function Teleporter({
 
   // TODO Remove this
   const isReversed = false
-  const amount = xcmParams.txTotalCost.toString()
+  const amount = BigNumber(xcmParams.txTotalCost.toString())
+    .div(BigNumber(10).pow(BigNumber(tokenDecimals)))
+    .toString()
   const relayChainId = React.useMemo<keyof Chains>(
     () => (chainId as string).replace("_people", "") as keyof Chains, 
     [chainId]
