@@ -845,7 +845,14 @@ export function IdentityRegistrarComponent() {
 
     <Dialog 
       open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
-      onOpenChange={handleOpenChange}
+      onOpenChange={v => v 
+        ?openTxDialog({
+          mode: openDialog as DialogMode,
+          tx: txToConfirm,
+          estimatedCosts,
+        }) 
+        :closeTxDialog()
+      }
     >
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
