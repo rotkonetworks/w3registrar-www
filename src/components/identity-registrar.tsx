@@ -38,6 +38,7 @@ import { GenericDialog } from "./dialogs/GenericDialog"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
+import { Switch } from "./ui/switch"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -1083,8 +1084,11 @@ export function IdentityRegistrarComponent() {
             onValueChange={(v) => setTeleportExpanded(v === "teleport")}
           >
             <AccordionItem value="teleport">
-              <AccordionTrigger className="bg-transparent">
-                Trasnfer from other account
+              <AccordionTrigger className="bg-transparent flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  Trasnfer from other account
+                  <Switch checked={teleportExpanded} />
+                </div>
               </AccordionTrigger>
               <AccordionContent>
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
