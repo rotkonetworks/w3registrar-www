@@ -685,17 +685,18 @@ export function IdentityRegistrarComponent() {
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
-  const signSubmitAndWatch = useCallback(async (
+  const signSubmitAndWatch = useCallback((
     call: ApiTx,
     messages: {
       broadcasted?: string,
-      loading?: string,
+      loading?: string, 
       success?: string,
       error?: string,
     },
     name: string,
-  ) => {
+  ) => new Promise(async (resolve, reject) => {
     if (isTxBusy) {
+      reject(new Error("Transaction already in progress"))
       return
     }
     setTxBusy(true)
@@ -717,6 +718,7 @@ export function IdentityRegistrarComponent() {
         type: "error",
         message: "Couldn't get nonce. Please try again.",
       })
+      reject(new Error("Failed to get nonce"))
       return
     }
 
@@ -784,7 +786,7 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error);
+        if (import.meta.env.DEV) console.error(error)
         if (!recentNotifsIds.current.includes(txHash)) {
           addNotification({
             type: "error",
@@ -799,8 +801,7 @@ export function IdentityRegistrarComponent() {
         recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
       }
     })
-    return signedCall
-  }, [accountStore.polkadotSigner, isTxBusy])
+  }), [accountStore.polkadotSigner, isTxBusy])
   //#endregion Transactions
 
 
