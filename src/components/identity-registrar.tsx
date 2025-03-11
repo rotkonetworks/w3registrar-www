@@ -587,17 +587,15 @@ export function IdentityRegistrarComponent() {
   }, [relayChainId, relayAndParachains])
   const fromTypedApi = useTypedApi({ chainId: xcmParams.fromChain.id || relayChainId as ChainId })
   
-  const _getParachainId = (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
+  const _getParachainId = async (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
     if (typedApi) {
-      return (async () => {
-        try {
-          const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
-          if (import.meta.env.DEV) console.log({ paraId })
-          return paraId
-        } catch (error) {
-          if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
-        }
-      })()
+      try {
+        const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
+        if (import.meta.env.DEV) console.log({ paraId })
+        return paraId
+      } catch (error) {
+        if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
+      }
     }
   }
 
@@ -609,8 +607,14 @@ export function IdentityRegistrarComponent() {
       })
     }
   }, [fromTypedApi])
-  //const [arachainId, setParachainId] = useState(null)
-  const parachainId = useMemo(() => _getParachainId(typedApi), [typedApi])
+  const [parachainId, setParachainId] = useState<number>()
+  useEffect(() => {
+    if (typedApi) {
+      _getParachainId(typedApi).then(id => {
+        setParachainId(id)
+      })
+    }
+  }, [typedApi])
 
   const getTeleportCall = useCallback(() => {
     const txArguments = ({
@@ -647,7 +651,7 @@ export function IdentityRegistrarComponent() {
         value: [{
           fun: {
             type: "Fungible",
-            value: xcmParams.txTotalCost
+            value: BigInt(xcmParams.txTotalCost.toString())
           },
           id: {
             type: "Concrete",
