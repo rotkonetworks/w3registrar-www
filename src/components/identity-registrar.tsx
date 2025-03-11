@@ -680,6 +680,7 @@ export function IdentityRegistrarComponent() {
         value: null,
       }
     })
+    if (import.meta.env.DEV) console.log({ txArguments })
 
     return fromTypedApi.tx.XcmPallet.teleport_assets(txArguments)
   }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
