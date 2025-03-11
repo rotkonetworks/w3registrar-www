@@ -571,6 +571,117 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ isTxBusy })
   }, [isTxBusy])
 
+  //#region TeleportAccordion
+  const xcmParams = useProxy(_xcmParams)
+
+  const relayChainId = useMemo<keyof Chains>(
+    () => (chainStore.id as string).replace("_people", "") as keyof Chains,
+    [chainStore.id]
+  )
+  const relayAndParachains = Object.entries(config.chains)
+    .filter(([id]) => id.includes(relayChainId) && id !== chainStore.id)
+    .map(([id, chain]) => ({ id, name: chain.name }))
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ relayChainId, relayAndParachains });
+    xcmParams.fromChain.id = relayChainId
+  }, [relayChainId, relayAndParachains])
+  const fromTypedApi = useTypedApi({ chainId: xcmParams.fromChain.id || relayChainId as ChainId })
+  
+  const _getParachainId = (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
+    if (typedApi) {
+      return (async () => {
+        try {
+          const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
+          if (import.meta.env.DEV) console.log({ paraId })
+          return paraId
+        } catch (error) {
+          if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
+        }
+      })()
+    }
+  }
+
+  //const [fromParachainId, setFromParachainId] = useState(null)
+  useEffect(() => {
+    if (fromTypedApi) {
+      _getParachainId(fromTypedApi).then(id => {
+        xcmParams.fromChain.paraId = id
+      })
+    }
+  }, [fromTypedApi])
+  //const [arachainId, setParachainId] = useState(null)
+  const parachainId = useMemo(() => _getParachainId(typedApi), [typedApi])
+
+  const getTeleportCall = useCallback(() => {
+    const txArguments = ({
+      dest: {
+        type: "V3",
+        value: {
+          interior: {
+            type: "X1",
+            value: {
+              type: "Parachain",
+              value: parachainId,
+            }
+          },
+          parents: 0,
+        },
+      },
+      beneficiary: {
+        type: "V3",
+        value: {
+          interior: {
+            type: "X1",
+            value: {
+              type: "AccountId32",
+              value: {
+                id: Binary.fromText(accountStore.address),
+              },
+            },
+          },
+          parents: 0
+        }
+      },
+      assets: {
+        type: "V3",
+        value: [{
+          fun: {
+            type: "Fungible",
+            value: xcmParams.txTotalCost
+          },
+          id: {
+            type: "Concrete",
+            value: xcmParams.fromChain.paraId
+              ?{
+                interior: {
+                  type: "X1",
+                  value: xcmParams.fromChain.paraId,
+                },
+                parents: 1,
+              }
+              : {
+                interior: {
+                  type: "Here",
+                  value: null
+                },
+                parents: 0,
+              }
+            ,
+          }
+        }]
+      },
+      fee_asset_index: 0,
+      weight_limit: {
+        type: "Unlimited",
+        value: null,
+      }
+    })
+
+    return fromTypedApi.tx.XcmPallet.teleport_assets(txArguments)
+  }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
+  //#endregion TeleportAccordion
+
+  //#region Transactions
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
@@ -690,6 +801,8 @@ export function IdentityRegistrarComponent() {
     })
     return signedCall
   }, [accountStore.polkadotSigner, isTxBusy])
+  //#endregion Transactions
+
 
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
@@ -713,7 +826,6 @@ export function IdentityRegistrarComponent() {
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
   
   //region TeleportAccordion
-  const xcmParams = useProxy(_xcmParams)
   const teleportExpanded = xcmParams.enabled
   const setTeleportExpanded = (nextState: boolean) => {
     xcmParams.enabled = nextState
@@ -920,9 +1032,9 @@ export function IdentityRegistrarComponent() {
               </AccordionTrigger>
               <AccordionContent>
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-                  typedApi={typedApi} address={accountStore.encodedAddress} tx={txToConfirm}
+                  address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  signer={accountStore.polkadotSigner} xcmParams={xcmParams}
+                  otherChains={relayAndParachains}
                   formatAmount={formatAmount}
                 />
               </AccordionContent>

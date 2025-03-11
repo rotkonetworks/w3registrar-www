@@ -22,19 +22,19 @@ import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
 
 export default function Teleporter({ 
-  address, accounts, chainId, tokenSymbol, tokenDecimals, typedApi, config, signer, xcmParams,
+  address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams,
+  otherChains,
   formatAmount
 }: {
   address: SS58String,
   accounts: AccountData[],
   chainId: string | number | symbol,
-  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   config: ApiConfig,
   tokenSymbol: string,
   tokenDecimals: number,
-  signer: PolkadotSigner,
   xcmParams: XcmParameters,
   tx: ApiTx,
+  otherChains: { id: string, name: string }[],
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
   const fromAddress = xcmParams.fromAddress
@@ -47,41 +47,28 @@ export default function Teleporter({
     }
   }, [address, open])
 
-  // TODO Remove this
-  const isReversed = false
   const amount = BigNumber(xcmParams.txTotalCost.toString())
     .div(BigNumber(10).pow(BigNumber(tokenDecimals)))
     .toString()
-  const relayChainId = React.useMemo<keyof Chains>(
-    () => (chainId as string).replace("_people", "") as keyof Chains, 
-    [chainId]
-  )
-  const [selectedChain, setSelectedChain] = React.useState<keyof Chains>(relayChainId)
-
-  const fromChainId = React.useMemo<keyof Chains>(
-    () => (isReversed ? chainId : selectedChain) as keyof Chains, [isReversed, selectedChain, chainId]
-  )
-  const toChainId = React.useMemo<keyof Chains>(
-    () => (isReversed ? selectedChain : chainId) as keyof Chains, [isReversed, selectedChain, chainId]
-  )
-
+  
+  const selectedChain = xcmParams.fromChain.id
+  const setSelectedChain = (id: keyof Chains) => xcmParams.fromChain.id = id
+  const fromChainId = xcmParams.fromChain.id
+  const toChainId = chainId as keyof Chains
+  
   const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
   const fromBalance = BigNumber(
     useSpendableBalance(fromAddress || genericAddress, { chainId: fromChainId }).planck.toString()
   )
   const toBalance = BigNumber(
     useSpendableBalance(toAddress || genericAddress, { chainId: toChainId }).planck.toString()
-  ) 
+  )
   
   useEffect(() => {
     if (open) {
-      setSelectedChain(relayChainId)
+      setSelectedChain(xcmParams.fromChain.id)
     }
-  }, [relayChainId, open])
-
-  const parachains = Object.entries(config.chains)
-    .filter(([id]) => id.includes(relayChainId) && id !== chainId)
-    .map(([id, chain]) => ({ id, name: chain.name }))
+  }, [xcmParams.fromChain.id, open])
 
   const [comboboxOpen, setComboboxOpen] = React.useState(null)
   
@@ -89,141 +76,7 @@ export default function Teleporter({
     setFromAddress(address)
     setComboboxOpen(null)
   }, [])
-  
-  const handleToWalletChange = React.useCallback((address: string) => {
-    setComboboxOpen(null)
-  }, [])
 
-  const relayChainTypedApi = useTypedApi({ chainId: relayChainId })
-  const selectedChainApi = useTypedApi({ chainId: selectedChain })
-
-  const _getParachainId = (
-    typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
-    setter: (id: number | null) => void
-  ) => {
-    if (typedApi) {
-      (async () => {
-        try {
-          const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
-          if (import.meta.env.DEV) console.log({ paraId })
-          setter(paraId)
-        } catch (error) {
-          if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
-          setter(null)
-        }
-      })()
-    }
-  }
-
-  const [firstParachainId, setFirstParachainId] = React.useState(null)
-  useEffect(() => _getParachainId(typedApi, setFirstParachainId), [typedApi])
-  const [secondParachainId, setSecondParachainId] = React.useState(null)
-  useEffect(() => _getParachainId(selectedChainApi, setSecondParachainId), [selectedChainApi])
-
-  const getTeleportParams = React.useCallback(({paraId, intoParachain, address, amount}) => ({
-    dest: {
-      type: "V3",
-      value: {
-        interior: intoParachain 
-          ? { 
-            type: "Here", 
-            value: null 
-          }
-          : {
-            type: "X1",
-            value: {
-              type: "Parachain",
-              value: paraId,
-            }
-          }
-        ,
-        parents: Number(intoParachain),
-      },
-    },
-    beneficiary: {
-      type: "V3",
-      value: {
-        interior: {
-          type: "X1",
-          value: {
-            type: "AccountId32",
-            value: {
-              id: Binary.fromText(address),
-            },
-          },
-        },
-        parents: 0
-      }
-    },
-    assets: {
-      type: "V3",
-      value: [{
-        fun: {
-          type: "Fungible",
-          value: amount
-        },
-        id: {
-          type: "Concrete",
-          value: {
-            interior: {
-              type: "Here",
-              value: null
-            },
-            parents: Number(intoParachain),
-          },
-        }
-      }]
-    },
-    fee_asset_index: 0,
-    weight_limit: {
-      type: "Unlimited",
-      value: null,
-    }
-  }), [])
-
-  const fromParachainId = isReversed ? firstParachainId : secondParachainId
-  const toParachainId = isReversed ? secondParachainId : firstParachainId
-  const submitTeleport = React.useCallback(() => {
-    if (!relayChainTypedApi || !signer || !amount) {
-      return;
-    }
-    const newAmount = BigInt(BigNumber(amount).times(BigNumber(10).pow(BigNumber(tokenDecimals)))
-      .toString()
-    )
-    if (import.meta.env.DEV) console.log("teleporting", newAmount);
-
-    (async () => {
-      try {
-        if (fromParachainId) {
-          const params = getTeleportParams({ 
-            paraId: fromParachainId, 
-            intoParachain: true,
-            address: fromAddress,
-            amount: newAmount
-          })
-          if (import.meta.env.DEV) console.log({ params })
-          const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
-            .signAndSubmit(signer)
-          if (import.meta.env.DEV) console.log({ result })
-        }
-        if (toParachainId) {
-          const params = getTeleportParams({
-            paraId: toParachainId,
-            intoParachain: false,
-            address: toAddress,
-            amount: newAmount
-          })
-          if (import.meta.env.DEV) console.log({ params })
-          const result = await relayChainTypedApi.tx.XcmPallet.limited_teleport_assets(params)
-            .signAndSubmit(signer)
-          if (import.meta.env.DEV) console.log({ result })
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) console.error("Error teleporting", error)
-      }
-    })()
-  }, [amount, relayChainTypedApi])
- 
   return (
     <div className="grid gap-4 py-4">
       <div className="flex items-start space-x-4">
@@ -277,26 +130,21 @@ export default function Teleporter({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Select value={fromChainId} disabled={isReversed}
+                <Select value={fromChainId as keyof Chains}
                   onValueChange={setSelectedChain as (value: string) => void} 
                 >
                   <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
                     <SelectValue placeholder="Select chain" />
                   </SelectTrigger>
                   <SelectContent>
-                    {isReversed 
-                      ?(<SelectItem value={chainId as string}>
-                        {config.chains[chainId as string].name}
-                      </SelectItem>) 
-                      :parachains.filter(({ id }) => id !== toChainId).map(({ id, name }) => (
-                        <SelectItem key={id} value={id}>{name}</SelectItem>
-                      ))
+                    {otherChains.map(({ id, name }) => 
+                      <SelectItem key={id} value={id}>{name}</SelectItem>)
                     }
                   </SelectContent>
                 </Select>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="bg-[#3A3939] text-[#FFFFFF] border-[#E6007A]">
-                <p>{(isReversed ? chainId : selectedChain) as ReactNode}</p>
+                <p>{selectedChain as ReactNode}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -315,13 +163,13 @@ export default function Teleporter({
           <div className="space-y-2 text-[#FFFFFF]">
             <div className="flex justify-between">
               <span>{config.chains[fromChainId].name}</span>
-              <span>{formatAmount(!isReversed ? fromBalance : toBalance, {
+              <span>{formatAmount(fromBalance, {
                 symbol: config.chains[fromChainId].symbol,
               })}</span>
             </div>
             <div className="flex justify-between">
               <span>{config.chains[toChainId].name}</span>
-              <span>{formatAmount(isReversed ? fromBalance : toBalance, {
+              <span>{formatAmount(toBalance, {
                 symbol: config.chains[toChainId].symbol,
               })}</span>
             </div>
