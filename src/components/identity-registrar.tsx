@@ -912,6 +912,28 @@ export function IdentityRegistrarComponent() {
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
+  
+  const submitTransaction = () => {
+    switch (openDialog) {
+      case "clearIdentity":
+        onIdentityClear()
+        break
+      case "disconnect":
+        connectedWallets.forEach(w => disconnectWallet(w))
+        Object.keys(accountStore).forEach((k) => delete accountStore[k])
+        updateUrlParams({ ...urlParams, address: null, })
+        break
+      case "setIdentity":
+        signSubmitAndWatch(txToConfirm, {}, "Set Identity")
+        break
+      case "requestJudgement":
+        signSubmitAndWatch(txToConfirm, {}, "Request Judgement")
+        break
+      default:
+        throw new Error("Unexpected openDialog value")
+    }
+    closeTxDialog()
+  }
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -1057,27 +1079,7 @@ export function IdentityRegistrarComponent() {
           >
             Cancel
           </Button>
-          <Button onClick={() => {
-            switch (openDialog) {
-              case "clearIdentity":
-                onIdentityClear();
-                break;
-              case "disconnect":
-                connectedWallets.forEach(w => disconnectWallet(w));
-                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                updateUrlParams({ ...urlParams, address: null, })
-                break;
-              case "setIdentity":
-                signSubmitAndWatch(txToConfirm, {}, "Set Identity")
-                break;
-              case "requestJudgement":
-                signSubmitAndWatch(txToConfirm, {}, "Request Judgement")
-                break;
-              default:
-                throw new Error("Unexpected openDialog value");
-            }
-            closeTxDialog()
-          }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+          <Button onClick={submitTransaction} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
             Confirm
           </Button>
         </DialogFooter>
