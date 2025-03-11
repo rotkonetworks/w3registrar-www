@@ -726,7 +726,18 @@ export function IdentityRegistrarComponent() {
       { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
-    signedCall.subscribe({
+
+    const disposeSubscription = (callback?: () => void) => {
+      setTxBusy(false)
+      if (txHash) {
+        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+      }
+      if (!subscription.closed)
+        subscription.unsubscribe();
+      callback?.()
+    }
+
+    const subscription = signedCall.subscribe({
       next: (result) => {
         txHash = result.txHash;
         const _result: (typeof result) & {
@@ -755,8 +766,7 @@ export function IdentityRegistrarComponent() {
               message: messages.success || "Transaction finalized",
             })
             fetchIdAndJudgement()
-            setTxBusy(false)
-            recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== _result.txHash)
+            disposeSubscription(() => resolve(result))
           }
           else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
@@ -767,7 +777,7 @@ export function IdentityRegistrarComponent() {
                 message: messages.error || "Transaction failed because it's invalid",
               })
               fetchIdAndJudgement()
-              setTxBusy(false)
+              disposeSubscription(() => reject(new Error("Invalid transaction")))
             }
           }
         }
@@ -780,7 +790,7 @@ export function IdentityRegistrarComponent() {
               message: messages.error || "Transaction failed",
             })
             fetchIdAndJudgement()
-            setTxBusy(false)
+            disposeSubscription(() => reject(new Error("Transaction failed")))
           }
         }
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
@@ -792,13 +802,12 @@ export function IdentityRegistrarComponent() {
             type: "error",
             message: messages.error || "Error submitting transaction. Please try again.",
           })
-          setTxBusy(false)
-          recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+          disposeSubscription(() => reject(error))
         }
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
-        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+        disposeSubscription()
       }
     })
   }), [accountStore.polkadotSigner, isTxBusy])
