@@ -918,7 +918,26 @@ export function IdentityRegistrarComponent() {
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
   
-  const submitTransaction = () => {
+  const submitTransaction = async () => {
+    if (xcmParams.enabled) {
+      try {
+        // TODO Include teleportation amount...
+        await signSubmitAndWatch(getTeleportCall(), {
+          broadcasted: "Teleporting assets...",
+          loading: "Teleporting assets...",
+          success: "Assets teleported successfully",
+          error: "Error teleporting assets",
+        }, "TeleportAssets")
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error)
+        addNotification({
+          type: "error",
+          message: "Error teleporting assets. Please try again.",
+        })
+        return
+      }
+    }
+
     switch (openDialog) {
       case "clearIdentity":
         onIdentityClear()
