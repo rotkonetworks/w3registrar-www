@@ -722,7 +722,7 @@ export function IdentityRegistrarComponent() {
       return
     }
 
-    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
+    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner,
       { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
