@@ -660,15 +660,14 @@ export function IdentityRegistrarComponent() {
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
   const signSubmitAndWatch = useCallback((
-    call: ApiTx,
-    messages: {
-      broadcasted?: string,
-      loading?: string, 
-      success?: string,
-      error?: string,
-    },
-    name: string,
+    params: SignSubmitAndWatchParams
   ) => new Promise(async (resolve, reject) => {
+    const { call, messages, name } = params;
+    let api = params.api;
+
+    if (!api) {
+      api = typedApi
+    }
     if (isTxBusy) {
       reject(new Error("Transaction already in progress"))
       return
@@ -677,7 +676,7 @@ export function IdentityRegistrarComponent() {
 
     const nonce = await (async () => {
       try {
-        return await ((typedApi.apis.AccountNonceApi as any)
+        return await ((api.apis.AccountNonceApi as any)
           .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall
         )
       } catch (error) {
@@ -790,15 +789,16 @@ export function IdentityRegistrarComponent() {
 
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
-    signSubmitAndWatch(_clearIdentity(), 
-      {
+    signSubmitAndWatch({
+      call: _clearIdentity(),
+      messages: {
         broadcasted: "Clearing identity...",
         loading: "Waiting for finalization...",
         success: "Identity cleared",
         error: "Error clearing identity",
       },
-      "Identity.IdentityCleared"
-    )
+      name: "Identity.IdentityCleared"
+    })
   }, [_clearIdentity])
   
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
@@ -891,12 +891,17 @@ export function IdentityRegistrarComponent() {
     if (xcmParams.enabled) {
       try {
         // TODO Include teleportation amount...
-        await signSubmitAndWatch(getTeleportCall(), {
-          broadcasted: "Teleporting assets...",
-          loading: "Teleporting assets...",
-          success: "Assets teleported successfully",
-          error: "Error teleporting assets",
-        }, "TeleportAssets")
+        await signSubmitAndWatch({
+          api: fromTypedApi,
+          call: getTeleportCall(),
+          messages: {
+            broadcasted: "Teleporting assets...",
+            loading: "Teleporting assets...",
+            success: "Assets teleported successfully",
+            error: "Error teleporting assets",
+          },
+          name: "TeleportAssets"
+        })
       } catch (error) {
         if (import.meta.env.DEV) console.error(error)
         addNotification({
@@ -917,10 +922,18 @@ export function IdentityRegistrarComponent() {
         updateUrlParams({ ...urlParams, address: null, })
         break
       case "setIdentity":
-        signSubmitAndWatch(txToConfirm, {}, "Set Identity")
+        signSubmitAndWatch({
+          call: txToConfirm,
+          messages: {},
+          name: "Set Identity"
+        })
         break
       case "requestJudgement":
-        signSubmitAndWatch(txToConfirm, {}, "Request Judgement")
+        signSubmitAndWatch({
+          call: txToConfirm,
+          messages: {},
+          name: "Request Judgement"
+        })
         break
       default:
         throw new Error("Unexpected openDialog value")
