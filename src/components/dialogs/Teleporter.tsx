@@ -193,6 +193,16 @@ export default function Teleporter({
           </div>
         </div>
       </div>
+
+      <Alert className="space-y-2">
+        <p>
+          Two transactions required, which you need to sign with your wallet and approve of:
+          <ol>
+            <li>1. Teleport assets between chains</li>
+            <li>2. Execute identity transaction</li>
+          </ol>
+        </p>
+      </Alert>
     </div>
   )
 }
