@@ -120,7 +120,7 @@ export default function Teleporter({
           <Label htmlFor="toAddress">To Wallet</Label>
           <Input readOnly id="toAddress"
             value={accounts.find(({ encodedAddress }) => encodedAddress === toAddress).name} 
-            className="flex-1 bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D]"
+            className="flex-1"
           />
         </div>
       </div>
