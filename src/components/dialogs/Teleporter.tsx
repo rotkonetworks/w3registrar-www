@@ -20,6 +20,7 @@ import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
+import { Alert } from "../ui/alert"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams,
