@@ -131,7 +131,7 @@ const MainContent = ({
   return <>
     {alertsStore.size > 0 && 
       <div
-        className="fixed bottom-[2rem] right-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
+        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
       >
         <Accordion type="single" collapsible defaultValue="notifications">
           <AccordionItem value="notifications">
