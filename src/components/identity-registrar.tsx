@@ -793,7 +793,7 @@ export function IdentityRegistrarComponent() {
 
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
-    signSubmitAndWatch({
+    await signSubmitAndWatch({
       call: _clearIdentity(),
       messages: {
         broadcasted: "Clearing identity...",
@@ -918,7 +918,7 @@ export function IdentityRegistrarComponent() {
 
     switch (openDialog) {
       case "clearIdentity":
-        onIdentityClear()
+        await onIdentityClear()
         break
       case "disconnect":
         connectedWallets.forEach(w => disconnectWallet(w))
@@ -926,14 +926,14 @@ export function IdentityRegistrarComponent() {
         updateUrlParams({ ...urlParams, address: null, })
         break
       case "setIdentity":
-        signSubmitAndWatch({
+        await signSubmitAndWatch({
           call: txToConfirm,
           messages: {},
           name: "Set Identity"
         })
         break
       case "requestJudgement":
-        signSubmitAndWatch({
+        await signSubmitAndWatch({
           call: txToConfirm,
           messages: {},
           name: "Request Judgement"
