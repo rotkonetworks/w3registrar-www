@@ -39,44 +39,12 @@ import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { Switch } from "./ui/switch"
+import { MainContentProps, SignSubmitAndWatchParams } from "~/types"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
-type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" | 
-  "setIdentity" | null
-export type EstimatedCostInfo = {
-  fees?: bigint | BigNumber
-  deposits?: bigint | BigNumber
-}
-
-type OpenTxDialogArgs_modeSet = {
-  mode: DialogMode
-  tx: ApiTx
-  estimatedCosts: EstimatedCostInfo
-}
-export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
-
-type MainContentProps = {
-  identityStore: IdentityStore,
-  challengeStore: { challenges: ChallengeStore, error: string | null },
-  chainStore: ChainInfo, 
-  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
-  accountStore: AccountData,
-  chainConstants, 
-  alertsStore: Map<string, AlertProps>,
-  addNotification: any, 
-  formatAmount: any, 
-  supportedFields: string[],
-  removeNotification: any,
-  identityFormRef: Ref<unknown>,
-  urlParams: Record<string, string>,
-  updateUrlParams: any,
-  setOpenDialog: any,
-  isTxBusy: boolean,
-  openTxDialog: (params: OpenTxDialogArgs) => void,
-}
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
