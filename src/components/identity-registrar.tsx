@@ -130,7 +130,9 @@ const MainContent = ({
 
   return <>
     {alertsStore.size > 0 && 
-      <div className="fixed bottom-[2rem] right-[2rem] z-50 max-w-sm max-h-sm">  
+      <div
+        className="fixed bottom-[2rem] right-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
+      >
         <Accordion type="single" collapsible defaultValue="notifications">
           <AccordionItem value="notifications">
             <AccordionTrigger 
@@ -138,7 +140,9 @@ const MainContent = ({
             >
               <Bell className="h-6 w-6" /> {alertsStore.size}
             </AccordionTrigger>
-            <AccordionContent className="bg-black/30 p-2 rounded-lg">
+            <AccordionContent
+              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
+            >
               {[...alertsStore.entries()].map(([, alert]) => (
                 <Alert
                   key={alert.key}
