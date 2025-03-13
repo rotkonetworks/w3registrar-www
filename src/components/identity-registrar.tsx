@@ -683,7 +683,7 @@ export function IdentityRegistrarComponent() {
     }
     setTxBusy(true)
 
-    const nonce = await (async () => {
+    const nonce = params.nonce ?? await (async () => {
       try {
         return await ((api.apis.AccountNonceApi as any)
           .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall

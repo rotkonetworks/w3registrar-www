@@ -46,4 +46,5 @@ export type SignSubmitAndWatchParams = {
   name: string;
   api?: TypedApi<ChainDescriptorOf<keyof Chains>>;
   awaitFinalization?: boolean;
+  nonce?: number;
 };
