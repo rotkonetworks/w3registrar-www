@@ -820,7 +820,7 @@ export function IdentityRegistrarComponent() {
       call: _clearIdentity(),
       messages: {
         broadcasted: "Clearing identity...",
-        loading: "Waiting for finalization...",
+        loading: "Waiting for clearing identity transaction...",
         success: "Identity cleared",
         error: "Error clearing identity",
       },
@@ -951,14 +951,24 @@ export function IdentityRegistrarComponent() {
       case "setIdentity":
         await signSubmitAndWatch({
           call: txToConfirm,
-          messages: {},
+          messages: {
+            broadcasted: "Setting identity...",
+            loading: "Waiting for setting identity transaction...",
+            success: "Identity set successfully",
+            error: "Error setting identity",
+          },
           name: "Set Identity"
         })
         break
       case "requestJudgement":
         await signSubmitAndWatch({
           call: txToConfirm,
-          messages: {},
+          messages: {
+            broadcasted: "Requesting judgement...",
+            loading: "Waiting for judgement request transaction...",
+            success: "Judgement requested successfully",
+            error: "Error requesting judgement",
+          },
           name: "Request Judgement"
         })
         break
