@@ -741,15 +741,23 @@ export function IdentityRegistrarComponent() {
           })
         }
         else if (_result.type === "txBestBlocksState") {
-          if (_result.ok) {
-            addNotification({
-              key: _result.txHash,
-              type: "success",
-              message: messages.success || "Transaction finalized",
-            })
-            fetchIdAndJudgement()
-            disposeSubscription(() => resolve(result))
-          }
+            if (_result.ok) {
+              if (params.awaitFinalization) {
+                addNotification({
+                  key: _result.txHash,
+                  type: "loading",
+                  message: messages.loading || "Waiting for finalization...",
+                })
+              } else {
+                addNotification({
+                  key: _result.txHash,
+                  type: "success",
+                  message: messages.success || "Transaction finalized",
+                })
+                fetchIdAndJudgement()
+                disposeSubscription(() => resolve(result))
+              }
+            }
           else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
@@ -773,6 +781,16 @@ export function IdentityRegistrarComponent() {
             })
             fetchIdAndJudgement()
             disposeSubscription(() => reject(new Error("Transaction failed")))
+          } else {
+            if (params.awaitFinalization) {
+              addNotification({
+                key: _result.txHash,
+                type: "success",
+                message: messages.success || "Transaction finalized",
+              })
+              fetchIdAndJudgement()
+              disposeSubscription(() => resolve(result))
+            }
           }
         }
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
@@ -902,6 +920,7 @@ export function IdentityRegistrarComponent() {
         // TODO Include teleportation amount...
         await signSubmitAndWatch({
           api: fromTypedApi,
+          awaitFinalization: true,
           call: getTeleportCall(),
           messages: {
             broadcasted: "Teleporting assets...",
