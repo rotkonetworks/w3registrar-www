@@ -39,7 +39,10 @@ import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { Switch } from "./ui/switch"
-import { MainContentProps, SignSubmitAndWatchParams } from "~/types"
+import { 
+  DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
+  SignSubmitAndWatchParams
+} from "~/types"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
