@@ -615,7 +615,9 @@ export function IdentityRegistrarComponent() {
             value: {
               type: "AccountId32",
               value: {
-                id: Binary.fromText(accountStore.address),
+                // using  Binary.fromString() instead of fromBytes() which caused assets to go to 
+                //  the wrong address. 
+                id: Binary.fromBytes(getAccountData(accountStore.address).polkadotSigner.publicKey),
               },
             },
           },
