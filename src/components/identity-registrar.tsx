@@ -660,7 +660,7 @@ export function IdentityRegistrarComponent() {
     })
     if (import.meta.env.DEV) console.log({ txArguments })
 
-    return fromTypedApi.tx.XcmPallet.teleport_assets(txArguments)
+    return fromTypedApi.tx.XcmPallet.limited_teleport_assets(txArguments)
   }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
   //#endregion TeleportAccordion
 
