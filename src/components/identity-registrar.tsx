@@ -1095,7 +1095,10 @@ export function IdentityRegistrarComponent() {
           >
             Cancel
           </Button>
-          <Button onClick={submitTransaction} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+          <Button 
+            onClick={submitTransaction} disabled={isTxBusy}
+            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+          >
             Confirm
           </Button>
         </DialogFooter>
