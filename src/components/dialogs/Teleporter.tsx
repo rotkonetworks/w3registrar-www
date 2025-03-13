@@ -87,9 +87,7 @@ export default function Teleporter({
             onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
           >
             <PopoverTrigger id="fromAddress" asChild>
-              <Button variant="outline" role="combobox"
-                className="w-full justify-between bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] hover:bg-[#3A3939] hover:text-[#FFFFFF]"
-              >
+              <Button role="combobox" className="w-full justify-between">
                 {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -134,7 +132,7 @@ export default function Teleporter({
                 <Select value={fromChainId as keyof Chains}
                   onValueChange={setSelectedChain as (value: string) => void} 
                 >
-                  <SelectTrigger className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF]">
+                  <SelectTrigger className="border-[#E6007A]">
                     <SelectValue placeholder="Select chain" />
                   </SelectTrigger>
                   <SelectContent>
@@ -153,15 +151,15 @@ export default function Teleporter({
         <div className="flex-1 space-y-2">
           <Label>To Chain:</Label>
           <Input value={config.chains[toChainId].name} readOnly
-            className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D]"
+            className="placeholder-[#706D6D]"
           />
         </div>
       </div>
 
-      <Card className="border-[#E6007A] bg-[#2C2B2B]">
+      <Card className="bg-transparent border-[#E6007A] b-1 text-black dark:text-white placeholder-[#706D6D] focus:ring-[#E6007A]">
         <CardContent className="p-4">
           <h3 className="mb-4 text-lg font-semibold text-[#E6007A]">Transferable Balances</h3>
-          <div className="space-y-2 text-[#FFFFFF]">
+          <div className="space-y-2">
             <div className="flex justify-between">
               <span>{config.chains[fromChainId].name}</span>
               <span>{formatAmount(fromBalance, {
@@ -187,16 +185,17 @@ export default function Teleporter({
             inputMode="decimal"
             value={amount}
             readOnly
-            className="bg-[#2C2B2B] border-[#E6007A] text-[#FFFFFF] placeholder-[#706D6D] pr-16"
+            className="pr-16"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-[#FFFFFF]">{tokenSymbol}</span>
+            <span>{tokenSymbol}</span>
           </div>
         </div>
       </div>
 
-      <Alert className="space-y-2">
+      <Alert className="space-y-2 bg-transparent border-[#E6007A] b-1 text-black dark:text-white placeholder-[#706D6D] focus:ring-[#E6007A]">
         <p>
+          <b className="text-primary">Note</b>:
           Two transactions required, which you need to sign with your wallet and approve of:
           <ol>
             <li>1. Teleport assets between chains</li>
