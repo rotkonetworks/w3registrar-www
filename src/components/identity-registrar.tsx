@@ -575,7 +575,6 @@ export function IdentityRegistrarComponent() {
     }
   }
 
-  //const [fromParachainId, setFromParachainId] = useState(null)
   useEffect(() => {
     if (fromTypedApi) {
       _getParachainId(fromTypedApi).then(id => {
@@ -597,6 +596,7 @@ export function IdentityRegistrarComponent() {
       dest: {
         type: "V3",
         value: {
+          // TODO Add support for other parachains
           interior: {
             type: "X1",
             value: {
@@ -917,7 +917,6 @@ export function IdentityRegistrarComponent() {
   const submitTransaction = async () => {
     if (xcmParams.enabled) {
       try {
-        // TODO Include teleportation amount...
         await signSubmitAndWatch({
           api: fromTypedApi,
           awaitFinalization: true,
