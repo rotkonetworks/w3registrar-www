@@ -591,7 +591,7 @@ export function IdentityRegistrarComponent() {
     }
   }, [typedApi])
 
-  const getTeleportCall = useCallback(() => {
+  const getTeleportCall = useCallback(({amount}: { amount: BigNumber }) => {
     const txArguments = ({
       dest: {
         type: "V3",
@@ -629,7 +629,7 @@ export function IdentityRegistrarComponent() {
         value: [{
           fun: {
             type: "Fungible",
-            value: BigInt(xcmParams.txTotalCost.toString())
+            value: BigInt(amount.toString())
           },
           id: {
             type: "Concrete",
@@ -946,7 +946,9 @@ export function IdentityRegistrarComponent() {
           nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
           signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
-          call: getTeleportCall(),
+          call: getTeleportCall({
+            amount: minimunTeleportAmount,
+          }),
           messages: {
             broadcasted: "Teleporting assets...",
             loading: "Teleporting assets...",
