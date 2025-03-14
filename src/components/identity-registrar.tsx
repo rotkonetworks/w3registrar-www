@@ -665,6 +665,17 @@ export function IdentityRegistrarComponent() {
   //#endregion TeleportAccordion
 
   //#region Transactions
+  const getNonce = useCallback(async (api: TypedApi, address: SS58String) => {
+    try {
+      return await ((api.apis.AccountNonceApi as any)
+        .account_nonce(address, { at: "best", }) as ApiRuntimeCall
+      )
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error)
+      return null
+    }
+  }, [])
+
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
@@ -683,16 +694,7 @@ export function IdentityRegistrarComponent() {
     }
     setTxBusy(true)
 
-    const nonce = params.nonce ?? await (async () => {
-      try {
-        return await ((api.apis.AccountNonceApi as any)
-          .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall
-        )
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error)
-        return null
-      }
-    })()
+    const nonce = params.nonce ?? await getNonce(api, accountStore.address)
     if (import.meta.env.DEV) console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
