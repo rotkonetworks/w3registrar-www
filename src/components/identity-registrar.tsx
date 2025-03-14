@@ -704,7 +704,8 @@ export function IdentityRegistrarComponent() {
       return
     }
 
-    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner,
+    const signer = params.signer ?? accountStore.polkadotSigner
+    const signedCall = call.signSubmitAndWatch(signer,
       { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
@@ -919,6 +920,7 @@ export function IdentityRegistrarComponent() {
       try {
         await signSubmitAndWatch({
           api: fromTypedApi,
+          signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
           call: getTeleportCall(),
           messages: {

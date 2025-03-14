@@ -47,4 +47,5 @@ export type SignSubmitAndWatchParams = {
   api?: TypedApi<ChainDescriptorOf<keyof Chains>>;
   awaitFinalization?: boolean;
   nonce?: number;
+  signer?: PolkadotSigner;
 };
