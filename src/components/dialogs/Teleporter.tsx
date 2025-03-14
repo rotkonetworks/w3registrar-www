@@ -23,7 +23,7 @@ import { ApiTx } from "~/types/api"
 import { Alert } from "../ui/alert"
 
 export default function Teleporter({ 
-  address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams,
+  address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
   otherChains,
   formatAmount
 }: {
@@ -36,6 +36,8 @@ export default function Teleporter({
   xcmParams: XcmParameters,
   tx: ApiTx,
   otherChains: { id: string, name: string }[],
+  fromBalance: BigNumber,
+  toBalance: BigNumber,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
   const fromAddress = xcmParams.fromAddress
@@ -56,14 +58,6 @@ export default function Teleporter({
   const setSelectedChain = (id: keyof Chains) => xcmParams.fromChain.id = id
   const fromChainId = xcmParams.fromChain.id
   const toChainId = chainId as keyof Chains
-  
-  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
-  const fromBalance = BigNumber(
-    useSpendableBalance(fromAddress || genericAddress, { chainId: fromChainId }).planck.toString()
-  )
-  const toBalance = BigNumber(
-    useSpendableBalance(toAddress || genericAddress, { chainId: toChainId }).planck.toString()
-  )
   
   useEffect(() => {
     if (open) {

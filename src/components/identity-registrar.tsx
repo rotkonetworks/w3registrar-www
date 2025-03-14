@@ -13,7 +13,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
 import { 
-  useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
+  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
@@ -664,6 +664,16 @@ export function IdentityRegistrarComponent() {
   }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
   //#endregion TeleportAccordion
 
+  //#region Balances
+  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
+  const fromBalance = BigNumber(useSpendableBalance(
+    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
+  ).planck.toString())
+  const balance = BigNumber(useSpendableBalance(
+    accountStore.address || genericAddress, { chainId: chainStore.id }
+  ).planck.toString())
+  //#endregion Balances
+
   //#region Transactions
   const getNonce = useCallback(async (api: TypedApi, address: SS58String) => {
     try {
@@ -1116,7 +1126,7 @@ export function IdentityRegistrarComponent() {
                 <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
                   address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  otherChains={relayAndParachains}
+                  otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
                   formatAmount={formatAmount}
                 />
               </AccordionContent>
