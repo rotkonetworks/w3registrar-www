@@ -921,7 +921,7 @@ export function IdentityRegistrarComponent() {
     if (xcmParams.enabled) {
       try {
         await signSubmitAndWatch({
-          api: fromTypedApi,
+          nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
           signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
           call: getTeleportCall(),
