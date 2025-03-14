@@ -24,7 +24,7 @@ import { Alert } from "../ui/alert"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
-  otherChains,
+  otherChains, teleportAmount,
   formatAmount
 }: {
   address: SS58String,
@@ -38,6 +38,7 @@ export default function Teleporter({
   otherChains: { id: string, name: string }[],
   fromBalance: BigNumber,
   toBalance: BigNumber,
+  teleportAmount: BigNumber,
   formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
 }) {
   const fromAddress = xcmParams.fromAddress
@@ -50,7 +51,7 @@ export default function Teleporter({
     }
   }, [address, open])
 
-  const amount = BigNumber(xcmParams.txTotalCost.toString())
+  const amount = BigNumber(teleportAmount.toString())
     .div(BigNumber(10).pow(BigNumber(tokenDecimals)))
     .toString()
   

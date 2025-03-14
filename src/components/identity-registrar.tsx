@@ -927,6 +927,18 @@ export function IdentityRegistrarComponent() {
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
   
+  const hasEnoughBalance = useMemo(
+    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
+    [balance, chainConstants.existentialDeposit]
+  )
+  const minimunTeleportAmount = useMemo(() => {
+    const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
+    return hasEnoughBalance 
+      ? calculatedTeleportAmount 
+      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
+  }, [xcmParams.txTotalCost])
+  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
+
   const submitTransaction = async () => {
     if (xcmParams.enabled) {
       try {
@@ -1127,6 +1139,7 @@ export function IdentityRegistrarComponent() {
                   address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
                   otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
+                  teleportAmount={minimunTeleportAmount}
                   formatAmount={formatAmount}
                 />
               </AccordionContent>
