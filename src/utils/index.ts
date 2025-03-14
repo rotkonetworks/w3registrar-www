@@ -15,3 +15,5 @@ export class LocalStorageUtil {
     localStorage.removeItem(key)
   }
 }
+
+export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
