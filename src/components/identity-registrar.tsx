@@ -43,6 +43,8 @@ import {
   DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
   SignSubmitAndWatchParams
 } from "~/types"
+import { CHAIN_UPDATE_INTERVAL } from "~/constants"
+import { wait } from "~/utils"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -939,6 +941,10 @@ export function IdentityRegistrarComponent() {
   }, [xcmParams.txTotalCost])
   //const teleportAmount = formatAmount(xcmParams.txTotalCost)
 
+  const balanceRef = useRef(balance)
+  useEffect(() => {
+    balanceRef.current = balance
+  }, [balance])
   const submitTransaction = async () => {
     if (xcmParams.enabled) {
       try {
@@ -962,6 +968,30 @@ export function IdentityRegistrarComponent() {
         addNotification({
           type: "error",
           message: "Error teleporting assets. Please try again.",
+        })
+        return
+      }
+
+      const maxBlocksAwait = 10
+      let awaitedBlocks;
+      for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
+        await wait(CHAIN_UPDATE_INTERVAL)
+        if (import.meta.env.DEV) console.log({ awaitedBlocks })
+        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
+          break
+        }
+        addNotification({
+          key: "awaitingAssets",
+          type: "loading",
+          message: "Waiting to receive transferred amount...",
+          closable: false,
+        })
+      }
+      removeNotification("awaitingAssets")
+      if (awaitedBlocks === maxBlocksAwait) {
+        addNotification({
+          type: "error",
+          message: "Balance insufficient. It's not possible to set identity.",
         })
         return
       }
