@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect } from "react"
-import { ArrowDownUp, ChevronDown } from 'lucide-react'
+import { ArrowDownUp, ChevronDown, HelpCircle } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -172,7 +172,28 @@ export default function Teleporter({
       </Card>
 
       <div className="space-y-2">
-        <Label htmlFor="amount">Amount</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="amount" className="flex items-center gap-2">
+            Amount
+          </Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 shrink-0 opacity-50" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <p>
+                  This is made up of:
+                </p>
+                <ul className="list-disc list-inside">
+                  <li>Destination account's balance</li>
+                  <li>Existential Deposit</li>
+                  <li>Transaction fee and deposits</li>
+                </ul>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <div className="relative">
           <Input
             id="amount"
