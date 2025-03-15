@@ -10,6 +10,8 @@ import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
 import { Chains } from "@reactive-dot/core/internal.js";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
+import { BalanceDisplay } from "./ui/balance-display";
+import { AssetAmount } from "~/types";
 
 const AccountListing = ({ address, name }) => (
   <div className="flex items-center w-full min-w-0">
@@ -107,12 +109,19 @@ const Header = ({
                   {accounts.length > 0 
                     ? <>
                         <SelectLabel>Accounts</SelectLabel>
-                        {accounts.map(({ name, address, encodedAddress, ...rest }) => {
+                        {accounts.map(({ name, address, encodedAddress, ...rest }, index) => {
                           const account = { name, address, ...rest };
                           return (
-                            <SelectItem key={address} value={{ type: "account", account }} className="min-w-0">
-                              <div className="w-full min-w-0">
-                                <AccountListing address={encodedAddress} name={name} />
+                            <SelectItem key={address} value={{ type: "account", account }} className="max-w-sm">
+                              <div className="flex items-center w-full min-w-0">
+                                <div className="flex-shrink-0">
+                                  <PolkadotIdenticon address={encodedAddress} />
+                                </div>
+                                <span className="mx-2 truncate min-w-0">{name}</span>
+                                <span className="flex-shrink-0">
+                                  ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
+                                </span>
+                                <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
                               </div>
                             </SelectItem>
                           );
