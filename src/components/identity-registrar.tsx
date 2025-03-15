@@ -533,12 +533,11 @@ export function IdentityRegistrarComponent() {
     }
   }, [isChallengeWsConnected])
   //#endregion challenges
-
-  // Replace the formatAmount implementation with the hook
+  
   const formatAmount = useFormatAmount({
-    tokenDecimals: chainStore.tokenDecimals,
-    tokenSymbol: chainStore.tokenSymbol
-  });
+      tokenDecimals: chainStore.tokenDecimals,
+      symbol: chainStore.tokenSymbol
+    });
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
