@@ -44,7 +44,7 @@ import {
   SignSubmitAndWatchParams, FormatAmountOptions, 
 } from "~/types"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
-import { wait } from "~/utils"
+import { wait, formatAmount as formatAmountUtil } from "~/utils"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -537,13 +537,11 @@ export function IdentityRegistrarComponent() {
     amount: number | bigint | BigNumber | string, 
     options?: FormatAmountOptions,
   ) => {
-    if (amount === undefined || amount === null) {
-      return "---"
-    }
-    const newAmount = BigNumber(amount.toString())
-      .dividedBy(BigNumber(10).pow(chainStore.tokenDecimals))
-      .toFixed(options?.decimals ?? chainStore.tokenDecimals, BigNumber.ROUND_DOWN)
-    return `${newAmount} ${options?.symbol || chainStore.tokenSymbol}`;
+    return formatAmountUtil(amount, {
+      tokenDecimals: options?.tokenDecimals ?? chainStore.tokenDecimals,
+      symbol: options?.symbol || chainStore.tokenSymbol,
+      decimals: options?.decimals
+    });
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
   const [isTxBusy, setTxBusy] = useState(false)
