@@ -55,3 +55,9 @@ export type FormatAmountOptions = {
   symbol: string,
   tokenDecimals: number,
 }
+export type AssetAmount = number | bigint | BigNumber | string
+
+export type FormatAmountFn = (
+  amount: AssetAmount,
+  options: FormatAmountOptions,
+) => string
