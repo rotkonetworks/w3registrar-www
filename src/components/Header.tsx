@@ -22,22 +22,28 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark,
+  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark, balance,
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark, openHelpDialog,
 }: { 
-    accounts: AccountData[];
-    config: ApiConfig;
-    chainStore: { id: string | number | symbol, name: string };
-    accountStore: { address: string, name: string };
-    identityStore: IdentityStore;
-    isTxBusy: boolean;
-    isDark: boolean;
-    onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
-    onAccountSelect: SelectChangeHandler;
-    onRequestWalletConnections: () => void;
-    onToggleDark: () => void;
-    openHelpDialog: () => void;
-  }) => {
+  accounts: AccountData[];
+  config: ApiConfig;
+  chainStore: {
+    id: string | number | symbol,
+    name: string,
+    symbol: string,
+    tokenDecimals: number,
+  };
+  accountStore: { address: string, name: string };
+  identityStore: IdentityStore;
+  isTxBusy: boolean;
+  isDark: boolean;
+  onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
+  balance: AssetAmount;
+  onAccountSelect: SelectChangeHandler;
+  onRequestWalletConnections: () => void;
+  onToggleDark: () => void;
+  openHelpDialog: () => void;
+}) => {
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)

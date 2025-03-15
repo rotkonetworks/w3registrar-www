@@ -1050,11 +1050,14 @@ export function IdentityRegistrarComponent() {
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
+            symbol: chainStore.tokenSymbol,
+            tokenDecimals: chainStore.tokenDecimals,
           }} 
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
           openHelpDialog={openHelpDialog}
+          balance={balance}
         />
 
         {(() => {
