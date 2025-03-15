@@ -107,29 +107,29 @@ const Header = ({
                 <SelectSeparator />
                 <SelectGroup>
                   {accounts.length > 0 
-                    ? <>
-                        <SelectLabel>Accounts</SelectLabel>
-                        {accounts.map(({ name, address, encodedAddress, ...rest }, index) => {
-                          const account = { name, address, ...rest };
-                          return (
-                            <SelectItem key={address} value={{ type: "account", account }} className="max-w-sm">
-                              <div className="flex items-center w-full min-w-0">
-                                <div className="flex-shrink-0">
-                                  <PolkadotIdenticon address={encodedAddress} />
-                                </div>
-                                <span className="mx-2 truncate min-w-0">{name}</span>
-                                <span className="flex-shrink-0">
-                                  ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
-                                </span>
-                                <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
+                    ?<>
+                      <SelectLabel>Accounts</SelectLabel>
+                      {accounts.map(({ name, address, encodedAddress, ...rest }, index) => {
+                        const account = { name, address, ...rest };
+                        return (
+                          <SelectItem key={address} value={{ type: "account", account }} className="max-w-sm">
+                            <div className="flex items-center w-full min-w-0">
+                              <div className="flex-shrink-0">
+                                <PolkadotIdenticon address={encodedAddress} />
                               </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </>
-                    : <>
-                        <SelectLabel>No accounts found</SelectLabel>
-                      </>
+                              <span className="mx-2 truncate min-w-0">{name}</span>
+                              <span className="flex-shrink-0">
+                                ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
+                              </span>
+                              <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </>
+                    :<>
+                      <SelectLabel>No accounts found</SelectLabel>
+                    </>
                   }
                 </SelectGroup>
               </>}
