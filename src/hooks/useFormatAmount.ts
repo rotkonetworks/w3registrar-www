@@ -9,20 +9,12 @@ import type BigNumber from 'bignumber.js';
  * @param props - Chain properties to use for formatting
  * @returns A memoized formatting function
  */
-export function useFormatAmount(props: { 
-  tokenSymbol?: string;
-  tokenDecimals?: number;
-}) {
-  const { tokenSymbol, tokenDecimals } = props;
+export function useFormatAmount(props: FormatAmountOptions) {
+  const { symbol, tokenDecimals, decimals } = props;
   
   return useCallback((
     amount: number | bigint | BigNumber | string,
-    options?: FormatAmountOptions,
   ) => {
-    return formatAmount(amount, {
-      tokenDecimals: options?.tokenDecimals ?? tokenDecimals ?? 0,
-      symbol: options?.symbol ?? tokenSymbol ?? '',
-      decimals: options?.decimals,
-    });
-  }, [tokenSymbol, tokenDecimals]);
+    return formatAmount(amount, { tokenDecimals, symbol, decimals, });
+  }, [symbol, tokenDecimals]);
 }
