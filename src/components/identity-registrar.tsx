@@ -667,7 +667,7 @@ export function IdentityRegistrarComponent() {
     xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
   ).planck.toString())
   const balance = BigNumber(useSpendableBalance(
-    accountStore.address || genericAddress, { chainId: chainStore.id }
+    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
   ).planck.toString())
   //#endregion Balances
 
