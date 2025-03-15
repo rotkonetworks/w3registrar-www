@@ -8,6 +8,7 @@ import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
+import { useFormatAmount } from "~/hooks/useFormatAmount";
 
 const AccountListing = ({ address, name }) => (
   <div className="flex items-center w-full min-w-0">
@@ -47,6 +48,16 @@ const Header = ({
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
+
+  const shortFormatAmount = useFormatAmount({
+    symbol: "",
+    tokenDecimals: chainStore.tokenDecimals,
+    decimals: 2,
+  })
+  const formatAmount = useFormatAmount({
+    symbol: chainStore.symbol,
+    tokenDecimals: chainStore.tokenDecimals,
+  })
 
   return (
     <div className="flex max-[450px]:flex-col sm:flex-row flex-nowrap justify-between items-center mb-6 gap-4">
