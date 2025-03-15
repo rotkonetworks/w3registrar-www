@@ -110,7 +110,7 @@ export default function Teleporter({
         </div>
 
         <div className="flex-1 space-y-2">
-          <Label htmlFor="toAddress">To Wallet</Label>
+          <Label htmlFor="toAddress">Current Wallet</Label>
           <Input readOnly id="toAddress"
             value={accounts.find(({ encodedAddress }) => encodedAddress === toAddress).name} 
             className="flex-1"
@@ -144,7 +144,7 @@ export default function Teleporter({
           </TooltipProvider>
         </div>
         <div className="flex-1 space-y-2">
-          <Label>To Chain:</Label>
+          <Label>Corrent Chain:</Label>
           <Input value={config.chains[toChainId].name} readOnly
             className="placeholder-[#706D6D]"
           />
