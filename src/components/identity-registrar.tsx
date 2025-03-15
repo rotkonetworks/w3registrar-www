@@ -540,7 +540,9 @@ export function IdentityRegistrarComponent() {
     if (amount === undefined || amount === null) {
       return "---"
     }
-    const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
+    const newAmount = BigNumber(amount.toString())
+      .dividedBy(BigNumber(10).pow(chainStore.tokenDecimals))
+      .toFixed(options?.decimals ?? chainStore.tokenDecimals, BigNumber.ROUND_DOWN)
     return `${newAmount} ${options?.symbol || chainStore.tokenSymbol}`;
   }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
   
