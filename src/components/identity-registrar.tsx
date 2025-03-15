@@ -41,7 +41,7 @@ import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { Switch } from "./ui/switch"
 import { 
   DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
-  SignSubmitAndWatchParams
+  SignSubmitAndWatchParams, FormatAmountOptions, 
 } from "~/types"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { wait } from "~/utils"
@@ -533,10 +533,10 @@ export function IdentityRegistrarComponent() {
   }, [isChallengeWsConnected])
   //#endregion challenges
 
-  const formatAmount = useCallback((amount: number | bigint | BigNumber | string, options?: { 
-   decimals?: number, // TODO Actually use this by implementing rounding
-   symbol?: string
-  }) => {
+  const formatAmount = useCallback((
+    amount: number | bigint | BigNumber | string, 
+    options?: FormatAmountOptions,
+  ) => {
     if (amount === undefined || amount === null) {
       return "---"
     }

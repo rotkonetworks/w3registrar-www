@@ -49,3 +49,8 @@ export type SignSubmitAndWatchParams = {
   nonce?: number;
   signer?: PolkadotSigner;
 };
+
+export type FormatAmountOptions = {
+  decimals?: number,
+  symbol?: string
+}
