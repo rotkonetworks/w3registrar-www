@@ -191,11 +191,18 @@ export default function Teleporter({
       <Alert className="space-y-2 bg-transparent border-[#E6007A] b-1 text-black dark:text-white placeholder-[#706D6D] focus:ring-[#E6007A]">
         <p>
           <b className="text-primary">Note</b>:
-          Two transactions required, which you need to sign with your wallet and approve of:
-          <ol>
-            <li>1. Teleport assets between chains</li>
-            <li>2. Execute identity transaction</li>
-          </ol>
+          Two transactions are required, which you need to sign with your wallet and approve of:
+        </p>
+        <ol>
+          <li>1. Teleport assets between chains</li>
+          <li>2. Execute identity transaction</li>
+        </ol>
+        <p>
+          <b className="text-primary">Important</b>:
+          Please ensure you have enough balance in incoming chain to cover the transaction fee.
+        </p>
+        <p>
+          The whole transaction may take up to 2 minutes to complete, please be patient.
         </p>
       </Alert>
     </div>
