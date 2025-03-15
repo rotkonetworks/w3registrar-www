@@ -1111,12 +1111,15 @@ export function IdentityRegistrarComponent() {
                 <Coins className="h-5 w-5 text-[#E6007A]" />
                 Transaction Costs
               </h4>
-              {estimatedCosts.fees &&
-                <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
-              }
-              {estimatedCosts.deposits && (
-                <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
-              )}
+              <ul className="list-disc list-inside">
+                {estimatedCosts.fees &&
+                  <li>Total estimated cost: {formatAmount(estimatedCosts.fees)}</li>
+                }
+                {estimatedCosts.deposits &&
+                  <li>Existential deposit: {formatAmount(estimatedCosts.deposits)}</li>
+                }
+                <li>Current balance: {formatAmount(balance)}</li>
+              </ul>
             </div>
           }
           <div>
