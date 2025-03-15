@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button"
 import { Sun, Moon, ShieldQuestion } from "lucide-react";
 import { useState } from "react";
 import { ApiConfig } from "~/api/config";
-import { useConnectedWallets } from "@reactive-dot/react";
+import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
+import { Chains } from "@reactive-dot/core/internal.js";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
 
 const AccountListing = ({ address, name }) => (
@@ -48,6 +49,11 @@ const Header = ({
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
+
+  const allAccountBalances = useSpendableBalance(
+    accounts.map(({ address }) => address), 
+    { chainId: chainStore.id as keyof Chains }
+  )
 
   const shortFormatAmount = useFormatAmount({
     symbol: "",
