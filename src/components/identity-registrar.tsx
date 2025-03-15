@@ -672,7 +672,7 @@ export function IdentityRegistrarComponent() {
   //#endregion Balances
 
   //#region Transactions
-  const getNonce = useCallback(async (api: TypedApi, address: SS58String) => {
+  const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
     try {
       return await ((api.apis.AccountNonceApi as any)
         .account_nonce(address, { at: "best", }) as ApiRuntimeCall
