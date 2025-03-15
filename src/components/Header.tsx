@@ -118,7 +118,7 @@ const Header = ({
                                 <PolkadotIdenticon address={encodedAddress} />
                               </div>
                               <span className="mx-2 truncate min-w-0">{name}</span>
-                              <span className="flex-shrink-0">
+                              <span className="flex-shrink-0 pe-2">
                                 ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
                               </span>
                               <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
