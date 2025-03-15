@@ -52,5 +52,6 @@ export type SignSubmitAndWatchParams = {
 
 export type FormatAmountOptions = {
   decimals?: number,
-  symbol?: string
+  symbol?: string,
+  tokenDecimals?: number,
 }
