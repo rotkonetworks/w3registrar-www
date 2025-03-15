@@ -45,6 +45,7 @@ import {
 } from "~/types"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { wait, formatAmount as formatAmountUtil } from "~/utils"
+import { useFormatAmount } from "~/hooks/useFormatAmount"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -533,16 +534,11 @@ export function IdentityRegistrarComponent() {
   }, [isChallengeWsConnected])
   //#endregion challenges
 
-  const formatAmount = useCallback((
-    amount: number | bigint | BigNumber | string, 
-    options?: FormatAmountOptions,
-  ) => {
-    return formatAmountUtil(amount, {
-      tokenDecimals: options?.tokenDecimals ?? chainStore.tokenDecimals,
-      symbol: options?.symbol || chainStore.tokenSymbol,
-      decimals: options?.decimals
-    });
-  }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
+  // Replace the formatAmount implementation with the hook
+  const formatAmount = useFormatAmount({
+    tokenDecimals: chainStore.tokenDecimals,
+    tokenSymbol: chainStore.tokenSymbol
+  });
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
