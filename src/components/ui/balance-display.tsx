@@ -5,7 +5,7 @@ export const BalanceDisplay = ({ balance, formatter }: {
   balance: AssetAmount,
   formatter: (v: AssetAmount) => string,
 }) => {
-  return <Badge variant={balance ? "success" : "error"}>
+  return <Badge variant={balance ? "default" : "secondary"}>
     {formatter(balance)}
   </Badge>;
 }
