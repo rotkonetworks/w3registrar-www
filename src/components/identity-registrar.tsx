@@ -691,6 +691,8 @@ export function IdentityRegistrarComponent() {
   ) => new Promise(async (resolve, reject) => {
     const { call, messages, name } = params;
     let api = params.api;
+    
+    if (import.meta.env.DEV) console.log({ call: call.decodedCall, })
 
     if (!api) {
       api = typedApi
