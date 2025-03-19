@@ -699,6 +699,10 @@ export function IdentityRegistrarComponent() {
     }
     if (isTxBusy) {
       reject(new Error("Transaction already in progress"))
+      addNotification({
+        type: "error",
+        message: "There is a transaction already in progress. Please wait for it to finish.",
+      })
       return
     }
     setTxBusy(true)
@@ -709,8 +713,9 @@ export function IdentityRegistrarComponent() {
       setTxBusy(false)
       addNotification({
         type: "error",
-        message: "Couldn't get nonce. Please try again.",
+        message: "Unable to prepare transaction. Please try again in a moment.",
       })
+      if (import.meta.env.DEV) console.error("Failed to get nonce")
       reject(new Error("Failed to get nonce"))
       return
     }
@@ -749,34 +754,34 @@ export function IdentityRegistrarComponent() {
             key: result.txHash,
             type: "loading",
             closable: false,
-            message: messages.broadcasted || "Transaction broadcasted",
+            message: `${name} transaction broadcasted`,
           })
         }
         else if (_result.type === "txBestBlocksState") {
-            if (_result.ok) {
-              if (params.awaitFinalization) {
-                addNotification({
-                  key: _result.txHash,
-                  type: "loading",
-                  message: messages.loading || "Waiting for finalization...",
-                })
-              } else {
-                addNotification({
-                  key: _result.txHash,
-                  type: "success",
-                  message: messages.success || "Transaction finalized",
-                })
-                fetchIdAndJudgement()
-                disposeSubscription(() => resolve(result))
-              }
+          if (_result.ok) {
+            if (params.awaitFinalization) {
+              addNotification({
+                key: _result.txHash,
+                type: "loading",
+                message: `Waiting for ${name.toLowerCase()} to finalize...`,
+                closable: false,
+              })
+            } else {
+              addNotification({
+                key: _result.txHash,
+                type: "success",
+                message: `${name} completed successfully`,
+              })
+              fetchIdAndJudgement()
+              disposeSubscription(() => resolve(result))
             }
-          else if (!_result.isValid) {
+          } else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
               addNotification({
                 key: _result.txHash,
                 type: "error",
-                message: messages.error || "Transaction failed because it's invalid",
+                message: `${name} failed: invalid transaction`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => reject(new Error("Invalid transaction")))
@@ -789,7 +794,7 @@ export function IdentityRegistrarComponent() {
             addNotification({
               key: _result.txHash,
               type: "error",
-              message: messages.error || "Transaction failed",
+              message: `${name} failed`,
             })
             fetchIdAndJudgement()
             disposeSubscription(() => reject(new Error("Transaction failed")))
@@ -798,7 +803,7 @@ export function IdentityRegistrarComponent() {
               addNotification({
                 key: _result.txHash,
                 type: "success",
-                message: messages.success || "Transaction finalized",
+                message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => resolve(result))
@@ -812,7 +817,7 @@ export function IdentityRegistrarComponent() {
         if (!recentNotifsIds.current.includes(txHash)) {
           addNotification({
             type: "error",
-            message: messages.error || "Error submitting transaction. Please try again.",
+            message: `Error with ${name}: ${error.message || "Please try again"}`,
           })
           disposeSubscription(() => reject(error))
         }
@@ -836,7 +841,7 @@ export function IdentityRegistrarComponent() {
         success: "Identity cleared",
         error: "Error clearing identity",
       },
-      name: "Identity.IdentityCleared"
+      name: "Clear Identity"
     })
   }, [_clearIdentity])
   
@@ -958,7 +963,7 @@ export function IdentityRegistrarComponent() {
             success: "Assets teleported successfully",
             error: "Error teleporting assets",
           },
-          name: "TeleportAssets"
+          name: "Teleport Assets"
         })
       } catch (error) {
         if (import.meta.env.DEV) console.error(error)
