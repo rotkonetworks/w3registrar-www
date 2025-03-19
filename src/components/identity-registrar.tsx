@@ -692,7 +692,7 @@ export function IdentityRegistrarComponent() {
     const { call, messages, name } = params;
     let api = params.api;
     
-    if (import.meta.env.DEV) console.log({ call: call.decodedCall, })
+    if (import.meta.env.DEV) console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
       api = typedApi
