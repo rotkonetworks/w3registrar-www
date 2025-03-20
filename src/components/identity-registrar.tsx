@@ -813,7 +813,16 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error)
+        if (import.meta.env.DEV) console.error(error);
+        if (error.message === "Cancelled") {
+          if (import.meta.env.DEV) console.log("Cancelled");
+          addNotification({
+            type: "error",
+            message: `${name} transaction didn't get signed. Please sign it and try again`,
+          })
+          disposeSubscription()
+          return
+        }
         if (!recentNotifsIds.current.includes(txHash)) {
           addNotification({
             type: "error",
