@@ -689,7 +689,7 @@ export function IdentityRegistrarComponent() {
   const signSubmitAndWatch = useCallback((
     params: SignSubmitAndWatchParams
   ) => new Promise(async (resolve, reject) => {
-    const { call, messages, name } = params;
+    const { call, name } = params;
     let api = params.api;
     
     if (import.meta.env.DEV) console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
