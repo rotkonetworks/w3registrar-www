@@ -1,0 +1,32 @@
+diff --git a/src/providers/light-client/provider.ts b/src/providers/light-client/provider.ts
+index 6f7e6797c36c62742077d53d21c5803a9ddf31d8..770651ef86895cd14342aa93d3ea94de851abb82 100644
+--- a/src/providers/light-client/provider.ts
++++ b/src/providers/light-client/provider.ts
+@@ -8,8 +8,8 @@ import {
+ import { getSmoldotExtensionProviders } from "@substrate/smoldot-discovery";
+ import { createClient } from "polkadot-api";
+ import { getSmProvider } from "polkadot-api/sm-provider";
+-import type { Client } from "polkadot-api/smoldot";
+-import { startFromWorker } from "polkadot-api/smoldot/from-worker";
++import type { Client, ClientOptions } from "polkadot-api/smoldot";
++import { SmoldotOptions, startFromWorker } from "polkadot-api/smoldot/from-worker";
+ import type { JsonRpcProvider } from "polkadot-api/ws-provider/web";
+ 
+ const getProviderSymbol = Symbol();
+@@ -22,7 +22,7 @@ type AddChainOptions<TWellknownChainId> =
+   | { chainSpec: string }
+   | { id: TWellknownChainId };
+ 
+-export function createLightClientProvider() {
++export function createLightClientProvider(options: SmoldotOptions = {}) {
+   const getSmoldot = lazy(
+     () =>
+       getSmoldotExtensionProviders().at(0)?.provider ??
+@@ -30,6 +30,7 @@ export function createLightClientProvider() {
+         new Worker(new URL("polkadot-api/smoldot/worker", import.meta.url), {
+           type: "module",
+         }),
++        options,
+       ),
+   );
+ 
