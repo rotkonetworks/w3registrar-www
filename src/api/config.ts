@@ -30,7 +30,8 @@ const getProviders = () => {
     ksmcc3, 
     paseo,
     westend
-  };};
+  };
+}
 export let providers = getProviders();
 
 export type ApiConfig = Config & {
