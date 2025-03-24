@@ -739,6 +739,7 @@ export function IdentityRegistrarComponent() {
     const subscription = signedCall.subscribe({
       next: (result) => {
         txHash = result.txHash;
+        // TODO Add result type as below
         const _result: (typeof result) & {
           found: boolean,
           ok: boolean,
