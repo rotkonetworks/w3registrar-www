@@ -21,7 +21,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
+import { Binary, HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
 import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -683,6 +683,20 @@ export function IdentityRegistrarComponent() {
     }
   }, [])
 
+  const errorMessages = {
+    "balances": {
+      default: "Error with balances pallet",
+      InsufficientBalance: "Insufficient balance",
+    },
+    "identity": {
+      default: "Error with identity pallet",
+      NotIdentityOwner: "You are not the owner of this identity",
+    },
+    Invalid: {
+      default: "Invalid transaction",
+      Payment: "Insufficient free balance",
+    }
+  }
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
@@ -824,7 +838,32 @@ export function IdentityRegistrarComponent() {
           disposeSubscription()
           return
         }
+        // TODO Handle other errors
         if (!recentNotifsIds.current.includes(txHash)) {
+          if (error instanceof InvalidTxError || error.invalid) {
+            const errorDetails: {
+              type: string,
+              value: {
+                type: string,
+                value: {
+                  type: string,
+                  value: string,
+                },
+              },
+            } = JSON.parse(error.message);
+
+            const { type: pallet, value: { type: errorType } } = errorDetails;
+            
+            if (import.meta.env.DEV) console.log({ errorDetails });
+            addNotification({
+              type: "error",
+              message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
+                ?? `Error with ${name}: Please try again`
+              ,
+            })
+            disposeSubscription(() => reject(error))
+            return
+          }
           addNotification({
             type: "error",
             message: `Error with ${name}: ${error.message || "Please try again"}`,
