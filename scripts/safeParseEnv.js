@@ -54,7 +54,7 @@ const finalEnv = substituteVars(envVars);
 
 let output = '';
 for (const key in finalEnv) {
-  output += `${key}=${finalEnv[key]}\n`;
+  output += `${key}="${finalEnv[key]}"\n`;
 }
 writeFileSync('./.env', output);
 
