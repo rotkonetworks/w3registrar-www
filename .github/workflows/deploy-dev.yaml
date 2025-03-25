@@ -40,7 +40,7 @@ jobs:
           curl -fsSL https://bun.sh/install | bash -s "canary"
           export BUN_INSTALL="$HOME/.bun"
           export PATH=$BUN_INSTALL/bin:$PATH
-          cat .env.example | grep -v "#" > .env
+          bun run scripts/safeParseEnv.js
           # our overrides will be appended last, so even duplicate, they'll take precedence
           echo "VITE_APP_WALLET_CONNECT_PROJECT_ID=${{ env.VITE_APP_WALLET_CONNECT_PROJECT_ID }}" >> .env
           echo "VITE_APP_DEFAULT_WS_URL=${{ env.VITE_APP_DEFAULT_WS_URL }}" >> .env
