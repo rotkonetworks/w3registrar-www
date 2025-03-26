@@ -41,10 +41,10 @@ jobs:
           # Filter and override with existing non-empty VITE_APP_ variables
           echo "Appending valid overrides to .env:"
           while IFS='=' read -r key value; do
-          if [[ "$key" == VITE_APP_* ]] && [[ -n "$value" ]]; then
-            echo "$key=$value" >> .env
-            echo "$key added"
-          fi
+            if [[ "$key" == VITE_APP_* ]] && [[ -n "$value" ]]; then
+              echo "$key=$value" >> .env
+              echo "$key added"
+            fi
           done < <(env)
           
           # Check if .env file exists and has content
