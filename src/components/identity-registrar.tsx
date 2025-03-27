@@ -21,7 +21,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
+import { Binary, HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
 import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
@@ -46,6 +46,7 @@ import {
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { wait, formatAmount as formatAmountUtil } from "~/utils"
 import { useFormatAmount } from "~/hooks/useFormatAmount"
+import { errorMessages } from "~/utils/errorMessages"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -689,14 +690,20 @@ export function IdentityRegistrarComponent() {
   const signSubmitAndWatch = useCallback((
     params: SignSubmitAndWatchParams
   ) => new Promise(async (resolve, reject) => {
-    const { call, messages, name } = params;
+    const { call, name } = params;
     let api = params.api;
+    
+    if (import.meta.env.DEV) console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
       api = typedApi
     }
     if (isTxBusy) {
       reject(new Error("Transaction already in progress"))
+      addNotification({
+        type: "error",
+        message: "There is a transaction already in progress. Please wait for it to finish.",
+      })
       return
     }
     setTxBusy(true)
@@ -707,8 +714,9 @@ export function IdentityRegistrarComponent() {
       setTxBusy(false)
       addNotification({
         type: "error",
-        message: "Couldn't get nonce. Please try again.",
+        message: "Unable to prepare transaction. Please try again in a moment.",
       })
+      if (import.meta.env.DEV) console.error("Failed to get nonce")
       reject(new Error("Failed to get nonce"))
       return
     }
@@ -732,6 +740,7 @@ export function IdentityRegistrarComponent() {
     const subscription = signedCall.subscribe({
       next: (result) => {
         txHash = result.txHash;
+        // TODO Add result type as below
         const _result: (typeof result) & {
           found: boolean,
           ok: boolean,
@@ -747,34 +756,34 @@ export function IdentityRegistrarComponent() {
             key: result.txHash,
             type: "loading",
             closable: false,
-            message: messages.broadcasted || "Transaction broadcasted",
+            message: `${name} transaction broadcasted`,
           })
         }
         else if (_result.type === "txBestBlocksState") {
-            if (_result.ok) {
-              if (params.awaitFinalization) {
-                addNotification({
-                  key: _result.txHash,
-                  type: "loading",
-                  message: messages.loading || "Waiting for finalization...",
-                })
-              } else {
-                addNotification({
-                  key: _result.txHash,
-                  type: "success",
-                  message: messages.success || "Transaction finalized",
-                })
-                fetchIdAndJudgement()
-                disposeSubscription(() => resolve(result))
-              }
+          if (_result.ok) {
+            if (params.awaitFinalization) {
+              addNotification({
+                key: _result.txHash,
+                type: "loading",
+                message: `Waiting for ${name.toLowerCase()} to finalize...`,
+                closable: false,
+              })
+            } else {
+              addNotification({
+                key: _result.txHash,
+                type: "success",
+                message: `${name} completed successfully`,
+              })
+              fetchIdAndJudgement()
+              disposeSubscription(() => resolve(result))
             }
-          else if (!_result.isValid) {
+          } else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
               addNotification({
                 key: _result.txHash,
                 type: "error",
-                message: messages.error || "Transaction failed because it's invalid",
+                message: `${name} failed: invalid transaction`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => reject(new Error("Invalid transaction")))
@@ -787,7 +796,7 @@ export function IdentityRegistrarComponent() {
             addNotification({
               key: _result.txHash,
               type: "error",
-              message: messages.error || "Transaction failed",
+              message: `${name} failed`,
             })
             fetchIdAndJudgement()
             disposeSubscription(() => reject(new Error("Transaction failed")))
@@ -796,7 +805,7 @@ export function IdentityRegistrarComponent() {
               addNotification({
                 key: _result.txHash,
                 type: "success",
-                message: messages.success || "Transaction finalized",
+                message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => resolve(result))
@@ -806,11 +815,45 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error)
-        if (!recentNotifsIds.current.includes(txHash)) {
+        if (import.meta.env.DEV) console.error(error);
+        if (error.message === "Cancelled") {
+          if (import.meta.env.DEV) console.log("Cancelled");
           addNotification({
             type: "error",
-            message: messages.error || "Error submitting transaction. Please try again.",
+            message: `${name} transaction didn't get signed. Please sign it and try again`,
+          })
+          disposeSubscription()
+          return
+        }
+        // TODO Handle other errors
+        if (!recentNotifsIds.current.includes(txHash)) {
+          if (error instanceof InvalidTxError || error.invalid) {
+            const errorDetails: {
+              type: string,
+              value: {
+                type: string,
+                value: {
+                  type: string,
+                  value: string,
+                },
+              },
+            } = JSON.parse(error.message);
+
+            const { type: pallet, value: { type: errorType } } = errorDetails;
+            
+            if (import.meta.env.DEV) console.log({ errorDetails });
+            addNotification({
+              type: "error",
+              message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
+                ?? `Error with ${name}: Please try again`
+              ,
+            })
+            disposeSubscription(() => reject(error))
+            return
+          }
+          addNotification({
+            type: "error",
+            message: `Error with ${name}: ${error.message || "Please try again"}`,
           })
           disposeSubscription(() => reject(error))
         }
@@ -834,7 +877,7 @@ export function IdentityRegistrarComponent() {
         success: "Identity cleared",
         error: "Error clearing identity",
       },
-      name: "Identity.IdentityCleared"
+      name: "Clear Identity"
     })
   }, [_clearIdentity])
   
@@ -956,7 +999,7 @@ export function IdentityRegistrarComponent() {
             success: "Assets teleported successfully",
             error: "Error teleporting assets",
           },
-          name: "TeleportAssets"
+          name: "Teleport Assets"
         })
       } catch (error) {
         if (import.meta.env.DEV) console.error(error)

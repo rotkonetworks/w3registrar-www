@@ -37,12 +37,6 @@ export type MainContentProps = {
 
 export type SignSubmitAndWatchParams = {
   call: ApiTx;
-  messages: {
-    broadcasted?: string;
-    loading?: string;
-    success?: string;
-    error?: string;
-  };
   name: string;
   api?: TypedApi<ChainDescriptorOf<keyof Chains>>;
   awaitFinalization?: boolean;
