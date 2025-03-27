@@ -871,12 +871,6 @@ export function IdentityRegistrarComponent() {
   const onIdentityClear = useCallback(async () => {
     await signSubmitAndWatch({
       call: _clearIdentity(),
-      messages: {
-        broadcasted: "Clearing identity...",
-        loading: "Waiting for clearing identity transaction...",
-        success: "Identity cleared",
-        error: "Error clearing identity",
-      },
       name: "Clear Identity"
     })
   }, [_clearIdentity])
@@ -993,12 +987,6 @@ export function IdentityRegistrarComponent() {
           call: getTeleportCall({
             amount: minimunTeleportAmount,
           }),
-          messages: {
-            broadcasted: "Teleporting assets...",
-            loading: "Teleporting assets...",
-            success: "Assets teleported successfully",
-            error: "Error teleporting assets",
-          },
           name: "Teleport Assets"
         })
       } catch (error) {
@@ -1047,24 +1035,12 @@ export function IdentityRegistrarComponent() {
       case "setIdentity":
         await signSubmitAndWatch({
           call: txToConfirm,
-          messages: {
-            broadcasted: "Setting identity...",
-            loading: "Waiting for setting identity transaction...",
-            success: "Identity set successfully",
-            error: "Error setting identity",
-          },
           name: "Set Identity"
         })
         break
       case "requestJudgement":
         await signSubmitAndWatch({
           call: txToConfirm,
-          messages: {
-            broadcasted: "Requesting judgement...",
-            loading: "Waiting for judgement request transaction...",
-            success: "Judgement requested successfully",
-            error: "Error requesting judgement",
-          },
           name: "Request Judgement"
         })
         break
