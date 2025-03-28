@@ -1,7 +1,9 @@
-import { Binary, SS58String } from "polkadot-api";
-import { ApiStorage, ApiTypeWithQueries } from "~/types/api";
+import { Binary, SS58String, TypedApi } from "polkadot-api";
+import { ApiStorage } from "~/types/api";
 import { IdentityData } from "@polkadot-api/descriptors";
 import { verifyStatuses } from "~/store/IdentityStore";
+import { ChainId } from "@reactive-dot/core";
+import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 
 export interface JudgementData {
   registrar: {
@@ -26,7 +28,7 @@ export interface IdentityInfo {
  * @returns Promise with identity information or null if an error occurs
  */
 export const fetchIdentity = async (
-  api: ApiTypeWithQueries,
+  api: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String
 ): Promise<IdentityInfo | null> => {
   if (!api || !address) {
