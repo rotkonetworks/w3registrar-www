@@ -47,6 +47,7 @@ import { wait, formatAmount as formatAmountUtil } from "~/utils"
 import { useFormatAmount } from "~/hooks/useFormatAmount"
 import { errorMessages } from "~/utils/errorMessages"
 import { useAlerts } from "~/hooks/useAlerts"
+import { AlertsAccordion } from "./AlertsAccordion"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -136,51 +137,6 @@ const MainContent = ({
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
-    {alerts.size > 0 && 
-      <div
-        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
-      >
-        <Accordion type="single" collapsible defaultValue="notifications">
-          <AccordionItem value="notifications">
-            <AccordionTrigger 
-              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
-            >
-              <Bell className="h-6 w-6" /> {alerts.size}
-            </AccordionTrigger>
-            <AccordionContent
-              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
-            >
-              {[...alerts.entries()].map(([, alert]) => (
-                <Alert
-                  key={alert.key}
-                  variant={alert.type === 'error' ? "destructive" : "default"}
-                  className={`mb-4 ${alert.type === 'error'
-                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-                  }`}
-                >
-                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                  <AlertDescription className="flex justify-between items-center">
-                    {alert.message}
-                    {alert.closable === true && <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeNotification(alert.key)}
-                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
-                      >
-                        Dismiss
-                      </Button>
-                    </>}
-                  </AlertDescription>
-                </Alert>
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    }
-
     <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
         className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
@@ -1095,50 +1051,7 @@ export function IdentityRegistrarComponent() {
     </div>
 
     {/* Update alerts notification section */}
-    {alertsCount > 0 && 
-      <div
-        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
-      >
-        <Accordion type="single" collapsible defaultValue="notifications">
-          <AccordionItem value="notifications">
-            <AccordionTrigger 
-              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
-            >
-              <Bell className="h-6 w-6" /> {alertsCount}
-            </AccordionTrigger>
-            <AccordionContent
-              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
-            >
-              {alerts.map(([_, alert]) => (
-                <Alert
-                  key={alert.key}
-                  variant={alert.type === 'error' ? "destructive" : "default"}
-                  className={`mb-4 ${alert.type === 'error'
-                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-                  }`}
-                >
-                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                  <AlertDescription className="flex justify-between items-center">
-                    {alert.message}
-                    {alert.closable === true && <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeAlert(alert.key)}
-                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
-                      >
-                        Dismiss
-                      </Button>
-                    </>}
-                  </AlertDescription>
-                </Alert>
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    }
+    <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
     <Dialog 
       open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
