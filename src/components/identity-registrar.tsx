@@ -408,7 +408,7 @@ export function IdentityRegistrarComponent() {
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
     alertsStore.forEach(alert => {
-      delete alertsStore[alert.key]
+      removeAlert(alert.key)
     })
   }, [chainStore.id, accountStore.address])
 
