@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo, startTransition, useRef } fr
 import { Coins, AlertCircle, Bell } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
