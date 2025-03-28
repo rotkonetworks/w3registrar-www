@@ -536,9 +536,9 @@ export function IdentityRegistrarComponent() {
   //#endregion challenges
   
   const formatAmount = useFormatAmount({
-      tokenDecimals: chainStore.tokenDecimals,
-      symbol: chainStore.tokenSymbol
-    });
+    tokenDecimals: chainStore.tokenDecimals,
+    symbol: chainStore.tokenSymbol
+  });
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
