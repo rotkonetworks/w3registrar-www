@@ -24,7 +24,7 @@ export const AlertsAccordion = ({
 
   return (
     <div
-      className={`fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto ${className}`}
+      className={`fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto font-mono ${className}`}
     >
       <Accordion type="single" collapsible defaultValue="notifications">
         <AccordionItem value="notifications">
@@ -47,13 +47,13 @@ export const AlertsAccordion = ({
               >
                 <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
                 <AlertDescription className="flex justify-between items-center">
-                  {alert.message}
+                  <span className="font-mono">{alert.message}</span>
                   {alert.closable === true && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeAlert(alert.key)}
-                      className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+                      className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A] font-mono"
                     >
                       Dismiss
                     </Button>
