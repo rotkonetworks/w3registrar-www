@@ -8,7 +8,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
-import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps, AlertPropsOptionalKey } from '~/store/AlertStore'
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
@@ -47,6 +46,7 @@ import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { wait, formatAmount as formatAmountUtil } from "~/utils"
 import { useFormatAmount } from "~/hooks/useFormatAmount"
 import { errorMessages } from "~/utils/errorMessages"
+import { useAlerts } from "~/hooks/useAlerts"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -225,7 +225,9 @@ const MainContent = ({
 }
 
 export function IdentityRegistrarComponent() {
-  const alertsStore = useProxy(_alertsStore);
+  const {
+    alerts: alertsStore, add: addAlert, remove: removeAlert, clearAll: clearAllAlerts,
+  } = useAlerts();
   const { isDark, setDark } = useDarkMode()
 
   const identityStore = useProxy(_identityStore);
@@ -235,17 +237,6 @@ export function IdentityRegistrarComponent() {
   const accountStore = useProxy(_accountStore)
 
   const { urlParams, updateUrlParams } = useUrlParams()
-
-  //#region notifications
-  const addNotification = useCallback((alert: AlertPropsOptionalKey) => {
-    const key = (alert as AlertProps).key || (new Date()).toISOString();
-    pushAlert({ ...alert, key, closable: alert.closable ?? true });
-  }, [pushAlert])
-
-  const removeNotification = useCallback((key: string) => {
-    removeAlert(key)
-  }, [removeAlert])
-  //#endregion notifications
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
@@ -263,7 +254,7 @@ export function IdentityRegistrarComponent() {
       decodedAddress = decodeAddress(address); // Validate address as well
     } catch (error) {
       console.error("Error decoding address from URL:", error)
-      addNotification({
+      addAlert({
         type: "error",
         message: "Invalid address in URL. Could not decode",
         closable: false,
@@ -293,7 +284,7 @@ export function IdentityRegistrarComponent() {
 
   useEffect(() => {
     if (!connectedWallets.length) {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please connect a wallet so that you can choose an account and continue.",
         closable: false,
@@ -306,7 +297,7 @@ export function IdentityRegistrarComponent() {
   }, [connectedWallets.length])
   useEffect(() => {
     if (!urlParams.address) {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please pick an account that is registered in your wallets from account dropdown.",
         closable: false,
@@ -321,7 +312,7 @@ export function IdentityRegistrarComponent() {
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
     } else {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please pick an account that is registered in your wallets from account dropdown.",
         closable: false,
@@ -407,9 +398,7 @@ export function IdentityRegistrarComponent() {
   
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
-    alertsStore.forEach(alert => {
-      removeAlert(alert.key)
-    })
+    clearAllAlerts()
   }, [chainStore.id, accountStore.address])
 
   //#region chains
@@ -487,12 +476,12 @@ export function IdentityRegistrarComponent() {
       onEvent: async data => {
         const newIdentity = await fetchIdAndJudgement()
         if ((newIdentity as IdentityStore)?.status === verifyStatuses.IdentityVerified) {
-          addNotification({
+          addAlert({
             type: "info",
             message: "Judgement Given! Identity verified successfully. Congratulations!",
           })
         } else {
-          addNotification({
+          addAlert({
             type: "error",
             message: "Judgement Given! Identity not verified. Please remove it and try again.",
           })
@@ -526,7 +515,7 @@ export function IdentityRegistrarComponent() {
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
     identityStore: { info: identityStore.info, status: identityStore.status, },
-    addNotification,
+    addNotification: addAlert,
   });
   useEffect(() => {
     if (isChallengeWsConnected && identityStore.status === verifyStatuses.FeePaid) {
@@ -700,7 +689,7 @@ export function IdentityRegistrarComponent() {
     }
     if (isTxBusy) {
       reject(new Error("Transaction already in progress"))
-      addNotification({
+      addAlert({
         type: "error",
         message: "There is a transaction already in progress. Please wait for it to finish.",
       })
@@ -712,7 +701,7 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
-      addNotification({
+      addAlert({
         type: "error",
         message: "Unable to prepare transaction. Please try again in a moment.",
       })
@@ -752,7 +741,7 @@ export function IdentityRegistrarComponent() {
           ...result,
         };
         if (result.type === "broadcasted") {
-          addNotification({
+          addAlert({
             key: result.txHash,
             type: "loading",
             closable: false,
@@ -762,14 +751,14 @@ export function IdentityRegistrarComponent() {
         else if (_result.type === "txBestBlocksState") {
           if (_result.ok) {
             if (params.awaitFinalization) {
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "loading",
                 message: `Waiting for ${name.toLowerCase()} to finalize...`,
                 closable: false,
               })
             } else {
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
@@ -780,7 +769,7 @@ export function IdentityRegistrarComponent() {
           } else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "error",
                 message: `${name} failed: invalid transaction`,
@@ -793,7 +782,7 @@ export function IdentityRegistrarComponent() {
         else if (_result.type === "finalized") {
           // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
           if (!_result.ok) {
-            addNotification({
+            addAlert({
               key: _result.txHash,
               type: "error",
               message: `${name} failed`,
@@ -802,7 +791,7 @@ export function IdentityRegistrarComponent() {
             disposeSubscription(() => reject(new Error("Transaction failed")))
           } else {
             if (params.awaitFinalization) {
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
@@ -818,7 +807,7 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.error(error);
         if (error.message === "Cancelled") {
           if (import.meta.env.DEV) console.log("Cancelled");
-          addNotification({
+          addAlert({
             type: "error",
             message: `${name} transaction didn't get signed. Please sign it and try again`,
           })
@@ -842,7 +831,7 @@ export function IdentityRegistrarComponent() {
             const { type: pallet, value: { type: errorType } } = errorDetails;
             
             if (import.meta.env.DEV) console.log({ errorDetails });
-            addNotification({
+            addAlert({
               type: "error",
               message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
                 ?? `Error with ${name}: Please try again`
@@ -851,7 +840,7 @@ export function IdentityRegistrarComponent() {
             disposeSubscription(() => reject(error))
             return
           }
-          addNotification({
+          addAlert({
             type: "error",
             message: `Error with ${name}: ${error.message || "Please try again"}`,
           })
@@ -953,7 +942,7 @@ export function IdentityRegistrarComponent() {
     chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
-    addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
   //#region HelpDialog
@@ -991,7 +980,7 @@ export function IdentityRegistrarComponent() {
         })
       } catch (error) {
         if (import.meta.env.DEV) console.error(error)
-        addNotification({
+        addAlert({
           type: "error",
           message: "Error teleporting assets. Please try again.",
         })
@@ -1006,16 +995,16 @@ export function IdentityRegistrarComponent() {
         if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
           break
         }
-        addNotification({
+        addAlert({
           key: "awaitingAssets",
           type: "loading",
           message: "Waiting to receive transferred amount...",
           closable: false,
         })
       }
-      removeNotification("awaitingAssets")
+      removeAlert("awaitingAssets")
       if (awaitedBlocks === maxBlocksAwait) {
-        addNotification({
+        addAlert({
           type: "error",
           message: "Balance insufficient. It's not possible to set identity.",
         })
