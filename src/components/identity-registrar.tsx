@@ -54,7 +54,7 @@ const MemoStatusPage = memo(StatusPage)
 
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
+  chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
@@ -136,7 +136,7 @@ const MainContent = ({
   }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
 
   return <>
-    {alertsStore.size > 0 && 
+    {alerts.size > 0 && 
       <div
         className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
       >
@@ -145,12 +145,12 @@ const MainContent = ({
             <AccordionTrigger 
               className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
             >
-              <Bell className="h-6 w-6" /> {alertsStore.size}
+              <Bell className="h-6 w-6" /> {alerts.size}
             </AccordionTrigger>
             <AccordionContent
               className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
             >
-              {[...alertsStore.entries()].map(([, alert]) => (
+              {[...alerts.entries()].map(([, alert]) => (
                 <Alert
                   key={alert.key}
                   variant={alert.type === 'error' ? "destructive" : "default"}
@@ -226,7 +226,7 @@ const MainContent = ({
 
 export function IdentityRegistrarComponent() {
   const {
-    alerts: alertsStore, add: addAlert, remove: removeAlert, clearAll: clearAllAlerts,
+    alerts, add: addAlert, remove: removeAlert, clearAll: clearAllAlerts, size: alertsCount
   } = useAlerts();
   const { isDark, setDark } = useDarkMode()
 
@@ -939,7 +939,7 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
+    chainStore, typedApi, accountStore, identityStore, chainConstants, alerts: alerts,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
@@ -1093,6 +1093,52 @@ export function IdentityRegistrarComponent() {
         })()}
       </div>
     </div>
+
+    {/* Update alerts notification section */}
+    {alertsCount > 0 && 
+      <div
+        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
+      >
+        <Accordion type="single" collapsible defaultValue="notifications">
+          <AccordionItem value="notifications">
+            <AccordionTrigger 
+              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
+            >
+              <Bell className="h-6 w-6" /> {alertsCount}
+            </AccordionTrigger>
+            <AccordionContent
+              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
+            >
+              {alerts.map(([_, alert]) => (
+                <Alert
+                  key={alert.key}
+                  variant={alert.type === 'error' ? "destructive" : "default"}
+                  className={`mb-4 ${alert.type === 'error'
+                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
+                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
+                  }`}
+                >
+                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                  <AlertDescription className="flex justify-between items-center">
+                    {alert.message}
+                    {alert.closable === true && <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAlert(alert.key)}
+                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
+                      >
+                        Dismiss
+                      </Button>
+                    </>}
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
+    }
 
     <Dialog 
       open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 

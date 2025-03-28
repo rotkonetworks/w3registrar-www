@@ -22,7 +22,7 @@ export type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
   chainConstants,
-  alertsStore: Map<string, AlertProps>,
+  alerts: Map<string, AlertProps>,
   addNotification: any,
   formatAmount: any,
   supportedFields: string[],
