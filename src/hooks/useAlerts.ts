@@ -1,5 +1,16 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { AlertProps, AlertPropsOptionalKey } from '~/store/AlertStore';
+
+// Alert types moved from AlertStore.ts
+export interface AlertProps {
+  type: "success" | "error" | "info" | "loading";
+  title?: string;
+  message: string;
+  key: string;
+  closable?: boolean;
+  duration?: number;
+}
+
+export type AlertPropsOptionalKey = Omit<AlertProps, "key"> & { key?: string };
 
 /**
  * Hook for centralized alert management using React state
