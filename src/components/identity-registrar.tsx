@@ -10,7 +10,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { 
-  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, useWalletDisconnector 
+  useClient, useSpendableBalance, useTypedApi
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityFormData } from "./tabs/IdentityForm"
@@ -22,7 +22,6 @@ import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
 import Teleporter from "./dialogs/Teleporter"
-import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
@@ -45,6 +44,7 @@ import { errorMessages } from "~/utils/errorMessages"
 import { useAlerts } from "~/hooks/useAlerts"
 import { AlertsAccordion } from "./AlertsAccordion"
 import { MainContent } from "./MainContent"
+import { useWalletAccounts } from "~/hooks/useWalletAccounts"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -62,48 +62,17 @@ export function IdentityRegistrarComponent() {
 
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
-  //#region accounts
-  const accounts = useAccounts()
-  const displayedAccounts = useMemo(() => accounts.map(account => ({
-    ...account,
-    encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
-  })), [accounts, chainStore.ss58Format])
+  // Use our clean wallet accounts hook
+  const { 
+    accounts: displayedAccounts, 
+    getWalletAccount, 
+    connectedWallets,
+    disconnectAllWallets 
+  } = useWalletAccounts({
+    chainSs58Format: chainStore.ss58Format
+  });
 
-  const getWalletAccount = useCallback((address: SS58String) => {
-    let foundAccount: AccountData | null;
-    let decodedAddress: Uint8Array;
-    try {
-      decodedAddress = decodeAddress(address); // Validate address as well
-    } catch (error) {
-      console.error("Error decoding address from URL:", error)
-      addAlert({
-        type: "error",
-        message: "Invalid address in URL. Could not decode",
-        closable: false,
-        key: "invalidAddress",
-      })
-      return null;
-    }
-    foundAccount = accounts.find(account => {
-      const publicKey = account.polkadotSigner.publicKey;
-      return publicKey.every((byte, index) => byte === decodedAddress[index]);
-    });
-
-    if (!foundAccount) {
-      return null;
-    }
-
-    return {
-      name: foundAccount.name,
-      polkadotSigner: foundAccount.polkadotSigner,
-      address: address,
-      encodedAddress: encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format),
-    };
-  }, [accounts, chainStore.ss58Format]);
-
-  const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
-
+  // UI-specific account handling
   useEffect(() => {
     if (!connectedWallets.length) {
       addAlert({
@@ -116,7 +85,8 @@ export function IdentityRegistrarComponent() {
     } else {
       removeAlert("noConnectedWallets");
     }
-  }, [connectedWallets.length])
+  }, [connectedWallets.length, addAlert, removeAlert]);
+
   useEffect(() => {
     if (!urlParams.address) {
       addAlert({
@@ -141,15 +111,14 @@ export function IdentityRegistrarComponent() {
         key: "invalidAccount",
       })
     }
-  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount])
+  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert]);
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
     if (import.meta.env.DEV) console.log({ account });
     Object.assign(accountStore, account);
-    updateUrlParams({ ...urlParams, address,  })
-  }, [accountStore, urlParams]);
-  //#endregion accounts
+    updateUrlParams({ ...urlParams, address });
+  }, [accountStore, urlParams, updateUrlParams]);
 
   //#region identity
   const identityFormRef = useRef<{ reset: () => void, }>()
@@ -756,7 +725,7 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ accountAction })
         throw new Error("Invalid action type");
     }
-  }, [])
+  }, [updateAccount, _clearIdentity, openTxDialog, accountStore.address])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
@@ -839,9 +808,9 @@ export function IdentityRegistrarComponent() {
         await onIdentityClear()
         break
       case "disconnect":
-        connectedWallets.forEach(w => disconnectWallet(w))
-        Object.keys(accountStore).forEach((k) => delete accountStore[k])
-        updateUrlParams({ ...urlParams, address: null, })
+        disconnectAllWallets();
+        Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+        updateUrlParams({ ...urlParams, address: null });
         break
       case "setIdentity":
         await signSubmitAndWatch({
