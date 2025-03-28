@@ -69,7 +69,7 @@ export function IdentityRegistrarComponent() {
     encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
   })), [accounts, chainStore.ss58Format])
 
-  const getAccountData = useCallback((address: SS58String) => {
+  const getWalletAccount = useCallback((address: SS58String) => {
     let foundAccount: AccountData | null;
     let decodedAddress: Uint8Array;
     try {
@@ -127,7 +127,7 @@ export function IdentityRegistrarComponent() {
       })
       return;
     }
-    const accountData = getAccountData(urlParams.address);
+    const accountData = getWalletAccount(urlParams.address);
     if (import.meta.env.DEV) console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
@@ -141,7 +141,7 @@ export function IdentityRegistrarComponent() {
         key: "invalidAccount",
       })
     }
-  }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
+  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount])
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
@@ -426,7 +426,7 @@ export function IdentityRegistrarComponent() {
               value: {
                 // using  Binary.fromString() instead of fromBytes() which caused assets to go to 
                 //  the wrong address. 
-                id: Binary.fromBytes(getAccountData(accountStore.address).polkadotSigner.publicKey),
+                id: Binary.fromBytes(getWalletAccount(accountStore.address).polkadotSigner.publicKey),
               },
             },
           },
@@ -793,7 +793,7 @@ export function IdentityRegistrarComponent() {
       try {
         await signSubmitAndWatch({
           nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
-          signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
+          signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
           call: getTeleportCall({
             amount: minimunTeleportAmount,
