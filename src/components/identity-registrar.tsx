@@ -45,6 +45,7 @@ import { useAlerts } from "~/hooks/useAlerts"
 import { AlertsAccordion } from "./AlertsAccordion"
 import { MainContent } from "./MainContent"
 import { useWalletAccounts } from "~/hooks/useWalletAccounts"
+import { fetchIdentity } from "~/utils/fetchIdentity"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -125,57 +126,27 @@ export function IdentityRegistrarComponent() {
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ identityFormRef })
   }, [identityFormRef.current])
-  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiStorage)
-    .getValue(accountStore.address, { at: "best" })
-    .then((result) => {
-      if (import.meta.env.DEV) console.log({ identityOf: result });
-      if (result) {
-        // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
-        const identityOf = result[0] || result;
-        const identityData = Object.fromEntries(Object.entries(identityOf.info)
-          .filter(([_, value]: [never, IdentityData]) => value?.type?.startsWith("Raw"))
-          .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
-            (value.value as Binary).asText()
-          ])
-          // TODO Handle other formats, like Blake2_256, etc.
-        );
-        identityStore.deposit = identityOf.deposit
-        identityStore.info = identityData;
-        identityStore.status = verifyStatuses.IdentitySet;
-        const idJudgementOfId = identityOf.judgements;
-        const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
-          registrar: {
-            index: judgement[0],
-          },
-          state: judgement[1].type,
-          fee: judgement[1].value,
-        }));
-        if (judgementsData.length > 0) {
-          identityStore.judgements = judgementsData;
-          identityStore.status = verifyStatuses.JudgementRequested;
-        }
-        if (judgementsData.find(j => j.state === "FeePaid")) {
-          identityStore.status = verifyStatuses.FeePaid;
-        }
-        if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
-          identityStore.status = verifyStatuses.IdentityVerified;
-        }
-        const idDeposit = identityOf.deposit;
-        if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
-      } else {
-        identityStore.status = verifyStatuses.NoIdentity;
-        identityStore.info = null
-        identityStore.deposit = null
+
+  const fetchIdAndJudgement = useCallback(async () => {
+    try {
+      const identityInfo = await fetchIdentity(typedApi, accountStore.address);
+      
+      // Update the identity store with the fetched information
+      Object.assign(identityStore, identityInfo);
+      
+      if (identityFormRef.current) {
+        identityFormRef.current.reset();
       }
-      identityFormRef.current.reset()
-      return identityStore;
-    })
-    .catch(e => {
+      
+      return identityInfo;
+    } catch (error) {
       if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) console.error("Couldn't get identityOf.", e);
+        console.error("Error fetching identity info:", error);
       }
-    })
-  , [accountStore.address, typedApi]);
+      return null;
+    }
+  }, [accountStore.address, typedApi]);
+
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ typedApi, accountStore })
     identityStore.deposit = null;
@@ -266,7 +237,7 @@ export function IdentityRegistrarComponent() {
     "Identity.JudgementGiven": {
       onEvent: async data => {
         const newIdentity = await fetchIdAndJudgement()
-        if ((newIdentity as IdentityStore)?.status === verifyStatuses.IdentityVerified) {
+        if (newIdentity?.status === verifyStatuses.IdentityVerified) {
           addAlert({
             type: "info",
             message: "Judgement Given! Identity verified successfully. Congratulations!",
@@ -281,7 +252,7 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [])
+  }), [fetchIdAndJudgement, addAlert])
 
   const [pendingTx, setPendingTx] = useState<
     Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
