@@ -939,7 +939,7 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, alerts,
+    chainStore, typedApi, accountStore, identityStore, chainConstants, alerts: alerts as any,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
