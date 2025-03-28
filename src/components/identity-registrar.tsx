@@ -1,23 +1,20 @@
-import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle, Bell } from "lucide-react"
+import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
+import { Coins, AlertCircle, Bell } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
+import { chainStore as _chainStore } from '~/store/ChainStore'
 import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
+import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { 
   useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
-import { ChallengePage } from "./tabs/ChallengePage"
-import { StatusPage } from "./tabs/StatusPage"
+import { IdentityFormData } from "./tabs/IdentityForm"
 import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { Binary, HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
@@ -40,145 +37,15 @@ import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { Switch } from "./ui/switch"
 import { 
   DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
-  SignSubmitAndWatchParams, FormatAmountOptions, 
+  SignSubmitAndWatchParams, 
 } from "~/types"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
-import { wait, formatAmount as formatAmountUtil } from "~/utils"
+import { wait } from "~/utils"
 import { useFormatAmount } from "~/hooks/useFormatAmount"
 import { errorMessages } from "~/utils/errorMessages"
 import { useAlerts } from "~/hooks/useAlerts"
 import { AlertsAccordion } from "./AlertsAccordion"
-
-const MemoIdeitityForm = memo(IdentityForm)
-const MemoChallengesPage = memo(ChallengePage)
-const MemoStatusPage = memo(StatusPage)
-
-const MainContent = ({
-  identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-}: MainContentProps) => {
-  const tabs = [
-    {
-      id: "identityForm",
-      name: "Identity Form",
-      icon: <UserCircle className="h-5 w-5" />,
-      disabled: false,
-      content: <MemoIdeitityForm
-        ref={identityFormRef}
-        identityStore={identityStore}
-        chainStore={chainStore}
-        typedApi={typedApi}
-        accountStore={accountStore}
-        chainConstants={chainConstants}
-        supportedFields={supportedFields}
-        openTxDialog={openTxDialog}
-        isTxBusy={isTxBusy}
-      />
-    },
-    {
-      id: "challenges",
-      name: "Challenges",
-      icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.FeePaid,
-      content: <MemoChallengesPage
-        addNotification={addNotification}
-        challengeStore={challengeStore}
-      />
-    },
-    {
-      id: "status",
-      name: "Status",
-      icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.NoIdentity,
-      content: <MemoStatusPage
-        identityStore={identityStore}
-        challengeStore={challengeStore.challenges}
-        formatAmount={formatAmount}
-        onIdentityClear={() => setOpenDialog("clearIdentity")}
-        isTxBusy={isTxBusy}
-        chainName={chainStore.name?.replace(/ People/g, " ")}
-      />
-    },
-  ]
-  const enabledTabsIndexes = tabs
-    .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
-    .filter(tab => !tab.disabled)
-  
-  const [currentTabIndex, setCurrentTabIndex] = useState(0)
-    
-  useEffect(() => {
-    if (!urlParams) {
-      return;
-    }
-    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
-    if (tab && !tab.disabled) {
-      setCurrentTabIndex(tabs.indexOf(tab))
-    }
-  }, [urlParams.tab])
-  const changeCurrentTab = useCallback((index: number) => {
-    const tab = tabs[index];
-    updateUrlParams({ ...urlParams, tab: tab.id })
-    setCurrentTabIndex(index)
-  }, [urlParams, tabs, updateUrlParams])
-
-  const advanceToPrevTab = useCallback(() => {
-    const prevIndex = enabledTabsIndexes.slice().reverse()
-      .find(({ index }) => index < currentTabIndex)
-    if (prevIndex) {
-      changeCurrentTab(prevIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-  const advanceToNextTab = useCallback(() => {
-    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
-    if (nextIndex) {
-      changeCurrentTab(nextIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-
-  return <>
-    <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
-      <TabsList
-        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
-      >
-        {tabs.map((tab, index) => (
-          <TabsTrigger
-            key={index}
-            value={tab.name}
-            onClick={() => changeCurrentTab(index)}
-            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-            disabled={tab.disabled}
-          >
-            {tab.icon}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {tabs.map((tab, index) => (
-        <TabsContent key={index} value={tab.name} className="p-4">
-          {tab.content}
-        </TabsContent>
-      ))}
-    </Tabs>
-
-    <div className="flex justify-between mt-6">
-      <Button
-        variant="outline"
-        onClick={advanceToPrevTab}
-        disabled={enabledTabsIndexes.slice().reverse().findIndex(({ index }) => index < currentTabIndex) === -1}
-        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-      >
-        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-      </Button>
-      <Button
-        onClick={advanceToNextTab}
-        disabled={enabledTabsIndexes.findIndex(({ index }) => index > currentTabIndex) === -1}
-        className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-      >
-        Next <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
-    </div>
-  </>
-}
+import { MainContent } from "./MainContent"
 
 export function IdentityRegistrarComponent() {
   const {
