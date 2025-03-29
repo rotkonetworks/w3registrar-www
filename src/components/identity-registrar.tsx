@@ -7,7 +7,7 @@ import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore } from '~/store/ChainStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
+import { identityStore as _identityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { 
   useClient, useSpendableBalance, useTypedApi
@@ -45,7 +45,7 @@ import { useAlerts } from "~/hooks/useAlerts"
 import { AlertsAccordion } from "./AlertsAccordion"
 import { MainContent } from "./MainContent"
 import { useWalletAccounts } from "~/hooks/useWalletAccounts"
-import { fetchIdentity } from "~/utils/fetchIdentity"
+import { useIdentity } from "~/hooks/useIdentity"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -53,7 +53,6 @@ export function IdentityRegistrarComponent() {
   } = useAlerts();
   const { isDark, setDark } = useDarkMode()
 
-  const identityStore = useProxy(_identityStore);
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
 
@@ -123,40 +122,9 @@ export function IdentityRegistrarComponent() {
 
   //#region identity
   const identityFormRef = useRef<{ reset: () => void, }>()
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ identityFormRef })
-  }, [identityFormRef.current])
 
-  const fetchIdAndJudgement = useCallback(async () => {
-    try {
-      const identityInfo = await fetchIdentity(typedApi, accountStore.address);
-      
-      // Update the identity store with the fetched information
-      Object.assign(identityStore, identityInfo);
-      
-      if (identityFormRef.current) {
-        identityFormRef.current.reset();
-      }
-      
-      return identityInfo;
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error fetching identity info:", error);
-      }
-      return null;
-    }
-  }, [accountStore.address, typedApi]);
-
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ typedApi, accountStore })
-    identityStore.deposit = null;
-    identityStore.info = null
-    identityStore.status = verifyStatuses.Unknown;
-    if (accountStore.address) {
-      fetchIdAndJudgement();
-    }
-  }, [accountStore.address, fetchIdAndJudgement])
-  //#endregion identity
+  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
+  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
   
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
@@ -192,15 +160,11 @@ export function IdentityRegistrarComponent() {
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
   const [supportedFields, setSupportedFields] = useState<string[]>([])
   useEffect(() => {
-    (typedApi.query.Identity.Registrars as ApiStorage)
-      .getValue()
-      .then((result) => {
-        const fields = result[registrarIndex]?.fields
-        const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) -1)
-        setSupportedFields(_supportedFields)
-        if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result })
-      })
-  }, [chainStore.id, typedApi, registrarIndex])
+  
+  // Use the hook for core identity functionality
+  const { 
+    identityStore, fetchIdAndJudgement, prepareClearIdentityTx, 
+  } = useIdentity({ typedApi, address: accountStore.address, identityFormRef, });
   
   useEffect(() => {
     ((async () => {
@@ -617,14 +581,12 @@ export function IdentityRegistrarComponent() {
   }), [accountStore.polkadotSigner, isTxBusy])
   //#endregion Transactions
 
-
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     await signSubmitAndWatch({
-      call: _clearIdentity(),
+      call: prepareClearIdentityTx(),
       name: "Clear Identity"
     })
-  }, [_clearIdentity])
+  }, [prepareClearIdentityTx])
   
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
@@ -680,7 +642,7 @@ export function IdentityRegistrarComponent() {
         setOpenDialog("disconnect")
         break;
       case "RemoveIdentity":
-        const tx = _clearIdentity()
+        const tx = prepareClearIdentityTx()
         openTxDialog({
           mode: "clearIdentity",
           tx: tx,
@@ -696,7 +658,7 @@ export function IdentityRegistrarComponent() {
         if (import.meta.env.DEV) console.log({ accountAction })
         throw new Error("Invalid action type");
     }
-  }, [updateAccount, _clearIdentity, openTxDialog, accountStore.address])
+  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
