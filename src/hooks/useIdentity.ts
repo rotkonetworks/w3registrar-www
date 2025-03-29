@@ -39,7 +39,7 @@ export function useIdentity({ typedApi, address, }: {
       }
       return null;
     }
-  }, [address, typedApi, identityFormRef]);
+  });
 
   useEffect(() => {
     _setIdentity({ ..._blankIdentity });
