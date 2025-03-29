@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from "react";
-import { useProxy } from "valtio/utils";
-import { identityStore as _identityStore, verifyStatuses } from "~/store/IdentityStore";
+import { useCallback, useEffect, useState } from "react";
+import { IdentityStore, verifyStatuses } from "~/store/IdentityStore";
 import { TypedApi } from "polkadot-api";
 import { fetchIdentity } from "~/utils/fetchIdentity";
 import { SS58String } from "polkadot-api";
@@ -12,9 +11,16 @@ import { ChainId } from "@reactive-dot/core";
 export function useIdentity({ typedApi, address, identityFormRef, }: {
   typedApi: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String,
-  identityFormRef?: React.MutableRefObject<{ reset: () => void } | undefined>,
 }) {
-  const identityStore = useProxy(_identityStore);
+  // Please note _setIdentityStore is only for internal state management and does not set on-chain 
+  //  identity. if you're looking to set on-chain identity, see IdentityForm.tsx for the transaction
+  //  preparation methods.
+  const _blankIdentity = {
+    info: {},
+    judgements: [],
+    status: verifyStatuses.Unknown,
+  };
+  const [identity, _setIdentity] = useState<IdentityStore>(_blankIdentity);
 
   const fetchIdAndJudgement = useCallback(async () => {
     try {
@@ -37,9 +43,7 @@ export function useIdentity({ typedApi, address, identityFormRef, }: {
   }, [address, typedApi, identityFormRef]);
 
   useEffect(() => {
-    identityStore.deposit = null;
-    identityStore.info = null;
-    identityStore.status = verifyStatuses.Unknown;
+    _setIdentity({ ..._blankIdentity });
     
     if (address) {
       fetchIdAndJudgement();
@@ -60,7 +64,7 @@ export function useIdentity({ typedApi, address, identityFormRef, }: {
   }, [typedApi]);
 
   return {
-    identityStore,
+    identityStore: identity,
     fetchIdAndJudgement,
     prepareSetIdentityTx,
     prepareRequestJudgementTx,
