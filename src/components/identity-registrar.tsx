@@ -46,6 +46,7 @@ import { AlertsAccordion } from "./AlertsAccordion"
 import { MainContent } from "./MainContent"
 import { useWalletAccounts } from "~/hooks/useWalletAccounts"
 import { useIdentity } from "~/hooks/useIdentity"
+import { useSupportedFields } from "~/hooks/useSupportedFields"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -134,32 +135,8 @@ export function IdentityRegistrarComponent() {
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
 
-  const IdentityField = {
-    display: 1 << 0,
-    legal: 1 << 1,
-    web: 1 << 2,
-    matrix: 1 << 3,
-    email: 1 << 4,
-    pgp_fingerprint: 1 << 5,
-    image: 1 << 6,
-    twitter: 1 << 7,
-    github: 1 << 8,
-    discord: 1 << 9,
-  } as const;
-  const getSupportedFields = (bitfield: number): string[] => {
-    const result: string[] = [];
-    for (const key in IdentityField) {
-      if (bitfield & IdentityField[key as keyof typeof IdentityField]) {
-        result.push(key);
-      }
-    }
-    return result;
-  }
-
-  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
-  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
-  const [supportedFields, setSupportedFields] = useState<string[]>([])
-  useEffect(() => {
+  // Use the new hook for supported fields
+  const supportedFields = useSupportedFields({ typedApi, registrarIndex, });
   
   // Use the hook for core identity functionality
   const { 
