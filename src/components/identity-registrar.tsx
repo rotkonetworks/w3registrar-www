@@ -556,7 +556,7 @@ export function IdentityRegistrarComponent() {
         disposeSubscription()
       }
     })
-  }), [accountStore.polkadotSigner, isTxBusy])
+  }), [accountStore.polkadotSigner, isTxBusy, fetchIdAndJudgement])
   //#endregion Transactions
 
   const onIdentityClear = useCallback(async () => {
