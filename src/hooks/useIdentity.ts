@@ -8,7 +8,7 @@ import { IdentityFormData } from "~/components/tabs/IdentityForm";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { ChainId } from "@reactive-dot/core";
 
-export function useIdentity({ typedApi, address, identityFormRef, }: {
+export function useIdentity({ typedApi, address, }: {
   typedApi: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String,
 }) {
@@ -22,16 +22,15 @@ export function useIdentity({ typedApi, address, identityFormRef, }: {
   };
   const [identity, _setIdentity] = useState<IdentityStore>(_blankIdentity);
 
-  const fetchIdAndJudgement = useCallback(async () => {
+  const fetchIdAndJudgement = (async () => {
     try {
       const identityInfo = await fetchIdentity(typedApi, address);
+      console.log({ identityInfo });
       
+      const newIdentity = { ..._blankIdentity };
       // Update the identity store with the fetched information
-      Object.assign(identityStore, identityInfo);
-      
-      if (identityFormRef?.current) {
-        identityFormRef.current.reset();
-      }
+      Object.assign(newIdentity, identityInfo);
+      _setIdentity(newIdentity);
       
       return identityInfo;
     } catch (error) {
