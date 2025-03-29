@@ -13,7 +13,7 @@ import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { DiscordIcon } from '~/assets/icons/discord'
-import { OpenTxDialogArgs } from '../identity-registrar'
+import { OpenTxDialogArgs } from '~/types'
 
 export type IdentityFormData = Record<string, {
   value: string
