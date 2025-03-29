@@ -44,10 +44,10 @@ export function useIdentity({ typedApi, address, }: {
   useEffect(() => {
     _setIdentity({ ..._blankIdentity });
     
-    if (address) {
+    if (address && typedApi) {
       fetchIdAndJudgement();
     }
-  }, [address, fetchIdAndJudgement]);
+  }, [address, typedApi]);
 
   // Transaction preparation methods
   const prepareSetIdentityTx = useCallback((identityData: IdentityFormData): ApiTx => {
