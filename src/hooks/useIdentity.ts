@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { IdentityStore, verifyStatuses } from "~/types/Identity";
+import { Identity, verifyStatuses } from "~/types/Identity";
 import { TypedApi } from "polkadot-api";
 import { fetchIdentity } from "~/utils/fetchIdentity";
 import { SS58String } from "polkadot-api";
@@ -12,7 +12,7 @@ export function useIdentity({ typedApi, address, }: {
   typedApi: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String,
 }) {
-  // Please note _setIdentityStore is only for internal state management and does not set on-chain 
+  // Please note _setIdentity is only for internal state management and does not set on-chain 
   //  identity. if you're looking to set on-chain identity, see IdentityForm.tsx for the transaction
   //  preparation methods.
   const _blankIdentity = {
@@ -20,7 +20,7 @@ export function useIdentity({ typedApi, address, }: {
     judgements: [],
     status: verifyStatuses.Unknown,
   };
-  const [identity, _setIdentity] = useState<IdentityStore>(_blankIdentity);
+  const [identity, _setIdentity] = useState<Identity>(_blankIdentity);
 
   const fetchIdAndJudgement = (async () => {
     try {
@@ -62,8 +62,8 @@ export function useIdentity({ typedApi, address, }: {
     return typedApi.tx.Identity.clear_identity({});
   }, [typedApi]);
 
-  return {
-    identityStore: identity,
+  return { 
+    identity,
     fetchIdAndJudgement,
     prepareSetIdentityTx,
     prepareRequestJudgementTx,

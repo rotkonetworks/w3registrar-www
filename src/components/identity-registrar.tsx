@@ -138,11 +138,11 @@ export function IdentityRegistrarComponent() {
   
   // Use the hook for core identity functionality
   const { 
-    identityStore, fetchIdAndJudgement, prepareClearIdentityTx, 
+    identity, fetchIdAndJudgement, prepareClearIdentityTx, 
   } = useIdentity({ typedApi, address: accountStore.address, });
   useEffect(() => {
     identityFormRef.current?.reset()
-  }, [identityStore])
+  }, [identity])
   
   useEffect(() => {
     ((async () => {
@@ -218,11 +218,11 @@ export function IdentityRegistrarComponent() {
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
-    identityStore: { info: identityStore.info, status: identityStore.status, },
+    identity: { info: identity.info, status: identity.status, },
     addNotification: addAlert,
   });
   useEffect(() => {
-    if (isChallengeWsConnected && identityStore.status === verifyStatuses.FeePaid) {
+    if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
       subscribeToChallenges()
     }
   }, [isChallengeWsConnected])
@@ -641,7 +641,7 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, alerts: alerts as any,
+    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
@@ -751,7 +751,7 @@ export function IdentityRegistrarComponent() {
     >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} identityStore={identityStore} 
+          onAccountSelect={onAccountSelect} identity={identity} 
           onRequestWalletConnections={onRequestWalletConnection}
           accountStore={{
             address: accountStore.encodedAddress,
@@ -775,7 +775,7 @@ export function IdentityRegistrarComponent() {
             return <MainContent {...mainProps} />;
           }
 
-          if (identityStore.status === verifyStatuses.Unknown) {
+          if (identity.status === verifyStatuses.Unknown) {
             return (
               <div className="w-full flex flex-grow flex-col flex-stretch">
                 <LoadingTabs />
@@ -845,7 +845,7 @@ export function IdentityRegistrarComponent() {
                 <li>All identity data will be deleted from chain..</li>
                 <li>You will have to set identity again.</li>
                 <li>You will lose verification status.</li>
-                <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+                <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
               </>)}
               {openDialog === "disconnect" && (<>
                 <li>No data will be removed on chain.</li>
@@ -854,7 +854,7 @@ export function IdentityRegistrarComponent() {
               {openDialog === "setIdentity" && (<>
                 <li>Identity data will be set on chain.</li>
                 <li>
-                  Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                  Deposit of {formatAmount(identity.deposit)} will be taken, which will be 
                   released if you clear your identity.
                 </li>
               </>)}

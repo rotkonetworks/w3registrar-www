@@ -114,12 +114,12 @@ interface UseIdentityWebSocketReturn {
 }
 
 const useChallengeWebSocketWrapper = ({ 
-  url, address, network, identityStore, addNotification
+  url, address, network, identity, addNotification
 }: {
   url: string;
   address: SS58String;
   network: string;
-  identityStore: { info: IdentityInfo, status: verifyStatuses };
+  identity: { info: IdentityInfo, status: verifyStatuses };
   addNotification: (alert: AlertPropsOptionalKey) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
@@ -131,7 +131,7 @@ const useChallengeWebSocketWrapper = ({
   const { challengeState, error, isConnected, } = challengeWebSocket
 
   const [challenges, setChallenges] = useState<ChallengeStore>({});
-  const idWsDeps = [challengeState, error, address, identityStore.info, network]
+  const idWsDeps = [challengeState, error, address, identity.info, network]
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ idWsDeps })
     if (error) {
@@ -154,7 +154,7 @@ const useChallengeWebSocketWrapper = ({
         .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
           let status;
-          if (identityStore.status === verifyStatuses.IdentityVerified) {
+          if (identity.status === verifyStatuses.IdentityVerified) {
             status = ChallengeStatus.Passed;
           } else {
             status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;

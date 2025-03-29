@@ -52,7 +52,7 @@ export interface Judgement {
   fee: bigint;
 }
 
-export interface IdentityStore {
+export interface Identity {
   info?: IdentityInfo;
   judgements?: Judgement[];
   status: verifyStatuses;

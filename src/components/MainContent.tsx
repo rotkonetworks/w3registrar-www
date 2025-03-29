@@ -15,7 +15,7 @@ const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
 export const MainContent = ({
-  identityStore, challengeStore, chainStore, typedApi, accountStore,
+  identity, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
@@ -27,7 +27,7 @@ export const MainContent = ({
       disabled: false,
       content: <MemoIdeitityForm
         ref={identityFormRef}
-        identityStore={identityStore}
+        identity={identity}
         chainStore={chainStore}
         typedApi={typedApi}
         accountStore={accountStore}
@@ -41,7 +41,7 @@ export const MainContent = ({
       id: "challenges",
       name: "Challenges",
       icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.FeePaid,
+      disabled: identity.status < verifyStatuses.FeePaid,
       content: <MemoChallengesPage
         addNotification={addNotification}
         challengeStore={challengeStore}
@@ -51,9 +51,9 @@ export const MainContent = ({
       id: "status",
       name: "Status",
       icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.NoIdentity,
+      disabled: identity.status < verifyStatuses.NoIdentity,
       content: <MemoStatusPage
-        identityStore={identityStore}
+        identity={identity}
         challengeStore={challengeStore.challenges}
         formatAmount={formatAmount}
         onIdentityClear={() => setOpenDialog("clearIdentity")}
