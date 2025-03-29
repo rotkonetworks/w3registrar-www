@@ -139,7 +139,10 @@ export function IdentityRegistrarComponent() {
   // Use the hook for core identity functionality
   const { 
     identityStore, fetchIdAndJudgement, prepareClearIdentityTx, 
-  } = useIdentity({ typedApi, address: accountStore.address, identityFormRef, });
+  } = useIdentity({ typedApi, address: accountStore.address, });
+  useEffect(() => {
+    identityFormRef.current?.reset()
+  }, [identityStore])
   
   useEffect(() => {
     ((async () => {
