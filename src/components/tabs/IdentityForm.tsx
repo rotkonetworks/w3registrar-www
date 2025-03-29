@@ -226,16 +226,17 @@ export const IdentityForm = forwardRef((
     "discord", 
   ]
 
-  const _resetFromIdStore = useCallback((identityStoreInfo) => (
-    {...(Object.entries(identityFormFields).reduce((all, [key]) => {
-      all[key] = {
-        value: identityStore.info![key] || "",
-        error: null,
-      }
-      return all
-    }, { })
-    )}
-  ), [])
+  const _resetFromIdStore = useCallback((identityInfo) => (
+    {
+      ..._reset(),
+      ...(Object.entries(identityInfo).reduce((all, [key]) => {
+        all[key] = {
+          value: identityInfo![key],
+          error: null,
+        }
+        return all
+      }, { }))
+  }), [])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
@@ -245,7 +246,7 @@ export const IdentityForm = forwardRef((
     setFormResetFlag(false)
     if (identityStore.info) {
       if (import.meta.env.DEV) console.log({ identityStore })
-      setFormData(() => _resetFromIdStore(identityStore))
+      setFormData(() => _resetFromIdStore(identityStore.info))
     } else {
       setFormData(_reset)
     }
