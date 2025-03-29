@@ -43,7 +43,7 @@ export const IdentityForm = forwardRef((
   ref: Ref<unknown> & { reset: () => void },
 ) => {
   const _reset = useCallback(() => Object.fromEntries(
-    ['display', 'matrix', 'email', 'discord', 'twitter', 'web'].map(key => [
+    supportedFields.map(key => [
       key,
       { value: "", error: null }
     ])
