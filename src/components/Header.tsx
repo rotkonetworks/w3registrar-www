@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ApiConfig } from "~/api/config";
 import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
-import { IdentityStore } from "~/store/IdentityStore";
+import { IdentityStore } from "~/types/Identity";
 import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
 import { Chains } from "@reactive-dot/core/internal.js";

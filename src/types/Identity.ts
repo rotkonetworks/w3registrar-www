@@ -1,6 +1,5 @@
 import { IdentityData, IdentityJudgement } from "@polkadot-api/descriptors";
 import { Binary, FixedSizeBinary, SS58String, StorageDescriptor } from "polkadot-api";
-import { proxy } from "valtio";
 
 export interface IdentityInfo {
   discord?: string;

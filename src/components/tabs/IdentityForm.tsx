@@ -1,5 +1,5 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
+import { IdentityStore, verifyStatuses } from '~/types/Identity'
 import { UserCircle, AtSign, Mail, CheckCircle, Globe, Fingerprint, Github, Image, IdCard, XIcon } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"

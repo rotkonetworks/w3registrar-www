@@ -7,7 +7,7 @@ import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
 import { chainStore as _chainStore } from '~/store/ChainStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, verifyStatuses } from "~/store/IdentityStore"
+import { verifyStatuses } from "~/types/Identity"
 import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { 
   useClient, useSpendableBalance, useTypedApi

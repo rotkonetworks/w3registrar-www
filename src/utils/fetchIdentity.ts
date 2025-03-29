@@ -1,7 +1,7 @@
 import { Binary, SS58String, TypedApi } from "polkadot-api";
 import { ApiStorage } from "~/types/api";
 import { IdentityData } from "@polkadot-api/descriptors";
-import { verifyStatuses } from "~/store/IdentityStore";
+import { verifyStatuses } from "~/types/Identity";
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 

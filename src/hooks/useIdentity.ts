@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { IdentityStore, verifyStatuses } from "~/store/IdentityStore";
+import { IdentityStore, verifyStatuses } from "~/types/Identity";
 import { TypedApi } from "polkadot-api";
 import { fetchIdentity } from "~/utils/fetchIdentity";
 import { SS58String } from "polkadot-api";

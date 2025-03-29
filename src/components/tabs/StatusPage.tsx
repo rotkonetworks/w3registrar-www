@@ -1,5 +1,5 @@
 import { Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
+import { IdentityStore, verifyStatuses } from "~/types/Identity"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

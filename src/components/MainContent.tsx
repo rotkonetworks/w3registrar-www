@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { IdentityForm } from "./tabs/IdentityForm"
 import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
-import { verifyStatuses } from "~/store/IdentityStore"
+import { verifyStatuses } from "~/types/Identity"
 import { MainContentProps } from "~/types"
 
 const MemoIdeitityForm = memo(IdentityForm)
