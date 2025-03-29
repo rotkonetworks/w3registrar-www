@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
-import { Coins, AlertCircle, Bell } from "lucide-react"
+import { Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
@@ -13,11 +13,9 @@ import {
   useClient, useSpendableBalance, useTypedApi
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { IdentityFormData } from "./tabs/IdentityForm"
-import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
 import { Binary, HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
-import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
+import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
@@ -27,7 +25,7 @@ import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
+import { ApiRuntimeCall, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
