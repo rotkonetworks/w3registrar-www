@@ -60,10 +60,3 @@ export interface IdentityStore {
   hash?: Uint16Array;
   deposit?: bigint;
 }
-
-export const identityStore = proxy<IdentityStore>({
-  status: verifyStatuses.Unknown,
-});
-export const updateIdentity = (info: IdentityInfo) => {
-  identityStore.info = info
-}
