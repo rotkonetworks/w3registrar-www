@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
-import { AlertPropsOptionalKey } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
@@ -13,6 +12,7 @@ import { DiscordIcon } from "~/assets/icons/discord"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { HelpCarousel } from "~/help/helpCarousel"
 import { SOCIAL_ICONS } from "~/assets/icons"
+import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 
 export function ChallengePage({
   addNotification,
