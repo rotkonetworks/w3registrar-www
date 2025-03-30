@@ -45,6 +45,7 @@ import { MainContent } from "./MainContent"
 import { useWalletAccounts } from "~/hooks/useWalletAccounts"
 import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
+import { useXcmParameters } from "~/hooks/useXcmParameters"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -239,21 +240,6 @@ export function IdentityRegistrarComponent() {
   }, [isTxBusy])
 
   //#region TeleportAccordion
-  const xcmParams = useProxy(_xcmParams)
-
-  const relayChainId = useMemo<keyof Chains>(
-    () => (chainStore.id as string).replace("_people", "") as keyof Chains,
-    [chainStore.id]
-  )
-  const relayAndParachains = Object.entries(config.chains)
-    .filter(([id]) => id.includes(relayChainId) && id !== chainStore.id)
-    .map(([id, chain]) => ({ id, name: chain.name }))
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ relayChainId, relayAndParachains });
-    xcmParams.fromChain.id = relayChainId
-  }, [relayChainId, relayAndParachains])
-  const fromTypedApi = useTypedApi({ chainId: xcmParams.fromChain.id || relayChainId as ChainId })
-  
   const _getParachainId = async (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
     if (typedApi) {
       try {
@@ -265,105 +251,7 @@ export function IdentityRegistrarComponent() {
       }
     }
   }
-
-  useEffect(() => {
-    if (fromTypedApi) {
-      _getParachainId(fromTypedApi).then(id => {
-        xcmParams.fromChain.paraId = id
-      })
-    }
-  }, [fromTypedApi])
-  const [parachainId, setParachainId] = useState<number>()
-  useEffect(() => {
-    if (typedApi) {
-      _getParachainId(typedApi).then(id => {
-        setParachainId(id)
-      })
-    }
-  }, [typedApi])
-
-  const getTeleportCall = useCallback(({amount}: { amount: BigNumber }) => {
-    const txArguments = ({
-      dest: {
-        type: "V3",
-        value: {
-          // TODO Add support for other parachains
-          interior: {
-            type: "X1",
-            value: {
-              type: "Parachain",
-              value: parachainId,
-            }
-          },
-          parents: 0,
-        },
-      },
-      beneficiary: {
-        type: "V3",
-        value: {
-          interior: {
-            type: "X1",
-            value: {
-              type: "AccountId32",
-              value: {
-                // using  Binary.fromString() instead of fromBytes() which caused assets to go to 
-                //  the wrong address. 
-                id: Binary.fromBytes(getWalletAccount(accountStore.address).polkadotSigner.publicKey),
-              },
-            },
-          },
-          parents: 0
-        }
-      },
-      assets: {
-        type: "V3",
-        value: [{
-          fun: {
-            type: "Fungible",
-            value: BigInt(amount.toString())
-          },
-          id: {
-            type: "Concrete",
-            value: xcmParams.fromChain.paraId
-              ?{
-                interior: {
-                  type: "X1",
-                  value: xcmParams.fromChain.paraId,
-                },
-                parents: 1,
-              }
-              : {
-                interior: {
-                  type: "Here",
-                  value: null
-                },
-                parents: 0,
-              }
-            ,
-          }
-        }]
-      },
-      fee_asset_index: 0,
-      weight_limit: {
-        type: "Unlimited",
-        value: null,
-      }
-    })
-    if (import.meta.env.DEV) console.log({ txArguments })
-
-    return fromTypedApi.tx.XcmPallet.limited_teleport_assets(txArguments)
-  }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
   //#endregion TeleportAccordion
-
-  //#region Balances
-  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
-  const fromBalance = BigNumber(useSpendableBalance(
-    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
-  ).planck.toString())
-  const balance = BigNumber(useSpendableBalance(
-    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
-  ).planck.toString())
-  //#endregion Balances
 
   //#region Transactions
   const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
@@ -572,97 +460,55 @@ export function IdentityRegistrarComponent() {
   const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
   
-  const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
-  
-  //region TeleportAccordion
-  const teleportExpanded = xcmParams.enabled
-  const setTeleportExpanded = (nextState: boolean) => {
-    xcmParams.enabled = nextState
-  }
+  // Use our new hook for XCM parameters
+  const { 
+    xcmParams, 
+    relayChainId, 
+    relayAndParachains, 
+    fromTypedApi, 
+    getTeleportCall, 
+    getParachainId,
+    teleportExpanded, 
+    setTeleportExpanded 
+  } = useXcmParameters({
+    chainId: chainStore.id,
+    accountAddress: accountStore.address,
+    estimatedCosts
+  });
 
+  const [parachainId, setParachainId] = useState<number>()
   useEffect(() => {
-    xcmParams.txTotalCost = BigNumber(Object.values(estimatedCosts)
-      .reduce(
-        (total, current) => BigNumber(total as BigNumber).plus(BigNumber(current as BigNumber)), 
-        0n
-      )
-      .toString()
-    ).times(1.1)
-  }, [estimatedCosts])
-  //#endregion TeleportAccordion
-
-  const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
-    if (import.meta.env.DEV) console.log({ args })
-    if (args.mode) {
-      setOpenDialog(args.mode)
-      setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
-      setTxToConfirm((args as OpenTxDialogArgs_modeSet).tx)
-    } else {
-      setOpenDialog(null)
-      setEstimatedCosts({})
-      setTxToConfirm(null)
-      xcmParams.enabled = false
+    if (typedApi) {
+      getParachainId(typedApi).then(id => {
+        if (id !== null) {
+          setParachainId(id)
+        }
+      })
     }
-  }, [])
-  const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
+  }, [typedApi, getParachainId])
 
-  const handleOpenChange = useCallback((nextState: boolean): void => {
-    setOpenDialog(previousState => nextState ? previousState : null)
-  }, [])
+  //#region Balances
+  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
+  const fromBalance = BigNumber(useSpendableBalance(
+    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
+  ).planck.toString())
+  const balance = BigNumber(useSpendableBalance(
+    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
+  ).planck.toString())
+  //#endregion Balances
 
-  const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue: accountAction })
-    switch (accountAction.type) {
-      case "Wallets":
-        setWalletDialogOpen(true);
-        break;
-      case "Disconnect":
-        setOpenDialog("disconnect")
-        break;
-      case "RemoveIdentity":
-        const tx = prepareClearIdentityTx()
-        openTxDialog({
-          mode: "clearIdentity",
-          tx: tx,
-          estimatedCosts: {
-            fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
-          },
-        })
-        break;
-      case "account":
-        updateAccount({ ...accountAction.account });
-        break;
-      default:
-        if (import.meta.env.DEV) console.log({ accountAction })
-        throw new Error("Invalid action type");
-    }
-  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
-
-  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
-
-  const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
-    challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
-    supportedFields,
-    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-  }
-
-  //#region HelpDialog
-  const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
-  const [helpSlideIndex, setHelpSlideIndex] = useState(0)
-  //#endregion HelpDialog  
+  const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
   
   const hasEnoughBalance = useMemo(
     () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
-    [balance, chainConstants.existentialDeposit]
+    [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]
   )
   const minimunTeleportAmount = useMemo(() => {
     const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
     return hasEnoughBalance 
       ? calculatedTeleportAmount 
       : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
-  }, [xcmParams.txTotalCost])
-  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
+  }, [xcmParams.txTotalCost, hasEnoughBalance, chainConstants.existentialDeposit])
 
   const balanceRef = useRef(balance)
   useEffect(() => {
@@ -677,6 +523,10 @@ export function IdentityRegistrarComponent() {
           awaitFinalization: true,
           call: getTeleportCall({
             amount: minimunTeleportAmount,
+            fromApi: fromTypedApi,
+            toAddress: accountStore.address,
+            signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+            parachainId
           }),
           name: "Teleport Assets"
         })
@@ -740,6 +590,69 @@ export function IdentityRegistrarComponent() {
     }
     closeTxDialog()
   }
+
+  const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
+    if (import.meta.env.DEV) console.log({ args })
+    if (args.mode) {
+      setOpenDialog(args.mode)
+      setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
+      setTxToConfirm((args as OpenTxDialogArgs_modeSet).tx)
+    } else {
+      setOpenDialog(null)
+      setEstimatedCosts({})
+      setTxToConfirm(null)
+      xcmParams.enabled = false
+    }
+  }, [])
+  const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
+
+  const handleOpenChange = useCallback((nextState: boolean): void => {
+    setOpenDialog(previousState => nextState ? previousState : null)
+  }, [])
+
+  const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
+    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    switch (accountAction.type) {
+      case "Wallets":
+        setWalletDialogOpen(true);
+        break;
+      case "Disconnect":
+        setOpenDialog("disconnect")
+        break;
+      case "RemoveIdentity":
+        const tx = prepareClearIdentityTx()
+        openTxDialog({
+          mode: "clearIdentity",
+          tx: tx,
+          estimatedCosts: {
+            fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
+          },
+        })
+        break;
+      case "account":
+        updateAccount({ ...accountAction.account });
+        break;
+      default:
+        if (import.meta.env.DEV) console.log({ accountAction })
+        throw new Error("Invalid action type");
+    }
+  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
+
+  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+
+  const mainProps: MainContentProps = { 
+    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
+    challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
+    supportedFields,
+    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+  }
+
+  //#region HelpDialog
+  const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
+  const [helpSlideIndex, setHelpSlideIndex] = useState(0)
+  //#endregion HelpDialog  
+  
+  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
