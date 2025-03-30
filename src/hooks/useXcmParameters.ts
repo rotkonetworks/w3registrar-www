@@ -8,6 +8,7 @@ import { ChainId, } from "@reactive-dot/core";
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters";
 import { config } from "~/api/config";
 import { AccountData } from "~/store/AccountStore";
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
 
 interface UseXcmParametersOptions {
   chainId: string | number | symbol;
