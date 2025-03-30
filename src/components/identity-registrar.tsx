@@ -239,20 +239,6 @@ export function IdentityRegistrarComponent() {
     if (import.meta.env.DEV) console.log({ isTxBusy })
   }, [isTxBusy])
 
-  //#region TeleportAccordion
-  const _getParachainId = async (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
-    if (typedApi) {
-      try {
-        const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
-        if (import.meta.env.DEV) console.log({ paraId })
-        return paraId
-      } catch (error) {
-        if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
-      }
-    }
-  }
-  //#endregion TeleportAccordion
-
   //#region Transactions
   const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
     try {
