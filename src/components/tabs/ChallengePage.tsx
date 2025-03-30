@@ -115,7 +115,7 @@ export function ChallengePage({
   }
 
 
-  if (challengeStore.error) {
+  if (challengeStore.error && noChallenges === 0) {
     return (
       <Alert
         key={"challengeError"}
