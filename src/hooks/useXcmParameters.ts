@@ -74,9 +74,9 @@ export function useXcmParameters({
   useEffect(() => {
     const totalCost = Object.values(estimatedCosts)
       .reduce(
-        (total, current) => BigNumber(total).plus(BigNumber(current.toString())), 
+        (total: BigNumber, current: BigNumber) => BigNumber(total).plus(BigNumber(current.toString())), 
         BigNumber(0)
-      );
+      ) as BigNumber;
     xcmParams.txTotalCost = totalCost.times(1.1);
   }, [estimatedCosts]);
 
