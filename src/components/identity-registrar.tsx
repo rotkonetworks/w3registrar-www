@@ -463,7 +463,6 @@ export function IdentityRegistrarComponent() {
   // Use our new hook for XCM parameters
   const { 
     xcmParams, 
-    relayChainId, 
     relayAndParachains, 
     fromTypedApi, 
     getTeleportCall, 
@@ -472,7 +471,6 @@ export function IdentityRegistrarComponent() {
     setTeleportExpanded 
   } = useXcmParameters({
     chainId: chainStore.id,
-    accountAddress: accountStore.address,
     estimatedCosts
   });
 
@@ -524,7 +522,6 @@ export function IdentityRegistrarComponent() {
           call: getTeleportCall({
             amount: minimunTeleportAmount,
             fromApi: fromTypedApi,
-            toAddress: accountStore.address,
             signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
             parachainId
           }),

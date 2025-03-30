@@ -2,22 +2,20 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useProxy } from "valtio/utils";
 import BigNumber from "bignumber.js";
 import { TypedApi } from "polkadot-api";
-import { Binary, HexString, SS58String } from "polkadot-api";
+import { Binary } from "polkadot-api";
 import { useTypedApi } from "@reactive-dot/react";
-import { ChainId, Chains, ChainDescriptorOf } from "@reactive-dot/core";
+import { ChainId, } from "@reactive-dot/core";
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters";
 import { config } from "~/api/config";
 import { AccountData } from "~/store/AccountStore";
 
 interface UseXcmParametersOptions {
   chainId: string | number | symbol;
-  accountAddress?: SS58String;
   estimatedCosts?: Record<string, BigNumber | bigint>;
 }
 
 export function useXcmParameters({
   chainId,
-  accountAddress,
   estimatedCosts = {},
 }: UseXcmParametersOptions) {
   const xcmParams = useProxy(_xcmParams);
@@ -86,13 +84,11 @@ export function useXcmParameters({
   const getTeleportCall = useCallback(({
     amount, 
     fromApi, 
-    toAddress, 
     signer, 
     parachainId
   }: { 
     amount: BigNumber; 
     fromApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
-    toAddress: SS58String;
     signer: AccountData['polkadotSigner'];
     parachainId?: number;
   }) => {
