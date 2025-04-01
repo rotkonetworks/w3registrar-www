@@ -1,8 +1,8 @@
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { AlertPropsOptionalKey } from '~/store/AlertStore';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
-import { IdentityFormData, verifyStatuses } from '~/store/IdentityStore';
+import { IdentityInfo, verifyStatuses } from '~/types/Identity';
+import { AlertPropsOptionalKey } from './useAlerts';
 
 // Types matching your Rust backend
 type Data = {
@@ -10,8 +10,7 @@ type Data = {
   value?: Uint8Array | [number, number, number, number];
 };
 
-// FIX Confllicts with IdentityFormData
-interface IdentityInfo {
+export interface IdentityRawData {
   display: Data;
   legal: Data;
   web: Data;
@@ -114,13 +113,11 @@ interface UseIdentityWebSocketReturn {
   disconnect: () => void;
 }
 
-const useChallengeWebSocketWrapper = ({ 
-  url, address, network, identityStore, addNotification
-}: {
+const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNotification, }: {
   url: string;
   address: SS58String;
   network: string;
-  identityStore: { info: IdentityFormData, status: verifyStatuses };
+  identity: { info: IdentityInfo, status: verifyStatuses };
   addNotification: (alert: AlertPropsOptionalKey) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
@@ -132,7 +129,11 @@ const useChallengeWebSocketWrapper = ({
   const { challengeState, error, isConnected, } = challengeWebSocket
 
   const [challenges, setChallenges] = useState<ChallengeStore>({});
-  const idWsDeps = [challengeState, error, address, identityStore.info, network]
+  useEffect(() => {
+    setChallenges({}) 
+  }, [url, address, network])
+
+  const idWsDeps = [challengeState, error, address, identity.info, network]
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ idWsDeps })
     if (error) {
@@ -155,7 +156,7 @@ const useChallengeWebSocketWrapper = ({
         .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
           let status;
-          if (identityStore.status === verifyStatuses.IdentityVerified) {
+          if (identity.status === verifyStatuses.IdentityVerified) {
             status = ChallengeStatus.Passed;
           } else {
             status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;

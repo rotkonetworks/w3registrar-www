@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
-import { AlertPropsOptionalKey } from "~/store/AlertStore"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
@@ -12,16 +11,16 @@ import { XIcon } from "~/assets/icons/x"
 import { DiscordIcon } from "~/assets/icons/discord"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { HelpCarousel } from "~/help/helpCarousel"
+import { SOCIAL_ICONS } from "~/assets/icons"
+import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 
 export function ChallengePage({
   addNotification,
-  // TODO Add status as in IdentityInfo
   challengeStore,
 }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
   challengeStore: { challenges: ChallengeStore, error: string | null };
 }) {
-  const [pendingFields, setPendingFields] = useState<Record<string, boolean>>({})
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
@@ -83,22 +82,7 @@ export function ChallengePage({
   }
 
   const getIcon = (field: string) => {
-    switch (field) {
-      case "matrix":
-        return <AtSign className="h-4 w-4" />
-      case "email":
-        return <Mail className="h-4 w-4" />
-      case "discord":
-        return <MessageSquare className="h-4 w-4" />
-      case "twitter":
-        return <MessageSquare className="h-4 w-4" />
-      case "web":
-        return <Globe className="h-4 w-4" />
-      case "display":
-        return <UserCircle className="h-4 w-4" />
-      default:
-        return null
-    }
+    return SOCIAL_ICONS[field]
   }
 
   const updateChallengeStatus = useCallback((field: keyof ChallengeStore, result: boolean) => {
@@ -131,7 +115,7 @@ export function ChallengePage({
   }
 
 
-  if (challengeStore.error) {
+  if (challengeStore.error && noChallenges === 0) {
     return (
       <Alert
         key={"challengeError"}
@@ -197,7 +181,6 @@ export function ChallengePage({
                 <>
                   <Button variant="outline" size="icon" 
                     className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                    disabled={pendingFields[field]}
                     onClick={async () => {
                       if (type === "input") {
                         const clipText = await window.navigator.clipboard.readText()
@@ -226,7 +209,6 @@ export function ChallengePage({
                     <Button
                       variant="outline"
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                      disabled={pendingFields[field]}
                     >
                       Verify
                     </Button>

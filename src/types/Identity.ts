@@ -1,8 +1,7 @@
 import { IdentityData, IdentityJudgement } from "@polkadot-api/descriptors";
 import { Binary, FixedSizeBinary, SS58String, StorageDescriptor } from "polkadot-api";
-import { proxy } from "valtio";
 
-export interface IdentityFormData {
+export interface IdentityInfo {
   discord?: string;
   display?: string;
   email?: string;
@@ -53,17 +52,10 @@ export interface Judgement {
   fee: bigint;
 }
 
-export interface IdentityStore {
-  info?: IdentityFormData;
+export interface Identity {
+  info?: IdentityInfo;
   judgements?: Judgement[];
   status: verifyStatuses;
   hash?: Uint16Array;
   deposit?: bigint;
-}
-
-export const identityStore = proxy<IdentityStore>({
-  status: verifyStatuses.Unknown,
-});
-export const updateIdentity = (info: IdentityFormData) => {
-  identityStore.info = info
 }
