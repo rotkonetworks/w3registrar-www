@@ -113,9 +113,7 @@ interface UseIdentityWebSocketReturn {
   disconnect: () => void;
 }
 
-const useChallengeWebSocketWrapper = ({ 
-  url, address, network, identity, addNotification
-}: {
+const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNotification, }: {
   url: string;
   address: SS58String;
   network: string;
@@ -131,6 +129,10 @@ const useChallengeWebSocketWrapper = ({
   const { challengeState, error, isConnected, } = challengeWebSocket
 
   const [challenges, setChallenges] = useState<ChallengeStore>({});
+  useEffect(() => {
+    setChallenges({}) 
+  }, [url, address, network])
+
   const idWsDeps = [challengeState, error, address, identity.info, network]
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ idWsDeps })

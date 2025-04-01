@@ -9,6 +9,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { verifyStatuses } from "~/types/Identity"
 import { MainContentProps } from "~/types"
+import { AccountsTree } from "./AccountsTree"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -18,6 +19,7 @@ export const MainContent = ({
   identity, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+  accountTree
 }: MainContentProps) => {
   const tabs = [
     {
@@ -61,6 +63,19 @@ export const MainContent = ({
         chainName={chainStore.name?.replace(/ People/g, " ")}
       />
     },
+    {
+      id: "subaccounts",
+      name: "Subaccounts",
+      icon: <UserCircle className="h-5 w-5" />,
+      disabled: !accountTree,
+      content: <AccountsTree 
+        accountTree={accountTree}
+        currentAddress={accountStore.address}
+        api={typedApi}
+        openTxDialog={openTxDialog}
+        className="pt-4"
+      />
+    }
   ]
   const enabledTabsIndexes = tabs
     .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
@@ -100,7 +115,7 @@ export const MainContent = ({
   return <>
     <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
-        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
+        className={`grid w-full grid-cols-${tabs.length} dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden`}
       >
         {tabs.map((tab, index) => (
           <TabsTrigger

@@ -1,7 +1,15 @@
 import { TypedApi } from "polkadot-api"
 
-export type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" |
-  "setIdentity" | null
+export type DialogMode = "clearIdentity" |
+  "disconnect" |
+  "teleport" |
+  "help" |
+  "requestJudgement" |
+  "setIdentity"  |
+  "addSubaccount" |
+  "removeSubaccount" |
+  "quitSub" |
+  null;
 
 export type EstimatedCostInfo = {
   fees?: bigint | BigNumber
@@ -32,6 +40,7 @@ export type MainContentProps = {
   updateUrlParams: any,
   setOpenDialog: any,
   isTxBusy: boolean,
+  accountTree: AccountTreeNode | null,
   openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 

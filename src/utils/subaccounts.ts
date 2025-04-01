@@ -1,0 +1,75 @@
+import { ChainId } from "@reactive-dot/core";
+import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
+import { TypedApi, SS58String, Binary } from "polkadot-api";
+import { ApiStorage } from "~/types/api";
+
+type SubsOfResult = {
+  deposit: bigint,
+  subs: SS58String[],
+};
+
+export const fetchSubsOf = async (
+  api: TypedApi<ChainDescriptorOf<ChainId>>,
+  address: SS58String
+): Promise<SubsOfResult | null> => {
+  if (!api) {
+    throw new Error("API not provided to fetchSubaccounts");
+  }
+  if (!address) {
+    throw new Error("Address not provided to fetchSubaccounts");
+  }
+
+  try {
+    // Fetch subaccounts information from chain
+    const result: [bigint, SS58String[]] | null = await (api.query.Identity.SubsOf as ApiStorage)
+      .getValue(address, { at: "best" });
+    
+    if (!result) return null;
+
+    return {
+      deposit: result[0],
+      subs: result[1],
+    };
+  } catch (error) {
+    if (import.meta.env.DEV) console.error("Error fetching subaccounts", error);
+    return null;
+  }
+}
+
+type SuperOfResult = {
+  address: SS58String,
+  name?: string,
+} | null;
+
+export const fetchSuperOf = async (
+  api: TypedApi<ChainDescriptorOf<ChainId>>,
+  address: SS58String
+): Promise<SuperOfResult | null> => {
+  if (!api) {
+    throw new Error("API not provided to fetchSuperOf");
+  }
+  if (!address) {
+    throw new Error("Address not provided to fetchSuperOf");
+  }
+
+  try {
+    // Fetch superaccount information from chain
+    const result: [SS58String, {
+      type: string,
+      value?: Binary,
+    }] | null = await (api.query.Identity.SuperOf as ApiStorage).getValue(address, { at: "best" });
+      
+    if (!result) return null;
+    // TODO Handle other types of superaccount data
+    const name = result[1].type.startsWith("Raw") ? result[1].value.asText() : null;
+    //if (!key) return null;
+
+    return {
+      address: result[0],
+      name,
+    };
+  } catch (error) {
+    if (import.meta.env.DEV) console.error("Error fetching superaccount", error);
+    return null;
+  }
+}

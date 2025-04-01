@@ -46,6 +46,7 @@ import { useWalletAccounts } from "~/hooks/useWalletAccounts"
 import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
+import { useAccountsTree } from "~/hooks/UseAccountsTree"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -568,11 +569,41 @@ export function IdentityRegistrarComponent() {
           name: "Request Judgement"
         })
         break
+      case "addSubaccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Add Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after adding subaccount
+        break;
+      case "removeSubaccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Remove Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after removing subaccount
+        break;
+      case "quitSub":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Quit Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after quitting subaccount
+        break;
       default:
         throw new Error("Unexpected openDialog value")
     }
     closeTxDialog()
   }
+
+  const { 
+    accountTree, 
+    loading: accountTreeLoading,
+    refresh: refreshAccountTree,
+  } = useAccountsTree({
+    address: accountStore.address,
+    api: typedApi,
+  })
 
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
     if (import.meta.env.DEV) console.log({ args })
@@ -626,7 +657,7 @@ export function IdentityRegistrarComponent() {
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
-    supportedFields,
+    supportedFields, accountTree: { data: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
@@ -696,7 +727,7 @@ export function IdentityRegistrarComponent() {
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
     <Dialog 
-      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
+      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", "quitSub"].includes(openDialog)} 
       onOpenChange={v => v 
         ?openTxDialog({
           mode: openDialog as DialogMode,
@@ -763,6 +794,20 @@ export function IdentityRegistrarComponent() {
               {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
                 <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
                 <li>Please ensure all provided information is accurate before continuing.</li>
+              </>)}
+              {openDialog === "addSubaccount" && (<>
+                <li>You will link another account as a subaccount under your identity.</li>
+                <li>This relationship will be publicly visible on-chain.</li>
+                {/* TODO Point to deposit */}
+                <li>A deposit will be required for managing subaccounts.</li>
+              </>)}
+              {openDialog === "removeSubaccount" && (<>
+                <li>You will remove the link between your account and this subaccount.</li>
+                <li>Your deposit for this subaccount will be returned.</li>
+              </>)}
+              {openDialog === "quitSub" && (<>
+                <li>You will remove your account's status as a subaccount.</li>
+                <li>This will break the link with your parent account.</li>
               </>)}
             </ul>
           </div>
