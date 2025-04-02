@@ -3,11 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Sun, Moon, ShieldQuestion } from "lucide-react";
 import { useState } from "react";
 import { ApiConfig } from "~/api/config";
-import { useConnectedWallets } from "@reactive-dot/react";
+import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { IdentityStore } from "~/store/IdentityStore";
 import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
+import { Chains } from "@reactive-dot/core/internal.js";
+import { useFormatAmount } from "~/hooks/useFormatAmount";
+import { BalanceDisplay } from "./ui/balance-display";
+import { AssetAmount } from "~/types";
 
 const AccountListing = ({ address, name }) => (
   <div className="flex items-center w-full min-w-0">
@@ -22,25 +26,46 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark,
+  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark, balance,
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark, openHelpDialog,
 }: { 
-    accounts: AccountData[];
-    config: ApiConfig;
-    chainStore: { id: string | number | symbol, name: string };
-    accountStore: { address: string, name: string };
-    identityStore: IdentityStore;
-    isTxBusy: boolean;
-    isDark: boolean;
-    onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
-    onAccountSelect: SelectChangeHandler;
-    onRequestWalletConnections: () => void;
-    onToggleDark: () => void;
-    openHelpDialog: () => void;
-  }) => {
+  accounts: AccountData[];
+  config: ApiConfig;
+  chainStore: {
+    id: string | number | symbol,
+    name: string,
+    symbol: string,
+    tokenDecimals: number,
+  };
+  accountStore: { address: string, name: string };
+  identityStore: IdentityStore;
+  isTxBusy: boolean;
+  isDark: boolean;
+  onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
+  balance: AssetAmount;
+  onAccountSelect: SelectChangeHandler;
+  onRequestWalletConnections: () => void;
+  onToggleDark: () => void;
+  openHelpDialog: () => void;
+}) => {
   const [isNetDropdownOpen, setNetDropdownOpen] = useState(false);
   const connectedWallets = useConnectedWallets()
   const [isUserDropdownOpen, setUserDropdownOpen] = useState(false)
+
+  const allAccountBalances = useSpendableBalance(
+    accounts.map(({ address }) => address), 
+    { chainId: chainStore.id as keyof Chains }
+  )
+
+  const shortFormatAmount = useFormatAmount({
+    symbol: "",
+    tokenDecimals: chainStore.tokenDecimals,
+    decimals: 2,
+  })
+  const formatAmount = useFormatAmount({
+    symbol: chainStore.symbol,
+    tokenDecimals: chainStore.tokenDecimals,
+  })
 
   return (
     <div className="flex max-[450px]:flex-col sm:flex-row flex-nowrap justify-between items-center mb-6 gap-4">
@@ -79,28 +104,32 @@ const Header = ({
                 {identityStore.info && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
                 </>}
-                {accountStore.address && <>
-                  <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
-                </>}
                 <SelectSeparator />
                 <SelectGroup>
                   {accounts.length > 0 
-                    ? <>
-                        <SelectLabel>Accounts</SelectLabel>
-                        {accounts.map(({ name, address, encodedAddress, ...rest }) => {
-                          const account = { name, address, ...rest };
-                          return (
-                            <SelectItem key={address} value={{ type: "account", account }} className="min-w-0">
-                              <div className="w-full min-w-0">
-                                <AccountListing address={encodedAddress} name={name} />
+                    ?<>
+                      <SelectLabel>Accounts</SelectLabel>
+                      {accounts.map(({ name, address, encodedAddress, ...rest }, index) => {
+                        const account = { name, address, ...rest };
+                        return (
+                          <SelectItem key={address} value={{ type: "account", account }} className="max-w-sm">
+                            <div className="flex items-center w-full min-w-0">
+                              <div className="flex-shrink-0">
+                                <PolkadotIdenticon address={encodedAddress} />
                               </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </>
-                    : <>
-                        <SelectLabel>No accounts found</SelectLabel>
-                      </>
+                              <span className="mx-2 truncate min-w-0">{name}</span>
+                              <span className="flex-shrink-0 pe-2">
+                                ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
+                              </span>
+                              <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </>
+                    :<>
+                      <SelectLabel>No accounts found</SelectLabel>
+                    </>
                   }
                 </SelectGroup>
               </>}
@@ -136,6 +165,7 @@ const Header = ({
         </div>
       </div>
       <div className="flex gap-2">
+        <BalanceDisplay balance={balance} formatter={formatAmount} />
         <Button 
           variant="outline" 
           size="icon" 

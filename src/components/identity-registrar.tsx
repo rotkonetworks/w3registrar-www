@@ -13,7 +13,7 @@ import { useProxy } from "valtio/utils"
 import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
 import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
 import { 
-  useAccounts, useClient, useConnectedWallets, useTypedApi, useWalletDisconnector 
+  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, useWalletDisconnector 
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
@@ -26,7 +26,7 @@ import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeW
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
-import TeleporterDialog from "./dialogs/Teleporter"
+import Teleporter from "./dialogs/Teleporter"
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
@@ -35,38 +35,26 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
 import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
-import { Overview } from "~/help"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
+import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
+import { Switch } from "./ui/switch"
+import { 
+  DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
+  SignSubmitAndWatchParams, FormatAmountOptions, 
+} from "~/types"
+import { CHAIN_UPDATE_INTERVAL } from "~/constants"
+import { wait, formatAmount as formatAmountUtil } from "~/utils"
+import { useFormatAmount } from "~/hooks/useFormatAmount"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
-type MainContentProps = {
-  identityStore: IdentityStore,
-  challengeStore: { challenges: ChallengeStore, error: string | null },
-  chainStore: ChainInfo, 
-  typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>, 
-  accountStore: AccountData,
-  chainConstants, 
-  alertsStore: Map<string, AlertProps>,
-  addNotification: any, 
-  formatAmount: any, 
-  supportedFields: string[],
-  signSubmitAndWatch: any,
-  removeNotification: any,
-  identityFormRef: Ref<unknown>,
-  urlParams: Record<string, string>,
-  updateUrlParams: any,
-  setOpenDialog: any,
-  isTxBusy: boolean,
-}
 const MainContent = ({
   identityStore, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount,
-  signSubmitAndWatch, updateUrlParams, setOpenDialog,
+  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
 }: MainContentProps) => {
   const tabs = [
     {
@@ -82,8 +70,7 @@ const MainContent = ({
         accountStore={accountStore}
         chainConstants={chainConstants}
         supportedFields={supportedFields}
-        formatAmount={formatAmount}
-        signSubmitAndWatch={signSubmitAndWatch}
+        openTxDialog={openTxDialog}
         isTxBusy={isTxBusy}
       />
     },
@@ -149,7 +136,9 @@ const MainContent = ({
 
   return <>
     {alertsStore.size > 0 && 
-      <div className="fixed bottom-[2rem] right-[2rem] z-50 max-w-sm max-h-sm">  
+      <div
+        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
+      >
         <Accordion type="single" collapsible defaultValue="notifications">
           <AccordionItem value="notifications">
             <AccordionTrigger 
@@ -157,7 +146,9 @@ const MainContent = ({
             >
               <Bell className="h-6 w-6" /> {alertsStore.size}
             </AccordionTrigger>
-            <AccordionContent className="bg-black/30 p-2 rounded-lg">
+            <AccordionContent
+              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
+            >
               {[...alertsStore.entries()].map(([, alert]) => (
                 <Alert
                   key={alert.key}
@@ -387,7 +378,6 @@ export function IdentityRegistrarComponent() {
           identityStore.status = verifyStatuses.IdentityVerified;
         }
         const idDeposit = identityOf.deposit;
-        // TODO Compute approximate reserve
         if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
       } else {
         identityStore.status = verifyStatuses.NoIdentity;
@@ -453,7 +443,7 @@ export function IdentityRegistrarComponent() {
     (typedApi.query.Identity.Registrars as ApiStorage)
       .getValue()
       .then((result) => {
-        const fields = result[registrarIndex].fields
+        const fields = result[registrarIndex]?.fields
         const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) -1)
         setSupportedFields(_supportedFields)
         if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result })
@@ -543,48 +533,175 @@ export function IdentityRegistrarComponent() {
     }
   }, [isChallengeWsConnected])
   //#endregion challenges
-
-  const formatAmount = useCallback((amount: number | bigint | BigNumber | string, decimals?) => {
-    if (!amount) {
-      return "---"
-    }
-    const newAmount = BigNumber(amount.toString()).dividedBy(BigNumber(10).pow(chainStore.tokenDecimals)).toString()
-    return `${newAmount} ${chainStore.tokenSymbol}`;
-  }, [chainStore.tokenDecimals, chainStore.tokenSymbol])
+  
+  const formatAmount = useFormatAmount({
+      tokenDecimals: chainStore.tokenDecimals,
+      symbol: chainStore.tokenSymbol
+    });
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ isTxBusy })
   }, [isTxBusy])
 
+  //#region TeleportAccordion
+  const xcmParams = useProxy(_xcmParams)
+
+  const relayChainId = useMemo<keyof Chains>(
+    () => (chainStore.id as string).replace("_people", "") as keyof Chains,
+    [chainStore.id]
+  )
+  const relayAndParachains = Object.entries(config.chains)
+    .filter(([id]) => id.includes(relayChainId) && id !== chainStore.id)
+    .map(([id, chain]) => ({ id, name: chain.name }))
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log({ relayChainId, relayAndParachains });
+    xcmParams.fromChain.id = relayChainId
+  }, [relayChainId, relayAndParachains])
+  const fromTypedApi = useTypedApi({ chainId: xcmParams.fromChain.id || relayChainId as ChainId })
+  
+  const _getParachainId = async (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
+    if (typedApi) {
+      try {
+        const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
+        if (import.meta.env.DEV) console.log({ paraId })
+        return paraId
+      } catch (error) {
+        if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (fromTypedApi) {
+      _getParachainId(fromTypedApi).then(id => {
+        xcmParams.fromChain.paraId = id
+      })
+    }
+  }, [fromTypedApi])
+  const [parachainId, setParachainId] = useState<number>()
+  useEffect(() => {
+    if (typedApi) {
+      _getParachainId(typedApi).then(id => {
+        setParachainId(id)
+      })
+    }
+  }, [typedApi])
+
+  const getTeleportCall = useCallback(({amount}: { amount: BigNumber }) => {
+    const txArguments = ({
+      dest: {
+        type: "V3",
+        value: {
+          // TODO Add support for other parachains
+          interior: {
+            type: "X1",
+            value: {
+              type: "Parachain",
+              value: parachainId,
+            }
+          },
+          parents: 0,
+        },
+      },
+      beneficiary: {
+        type: "V3",
+        value: {
+          interior: {
+            type: "X1",
+            value: {
+              type: "AccountId32",
+              value: {
+                // using  Binary.fromString() instead of fromBytes() which caused assets to go to 
+                //  the wrong address. 
+                id: Binary.fromBytes(getAccountData(accountStore.address).polkadotSigner.publicKey),
+              },
+            },
+          },
+          parents: 0
+        }
+      },
+      assets: {
+        type: "V3",
+        value: [{
+          fun: {
+            type: "Fungible",
+            value: BigInt(amount.toString())
+          },
+          id: {
+            type: "Concrete",
+            value: xcmParams.fromChain.paraId
+              ?{
+                interior: {
+                  type: "X1",
+                  value: xcmParams.fromChain.paraId,
+                },
+                parents: 1,
+              }
+              : {
+                interior: {
+                  type: "Here",
+                  value: null
+                },
+                parents: 0,
+              }
+            ,
+          }
+        }]
+      },
+      fee_asset_index: 0,
+      weight_limit: {
+        type: "Unlimited",
+        value: null,
+      }
+    })
+    if (import.meta.env.DEV) console.log({ txArguments })
+
+    return fromTypedApi.tx.XcmPallet.limited_teleport_assets(txArguments)
+  }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
+  //#endregion TeleportAccordion
+
+  //#region Balances
+  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
+  const fromBalance = BigNumber(useSpendableBalance(
+    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
+  ).planck.toString())
+  const balance = BigNumber(useSpendableBalance(
+    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
+  ).planck.toString())
+  //#endregion Balances
+
+  //#region Transactions
+  const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
+    try {
+      return await ((api.apis.AccountNonceApi as any)
+        .account_nonce(address, { at: "best", }) as ApiRuntimeCall
+      )
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error)
+      return null
+    }
+  }, [])
+
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
-  const signSubmitAndWatch = useCallback(async (
-    call: ApiTx,
-    messages: {
-      broadcasted?: string,
-      loading?: string,
-      success?: string,
-      error?: string,
-    },
-    eventType: string,
-  ) => {
+  const signSubmitAndWatch = useCallback((
+    params: SignSubmitAndWatchParams
+  ) => new Promise(async (resolve, reject) => {
+    const { call, messages, name } = params;
+    let api = params.api;
+
+    if (!api) {
+      api = typedApi
+    }
     if (isTxBusy) {
+      reject(new Error("Transaction already in progress"))
       return
     }
     setTxBusy(true)
 
-    const nonce = await (async () => {
-      try {
-        return await ((typedApi.apis.AccountNonceApi as any)
-          .account_nonce(accountStore.address, { at: "best", }) as ApiRuntimeCall
-        )
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error)
-        return null
-      }
-    })()
+    const nonce = params.nonce ?? await getNonce(api, accountStore.address)
     if (import.meta.env.DEV) console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
@@ -592,14 +709,27 @@ export function IdentityRegistrarComponent() {
         type: "error",
         message: "Couldn't get nonce. Please try again.",
       })
+      reject(new Error("Failed to get nonce"))
       return
     }
 
-    const signedCall = call.signSubmitAndWatch(accountStore.polkadotSigner, 
+    const signer = params.signer ?? accountStore.polkadotSigner
+    const signedCall = call.signSubmitAndWatch(signer,
       { at: "best", nonce: nonce }
     )
     let txHash: HexString | null = null
-    signedCall.subscribe({
+
+    const disposeSubscription = (callback?: () => void) => {
+      setTxBusy(false)
+      if (txHash) {
+        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+      }
+      if (!subscription.closed)
+        subscription.unsubscribe();
+      callback?.()
+    }
+
+    const subscription = signedCall.subscribe({
       next: (result) => {
         txHash = result.txHash;
         const _result: (typeof result) & {
@@ -621,16 +751,23 @@ export function IdentityRegistrarComponent() {
           })
         }
         else if (_result.type === "txBestBlocksState") {
-          if (_result.ok) {
-            addNotification({
-              key: _result.txHash,
-              type: "success",
-              message: messages.success || "Transaction finalized",
-            })
-            fetchIdAndJudgement()
-            setTxBusy(false)
-            recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== _result.txHash)
-          }
+            if (_result.ok) {
+              if (params.awaitFinalization) {
+                addNotification({
+                  key: _result.txHash,
+                  type: "loading",
+                  message: messages.loading || "Waiting for finalization...",
+                })
+              } else {
+                addNotification({
+                  key: _result.txHash,
+                  type: "success",
+                  message: messages.success || "Transaction finalized",
+                })
+                fetchIdAndJudgement()
+                disposeSubscription(() => resolve(result))
+              }
+            }
           else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
@@ -640,7 +777,7 @@ export function IdentityRegistrarComponent() {
                 message: messages.error || "Transaction failed because it's invalid",
               })
               fetchIdAndJudgement()
-              setTxBusy(false)
+              disposeSubscription(() => reject(new Error("Invalid transaction")))
             }
           }
         }
@@ -653,86 +790,122 @@ export function IdentityRegistrarComponent() {
               message: messages.error || "Transaction failed",
             })
             fetchIdAndJudgement()
-            setTxBusy(false)
+            disposeSubscription(() => reject(new Error("Transaction failed")))
+          } else {
+            if (params.awaitFinalization) {
+              addNotification({
+                key: _result.txHash,
+                type: "success",
+                message: messages.success || "Transaction finalized",
+              })
+              fetchIdAndJudgement()
+              disposeSubscription(() => resolve(result))
+            }
           }
         }
         if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error);
+        if (import.meta.env.DEV) console.error(error)
         if (!recentNotifsIds.current.includes(txHash)) {
           addNotification({
             type: "error",
             message: messages.error || "Error submitting transaction. Please try again.",
           })
-          setTxBusy(false)
-          recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+          disposeSubscription(() => reject(error))
         }
       },
       complete: () => {
         if (import.meta.env.DEV) console.log("Completed")
-        recentNotifsIds.current = recentNotifsIds.current.filter(id => id !== txHash)
+        disposeSubscription()
       }
     })
-    return signedCall
-  }, [accountStore.polkadotSigner, isTxBusy])
+  }), [accountStore.polkadotSigner, isTxBusy])
+  //#endregion Transactions
+
 
   const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
-    signSubmitAndWatch(_clearIdentity(), 
-      {
+    await signSubmitAndWatch({
+      call: _clearIdentity(),
+      messages: {
         broadcasted: "Clearing identity...",
-        loading: "Waiting for finalization...",
+        loading: "Waiting for clearing identity transaction...",
         success: "Identity cleared",
         error: "Error clearing identity",
       },
-      "Identity.IdentityCleared"
-    )
+      name: "Identity.IdentityCleared"
+    })
   }, [_clearIdentity])
   
-  type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | null
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
-  const [estimatedCosts, setEstimatedCosts] = useState<{ fees?: bigint; deposits?: bigint; }>({})
-  useEffect(() => {
-    if (openDialog === "clearIdentity") {
-      _clearIdentity().getEstimatedFees(accountStore.address)
-        .then(fees => setEstimatedCosts({ fees, }))
-        .catch(error => {
-          if (import.meta.env.DEV) console.error(error)
-          setEstimatedCosts({})
-        })
-    } else {
-      setEstimatedCosts({})
-    }
-  }, [openDialog, chainStore.id])
+  const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
   
+  const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
+  
+  //region TeleportAccordion
+  const teleportExpanded = xcmParams.enabled
+  const setTeleportExpanded = (nextState: boolean) => {
+    xcmParams.enabled = nextState
+  }
+
+  useEffect(() => {
+    xcmParams.txTotalCost = BigNumber(Object.values(estimatedCosts)
+      .reduce(
+        (total, current) => BigNumber(total as BigNumber).plus(BigNumber(current as BigNumber)), 
+        0n
+      )
+      .toString()
+    ).times(1.1)
+  }, [estimatedCosts])
+  //#endregion TeleportAccordion
+
+  const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
+    if (import.meta.env.DEV) console.log({ args })
+    if (args.mode) {
+      setOpenDialog(args.mode)
+      setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
+      setTxToConfirm((args as OpenTxDialogArgs_modeSet).tx)
+    } else {
+      setOpenDialog(null)
+      setEstimatedCosts({})
+      setTxToConfirm(null)
+      xcmParams.enabled = false
+    }
+  }, [])
+  const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
+
   const handleOpenChange = useCallback((nextState: boolean): void => {
     setOpenDialog(previousState => nextState ? previousState : null)
   }, [])
 
-  const onAccountSelect = useCallback((newValue: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue })
-    switch (newValue.type) {
+  const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
+    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
         break;
       case "Disconnect":
         setOpenDialog("disconnect")
         break;
-      case "Teleport":
-        setOpenDialog("teleport")
-        break;
       case "RemoveIdentity":
-        setOpenDialog("clearIdentity")
+        const tx = _clearIdentity()
+        openTxDialog({
+          mode: "clearIdentity",
+          tx: tx,
+          estimatedCosts: {
+            fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
+          },
+        })
         break;
       case "account":
-        updateAccount({ ...newValue.account });
+        updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ newValue })
+        if (import.meta.env.DEV) console.log({ accountAction })
         throw new Error("Invalid action type");
     }
   }, [])
@@ -743,24 +916,129 @@ export function IdentityRegistrarComponent() {
     chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
     supportedFields,
-    addNotification, removeNotification, formatAmount, 
-    signSubmitAndWatch, updateUrlParams, setOpenDialog,
+    addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
+  //#region HelpDialog
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
+  //#endregion HelpDialog  
   
+  const hasEnoughBalance = useMemo(
+    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
+    [balance, chainConstants.existentialDeposit]
+  )
+  const minimunTeleportAmount = useMemo(() => {
+    const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
+    return hasEnoughBalance 
+      ? calculatedTeleportAmount 
+      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
+  }, [xcmParams.txTotalCost])
+  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
+
+  const balanceRef = useRef(balance)
+  useEffect(() => {
+    balanceRef.current = balance
+  }, [balance])
+  const submitTransaction = async () => {
+    if (xcmParams.enabled) {
+      try {
+        await signSubmitAndWatch({
+          nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
+          signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
+          awaitFinalization: true,
+          call: getTeleportCall({
+            amount: minimunTeleportAmount,
+          }),
+          messages: {
+            broadcasted: "Teleporting assets...",
+            loading: "Teleporting assets...",
+            success: "Assets teleported successfully",
+            error: "Error teleporting assets",
+          },
+          name: "TeleportAssets"
+        })
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error)
+        addNotification({
+          type: "error",
+          message: "Error teleporting assets. Please try again.",
+        })
+        return
+      }
+
+      const maxBlocksAwait = 10
+      let awaitedBlocks;
+      for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
+        await wait(CHAIN_UPDATE_INTERVAL)
+        if (import.meta.env.DEV) console.log({ awaitedBlocks })
+        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
+          break
+        }
+        addNotification({
+          key: "awaitingAssets",
+          type: "loading",
+          message: "Waiting to receive transferred amount...",
+          closable: false,
+        })
+      }
+      removeNotification("awaitingAssets")
+      if (awaitedBlocks === maxBlocksAwait) {
+        addNotification({
+          type: "error",
+          message: "Balance insufficient. It's not possible to set identity.",
+        })
+        return
+      }
+    }
+
+    switch (openDialog) {
+      case "clearIdentity":
+        await onIdentityClear()
+        break
+      case "disconnect":
+        connectedWallets.forEach(w => disconnectWallet(w))
+        Object.keys(accountStore).forEach((k) => delete accountStore[k])
+        updateUrlParams({ ...urlParams, address: null, })
+        break
+      case "setIdentity":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          messages: {
+            broadcasted: "Setting identity...",
+            loading: "Waiting for setting identity transaction...",
+            success: "Identity set successfully",
+            error: "Error setting identity",
+          },
+          name: "Set Identity"
+        })
+        break
+      case "requestJudgement":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          messages: {
+            broadcasted: "Requesting judgement...",
+            loading: "Waiting for judgement request transaction...",
+            success: "Judgement requested successfully",
+            error: "Error requesting judgement",
+          },
+          name: "Request Judgement"
+        })
+        break
+      default:
+        throw new Error("Unexpected openDialog value")
+    }
+    closeTxDialog()
+  }
+
   return <>
     <ConnectionDialog open={walletDialogOpen} 
       onClose={() => { setWalletDialogOpen(false) }} 
       dark={isDark}
     />
-    <div className={`min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch 
-      ${isDark 
-        ? 'bg-[#2C2B2B] text-[#FFFFFF]' 
-        : 'bg-[#FFFFFF] text-[#1E1E1E]'
-      }`
-    }>
+    <div 
+      className="min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch bg-[#FFFFFF] text-[#1E1E1E] dark:bg-[#2C2B2B] dark:text-[#FFFFFF]"
+    >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identityStore={identityStore} 
@@ -772,11 +1050,14 @@ export function IdentityRegistrarComponent() {
           chainStore={{
             name: chainStore.name,
             id: chainStore.id,
+            symbol: chainStore.tokenSymbol,
+            tokenDecimals: chainStore.tokenDecimals,
           }} 
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
           openHelpDialog={openHelpDialog}
+          balance={balance}
         />
 
         {(() => {
@@ -805,9 +1086,16 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    {/* TODO Refactor into GenericDialog */}
-    <Dialog open={["clearIdentity", "disconnect"].includes(openDialog)} 
-      onOpenChange={handleOpenChange}
+    <Dialog 
+      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
+      onOpenChange={v => v 
+        ?openTxDialog({
+          mode: openDialog as DialogMode,
+          tx: txToConfirm,
+          estimatedCosts,
+        }) 
+        :closeTxDialog()
+      }
     >
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
@@ -816,59 +1104,91 @@ export function IdentityRegistrarComponent() {
             Please review the following information before proceeding.
           </DialogDescription>
         </DialogHeader>
-        {Object.keys(estimatedCosts).length > 0 &&
-          <div className="py-4">
-            <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-              <Coins className="h-5 w-5 text-[#E6007A]" />
-              Transaction Costs
+        <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+          {Object.keys(estimatedCosts).length > 0 &&
+            <div>
+              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <Coins className="h-5 w-5 text-[#E6007A]" />
+                Transaction Costs
+              </h4>
+              <ul className="list-disc list-inside">
+                {estimatedCosts.fees &&
+                  <li>Total estimated cost: {formatAmount(estimatedCosts.fees)}</li>
+                }
+                {estimatedCosts.deposits &&
+                  <li>Existential deposit: {formatAmount(estimatedCosts.deposits)}</li>
+                }
+                <li>Current balance: {formatAmount(balance)}</li>
+              </ul>
+            </div>
+          }
+          <div>
+            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
+              Important Notes
             </h4>
-            {estimatedCosts.fees &&
-              <p>Estimated transaction fee: {formatAmount(estimatedCosts.fees)}</p>
-            }
-            {estimatedCosts.deposits && (
-              <p>Estimated deposit: {formatAmount(estimatedCosts.deposits)}</p>
-            )}
+            <ul className="list-disc list-inside">
+              {openDialog === "clearIdentity" && (<>
+                <li>All identity data will be deleted from chain..</li>
+                <li>You will have to set identity again.</li>
+                <li>You will lose verification status.</li>
+                <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+              </>)}
+              {openDialog === "disconnect" && (<>
+                <li>No data will be removed on chain.</li>
+                <li>Current account and wallet will be disconnected.</li>
+              </>)}
+              {openDialog === "setIdentity" && (<>
+                <li>Identity data will be set on chain.</li>
+                <li>
+                  Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                  released if you clear your identity.
+                </li>
+              </>)}
+              {openDialog === "requestJudgement" && (<>
+                <li>
+                  After having fees paid, you will have go to second tab and complete all challenges 
+                  in order to be verified.
+                </li>
+              </>)}
+              {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
+                <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
+                <li>Please ensure all provided information is accurate before continuing.</li>
+              </>)}
+            </ul>
           </div>
-        }
-        <div className="py-4">
-          <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-            Important Notes
-          </h4>
-          <ul className="list-disc list-inside">
-            {openDialog === "clearIdentity" && (<>
-              <li>All identity data will be deleted from chain..</li>
-              <li>You will have to set identity again.</li>
-              <li>You will lose verification status.</li>
-              <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
-            </>)}
-            {openDialog === "disconnect" && (<>
-              <li>No data will be removed on chain.</li>
-              <li>Current account and wallet will be disconnected.</li>
-            </>)}
-          </ul>
+          <Accordion type="single" collapsible value={teleportExpanded ? "teleport" : null} 
+            onValueChange={(v) => setTeleportExpanded(v === "teleport")}
+          >
+            <AccordionItem value="teleport">
+              <AccordionTrigger className="bg-transparent flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  Trasnfer from other account
+                  <Switch checked={teleportExpanded} />
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
+                  address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
+                  tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
+                  otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
+                  teleportAmount={minimunTeleportAmount}
+                  formatAmount={formatAmount}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpenDialog(null)} 
+          <Button variant="outline" onClick={closeTxDialog}
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
           >
             Cancel
           </Button>
-          <Button onClick={() => {
-            switch (openDialog) {
-              case "clearIdentity":
-                onIdentityClear();
-                break;
-              case "disconnect":
-                connectedWallets.forEach(w => disconnectWallet(w));
-                Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-                updateUrlParams({ ...urlParams, address: null, })
-                break;
-              default:
-                throw new Error("Unexpected openDialog value");
-            }
-            setOpenDialog(null)
-          }} className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]">
+          <Button 
+            onClick={submitTransaction} disabled={isTxBusy}
+            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
+          >
             Confirm
           </Button>
         </DialogFooter>
@@ -879,7 +1199,6 @@ export function IdentityRegistrarComponent() {
       setHelpSlideIndex(0)
     }} 
       title="Quick start guide"
-      // description={<Overview />}
       footer={<>
         {helpSlideIndex < SLIDES_COUNT -1 && (
           <Button variant="outline" onClick={() => {
@@ -903,11 +1222,5 @@ export function IdentityRegistrarComponent() {
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
     </GenericDialog>
-    <TeleporterDialog accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-      typedApi={typedApi} open={openDialog === "teleport"} address={accountStore.encodedAddress}
-      onOpenChange={handleOpenChange} formatAmount={formatAmount}
-      tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-      signer={accountStore.polkadotSigner}
-    />
   </>
 }

@@ -38,6 +38,7 @@ export type ApiConfig = Config & {
     string,
     ChainConfig & {
       name: string;
+      symbol: string;
       registrarIndex?: number;
     }
   >;
@@ -49,11 +50,13 @@ if (import.meta.env.DEV) {
     rococoConfig = {
       rococo: {
         name: "Rococo",
+        symbol: "ROC",
         descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo),
         provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
       },
       rococo_people: {
         name: "Rococo People",
+        symbol: "ROC",
         descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo_people),
         provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
         registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO || 0,
@@ -65,11 +68,13 @@ export const config = defineConfig({
   chains: {
     polkadot: {
       name: "Polkadot",
+      symbol: "DOT",
       descriptor: polkadot,
       provider: providers.polkadot,
     },
     polkadot_people: {
       name: "Polkadot People",
+      symbol: "DOT",
       descriptor: polkadot_people,
       provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
@@ -77,11 +82,13 @@ export const config = defineConfig({
 
     ksmcc3: {
       name: "Kusama",
+      symbol: "KSM",
       descriptor: ksmcc3,
       provider: providers.ksmcc3,
     },
     ksmcc3_people: {
       name: "Kusama People",
+      symbol: "KSM",
       descriptor: ksmcc3_people,
       provider: providers.ksmcc3.addParachain({ id: "kusama_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
@@ -89,11 +96,13 @@ export const config = defineConfig({
 
     paseo: {
       name: "Paseo",
+      symbol: "PAS",
       descriptor: paseo,
       provider: providers.paseo,
     },
     paseo_people: {
       name: "Paseo People",
+      symbol: "PAS",
       descriptor: paseo_people,
       provider: providers.paseo.addParachain({ id: "paseo_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
@@ -101,11 +110,13 @@ export const config = defineConfig({
 
     westend2: {
       name: "Westend",
+      symbol: "WND",
       descriptor: westend2,
       provider: providers.westend,
     },
     westend2_people: {
       name: "Westend People",
+      symbol: "WND",
       descriptor: westend2_people,
       provider: providers.westend.addParachain({ id: "westend_people" }),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
