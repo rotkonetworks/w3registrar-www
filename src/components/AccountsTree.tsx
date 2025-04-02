@@ -32,7 +32,6 @@ function AccountNode({
         <div>
           <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.name || node.address.slice(0, 8) + '...' + node.address.slice(-6)}
-            {node.isCurrentAccount && <span className="ml-2 text-xs text-primary">(Current)</span>}
           </div>
           <div className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.address}
@@ -58,6 +57,7 @@ function AccountNode({
             (Contains current account as subaccount)
           </div>
         )}
+        {node.isCurrentAccount && <span className="ml-2 text-xs text-primary">(Current)</span>}
       </div>
       
       {node.subs && node.subs.length > 0 && (
