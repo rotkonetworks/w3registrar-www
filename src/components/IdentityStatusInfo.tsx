@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import { verifyStatuses } from "~/store/IdentityStore";
+import { verifyStatuses } from "~/types/Identity";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useMemo } from "react";
 

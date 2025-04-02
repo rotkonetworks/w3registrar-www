@@ -1,5 +1,5 @@
 import { Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { IdentityStore, verifyStatuses } from "~/store/IdentityStore"
+import { Identity, verifyStatuses } from "~/types/Identity"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,14 +11,14 @@ import { VerificationStatusBadge } from "../VerificationStatusBadge"
 import { SOCIAL_ICONS } from "~/assets/icons"
 
 export function StatusPage({
-  identityStore,
+  identity,
   challengeStore,
   isTxBusy,
   chainName,
   formatAmount,
   onIdentityClear,
 }: {
-  identityStore: IdentityStore,
+  identity: Identity,
   challengeStore: ChallengeStore,
   isTxBusy: boolean,
   chainName: string,
@@ -29,7 +29,7 @@ export function StatusPage({
     return SOCIAL_ICONS[field] || <MessageSquare className="h-4 w-4" />
   }
 
-  const onChainIdentity = identityStore.status
+  const onChainIdentity = identity.status
 
   return (
     <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)] overflow-x-auto">
@@ -49,28 +49,28 @@ export function StatusPage({
               <UserCircle className="h-4 w-4" />
               Display Name:
             </strong> 
-            <span>{identityStore.info?.display || "<Not Set>"}</span>
+            <span>{identity.info?.display || "<Not Set>"}</span>
           </div>
           <div className="flex justify-between items-center max-[450px]:flex-wrap">
             <strong className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Verification:
             </strong> 
-            <VerificationStatusBadge status={identityStore.status} />
+            <VerificationStatusBadge status={identity.status} />
           </div>
           <div className="flex justify-between items-center">
             <strong className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               Judgement:
             </strong> 
-            <span>{ verifyStatuses[identityStore.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
+            <span>{ verifyStatuses[identity.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
           </div>
           <div className="flex justify-between items-center">
             <strong className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
               Deposit:
             </strong> 
-            <span>{formatAmount(identityStore.deposit)}</span>
+            <span>{formatAmount(identity.deposit)}</span>
           </div>
         </div>
         <div className="mt-4">
@@ -103,7 +103,7 @@ export function StatusPage({
             }
           </div>
         </div>
-        <IdentityStatusInfo status={identityStore.status} />
+        <IdentityStatusInfo status={identity.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <Button variant="outline" 
             onClick={onIdentityClear} 
