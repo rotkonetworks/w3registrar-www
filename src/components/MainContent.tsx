@@ -115,14 +115,14 @@ export const MainContent = ({
   return <>
     <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
       <TabsList
-        className={`grid w-full grid-cols-${tabs.length} dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden`}
+        className={`flex flex-row dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden`}
       >
         {tabs.map((tab, index) => (
           <TabsTrigger
             key={index}
             value={tab.name}
             onClick={() => changeCurrentTab(index)}
-            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+            className="flex-grow data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
             disabled={tab.disabled}
           >
             {tab.icon}
