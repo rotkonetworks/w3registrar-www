@@ -1,4 +1,4 @@
-import { Delete, Loader2, PlusCircle, } from "lucide-react";
+import { Delete, Loader2, PlusCircle, Unlink, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -10,6 +10,7 @@ import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { LoadingPlaceholder } from "~/pages/Loading";
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { OpenTxDialogArgs_modeSet } from "~/types";
+import { Badge } from "./ui/badge";
 
 type AccountNodeProps = {
   node: AccountTreeNode;
@@ -37,27 +38,40 @@ function AccountNode({
             {node.address}
           </div>
         </div>
-        {node.isDirectSubOfCurrentAccount && onRemove && (
-          <Button 
-            size="icon" 
-            variant="secondary"
-            className="h-10 w-10 rounded-full"
-            onClick={() => onRemove(node.address as SS58String)}
-            disabled={!!isRemoving}
-          >
-            {isRemoving === node.address ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Delete className="h-4 w-4" />
-            )}
-          </Button>
-        )}
-        {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-          <div className="text-xs text-muted-foreground">
-            (Contains current account as subaccount)
-          </div>
-        )}
-        {node.isCurrentAccount && <span className="ml-2 text-xs text-primary">(Current)</span>}
+
+        <div className="flex flex-row gap-2 items-center">
+          {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
+            <Badge variant="secondary" className="text-sm">Current is sub</Badge>
+          )}
+          {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
+
+          {!isRoot && node.isCurrentAccount && (
+            <Button 
+              size="icon" 
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              title="Quit subaccount"
+            >
+              <Unlink className="h-4 w-4" />
+            </Button>
+          )}
+          {node.isDirectSubOfCurrentAccount && onRemove && (
+            <Button 
+              size="icon" 
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              onClick={() => onRemove(node.address as SS58String)}
+              disabled={!!isRemoving}
+              title="Remove subaccount"
+            >
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Delete className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+        </div>
       </div>
       
       {node.subs && node.subs.length > 0 && (
