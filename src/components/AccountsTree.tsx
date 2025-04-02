@@ -27,7 +27,7 @@ function AccountNode({
   return (
     <div className={`relative ${isRoot ? 'mb-4' : 'ml-6 mt-2 pt-2 pl-4 border-l-2 border-primary/40'}`}>
       <div className={`p-3 rounded-lg flex items-center justify-between ${
-        node.isCurrentAccount ? 'bg-primary/20 border border-primary' : 'bg-card'
+        node.isCurrentAccount ? 'bg-primary/20 border border-primary' : 'bg-transparent'
       }`}>
         <div>
           <div className="font-semibold truncate max-w-[200px] sm:max-w-[300px]">
@@ -186,7 +186,7 @@ export function AccountsTree({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <Card>
+      <Card className="bg-transparent">
         <CardHeader>
           <CardTitle>Account Hierarchy</CardTitle>
           <CardDescription>
@@ -212,7 +212,7 @@ export function AccountsTree({
       </Card>
 
       {!isSubaccount && (
-        <Card>
+        <Card className="bg-transparent">
           <CardHeader>
             <CardTitle>Add Subaccount</CardTitle>
             <CardDescription>
