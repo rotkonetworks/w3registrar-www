@@ -11,6 +11,7 @@ export type AccountTreeNode = {
   super?: AccountTreeNode,
   subs?: AccountTreeNode[],
   isCurrentAccount?: boolean,
+  isDirectSubOfCurrentAccount?: boolean,
 };
 
 /**
@@ -190,7 +191,12 @@ export const useAccountsTree = ({
           if (currentAccountNode) {
             currentAccountNode.isCurrentAccount = true;
           }
-          
+          // Mark direct subnodes of current account
+          if (currentAccountNode && currentAccountNode.subs) {
+            for (const subNode of currentAccountNode.subs) {
+              subNode.isDirectSubOfCurrentAccount = true;
+            }
+          }
           if (import.meta.env.DEV) {
             console.log(`Root account: ${rootAccount.address}`);
             console.log(`Current account found in tree: ${!!currentAccountNode}`);
