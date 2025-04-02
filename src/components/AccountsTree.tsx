@@ -200,7 +200,7 @@ export function AccountsTree({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      <Card className="bg-transparent">
+      <Card className="bg-transparent border-[#E6007A]">
         <CardHeader>
           <CardTitle>Account Hierarchy</CardTitle>
           <CardDescription>
@@ -226,7 +226,7 @@ export function AccountsTree({
       </Card>
 
       {!isSubaccount && (
-        <Card className="bg-transparent">
+        <Card className="bg-transparent border-[#E6007A]">
           <CardHeader>
             <CardTitle>Add Subaccount</CardTitle>
             <CardDescription>
