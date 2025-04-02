@@ -30,11 +30,11 @@ function AccountNode({
         node.isCurrentAccount ? 'bg-primary/20 border border-primary' : 'bg-transparent'
       }`}>
         <div>
-          <div className="font-semibold truncate max-w-[200px] sm:max-w-[300px]">
+          <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.name || node.address.slice(0, 8) + '...' + node.address.slice(-6)}
             {node.isCurrentAccount && <span className="ml-2 text-xs text-primary">(Current)</span>}
           </div>
-          <div className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-[300px]">
+          <div className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.address}
           </div>
         </div>
