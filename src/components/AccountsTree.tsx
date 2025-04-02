@@ -1,4 +1,4 @@
-import { Loader2, PlusCircle, XCircle } from "lucide-react";
+import { Delete, Loader2, PlusCircle, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -37,18 +37,18 @@ function AccountNode({
             {node.address}
           </div>
         </div>
-        {!isRoot && node.isCurrentAccount && onRemove && (
+        {node.isDirectSubOfCurrentAccount && onRemove && (
           <Button 
-            variant="ghost" 
             size="icon" 
-            className="h-8 w-8 rounded-full"
-            onClick={() => onRemove(node.super?.address as SS58String)}
+            variant="secondary"
+            className="h-10 w-10 rounded-full"
+            onClick={() => onRemove(node.address as SS58String)}
             disabled={!!isRemoving}
           >
             {isRemoving === node.address ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <XCircle className="h-4 w-4 text-destructive" />
+              <Delete className="h-4 w-4" />
             )}
           </Button>
         )}
@@ -203,7 +203,7 @@ export function AccountsTree({
               <AccountNode 
                 node={data} 
                 isRoot 
-                onRemove={isSubaccount ? removeSubaccount : undefined}
+                onRemove={removeSubaccount}
                 isRemoving={removingSubaccount}
               />
             </div>
