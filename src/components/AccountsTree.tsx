@@ -44,9 +44,11 @@ function AccountNode({
   isRemoving,
 }: AccountNodeProps) {
   return (
-    <div className={`relative ${isRoot ? 'mb-4' : 'ml-6 mt-2 pt-2 pl-4 border-l-2 border-primary/40'}`}>
+    <div className={`relative ${isRoot ? '' : 'ml-2 pt-2 pl-4 border-l-2 border-secondary'}`}>
       <div className={`p-3 rounded-lg flex items-center justify-between ${
-        node.isCurrentAccount ? 'bg-primary/20 border border-primary' : 'bg-transparent'
+        node.isCurrentAccount 
+          ? 'bg-primary/20 border border-primary' 
+          : 'bg-transparent border-secondary border-[0.5px]'
       }`}>
         <div>
           <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
@@ -60,10 +62,10 @@ function AccountNode({
         <div className="flex flex-row gap-2 items-center">
           <div className="flex flex-col gap-1 items-end">
             {!node.super && (
-              <Badge variant="secondary" className="text-sm">Root</Badge>
+              <Badge variant="secondary" className="text-xs">Root</Badge>
             )}
             {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-              <Badge variant="secondary" className="text-sm">Current is sub</Badge>
+              <Badge variant="secondary" className="text-xs">Current is sub</Badge>
             )}
             {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
 
