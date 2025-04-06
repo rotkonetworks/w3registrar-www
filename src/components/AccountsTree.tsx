@@ -221,8 +221,8 @@ export function AccountsTree({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      <Card className="bg-transparent border-[#E6007A]">
+    <div className={`space-y-6 border-[#E6007A] border-1 ${className}`}>
+      <Card className="bg-transparent">
         <CardHeader>
           <CardTitle className="text-inherit flex items-center gap-2">
             <ListTree className="h-5 w-5" />
