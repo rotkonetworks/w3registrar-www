@@ -96,6 +96,7 @@ async function buildAccountHierarchy(
               if (subInfo) {
                 subNode.name = subInfo.name;
               }
+              subNode.super = node; // Set the current node as the super for the subaccount
             } catch (error) {
               console.error(`Error fetching name for ${subAddress}:`, error);
             }
