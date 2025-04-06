@@ -32,7 +32,7 @@ function AccountNode({
       }`}>
         <div>
           <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
-            {node.name || node.address.slice(0, 8) + '...' + node.address.slice(-6)}
+            {isRoot ? "Root" : (node.name || node.address.slice(0, 8) + '...' + node.address.slice(-6))}
           </div>
           <div className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.address}
