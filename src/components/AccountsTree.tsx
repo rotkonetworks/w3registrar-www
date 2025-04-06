@@ -18,6 +18,22 @@ type AccountNodeProps = {
   onRemove?: (address: SS58String) => void;
   isRemoving?: SS58String | null;
 };
+const getName = (node: AccountTreeNode) => {
+  return <>
+    {node.name || <>
+      {node.address.slice(0, 4)}
+      <span className="text-foreground/50">&#x2026;</span>
+      {node.address.slice(-4)}
+    </>}
+  </>
+}
+const getFqcn = (node: AccountTreeNode) => {
+  return <>
+    <span>{getName(node)}</span>
+    .
+    <span>{node.super ? getFqcn(node.super) : "alt"}</span>
+  </>;
+}
 
 function AccountNode({
   node,
@@ -32,7 +48,7 @@ function AccountNode({
       }`}>
         <div>
           <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
-            {isRoot ? "Root" : (node.name || node.address.slice(0, 8) + '...' + node.address.slice(-6))}
+            {getFqcn(node)}
           </div>
           <div className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
             {node.address}
