@@ -100,18 +100,14 @@ function AccountNode({
         </div>
       </div>
       
-      {node.subs && node.subs.length > 0 && (
-        <div className="mt-2">
-          {node.subs.map((subaccount) => (
-            <AccountNode 
-              key={subaccount.address} 
-              node={subaccount}
-              onRemove={onRemove}
-              isRemoving={isRemoving}
-            />
-          ))}
-        </div>
-      )}
+      {node.subs && node.subs.length > 0 
+        && (node.subs.map((subaccount) => <AccountNode 
+          key={subaccount.address} 
+          node={subaccount}
+          onRemove={onRemove}
+          isRemoving={isRemoving}
+        /> ))
+      }
     </div>
   );
 }
