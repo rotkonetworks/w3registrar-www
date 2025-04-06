@@ -64,7 +64,6 @@ async function buildAccountHierarchy(
       );
       
       if (node.super) {
-        node.super.name = superAccount.name;
         if (import.meta.env.DEV) console.log(`Set super for ${address}: ${superAccount.address}`);
       }
     }
