@@ -1,5 +1,5 @@
 import { useState, useCallback, memo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, ListTree } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -66,7 +66,7 @@ export const MainContent = ({
     {
       id: "subaccounts",
       name: "Subaccounts",
-      icon: <UserCircle className="h-5 w-5" />,
+      icon: <ListTree className="h-5 w-5" />,
       disabled: !accountTree,
       content: <AccountsTree 
         accountTree={accountTree}

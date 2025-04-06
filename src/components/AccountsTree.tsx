@@ -1,4 +1,4 @@
-import { Delete, Loader2, PlusCircle, Unlink, } from "lucide-react";
+import { Delete, ListTree, Loader2, PlusCircle, Unlink, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -202,7 +202,10 @@ export function AccountsTree({
     <div className={`space-y-6 ${className}`}>
       <Card className="bg-transparent border-[#E6007A]">
         <CardHeader>
-          <CardTitle>Account Hierarchy</CardTitle>
+          <CardTitle className="text-inherit flex items-center gap-2">
+            <ListTree className="h-5 w-5" />
+            Account Hierarchy
+          </CardTitle>
           <CardDescription>
             View the relationship between main accounts and subaccounts
           </CardDescription>
