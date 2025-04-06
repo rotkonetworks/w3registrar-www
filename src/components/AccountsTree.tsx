@@ -30,8 +30,10 @@ const getName = (node: AccountTreeNode) => {
 const getFqcn = (node: AccountTreeNode) => {
   return <>
     <span>{getName(node)}</span>
-    .
-    <span>{node.super ? getFqcn(node.super) : "alt"}</span>
+    <span className="text-foreground/50 text-thin">
+      .
+      {node.super ? getFqcn(node.super) : "alt"}
+    </span>
   </>;
 }
 
@@ -56,10 +58,16 @@ function AccountNode({
         </div>
 
         <div className="flex flex-row gap-2 items-center">
-          {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-            <Badge variant="secondary" className="text-sm">Current is sub</Badge>
-          )}
-          {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
+          <div className="flex flex-col gap-1 items-end">
+            {!node.super && (
+              <Badge variant="secondary" className="text-sm">Root</Badge>
+            )}
+            {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
+              <Badge variant="secondary" className="text-sm">Current is sub</Badge>
+            )}
+            {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
+
+          </div>
 
           {!isRoot && node.isCurrentAccount && (
             <Button 
