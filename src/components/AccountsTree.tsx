@@ -11,6 +11,7 @@ import { LoadingPlaceholder } from "~/pages/Loading";
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
+import { prepareRawSetSubs } from "~/utils/subaccounts";
 
 type AccountNodeProps = {
   node: AccountTreeNode;
@@ -197,6 +198,29 @@ export function AccountsTree({
     }
   };
 
+  const removeSubAccount = async (node: AccountTreeNode) => {
+    if (!api || !currentAddress) return;
+    
+    try {
+      const newSubAccounts = prepareRawSetSubs(node.super);
+      newSubAccounts.splice(newSubAccounts.findIndex(sub => sub[0] === node.address), 1);
+      setRemovingSubaccount(node.address);
+      
+      const tx = api.tx.Identity.set_subs({ subs: newSubAccounts });
+      const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
+      
+      openTxDialog({
+        mode: "removeSubaccount",
+        tx,
+        estimatedCosts: { fees }
+      });
+    } catch (error) {
+      console.error("Error removing subaccount:", error);
+    } finally {
+      setRemovingSubaccount(null);
+    }
+  };
+
   // Prepare transaction to remove a subaccount
   const removeSubaccount = async (parentAddress: SS58String) => {
     if (!api || !currentAddress) return;
@@ -251,7 +275,8 @@ export function AccountsTree({
               <AccountNode 
                 node={data} 
                 isRoot 
-                onRemove={removeSubaccount}
+                onRemove={removeSubAccount}
+                onQuit={quitSubaccount}
                 isRemoving={removingSubaccount}
               />
             </div>
