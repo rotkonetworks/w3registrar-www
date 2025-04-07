@@ -222,13 +222,13 @@ export function AccountsTree({
   };
 
   // Prepare transaction to remove a subaccount
-  const removeSubaccount = async (parentAddress: SS58String) => {
+  const quitSubaccount = async () => {
     if (!api || !currentAddress) return;
     
     try {
       setRemovingSubaccount(currentAddress);
       
-      const tx = api.tx.Identity.quitSub();
+      const tx = api.tx.Identity.quit_sub();
       const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
       
       openTxDialog({
