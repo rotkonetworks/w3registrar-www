@@ -15,7 +15,8 @@ import { Badge } from "./ui/badge";
 type AccountNodeProps = {
   node: AccountTreeNode;
   isRoot?: boolean;
-  onRemove?: (address: SS58String) => void;
+  onRemove: (node: AccountTreeNode) => void;
+  onQuit: (subNode: AccountTreeNode) => void;
   isRemoving?: SS58String | null;
 };
 const getName = (node: AccountTreeNode) => {
@@ -41,6 +42,7 @@ function AccountNode({
   node,
   isRoot = false,
   onRemove,
+  onQuit,
   isRemoving,
 }: AccountNodeProps) {
   return (
@@ -86,7 +88,7 @@ function AccountNode({
               size="icon" 
               variant="secondary"
               className="h-10 w-10 rounded-full"
-              onClick={() => onRemove(node.address as SS58String)}
+              onClick={() => onRemove(node)}
               disabled={!!isRemoving}
               title="Remove subaccount"
             >
@@ -105,6 +107,7 @@ function AccountNode({
           key={subaccount.address} 
           node={subaccount}
           onRemove={onRemove}
+          onQuit={onQuit}
           isRemoving={isRemoving}
         /> ))
       }
