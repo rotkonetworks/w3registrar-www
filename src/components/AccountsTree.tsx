@@ -4,12 +4,12 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { TypedApi, SS58String } from "polkadot-api";
+import { TypedApi, SS58String, Binary } from "polkadot-api";
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { LoadingPlaceholder } from "~/pages/Loading";
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
-import { OpenTxDialogArgs_modeSet } from "~/types";
+import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
 import { prepareRawSetSubs } from "~/utils/subaccounts";
 
@@ -169,57 +169,57 @@ export function AccountsTree({
     };
   }, [data]);
 
-  // Prepare transaction to add a subaccount
-  const addSubaccount = async () => {
-    if (!api || !newSubaccount.trim()) return;
-    
-    try {
-      setAddingSubaccount(true);
-      
-      // Validate the address - this is a simple check, might need more validation
-      if (!newSubaccount.startsWith("5")) {
-        throw new Error("Invalid address format");
-      }
-      
-      const tx = api.tx.Identity.addSub(newSubaccount as SS58String, { Raw: newSubaccount });
-      const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
-      
-      openTxDialog({
-        mode: "addSubaccount",
-        tx,
-        estimatedCosts: { fees }
-      });
-      
-      setNewSubaccount("");
-    } catch (error) {
-      console.error("Error adding subaccount:", error);
-    } finally {
-      setAddingSubaccount(false);
-    }
-  };
+  const prepareAccountModTx = async ({ subs, address, mode }: ({
+    subs: ReturnType<typeof prepareRawSetSubs>,
+    mode: DialogMode,
+    address: SS58String
+  })) => {
+    if (!api) throw new Error("API not available");
+    if (!currentAddress) throw new Error("Current address not available");
 
-  const removeSubAccount = async (node: AccountTreeNode) => {
-    if (!api || !currentAddress) return;
-    
     try {
-      const newSubAccounts = prepareRawSetSubs(node.super);
-      newSubAccounts.splice(newSubAccounts.findIndex(sub => sub[0] === node.address), 1);
-      setRemovingSubaccount(node.address);
-      
-      const tx = api.tx.Identity.set_subs({ subs: newSubAccounts });
+      setRemovingSubaccount(address);
+
+      const tx = api.tx.Identity.set_subs({ subs });
       const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
-      
-      openTxDialog({
-        mode: "removeSubaccount",
-        tx,
-        estimatedCosts: { fees }
-      });
+
+      openTxDialog({ mode, tx, estimatedCosts: { fees }});
     } catch (error) {
       console.error("Error removing subaccount:", error);
     } finally {
       setRemovingSubaccount(null);
     }
-  };
+  }
+
+  // Prepare transaction to add a subaccount
+  const addSubaccount = async (address: SS58String, name: string) => prepareAccountModTx({
+    subs: [...prepareRawSetSubs(currentAccountNode), [address, { 
+      type: `Raw${name.length}`, 
+      value: Binary.fromText(name) 
+    }]],
+    address,
+    mode: "addSubaccount"
+  });
+
+  const removeSubAccount = async (node: AccountTreeNode) => prepareAccountModTx({
+    subs: prepareRawSetSubs(currentAccountNode).filter(sub => sub[0] !== node.address),
+    address: node.address,
+    mode: "removeSubaccount"
+  });
+
+  const editSubAccount = async (node: AccountTreeNode) => prepareAccountModTx({
+    subs: prepareRawSetSubs(currentAccountNode).map(sub => {
+      if (sub[0] === node.address) {
+        return [node.address, { 
+          type: `Raw${node.name.length}`, 
+          value: Binary.fromText(node.name) 
+        }];
+      }
+      return sub;
+    }),
+    address: node.address,
+    mode: "editSubAccount"
+  });
 
   // Prepare transaction to remove a subaccount
   const quitSubaccount = async () => {

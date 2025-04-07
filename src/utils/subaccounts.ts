@@ -75,6 +75,12 @@ export const fetchSuperOf = async (
   }
 }
 
+export type RawType = `Raw${number}`;
+
+export type RawSubs = [SS58String, {
+  type: RawType,
+  value: Binary,
+}][];
 export const prepareRawSetSubs = (node: AccountTreeNode) => node.subs?.map(sub => [
   node.address, {
     type: `Raw${node.name.length}`,

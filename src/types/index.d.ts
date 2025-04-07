@@ -7,6 +7,7 @@ export type DialogMode = "clearIdentity" |
   "requestJudgement" |
   "setIdentity"  |
   "addSubaccount" |
+  "editSubAccount" |
   "removeSubaccount" |
   "quitSub" |
   null;
