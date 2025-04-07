@@ -1,6 +1,7 @@
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { TypedApi, SS58String, Binary } from "polkadot-api";
+import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { ApiStorage } from "~/types/api";
 
 type SubsOfResult = {
@@ -73,3 +74,10 @@ export const fetchSuperOf = async (
     return null;
   }
 }
+
+export const prepareRawSetSubs = (node: AccountTreeNode) => node.subs?.map(sub => [
+  node.address, {
+    type: `Raw${node.name.length}`,
+    value: Binary.fromText(sub.name),
+  }
+])
