@@ -79,8 +79,14 @@ function AccountNode({
               variant="secondary"
               className="h-10 w-10 rounded-full"
               title="Quit subaccount"
+              onClick={() => onQuit(node)}
+              disabled={!!isRemoving}
             >
-              <Unlink className="h-4 w-4" />
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Unlink className="h-4 w-4" />
+              )}
             </Button>
           )}
           {node.isDirectSubOfCurrentAccount && onRemove && (
