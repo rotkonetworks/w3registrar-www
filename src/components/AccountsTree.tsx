@@ -1,4 +1,4 @@
-import { Delete, ListTree, Loader2, PlusCircle, Unlink, } from "lucide-react";
+import { Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -16,8 +16,9 @@ import { prepareRawSetSubs } from "~/utils/subaccounts";
 type AccountNodeProps = {
   node: AccountTreeNode;
   isRoot?: boolean;
-  onRemove: (node: AccountTreeNode) => void;
-  onQuit: (subNode: AccountTreeNode) => void;
+  onRemove: (subNode: AccountTreeNode) => void;
+  onRename: (subNode: AccountTreeNode) => void;
+  onQuit: (node: AccountTreeNode) => void;
   isRemoving?: SS58String | null;
 };
 const getName = (node: AccountTreeNode) => {
@@ -44,6 +45,7 @@ function AccountNode({
   isRoot = false,
   onRemove,
   onQuit,
+  onRename,
   isRemoving,
 }: AccountNodeProps) {
   return (
@@ -90,6 +92,22 @@ function AccountNode({
               )}
             </Button>
           )}
+          {node.isDirectSubOfCurrentAccount && onRename && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              onClick={() => onRename(node)}
+              disabled={!!isRemoving}
+              title="Remove subaccount"
+            >
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PenLine className="h-4 w-4" />
+              )}
+            </Button>
+          )}
           {node.isDirectSubOfCurrentAccount && onRemove && (
             <Button 
               size="icon" 
@@ -114,6 +132,7 @@ function AccountNode({
           key={subaccount.address} 
           node={subaccount}
           onRemove={onRemove}
+          onRename={onRename}
           onQuit={onQuit}
           isRemoving={isRemoving}
         /> ))
@@ -276,6 +295,7 @@ export function AccountsTree({
                 node={data} 
                 isRoot 
                 onRemove={removeSubAccount}
+                onRename={editSubAccount}
                 onQuit={quitSubaccount}
                 isRemoving={removingSubaccount}
               />
