@@ -13,6 +13,7 @@ import { Badge } from "./ui/badge";
 import { prepareRawSetSubs } from "~/utils/subaccounts";
 import { AccountSelector } from "./ui/account-selector";
 import { useAccounts } from "@reactive-dot/react";
+import { Input } from "./ui/input";
 
 type AccountNodeProps = {
   node: AccountTreeNode;
@@ -283,6 +284,10 @@ export function AccountsTree({
   const walletAccounts = useAccounts()
     .filter(account => account.address !== currentAddress && !findAccountNode(account.address));
   const [selectedAddress, setSelectedAddress] = useState<SS58String | null>(null);
+
+  const [newName, setNewName] = useState<string | null>(null);
+  const [newNameError, setNewNameError] = useState<string | null>(null);
+
   useEffect(() => {
     console.log({ selectedAddress});
   }, [selectedAddress]);
@@ -350,8 +355,34 @@ export function AccountsTree({
                   disabled={addingSubaccount}
                 />
               </div>
+              <div className="flex-1 flex-col">
+                <Label htmlFor="nsme" className="sr-only">Subaccount Address</Label>
+                <Input
+                  id="nsme"
+                  value={newName}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewName(value);
+                    setNewNameError(() => {
+                      if (value.length > 0 && value.length < 4) {
+                        return "Name must be at least 4 characters";
+                      }
+                      if (value.length > 20) {
+                        return "Name must be at most 20 characters";
+                      }
+                      return null;
+                    });
+                  }}
+                  disabled={addingSubaccount}
+                />
+                {newNameError && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {newNameError}
+                  </p>
+                )}
+              </div>
               <Button variant="primary"
-                onClick={addSubaccount} 
+                onClick={() => addSubaccount(selectedAddress!, newName)} 
                 disabled={!selectedAddress || addingSubaccount}
                 className="gap-2"
               >
