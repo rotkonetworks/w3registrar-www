@@ -6,13 +6,16 @@ import { AccountData } from "~/store/AccountStore";
 import { Button } from "./button";
 import { useState } from "react";
 
-export const AccountSelector = ({ accounts, address, handleAddressChange, id, open, handleOpen }: {
+export const AccountSelector = ({
+  accounts, address, handleAddressChange, id, open, handleOpen, disabled = false
+}: {
   id: string,
   accounts: AccountData[],
   address?: SS58String,
   handleAddressChange: (address: SS58String) => void,
   open?: boolean,
   handleOpen?: (open: boolean) => void,
+  disabled?: boolean
 }) => {
   const [_open, setOpen] = useState(false);
 
@@ -26,7 +29,7 @@ export const AccountSelector = ({ accounts, address, handleAddressChange, id, op
     }}
   >
     <PopoverTrigger id={id} asChild>
-      <Button role="combobox" className="w-full justify-between">
+      <Button role="combobox" className="w-full justify-between" disabled={disabled}>
         {accounts.find(account => account.encodedAddress === address)?.name ?? "Select wallet"}
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
