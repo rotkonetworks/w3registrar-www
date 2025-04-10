@@ -43,7 +43,10 @@ export const AccountSelector = ({
             {accounts.map((account) => (
               <CommandItem
                 key={account.address}
-                onSelect={() => handleAddressChange(account.encodedAddress)}
+                onSelect={() => {
+                  handleAddressChange(account.address);
+                  handleOpen ? handleOpen(false) : setOpen(false);
+                }}
                 className="text-[#FFFFFF] hover:bg-[#3A3939]"
               >
                 {account.name}
