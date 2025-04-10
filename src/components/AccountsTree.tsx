@@ -249,7 +249,7 @@ export function AccountsTree({
     try {
       setRemovingSubaccount(currentAddress);
       
-      const tx = api.tx.Identity.quit_sub();
+      const tx = api.tx.Identity.quit_sub(undefined);
       const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
       
       openTxDialog({
