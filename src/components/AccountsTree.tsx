@@ -273,9 +273,8 @@ export function AccountsTree({
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <LoadingPlaceholder className="h-[100px] w-full" />
-        <LoadingPlaceholder className="h-[60px] w-full" />
-        <LoadingPlaceholder className="h-[60px] w-3/4" />
+        <LoadingPlaceholder className="h-[50vh] w-full" />
+        <LoadingPlaceholder className="h-[20vh] w-full" />
       </div>
     );
   }
