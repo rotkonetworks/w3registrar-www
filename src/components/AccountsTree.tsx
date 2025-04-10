@@ -47,6 +47,7 @@ function AccountNode({
   onQuit,
   onRename,
   isRemoving,
+  // TODO Pass currentNode
 }: AccountNodeProps) {
   return (
     <div className={`relative ${isRoot ? '' : 'ml-2 pt-2 pl-4 border-l-2 border-secondary'}`}>
