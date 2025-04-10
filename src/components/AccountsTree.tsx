@@ -155,7 +155,7 @@ type AccountsTreeProps = {
 };
 
 export function AccountsTree({
-  accountTree: {data, loading},
+  accountTree: {data: accountTreeData, loading},
   currentAddress,
   api,
   openTxDialog,
@@ -165,9 +165,25 @@ export function AccountsTree({
   const [addingSubaccount, setAddingSubaccount] = useState(false);
   const [removingSubaccount, setRemovingSubaccount] = useState<SS58String | null>(null);
 
+  const findAccountNode = (address: SS58String) => {
+    if (!accountTreeData) return null;
+    const findNode = (node: AccountTreeNode, visited = new Set()): AccountTreeNode | null => {
+      if (node.address === address) return node;
+      if (node.subs) {
+        for (const sub of node.subs) {
+          const found = findNode(sub);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    return findNode(accountTreeData);
+  }
+
   // Find the current account node and check if it's a subaccount
   const { isSubaccount, currentAccountNode } = useMemo(() => {
-    if (!data) return { isSubaccount: false, currentAccountNode: null };
+    if (!accountTreeData) return { isSubaccount: false, currentAccountNode: null };
     
     // Helper function to find the node with isCurrentAccount flag
     const findCurrentAccountNode = (node: AccountTreeNode): AccountTreeNode | null => {
@@ -183,12 +199,12 @@ export function AccountsTree({
       return null;
     };
     
-    const currentNode = findCurrentAccountNode(data);
+    const currentNode = findCurrentAccountNode(accountTreeData);
     return { 
       isSubaccount: !!(currentNode?.super),
       currentAccountNode: currentNode
     };
-  }, [data]);
+  }, [accountTreeData]);
 
   const prepareAccountModTx = async ({ subs, address, mode }: ({
     subs: ReturnType<typeof prepareRawSetSubs>,
@@ -264,11 +280,12 @@ export function AccountsTree({
     }
   };
 
-  const walletAccounts = useAccounts();
-  useEffect(() => {
-    console.log({ walletAccounts});
-  }, [walletAccounts]);
+  const walletAccounts = useAccounts()
+    .filter(account => account.address !== currentAddress && !findAccountNode(account.address));
   const [selectedAddress, setSelectedAddress] = useState<SS58String | null>(null);
+  useEffect(() => {
+    console.log({ selectedAddress});
+  }, [selectedAddress]);
 
   if (loading) {
     return (
@@ -292,14 +309,14 @@ export function AccountsTree({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!data ? (
+          {!accountTreeData ? (
             <div className="text-center py-6 text-muted-foreground">
               No account hierarchy information available
             </div>
           ) : (
             <div className="account-tree">
               <AccountNode 
-                node={data} 
+                node={accountTreeData} 
                 isRoot 
                 onRemove={removeSubAccount}
                 onRename={editSubAccount}
@@ -335,7 +352,7 @@ export function AccountsTree({
               </div>
               <Button variant="primary"
                 onClick={addSubaccount} 
-                disabled={!newSubaccount.trim() || addingSubaccount}
+                disabled={!selectedAddress || addingSubaccount}
                 className="gap-2"
               >
                 {addingSubaccount ? (
