@@ -430,7 +430,7 @@ export function AccountsTree({
                   {isEditMode ? "Update Name" : "Add Subaccount"}
                 </Button>
                 
-                {isEditMode && <Button variant="outline" onClick={resetForm} 
+                {isEditMode && <Button variant="secondary" onClick={resetForm} 
                   className="h-10 w-10 rounded-full"
                 >
                   <CircleOff /> 
