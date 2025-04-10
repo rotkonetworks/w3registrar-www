@@ -333,7 +333,7 @@ export function AccountsTree({
                   disabled={addingSubaccount}
                 />
               </div>
-              <Button 
+              <Button variant="primary"
                 onClick={addSubaccount} 
                 disabled={!newSubaccount.trim() || addingSubaccount}
                 className="gap-2"
