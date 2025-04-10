@@ -1,8 +1,7 @@
 import { Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { TypedApi, SS58String, Binary } from "polkadot-api";
 import { ChainId } from "@reactive-dot/core";
@@ -12,6 +11,8 @@ import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
 import { prepareRawSetSubs } from "~/utils/subaccounts";
+import { AccountSelector } from "./ui/account-selector";
+import { useAccounts } from "@reactive-dot/react";
 
 type AccountNodeProps = {
   node: AccountTreeNode;
@@ -263,6 +264,12 @@ export function AccountsTree({
     }
   };
 
+  const walletAccounts = useAccounts();
+  useEffect(() => {
+    console.log({ walletAccounts});
+  }, [walletAccounts]);
+  const [selectedAddress, setSelectedAddress] = useState<SS58String | null>(null);
+
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
@@ -305,23 +312,25 @@ export function AccountsTree({
         </CardContent>
       </Card>
 
-      {!isSubaccount && (
+      {currentAccountNode && (
         <Card className="bg-transparent border-[#E6007A]">
           <CardHeader>
             <CardTitle>Add Subaccount</CardTitle>
             <CardDescription>
-              Link another account as a subaccount of your current identity
+              Link another account as a subaccount of <span className="text-foreground">
+                {currentAccountNode.name || currentAccountNode.address}
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <Label htmlFor="subaccount" className="sr-only">Subaccount Address</Label>
-                <Input
+                <AccountSelector
                   id="subaccount"
-                  placeholder="Subaccount address (SS58 format)"
-                  value={newSubaccount}
-                  onChange={(e) => setNewSubaccount(e.target.value)}
+                  accounts={walletAccounts}
+                  address={selectedAddress}
+                  handleAddressChange={setSelectedAddress}
                   disabled={addingSubaccount}
                 />
               </div>
