@@ -1,4 +1,4 @@
-import { Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
+import { CircleOff, Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -162,7 +162,6 @@ export function AccountsTree({
   openTxDialog,
   className = "",
 }: AccountsTreeProps) {
-  const [newSubaccount, setNewSubaccount] = useState("");
   const [addingSubaccount, setAddingSubaccount] = useState(false);
   const [removingSubaccount, setRemovingSubaccount] = useState<SS58String | null>(null);
 
@@ -283,14 +282,29 @@ export function AccountsTree({
 
   const walletAccounts = useAccounts()
     .filter(account => account.address !== currentAddress && !findAccountNode(account.address));
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedName, setSelectedName] = useState<string>("");
+  const [selectedNameError, setSelectedNameError] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<AccountTreeNode | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<SS58String | null>(null);
 
-  const [newName, setNewName] = useState<string | null>(null);
-  const [newNameError, setNewNameError] = useState<string | null>(null);
+  // Reset form function
+  const resetForm = () => {
+    setSelectedNode(null);
+    setSelectedAddress(null);
+    setSelectedName("");
+    setSelectedNameError(null);
+    setIsEditMode(false);
+  };
 
-  useEffect(() => {
-    console.log({ selectedAddress});
-  }, [selectedAddress]);
+  // Modify the edit function to populate the form
+  const handleEditClick = (node: AccountTreeNode) => {
+    setSelectedNode(node);
+    setSelectedAddress(node.address);
+    setSelectedName(node.name || "");
+    setIsEditMode(true);
+  };
 
   if (loading) {
     return (
@@ -324,7 +338,7 @@ export function AccountsTree({
                 node={accountTreeData} 
                 isRoot 
                 onRemove={removeSubAccount}
-                onRename={editSubAccount}
+                onRename={handleEditClick}
                 onQuit={quitSubaccount}
                 isRemoving={removingSubaccount}
               />
@@ -336,63 +350,92 @@ export function AccountsTree({
       {currentAccountNode && (
         <Card className="bg-transparent border-[#E6007A]">
           <CardHeader>
-            <CardTitle>Add Subaccount</CardTitle>
+            <CardTitle>{isEditMode ? "Edit Subaccount" : "Add Subaccount"}</CardTitle>
             <CardDescription>
-              Link another account as a subaccount of <span className="text-foreground">
-                {currentAccountNode.name || currentAccountNode.address}
-              </span>
+              {isEditMode 
+                ? `Update the name of subaccount ${selectedNode.name || selectedNode.address}`
+                : `Link another account as a subaccount of ${currentAccountNode.name || currentAccountNode.address}`
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <Label htmlFor="subaccount" className="sr-only">Subaccount Address</Label>
-                <AccountSelector
-                  id="subaccount"
-                  accounts={walletAccounts}
-                  address={selectedAddress}
-                  handleAddressChange={setSelectedAddress}
-                  disabled={addingSubaccount}
-                />
+                {isEditMode 
+                  ?<Input
+                    id="subaccount"
+                    value={selectedAddress || ""}
+                    disabled={true}
+                    placeholder="Account address"
+                  />
+                  :<AccountSelector
+                    id="subaccount"
+                    accounts={walletAccounts}
+                    address={selectedAddress}
+                    handleAddressChange={setSelectedAddress}
+                    disabled={addingSubaccount}
+                  />
+                }
               </div>
               <div className="flex-1 flex-col">
-                <Label htmlFor="nsme" className="sr-only">Subaccount Address</Label>
+                <Label htmlFor="name" className="sr-only">Subaccount Name</Label>
                 <Input
-                  id="nsme"
-                  value={newName}
+                  id="name"
+                  value={selectedName}
+                  placeholder="Account name"
                   onChange={(e) => {
                     const value = e.target.value;
-                    setNewName(value);
-                    setNewNameError(() => {
+                    setSelectedName(value);
+                    setSelectedNameError(() => {
                       if (value.length > 0 && value.length < 4) {
                         return "Name must be at least 4 characters";
                       }
-                      if (value.length > 20) {
-                        return "Name must be at most 20 characters";
+                      if (value.length > 32) {
+                        return "Name must be at most 32 characters";
                       }
                       return null;
                     });
                   }}
                   disabled={addingSubaccount}
                 />
-                {newNameError && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {newNameError}
-                  </p>
-                )}
+                {selectedNameError && <p className="text-red-500 text-sm mt-1">{selectedNameError}</p>}
               </div>
-              <Button variant="primary"
-                onClick={() => addSubaccount(selectedAddress!, newName)} 
-                disabled={!selectedAddress || addingSubaccount}
-                className="gap-2"
-              >
-                {addingSubaccount ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <PlusCircle className="h-4 w-4" />
-                )}
-                Add Subaccount
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="primary"
+                  onClick={isEditMode 
+                    ?() => {
+                      if (selectedNode) {
+                        // Update the node name before calling editSubAccount
+                        const updatedNode = {...selectedNode, name: selectedName};
+                        editSubAccount(updatedNode);
+                        resetForm();
+                      }
+                    }
+                    :() => {
+                      if (selectedAddress && selectedName) {
+                        addSubaccount(selectedAddress, selectedName);
+                        resetForm();
+                      }
+                    }
+                  } 
+                  disabled={(!selectedAddress && !isEditMode) 
+                    || !selectedName || !!selectedNameError || addingSubaccount
+                  }
+                  className="gap-2 flex-1"
+                >
+                  {addingSubaccount ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : (isEditMode ? <PenLine className="h-4 w-4" /> : <PlusCircle className="h-4 w-4" />)
+                  }
+                  {isEditMode ? "Update Name" : "Add Subaccount"}
+                </Button>
+                
+                {isEditMode && <Button variant="outline" onClick={resetForm} 
+                  className="h-10 w-10 rounded-full"
+                >
+                  <CircleOff /> 
+                </Button>}
+              </div>
             </div>
           </CardContent>
         </Card>
