@@ -82,8 +82,8 @@ export type RawSubs = [SS58String, {
   value: Binary,
 }][];
 export const prepareRawSetSubs = (node: AccountTreeNode) => node.subs?.map(sub => [
-  node.address, {
-    type: `Raw${node.name.length}`,
+  sub.address, {
+    type: `Raw${sub.name.length}`,
     value: Binary.fromText(sub.name),
   }
 ])
