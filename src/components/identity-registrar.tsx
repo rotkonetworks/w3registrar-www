@@ -14,7 +14,7 @@ import {
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { Binary, HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
+import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
 import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
