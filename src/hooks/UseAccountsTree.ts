@@ -39,8 +39,6 @@ async function buildAccountHierarchy(
     return null;
   }
   
-  visitedAddresses.add(address);
-  
   try {
     // Create the base node
     const node: AccountTreeNode = {
@@ -110,6 +108,7 @@ async function buildAccountHierarchy(
         }
       }
     }
+    visitedAddresses.add(address);
 
     return node;
   } catch (error) {
