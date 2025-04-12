@@ -284,7 +284,8 @@ export function AccountsTree({
   const [walletAccounts, setWalletAccounts] = useState(_walletAccounts);
   useEffect(() => {
     if (!api) {
-      return _walletAccounts
+      setWalletAccounts(_walletAccounts)
+      return;
     };
 
     (async () => {
