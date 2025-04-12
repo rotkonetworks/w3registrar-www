@@ -86,4 +86,4 @@ export const prepareRawSetSubs = (node: AccountTreeNode) => node.subs?.map(sub =
     type: `Raw${sub.name.length}`,
     value: Binary.fromText(sub.name),
   }
-])
+]) || []
