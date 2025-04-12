@@ -10,7 +10,7 @@ import { LoadingPlaceholder } from "~/pages/Loading";
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
-import { prepareRawSetSubs } from "~/utils/subaccounts";
+import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
 import { AccountSelector } from "./ui/account-selector";
 import { useAccounts } from "@reactive-dot/react";
 import { Input } from "./ui/input";
@@ -280,8 +280,31 @@ export function AccountsTree({
     }
   };
 
-  const walletAccounts = useAccounts()
-    .filter(account => account.address !== currentAddress && !findAccountNode(account.address));
+  const _walletAccounts = useAccounts()
+  const [walletAccounts, setWalletAccounts] = useState(_walletAccounts);
+  useEffect(() => {
+    if (!api) {
+      return _walletAccounts
+    };
+
+    (async () => {
+      setWalletAccounts(
+        await Promise.all(
+          _walletAccounts
+            .filter(account => account.address !== currentAddress && !findAccountNode(account.address))
+            .map(async account => {
+              const hasSuperAccount = !!await fetchSuperOf(api, account.address).catch(() => null);
+              return ({
+                ...account,
+                address: account.address,
+                name: `${account.name} ${hasSuperAccount ? "(subaccount)" : ""}`,
+                disabled: hasSuperAccount,
+              });
+            })
+        )
+      );
+    })()
+  }, [api, _walletAccounts, accountTreeData]);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedName, setSelectedName] = useState<string>("");
