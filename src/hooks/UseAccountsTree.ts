@@ -161,74 +161,60 @@ export const useAccountsTree = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const fetchAccountHierarchy = async () => {
+    if (!address || !api) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
+      
+      // Build the complete hierarchy starting from the current address
+      const hierarchy = await buildAccountHierarchy(api, address, address);
+      
+      if (hierarchy) {
+        // Find the root of the hierarchy to display the full tree
+        const rootAccount = findRootAccount(hierarchy);
+        
+        // Make sure the current account is marked correctly
+        const currentAccountNode = findAccountInTree(rootAccount, address);
+        if (currentAccountNode) {
+          currentAccountNode.isCurrentAccount = true;
+        }
+        // Mark direct subnodes of current account
+        if (currentAccountNode && currentAccountNode.subs) {
+          for (const subNode of currentAccountNode.subs) {
+            subNode.isDirectSubOfCurrentAccount = true;
+          }
+        }
+        if (import.meta.env.DEV) {
+          console.log(`Root account: ${rootAccount.address}`);
+          console.log(`Current account found in tree: ${!!currentAccountNode}`);
+        }
+        
+        setAccountTree(rootAccount);
+      } else {
+        // If no hierarchy found, create a simple node for the current address
+        if (import.meta.env.DEV) console.log(`No hierarchy found, creating simple node for ${address}`);
+        setAccountTree({
+          address,
+          isCurrentAccount: true,
+          name: "Current Account"
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching account hierarchy:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      setAccountTree(null);
+      if (isMounted) {
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    let isMounted = true;
-
-    const fetchAccountHierarchy = async () => {
-      if (!address || !api) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
-        
-        if (!isMounted) return;
-        
-        // Build the complete hierarchy starting from the current address
-        const hierarchy = await buildAccountHierarchy(api, address, address);
-        
-        if (hierarchy) {
-          // Find the root of the hierarchy to display the full tree
-          const rootAccount = findRootAccount(hierarchy);
-          
-          // Make sure the current account is marked correctly
-          const currentAccountNode = findAccountInTree(rootAccount, address);
-          if (currentAccountNode) {
-            currentAccountNode.isCurrentAccount = true;
-          }
-          // Mark direct subnodes of current account
-          if (currentAccountNode && currentAccountNode.subs) {
-            for (const subNode of currentAccountNode.subs) {
-              subNode.isDirectSubOfCurrentAccount = true;
-            }
-          }
-          if (import.meta.env.DEV) {
-            console.log(`Root account: ${rootAccount.address}`);
-            console.log(`Current account found in tree: ${!!currentAccountNode}`);
-          }
-          
-          setAccountTree(rootAccount);
-        } else {
-          // If no hierarchy found, create a simple node for the current address
-          if (import.meta.env.DEV) console.log(`No hierarchy found, creating simple node for ${address}`);
-          setAccountTree({
-            address,
-            isCurrentAccount: true,
-            name: "Current Account"
-          });
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error("Error fetching account hierarchy:", err);
-          setError(err instanceof Error ? err : new Error(String(err)));
-          setAccountTree(null);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
     fetchAccountHierarchy();
-
-    return () => {
-      isMounted = false;
-    };
   }, [address, api]);
 
   return {
