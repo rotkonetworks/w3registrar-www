@@ -221,10 +221,6 @@ export const useAccountsTree = ({
     accountTree,
     loading,
     error,
-    refresh: () => {
-      if (import.meta.env.DEV) console.log("Refreshing account tree");
-      setLoading(true);
-      setAccountTree(null);
-    }
+    refresh: fetchAccountHierarchy,
   };
 };
