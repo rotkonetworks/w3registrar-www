@@ -41,7 +41,7 @@ export const AccountSelector = ({
         <CommandList>
           <CommandGroup>
             {accounts.map((account) => (
-              <CommandItem
+              <CommandItem disabled={account.disabled}
                 key={account.address}
                 onSelect={() => {
                   handleAddressChange(account.address);
