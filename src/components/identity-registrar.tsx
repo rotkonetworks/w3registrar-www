@@ -613,7 +613,7 @@ export function IdentityRegistrarComponent() {
     loading: accountTreeLoading,
     refresh: refreshAccountTree,
   } = useAccountsTree({
-    address: accountStore.address,
+    address: accountStore.encodedAddress,
     api: typedApi,
   })
 
