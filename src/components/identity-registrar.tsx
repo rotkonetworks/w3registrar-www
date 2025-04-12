@@ -598,7 +598,12 @@ export function IdentityRegistrarComponent() {
         refreshAccountTree(); // Refresh accounts tree after editing subaccount
         break;
       default:
-        throw new Error("Unexpected openDialog value")
+        console.error("Unexpected openDialog value:", openDialog);
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Unknown Transaction"
+        })
+        break;
     }
     closeTxDialog()
   }
