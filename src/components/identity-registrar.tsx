@@ -590,6 +590,13 @@ export function IdentityRegistrarComponent() {
         })
         refreshAccountTree(); // Refresh accounts tree after quitting subaccount
         break;
+      case "editSubAccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Edit Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after editing subaccount
+        break;
       default:
         throw new Error("Unexpected openDialog value")
     }
@@ -727,7 +734,10 @@ export function IdentityRegistrarComponent() {
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
     <Dialog 
-      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", "quitSub"].includes(openDialog)} 
+      open={[
+        "clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
+        "quitSub", "editSubAccount"
+      ].includes(openDialog)} 
       onOpenChange={v => v 
         ?openTxDialog({
           mode: openDialog as DialogMode,
