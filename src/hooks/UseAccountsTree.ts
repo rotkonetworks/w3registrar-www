@@ -2,6 +2,7 @@ import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useState } from "react";
+import { fetchIdentity } from "~/utils/fetchIdentity";
 import { fetchSubsOf, fetchSuperOf } from "~/utils/subaccounts";
 
 export type AccountTreeNode = {
@@ -109,6 +110,7 @@ async function buildAccountHierarchy(
         }
       }
     }
+    node.name = node.name || (await fetchIdentity(api, address)).info?.display;
     visitedAddresses.add(address);
 
     return node;
