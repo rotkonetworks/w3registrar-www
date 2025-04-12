@@ -10,6 +10,7 @@ export type AccountTreeNode = {
   deposit?: bigint,
   super?: AccountTreeNode,
   subs?: AccountTreeNode[],
+  // TODO Get rid of following properties, as they are redundant
   isCurrentAccount?: boolean,
   isDirectSubOfCurrentAccount?: boolean,
 };
@@ -207,8 +208,6 @@ export const useAccountsTree = ({
       console.error("Error fetching account hierarchy:", err);
       setError(err instanceof Error ? err : new Error(String(err)));
       setAccountTree(null);
-      if (isMounted) {
-      }
     } finally {
       setLoading(false);
     }
