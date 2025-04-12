@@ -30,7 +30,7 @@ export const AccountSelector = ({
   >
     <PopoverTrigger id={id} asChild>
       <Button role="combobox" className="w-full justify-between" disabled={disabled}>
-        {accounts.find(account => account.encodedAddress === address)?.name ?? "Select wallet"}
+        {accounts.find(account => account.address === address)?.name ?? "Select wallet"}
         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
