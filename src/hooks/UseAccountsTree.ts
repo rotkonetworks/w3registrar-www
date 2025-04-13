@@ -38,21 +38,34 @@ async function buildAccountHierarchy(
   // Prevent infinite loops and too deep recursion
   // But make an exception for the current account to ensure it's included
   if ((visitedAddresses.has(address) && !isCurrentAccount) || currentDepth >= maxDepth) {
+    if (visitedAddresses.has(address)) {
+      console.log("Already visited:", address);
+    }
+    if (currentDepth >= maxDepth) {
+      console.log("Max depth reached:", currentDepth, "address:", address);
+    }
     return null;
   }
+  visitedAddresses.add(address);
+  console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, isVisited: ${visitedAddresses.has(address)}`);
+  console.log(`Visited addresses:`, [...visitedAddresses]);
   
+  const node: AccountTreeNode = {
+    address,
+    isCurrentAccount
+  };
+  
+  if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
   try {
     // Create the base node
-    const node: AccountTreeNode = {
-      address,
-      isCurrentAccount
-    };
-    
-    if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
 
     // Try to fetch super account (parent)
     const superAccount = await fetchSuperOf(api, address);
     if (superAccount && !visitedAddresses.has(superAccount.address)) {
+      console.log(`Found superaccount for ${address}: ${superAccount.address}`);
+
+      //visitedAddresses.add(node);
+
       // Recursively get the super's hierarchy
       node.super = await buildAccountHierarchy(
         api,
@@ -73,10 +86,13 @@ async function buildAccountHierarchy(
     if (subsResult && subsResult.subs.length > 0) {
       node.deposit = subsResult.deposit;
       node.subs = [];
+
+      //visitedAddresses.add(address);
       
-      if (import.meta.env.DEV) console.log(`Found ${subsResult.subs.length} subaccounts for ${address}`);
+      if (import.meta.env.DEV) console.log(`Found ${subsResult.subs.length} subaccounts for ${address}`, [...subsResult.subs]);
       
       // Process each subaccount
+      // TODO Appli promise.all to fetch all subaccounts in parallel
       for (const subAddress of subsResult.subs) {
         // Process subaccount even if visited when it's the current account
         if (!visitedAddresses.has(subAddress) || subAddress === currentAddress) {
@@ -90,13 +106,13 @@ async function buildAccountHierarchy(
           );
           
           if (subNode) {
+            subNode.super = node; // Set the current node as the super for the subaccount
             // Get subaccount name if available
             try {
               const subInfo = await fetchSuperOf(api, subAddress);
               if (subInfo) {
                 subNode.name = subInfo.name;
               }
-              subNode.super = node; // Set the current node as the super for the subaccount
             } catch (error) {
               console.error(`Error fetching name for ${subAddress}:`, error);
             }
