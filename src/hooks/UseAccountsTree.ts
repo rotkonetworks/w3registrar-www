@@ -87,24 +87,21 @@ async function buildAccountHierarchy(
       node.deposit = subsResult.deposit;
       node.subs = [];
 
-      //visitedAddresses.add(address);
-      
       if (import.meta.env.DEV) console.log(`Found ${subsResult.subs.length} subaccounts for ${address}`, [...subsResult.subs]);
-      
-      // Process each subaccount
-      // TODO Appli promise.all to fetch all subaccounts in parallel
-      for (const subAddress of subsResult.subs) {
+
+      // Process all subaccounts in parallel using Promise.all
+      const subPromises = subsResult.subs.map(async (subAddress) => {
         // Process subaccount even if visited when it's the current account
         if (!visitedAddresses.has(subAddress) || subAddress === currentAddress) {
           const subNode = await buildAccountHierarchy(
-            api, 
+            api,
             subAddress,
             currentAddress,
             visitedAddresses,
             maxDepth,
             currentDepth + 1
           );
-          
+
           if (subNode) {
             subNode.super = node; // Set the current node as the super for the subaccount
             // Get subaccount name if available
@@ -116,15 +113,19 @@ async function buildAccountHierarchy(
             } catch (error) {
               console.error(`Error fetching name for ${subAddress}:`, error);
             }
-            
+
             // Mark if this subaccount is the current account
             subNode.isCurrentAccount = subNode.address === currentAddress;
-            
+
             if (import.meta.env.DEV) console.log(`Adding subaccount: ${subAddress}, isCurrentAccount: ${subNode.isCurrentAccount}`);
-            node.subs.push(subNode);
+            return subNode;
           }
         }
-      }
+        return null;
+      });
+
+      const subResults = await Promise.all(subPromises);
+      node.subs = subResults.filter(Boolean) as AccountTreeNode[];
     }
     node.name = node.name || (await fetchIdentity(api, address)).info?.display;
     visitedAddresses.add(address);
