@@ -21,6 +21,7 @@ import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
 import { Alert } from "../ui/alert"
+import { AccountSelector } from "../ui/account-selector"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
@@ -78,35 +79,10 @@ export default function Teleporter({
       <div className="flex items-start space-x-4">
         <div className="flex-1 space-y-2">
           <Label htmlFor="fromAddress">From Wallet</Label>
-          <Popover open={comboboxOpen === "fromAddress"}
-            onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
-          >
-            <PopoverTrigger id="fromAddress" asChild>
-              <Button role="combobox" className="w-full justify-between">
-                {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0 bg-[#2C2B2B] border-[#E6007A]">
-              <Command>
-                <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
-                <CommandEmpty>No wallet found.</CommandEmpty>
-                <CommandList>
-                  <CommandGroup>
-                    {accounts.map((account) => (
-                      <CommandItem
-                        key={account.address}
-                        onSelect={() => handleFromWalletChange(account.encodedAddress)}
-                        className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                      >
-                        {account.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <AccountSelector id="fromAddress" accounts={accounts} address={fromAddress}
+            open={comboboxOpen} handleAddressChange={handleFromWalletChange}
+            handleOpen={setComboboxOpen}
+          />
         </div>
 
         <div className="flex-1 space-y-2">
