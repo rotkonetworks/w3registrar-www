@@ -17,21 +17,31 @@ export type AccountTreeNode = {
 };
 
 /**
- * Recursive function to build the account hierarchy
- * @param api TypedApi instance
- * @param address Address to start building from
- * @param currentAddress The currently selected user account
- * @param visitedAddresses Set of already visited addresses to prevent infinite loops
- * @param maxDepth Maximum recursion depth
+ * Parameter type for buildAccountHierarchy function
  */
-async function buildAccountHierarchy(
+type BuildHierarchyParams = {
   api: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String,
   currentAddress: SS58String,
-  allNodes = {} as Record<SS58String, AccountTreeNode>,
-  maxDepth = 5, // Prevent too deep recursion
-  currentDepth = 0
+  allNodes?: Record<SS58String, AccountTreeNode>,
+  maxDepth?: number,
+};
+
+/**
+ * Recursive function to build the account hierarchy
+ * @param params Object containing all necessary parameters
+ */
+async function buildAccountHierarchy(
+  params: BuildHierarchyParams
 ): Promise<AccountTreeNode | null> {
+  const { 
+    api, 
+    address, 
+    currentAddress, 
+    allNodes = {}, 
+    maxDepth = 5
+  } = params;
+
   // ISSUE: There are certain cases where this would bir oridyce exoected node struct when current 
   //  node is leaf node.
   // Potential solution: 
@@ -47,8 +57,8 @@ async function buildAccountHierarchy(
     console.log("Already visited:", address);
     return null;
   }
-  if (currentDepth >= maxDepth) {
-    console.log("Max depth reached:", currentDepth, "address:", address);
+  if (maxDepth <= 0) {
+    console.log("Max depth reached, address:", address);
     return null;
   }
   console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, 
@@ -71,14 +81,13 @@ async function buildAccountHierarchy(
         console.log(`Found superaccount for ${address}: ${superAccount.address}`);
 
         // Recursively get the super's hierarchy
-        node.super = await buildAccountHierarchy(
+        node.super = await buildAccountHierarchy({
           api,
-          superAccount.address,
+          address: superAccount.address,
           currentAddress,
           allNodes,
-          maxDepth,
-          currentDepth + 1
-        );
+          maxDepth: maxDepth - 1
+        });
 
         
         if (node.super) {
@@ -107,14 +116,13 @@ async function buildAccountHierarchy(
         // Process subaccount even if visited when it's the current account
         //if (!allNodes[subAddress] || subAddress === currentAddress) {
         if (!allNodes[subAddress]) {
-          const subNode = await buildAccountHierarchy(
+          const subNode = await buildAccountHierarchy({
             api,
-            subAddress,
+            address: subAddress,
             currentAddress,
             allNodes,
-            maxDepth,
-            currentDepth + 1
-          );
+            maxDepth: maxDepth - 1
+          });
 
           if (subNode) {
             subNode.super = node; // Set the current node as the super for the subaccount
@@ -207,7 +215,11 @@ export const useAccountsTree = ({
       if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
       
       // Build the complete hierarchy starting from the current address
-      const hierarchy = await buildAccountHierarchy(api, address, address);
+      const hierarchy = await buildAccountHierarchy({
+        api,
+        address,
+        currentAddress: address
+      });
       
       if (hierarchy) {
         // Find the root of the hierarchy to display the full tree
