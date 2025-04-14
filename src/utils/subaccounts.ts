@@ -62,7 +62,6 @@ export const fetchSuperOf = async (
     if (!result) return null;
     // TODO Handle other types of superaccount data
     const name = result[1].type.startsWith("Raw") ? result[1].value.asText() : null;
-    //if (!key) return null;
 
     return {
       address: result[0],
