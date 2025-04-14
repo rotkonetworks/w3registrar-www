@@ -61,7 +61,7 @@ async function buildAccountHierarchy(
     console.log("Max depth reached, address:", address);
     return null;
   }
-  console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, 
+  console.log(`Visiting address: ${address}, maxDepth: ${maxDepth}, 
     isVisited: ${allNodes[address] ? "yes" : "no"}`
   );
   console.log("allNodes:", allNodes);
@@ -76,6 +76,7 @@ async function buildAccountHierarchy(
   try {
     // Try to fetch super account (parent)
     const superAccount = await fetchSuperOf(api, address);
+    console.log(`Superaccount for ${address}:`, superAccount);
     if (superAccount) {
       if (!allNodes[superAccount.address]) {
         console.log(`Found superaccount for ${address}: ${superAccount.address}`);
@@ -105,6 +106,7 @@ async function buildAccountHierarchy(
 
     // Fetch subaccounts
     const subsResult = await fetchSubsOf(api, address);
+    console.log(`Subaccounts for ${address}:`, subsResult);
     if (subsResult && subsResult.subs.length > 0) {
       node.deposit = subsResult.deposit;
       node.subs = [];
