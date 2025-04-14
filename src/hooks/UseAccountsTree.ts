@@ -28,7 +28,6 @@ async function buildAccountHierarchy(
   api: TypedApi<ChainDescriptorOf<ChainId>>,
   address: SS58String,
   currentAddress: SS58String,
-  visitedAddresses = new Set<string>(),
   allNodes = {} as Record<SS58String, AccountTreeNode>,
   maxDepth = 5, // Prevent too deep recursion
   currentDepth = 0
@@ -37,51 +36,61 @@ async function buildAccountHierarchy(
   //  node is leaf node.
   // Potential solution: 
   // - Add a check to see if the node is a leaf node and return null if so. Include all leaf nodes for current parent.
-  // - Have lookup table for all nodes' props, keyed by address. If a node vas visited, use the lookup table to get the props.
+  // - TESTING Have lookup table for all nodes' props, keyed by address. If a node vas visited, use the lookup table to get the props.
 
   // Special case: Always process the current address even if visited
   const isCurrentAccount = address === currentAddress;
   
   // Prevent infinite loops and too deep recursion
   // But make an exception for the current account to ensure it's included
-  if ((visitedAddresses.has(address) && !isCurrentAccount) || currentDepth >= maxDepth) {
-    if (visitedAddresses.has(address)) {
-      console.log("Already visited:", address);
-    }
-    if (currentDepth >= maxDepth) {
-      console.log("Max depth reached:", currentDepth, "address:", address);
-    }
+  if (allNodes[address]) {
+    console.log("Already visited:", address);
     return null;
   }
-  console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, isVisited: ${visitedAddresses.has(address)}`);
-  console.log(`Visited addresses:`, [...visitedAddresses]);
-  visitedAddresses.add(address);
+  if (currentDepth >= maxDepth) {
+    console.log("Max depth reached:", currentDepth, "address:", address);
+    return null;
+  }
+  console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, 
+    isVisited: ${allNodes[address] ? "yes" : "no"}`
+  );
+  console.log("allNodes:", allNodes);
   
   const node: AccountTreeNode = {
     address,
     isCurrentAccount
   };
+  allNodes[address] = node; // Store the node in the allNodes object
   
   if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
   try {
     // Try to fetch super account (parent)
     const superAccount = await fetchSuperOf(api, address);
-    if (superAccount && !visitedAddresses.has(superAccount.address)) {
-      console.log(`Found superaccount for ${address}: ${superAccount.address}`);
+    if (superAccount) {
+      if (!allNodes[superAccount.address]) {
+        console.log(`Found superaccount for ${address}: ${superAccount.address}`);
 
-      // Recursively get the super's hierarchy
-      node.super = await buildAccountHierarchy(
-        api,
-        superAccount.address,
-        currentAddress,
-        visitedAddresses,
-        allNodes,
-        maxDepth,
-        currentDepth + 1
-      );
-      
-      if (node.super) {
-        if (import.meta.env.DEV) console.log(`Set super for ${address}: ${superAccount.address}`);
+        // Recursively get the super's hierarchy
+        node.super = await buildAccountHierarchy(
+          api,
+          superAccount.address,
+          currentAddress,
+          allNodes,
+          maxDepth,
+          currentDepth + 1
+        );
+
+        
+        if (node.super) {
+          allNodes[superAccount.address] = node.super; // Store the super node in allNodes
+          console.log(`Set super for ${address}: ${superAccount.address}`);
+        }
+      } else {
+        // If the super account is already visited, just link it
+        node.super = allNodes[superAccount.address];
+        if (import.meta.env.DEV) {
+          console.log(`Superaccount ${superAccount.address} already visited for ${address}`);
+        }
       }
     }
 
@@ -96,12 +105,12 @@ async function buildAccountHierarchy(
       // Process all subaccounts in parallel using Promise.all
       const subPromises = subsResult.subs.map(async (subAddress) => {
         // Process subaccount even if visited when it's the current account
-        if (!visitedAddresses.has(subAddress) || subAddress === currentAddress) {
+        //if (!allNodes[subAddress] || subAddress === currentAddress) {
+        if (!allNodes[subAddress]) {
           const subNode = await buildAccountHierarchy(
             api,
             subAddress,
             currentAddress,
-            visitedAddresses,
             allNodes,
             maxDepth,
             currentDepth + 1
@@ -125,6 +134,8 @@ async function buildAccountHierarchy(
             if (import.meta.env.DEV) console.log(`Adding subaccount: ${subAddress}, isCurrentAccount: ${subNode.isCurrentAccount}`);
             return subNode;
           }
+        } else {
+          return allNodes[subAddress]; // Return the already visited node
         }
         return null;
       });
@@ -133,7 +144,6 @@ async function buildAccountHierarchy(
       node.subs = subResults.filter(Boolean) as AccountTreeNode[];
     }
     node.name = node.name || (await fetchIdentity(api, address)).info?.display;
-    visitedAddresses.add(address);
     console.log(`Finished building node for ${address}:`, node);
 
     return node;
