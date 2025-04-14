@@ -32,8 +32,7 @@ export const fetchSubsOf = async (
       subs: result[1],
     };
   } catch (error) {
-    if (import.meta.env.DEV) console.error("Error fetching subaccounts", error);
-    return null;
+    throw new Error("Error fetching subaccounts", error);
   }
 }
 
@@ -70,8 +69,7 @@ export const fetchSuperOf = async (
       name,
     };
   } catch (error) {
-    if (import.meta.env.DEV) console.error("Error fetching superaccount", error);
-    return null;
+    throw new Error("Error fetching superaccount", error);
   }
 }
 
