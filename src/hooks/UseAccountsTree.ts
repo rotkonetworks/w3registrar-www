@@ -29,9 +29,16 @@ async function buildAccountHierarchy(
   address: SS58String,
   currentAddress: SS58String,
   visitedAddresses = new Set<string>(),
+  allNodes = {} as Record<SS58String, AccountTreeNode>,
   maxDepth = 5, // Prevent too deep recursion
   currentDepth = 0
 ): Promise<AccountTreeNode | null> {
+  // ISSUE: There are certain cases where this would bir oridyce exoected node struct when current 
+  //  node is leaf node.
+  // Potential solution: 
+  // - Add a check to see if the node is a leaf node and return null if so. Include all leaf nodes for current parent.
+  // - Have lookup table for all nodes' props, keyed by address. If a node vas visited, use the lookup table to get the props.
+
   // Special case: Always process the current address even if visited
   const isCurrentAccount = address === currentAddress;
   
@@ -46,9 +53,9 @@ async function buildAccountHierarchy(
     }
     return null;
   }
-  visitedAddresses.add(address);
   console.log(`Visiting address: ${address}, currentDepth: ${currentDepth}, isVisited: ${visitedAddresses.has(address)}`);
   console.log(`Visited addresses:`, [...visitedAddresses]);
+  visitedAddresses.add(address);
   
   const node: AccountTreeNode = {
     address,
@@ -57,14 +64,10 @@ async function buildAccountHierarchy(
   
   if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
   try {
-    // Create the base node
-
     // Try to fetch super account (parent)
     const superAccount = await fetchSuperOf(api, address);
     if (superAccount && !visitedAddresses.has(superAccount.address)) {
       console.log(`Found superaccount for ${address}: ${superAccount.address}`);
-
-      //visitedAddresses.add(node);
 
       // Recursively get the super's hierarchy
       node.super = await buildAccountHierarchy(
@@ -72,6 +75,7 @@ async function buildAccountHierarchy(
         superAccount.address,
         currentAddress,
         visitedAddresses,
+        allNodes,
         maxDepth,
         currentDepth + 1
       );
@@ -98,6 +102,7 @@ async function buildAccountHierarchy(
             subAddress,
             currentAddress,
             visitedAddresses,
+            allNodes,
             maxDepth,
             currentDepth + 1
           );
@@ -129,6 +134,7 @@ async function buildAccountHierarchy(
     }
     node.name = node.name || (await fetchIdentity(api, address)).info?.display;
     visitedAddresses.add(address);
+    console.log(`Finished building node for ${address}:`, node);
 
     return node;
   } catch (error) {
