@@ -215,12 +215,15 @@ export const useAccountsTree = ({
 
     try {
       if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
+
+      const allNodes = {}; // Reset allNodes for each fetch
       
       // Build the complete hierarchy starting from the current address
       const hierarchy = await buildAccountHierarchy({
         api,
         address,
-        currentAddress: address
+        currentAddress: address,
+        allNodes,
       });
       
       if (hierarchy) {
