@@ -73,8 +73,8 @@ async function buildAccountHierarchy(
   allNodes[address] = node; // Store the node in the allNodes object
   
   if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
+  // Try to fetch super account (parent)
   try {
-    // Try to fetch super account (parent)
     const superAccount = await fetchSuperOf(api, address);
     console.log(`Superaccount for ${address}:`, superAccount);
     if (superAccount) {
@@ -103,8 +103,12 @@ async function buildAccountHierarchy(
         }
       }
     }
+  } catch (error) {
+    console.error(`Error fetching superaccount for ${address}:`, error);
+  }
 
-    // Fetch subaccounts
+  // Fetch subaccounts
+  try {
     const subsResult = await fetchSubsOf(api, address);
     console.log(`Subaccounts for ${address}:`, subsResult);
     if (subsResult && subsResult.subs.length > 0) {
@@ -153,14 +157,13 @@ async function buildAccountHierarchy(
       const subResults = await Promise.all(subPromises);
       node.subs = subResults.filter(Boolean) as AccountTreeNode[];
     }
-    node.name = node.name || (await fetchIdentity(api, address)).info?.display;
-    console.log(`Finished building node for ${address}:`, node);
-
-    return node;
   } catch (error) {
-    console.error(`Error building hierarchy for address ${address}:`, error);
-    return null;
+    console.error(`Error fetching subaccounts for ${address}:`, error);
   }
+  node.name = node.name || (await fetchIdentity(api, address)).info?.display;
+  console.log(`Finished building node for ${address}:`, node);
+
+  return node;
 }
 
 /**
