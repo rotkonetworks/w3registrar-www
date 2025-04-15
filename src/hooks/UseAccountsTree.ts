@@ -215,6 +215,7 @@ export const useAccountsTree = ({
       setLoading(false);
       return;
     }
+    setLoading(true);
 
     try {
       if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
