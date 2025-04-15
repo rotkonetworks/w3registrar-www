@@ -16,15 +16,9 @@ import { useAccounts } from "@reactive-dot/react";
 import { Input } from "./ui/input";
 import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { useFormatAmount } from "~/hooks/useFormatAmount";
+import { ChainInfo } from "~/store/ChainStore";
 
-type AccountNodeProps = {
-  node: AccountTreeNode;
-  isRoot?: boolean;
-  onRemove: (subNode: AccountTreeNode) => void;
-  onRename: (subNode: AccountTreeNode) => void;
-  onQuit: (node: AccountTreeNode) => void;
-  isRemoving?: SS58String | null;
-};
 const getName = (node: AccountTreeNode) => {
   return <>
     {node.name || <>
@@ -44,14 +38,24 @@ const getFqcn = (node: AccountTreeNode) => {
   </>;
 }
 
+type AccountNodeProps = {
+  node: AccountTreeNode;
+  isRoot?: boolean;
+  onRemove: (subNode: AccountTreeNode) => void;
+  onRename: (subNode: AccountTreeNode) => void;
+  onQuit: (node: AccountTreeNode) => void;
+  isRemoving?: SS58String | null;
+  formatAmount: (amount: bigint) => string;
+};
 function AccountNode({
   node,
   isRoot = false,
+  isRemoving,
   onRemove,
   onQuit,
   onRename,
-  isRemoving,
-  // TODO Pass currentNode
+  formatAmount,
+  // TODO Pass currentNode, so we can get rid of isCurrentAccount abd isDirectSubOfCurrentAccount.
 }: AccountNodeProps) {
   return (
     <div className={`relative ${isRoot ? '' : 'ml-2 pt-2 pl-4 border-l-2 border-secondary'}`}>
@@ -77,8 +81,12 @@ function AccountNode({
             {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
               <Badge variant="secondary" className="text-xs">Current is sub</Badge>
             )}
+            {node.deposit && (
+              <Badge variant="secondary" size="sm">
+                {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
+              </Badge>
+            )}
             {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
-
           </div>
 
           {!isRoot && node.isCurrentAccount && (
@@ -136,10 +144,11 @@ function AccountNode({
         && (node.subs.map((subaccount) => <AccountNode 
           key={subaccount.address} 
           node={subaccount}
+          isRemoving={isRemoving}
           onRemove={onRemove}
           onRename={onRename}
           onQuit={onQuit}
-          isRemoving={isRemoving}
+          formatAmount={formatAmount}
         /> ))
       }
     </div>
@@ -153,6 +162,7 @@ type AccountsTreeProps = {
   },
   currentAddress: SS58String;
   api: TypedApi<ChainDescriptorOf<ChainId>>;
+  chainStore: ChainInfo;
   identity: Identity;
   openTxDialog: (args: OpenTxDialogArgs_modeSet) => void;
   className?: string;
@@ -160,6 +170,7 @@ type AccountsTreeProps = {
 
 export function AccountsTree({
   accountTree: {data: accountTreeData, loading},
+  chainStore,
   currentAddress,
   api,
   identity,
@@ -336,6 +347,12 @@ export function AccountsTree({
 
   const currentAccountHasIdentity = !!identity.info;
 
+  const formattAmount = useFormatAmount({ 
+    tokenDecimals: chainStore.tokenDecimals, 
+    symbol: chainStore.tokenSymbol, 
+    decimals: 3,
+  });
+
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
@@ -367,10 +384,11 @@ export function AccountsTree({
               <AccountNode 
                 node={accountTreeData} 
                 isRoot 
+                isRemoving={removingSubaccount}
                 onRemove={removeSubAccount}
                 onRename={handleEditClick}
                 onQuit={quitSubaccount}
-                isRemoving={removingSubaccount}
+                formatAmount={formattAmount}
               />
             </div>
           )}

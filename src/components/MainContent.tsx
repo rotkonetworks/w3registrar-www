@@ -71,6 +71,7 @@ export const MainContent = ({
       content: <AccountsTree 
         identity={identity}
         accountTree={accountTree}
+        chainStore={chainStore}
         currentAddress={accountStore.address}
         api={typedApi}
         openTxDialog={openTxDialog}
