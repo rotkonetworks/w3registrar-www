@@ -69,6 +69,7 @@ export const MainContent = ({
       icon: <ListTree className="h-5 w-5" />,
       disabled: !accountTree,
       content: <AccountsTree 
+        identity={identity}
         accountTree={accountTree}
         currentAddress={accountStore.address}
         api={typedApi}

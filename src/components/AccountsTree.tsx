@@ -14,6 +14,8 @@ import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
 import { AccountSelector } from "./ui/account-selector";
 import { useAccounts } from "@reactive-dot/react";
 import { Input } from "./ui/input";
+import { Identity } from "~/types/Identity";
+import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 
 type AccountNodeProps = {
   node: AccountTreeNode;
@@ -151,6 +153,7 @@ type AccountsTreeProps = {
   },
   currentAddress: SS58String;
   api: TypedApi<ChainDescriptorOf<ChainId>>;
+  identity: Identity;
   openTxDialog: (args: OpenTxDialogArgs_modeSet) => void;
   className?: string;
 };
@@ -159,6 +162,7 @@ export function AccountsTree({
   accountTree: {data: accountTreeData, loading},
   currentAddress,
   api,
+  identity,
   openTxDialog,
   className = "",
 }: AccountsTreeProps) {
@@ -330,6 +334,8 @@ export function AccountsTree({
     setIsEditMode(true);
   };
 
+  const currentAccountHasIdentity = !!identity.info;
+
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
@@ -443,8 +449,8 @@ export function AccountsTree({
                       }
                     }
                   } 
-                  disabled={(!selectedAddress && !isEditMode) 
-                    || !selectedName || !!selectedNameError || addingSubaccount
+                  disabled={(!selectedAddress && !isEditMode) || !selectedName || !!selectedNameError 
+                    || !currentAccountHasIdentity || addingSubaccount || removingSubaccount
                   }
                   className="gap-2 flex-1"
                 >
@@ -461,6 +467,14 @@ export function AccountsTree({
                 </Button>}
               </div>
             </div>
+            {!currentAccountHasIdentity && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertTitle>Warning</AlertTitle>
+                <AlertDescription>
+                  You need to set an identity for this account to add subaccounts.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
         </Card>
       )}
