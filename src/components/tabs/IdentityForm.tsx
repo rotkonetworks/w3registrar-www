@@ -1,5 +1,5 @@
 import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { IdentityStore, verifyStatuses } from '@/store/IdentityStore'
+import { Identity, verifyStatuses } from '~/types/Identity'
 import { UserCircle, AtSign, Mail, CheckCircle, Globe, Fingerprint, Github, Image, IdCard, XIcon } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import BigNumber from 'bignumber.js'
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { DiscordIcon } from '~/assets/icons/discord'
-import { OpenTxDialogArgs } from '../identity-registrar'
+import { OpenTxDialogArgs } from '~/types'
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -22,7 +22,7 @@ export type IdentityFormData = Record<string, {
 
 export const IdentityForm = forwardRef((
   {
-    identityStore,
+    identity,
     chainStore,
     accountStore,
     typedApi,
@@ -31,7 +31,7 @@ export const IdentityForm = forwardRef((
     supportedFields,
     openTxDialog,
   }: {
-    identityStore: IdentityStore,
+    identity: Identity,
     chainStore: ChainInfo,
     accountStore: AccountData,
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
@@ -43,7 +43,7 @@ export const IdentityForm = forwardRef((
   ref: Ref<unknown> & { reset: () => void },
 ) => {
   const _reset = useCallback(() => Object.fromEntries(
-    ['display', 'matrix', 'email', 'discord', 'twitter', 'web'].map(key => [
+    supportedFields.map(key => [
       key,
       { value: "", error: null }
     ])
@@ -51,7 +51,7 @@ export const IdentityForm = forwardRef((
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
 
-  const onChainIdentity = identityStore.status
+  const onChainIdentity = identity.status
 
   const handleSubmitIdentity = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -226,16 +226,17 @@ export const IdentityForm = forwardRef((
     "discord", 
   ]
 
-  const _resetFromIdStore = useCallback((identityStoreInfo) => (
-    {...(Object.entries(identityFormFields).reduce((all, [key]) => {
-      all[key] = {
-        value: identityStore.info![key] || "",
-        error: null,
-      }
-      return all
-    }, { })
-    )}
-  ), [])
+  const _resetFromIdStore = useCallback((identityInfo) => (
+    {
+      ..._reset(),
+      ...(Object.entries(identityInfo).reduce((all, [key]) => {
+        all[key] = {
+          value: identityInfo![key],
+          error: null,
+        }
+        return all
+      }, { }))
+  }), [])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
@@ -243,17 +244,17 @@ export const IdentityForm = forwardRef((
       return
     }
     setFormResetFlag(false)
-    if (identityStore.info) {
-      if (import.meta.env.DEV) console.log({ identityStore })
-      setFormData(() => _resetFromIdStore(identityStore))
+    if (identity.info) {
+      if (import.meta.env.DEV) console.log({ identity })
+      setFormData(() => _resetFromIdStore(identity.info))
     } else {
       setFormData(_reset)
     }
-  }, [identityStore.info, formResetFlag])
+  }, [identity.info, formResetFlag])
   
   useImperativeHandle(ref, () => ({
     reset: () => setFormResetFlag(true)
-  }), [identityStore])
+  }), [identity])
 
   useEffect(() => {
     if (import.meta.env.DEV) console.log({ formData })
@@ -280,7 +281,7 @@ export const IdentityForm = forwardRef((
           </CardTitle>
           <CardDescription className="text-[#706D6D]">
             This form allows you to 
-            {identityStore.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
+            {identity.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
             your identity data. It has all the fields that 
             {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
             supports for identity verification. Please make sure that all contact information is 
@@ -329,7 +330,7 @@ export const IdentityForm = forwardRef((
                 <p>Please fill at least one field before proceeding. No validation errors allowed.</p>
               </div>
             )}
-            <IdentityStatusInfo status={identityStore.status} />
+            <IdentityStatusInfo status={identity.status} />
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Button type="submit" disabled={forbiddenSubmission || isTxBusy}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"

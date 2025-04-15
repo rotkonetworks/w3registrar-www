@@ -12,6 +12,7 @@ export type AccountData = {
   address?: SS58String;
   encodedAddress?: SS58String;
   polkadotSigner?: PolkadotSigner;
+  disabled?: boolean;
 }
 export type Account = AccountData
 

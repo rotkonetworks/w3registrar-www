@@ -2,7 +2,7 @@ import { Chains } from "@reactive-dot/core/internal.js";
 import BigNumber from "bignumber.js";
 import { SS58String } from "polkadot-api";
 import { proxy } from "valtio";
-import { EstimatedCostInfo } from "~/components/identity-registrar";
+import { EstimatedCostInfo } from "~/types";
 
 export type XcmParameters = {
   enabled: boolean;

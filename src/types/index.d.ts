@@ -1,7 +1,16 @@
 import { TypedApi } from "polkadot-api"
 
-export type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" |
-  "setIdentity" | null
+export type DialogMode = "clearIdentity" |
+  "disconnect" |
+  "teleport" |
+  "help" |
+  "requestJudgement" |
+  "setIdentity"  |
+  "addSubaccount" |
+  "editSubAccount" |
+  "removeSubaccount" |
+  "quitSub" |
+  null;
 
 export type EstimatedCostInfo = {
   fees?: bigint | BigNumber
@@ -16,13 +25,13 @@ export type OpenTxDialogArgs_modeSet = {
 export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
 export type MainContentProps = {
-  identityStore: IdentityStore,
+  identity: Identity,
   challengeStore: { challenges: ChallengeStore, error: string | null },
   chainStore: ChainInfo,
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
   chainConstants,
-  alertsStore: Map<string, AlertProps>,
+  alerts: Map<string, AlertProps>,
   addNotification: any,
   formatAmount: any,
   supportedFields: string[],
@@ -32,17 +41,12 @@ export type MainContentProps = {
   updateUrlParams: any,
   setOpenDialog: any,
   isTxBusy: boolean,
+  accountTree: AccountTreeNode | null,
   openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 
 export type SignSubmitAndWatchParams = {
   call: ApiTx;
-  messages: {
-    broadcasted?: string;
-    loading?: string;
-    success?: string;
-    error?: string;
-  };
   name: string;
   api?: TypedApi<ChainDescriptorOf<keyof Chains>>;
   awaitFinalization?: boolean;
