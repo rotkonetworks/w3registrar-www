@@ -82,7 +82,7 @@ function AccountNode({
               <Badge variant="secondary" className="text-xs">Current is sub</Badge>
             )}
             {node.deposit && (
-              <Badge variant="secondary" size="sm">
+              <Badge variant="destructive" size="sm">
                 {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
               </Badge>
             )}
