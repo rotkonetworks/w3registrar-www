@@ -450,7 +450,7 @@ export function AccountsTree({
                     }
                   } 
                   disabled={(!selectedAddress && !isEditMode) || !selectedName || !!selectedNameError 
-                    || !currentAccountHasIdentity || addingSubaccount || removingSubaccount
+                    || !currentAccountHasIdentity || addingSubaccount || !!removingSubaccount
                   }
                   className="gap-2 flex-1"
                 >
