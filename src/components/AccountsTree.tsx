@@ -234,8 +234,9 @@ export function AccountsTree({
 
       const tx = api.tx.Identity.set_subs({ subs });
       const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
+      const deposit = mode === "addSubaccount" ? await api.constants.Identity.SubAccountDeposit() : 0n;
 
-      openTxDialog({ mode, tx, estimatedCosts: { fees }});
+      openTxDialog({ mode, tx, estimatedCosts: { fees, deposits: deposit } });
     } catch (error) {
       console.error("Error removing subaccount:", error);
     } finally {
