@@ -18,6 +18,7 @@ import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
 import { ChainInfo } from "~/store/ChainStore";
+import { useWalletAccounts } from "~/hooks/useWalletAccounts";
 
 const getName = (node: AccountTreeNode) => {
   return <>
@@ -296,7 +297,7 @@ export function AccountsTree({
     }
   };
 
-  const _walletAccounts = useAccounts()
+  const { accounts: _walletAccounts } = useWalletAccounts({ chainSs58Format: chainStore.ss58Format })
   const [walletAccounts, setWalletAccounts] = useState(_walletAccounts);
   useEffect(() => {
     if (!api) {
