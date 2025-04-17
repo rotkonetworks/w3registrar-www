@@ -73,7 +73,7 @@ export const IdentityForm = forwardRef((
         ])
       )),
     }
-    if (import.meta.env.DEV) console.log({ info })
+    console.log({ info })
     const tx = typedApi.tx.Identity.set_identity({ info, });
 
     let estimatedCosts;
@@ -87,7 +87,7 @@ export const IdentityForm = forwardRef((
         ),
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       estimatedCosts = {}
       return
     }
@@ -245,7 +245,7 @@ export const IdentityForm = forwardRef((
     }
     setFormResetFlag(false)
     if (identity.info) {
-      if (import.meta.env.DEV) console.log({ identity })
+      console.log({ identity })
       setFormData(() => _resetFromIdStore(identity.info))
     } else {
       setFormData(_reset)
@@ -257,7 +257,7 @@ export const IdentityForm = forwardRef((
   }), [identity])
 
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ formData })
+    console.log({ formData })
   }, [formData])
 
   const forbiddenSubmission = useMemo(() => {

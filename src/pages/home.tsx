@@ -11,7 +11,7 @@ import { ErrorBoundary } from '~/components/ErrorBoundary';
 function Home() {
   const chainId = useProxy(_chainStore).id
   React.useEffect(() => {
-    if (import.meta.env.DEV) console.log({ config });
+    console.log({ config });
   }, [config]);
 
   React.useEffect(() => {

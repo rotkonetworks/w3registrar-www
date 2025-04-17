@@ -99,7 +99,7 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getWalletAccount(urlParams.address);
-    if (import.meta.env.DEV) console.log({ accountData });
+    console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
@@ -116,7 +116,7 @@ export function IdentityRegistrarComponent() {
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
-    if (import.meta.env.DEV) console.log({ account });
+    console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ ...urlParams, address });
   }, [accountStore, urlParams, updateUrlParams]);
@@ -153,9 +153,9 @@ export function IdentityRegistrarComponent() {
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
-        if (import.meta.env.DEV) console.log({ id, chainProperties })
+        console.log({ id, chainProperties })
       } catch {
-        if (import.meta.env.DEV) console.error({ id, })
+        console.error({ id, })
       }
       const newChainData = {
         name: config.chains[id].name,
@@ -164,7 +164,7 @@ export function IdentityRegistrarComponent() {
       }
       startTransition(() => {
         Object.assign(chainStore, newChainData)
-        if (import.meta.env.DEV) console.log({ id, newChainData })
+        console.log({ id, newChainData })
       })
     }) ())
   }, [chainStore.id, chainClient])
@@ -237,7 +237,7 @@ export function IdentityRegistrarComponent() {
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ isTxBusy })
+    console.log({ isTxBusy })
   }, [isTxBusy])
 
   //#region Transactions
@@ -247,10 +247,17 @@ export function IdentityRegistrarComponent() {
         .account_nonce(address, { at: "best", }) as ApiRuntimeCall
       )
     } catch (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       return null
     }
   }, [])
+
+  const [errorDetails, setErrorDetails] = useState<Error | null>(null)
+  useEffect(() => {
+    if (errorDetails) {
+      setOpenDialog("errorDetails")
+    }
+  }, [errorDetails])
 
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
@@ -261,7 +268,7 @@ export function IdentityRegistrarComponent() {
     const { call, name } = params;
     let api = params.api;
     
-    if (import.meta.env.DEV) console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
+    console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
       api = typedApi
@@ -277,14 +284,14 @@ export function IdentityRegistrarComponent() {
     setTxBusy(true)
 
     const nonce = params.nonce ?? await getNonce(api, accountStore.address)
-    if (import.meta.env.DEV) console.log({ nonce });
+    console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
       addAlert({
         type: "error",
         message: "Unable to prepare transaction. Please try again in a moment.",
       })
-      if (import.meta.env.DEV) console.error("Failed to get nonce")
+      console.error("Failed to get nonce")
       reject(new Error("Failed to get nonce"))
       return
     }
@@ -380,12 +387,12 @@ export function IdentityRegistrarComponent() {
             }
           }
         }
-        if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
+        console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error);
+        console.error(error);
         if (error.message === "Cancelled") {
-          if (import.meta.env.DEV) console.log("Cancelled");
+          console.log("Cancelled");
           addAlert({
             type: "error",
             message: `${name} transaction didn't get signed. Please sign it and try again`,
@@ -409,12 +416,13 @@ export function IdentityRegistrarComponent() {
 
             const { type: pallet, value: { type: errorType } } = errorDetails;
             
-            if (import.meta.env.DEV) console.log({ errorDetails });
+            console.log({ errorDetails });
             addAlert({
               type: "error",
               message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
                 ?? `Error with ${name}: Please try again`
               ,
+              seeDetails: () => setErrorDetails(error),
             })
             disposeSubscription(() => reject(error))
             return
@@ -427,7 +435,7 @@ export function IdentityRegistrarComponent() {
         }
       },
       complete: () => {
-        if (import.meta.env.DEV) console.log("Completed")
+        console.log("Completed")
         disposeSubscription()
       }
     })
@@ -515,7 +523,7 @@ export function IdentityRegistrarComponent() {
           name: "Teleport Assets"
         })
       } catch (error) {
-        if (import.meta.env.DEV) console.error(error)
+        console.error(error)
         addAlert({
           type: "error",
           message: "Error teleporting assets. Please try again.",
@@ -527,7 +535,7 @@ export function IdentityRegistrarComponent() {
       let awaitedBlocks;
       for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
         await wait(CHAIN_UPDATE_INTERVAL)
-        if (import.meta.env.DEV) console.log({ awaitedBlocks })
+        console.log({ awaitedBlocks })
         if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
           break
         }
@@ -618,7 +626,7 @@ export function IdentityRegistrarComponent() {
   })
 
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
-    if (import.meta.env.DEV) console.log({ args })
+    console.log({ args })
     if (args.mode) {
       setOpenDialog(args.mode)
       setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
@@ -637,7 +645,7 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    console.log({ newValue: accountAction })
     switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
@@ -659,7 +667,7 @@ export function IdentityRegistrarComponent() {
         updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ accountAction })
+        console.log({ accountAction })
         throw new Error("Invalid action type");
     }
   }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
@@ -738,6 +746,7 @@ export function IdentityRegistrarComponent() {
     {/* Update alerts notification section */}
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
+    {/* TODO Refactor away dialogs */}
     <Dialog 
       open={[
         "clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
@@ -815,14 +824,23 @@ export function IdentityRegistrarComponent() {
                 <li>This relationship will be publicly visible on-chain.</li>
                 {/* TODO Point to deposit */}
                 <li>A deposit will be required for managing subaccounts.</li>
+                <li>
+                  Tf you link an account you don't own, actual owner can quit and take your deposit.
+                </li>
               </>)}
               {openDialog === "removeSubaccount" && (<>
                 <li>You will remove the link between your account and this subaccount.</li>
                 <li>Your deposit for this subaccount will be returned.</li>
               </>)}
+              {openDialog === "editSubAccount" && (<>
+                <li>You will update the name of this subaccount.</li>
+                <li>This will be publicly visible on-chain.</li>
+                <li>There is no deposit required for this action.</li>
+              </>)}
               {openDialog === "quitSub" && (<>
                 <li>You will remove your account's status as a subaccount.</li>
                 <li>This will break the link with your parent account.</li>
+                <li>The deposit for this subaccount will be returned to you.</li>
               </>)}
             </ul>
           </div>
@@ -890,6 +908,45 @@ export function IdentityRegistrarComponent() {
       </>}
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
+    </GenericDialog>
+    <GenericDialog open={openDialog === "errorDetails"} onOpenChange={handleOpenChange} 
+      title="Error details"
+      footer={<>
+        <Button variant="outline" onClick={() => {
+          setOpenDialog(null)
+          setErrorDetails(null)
+        }}>Close</Button>
+        <Button onClick={() => {
+          if (errorDetails) {
+            const fullError = `${errorDetails.message}\n${errorDetails.stack || ''}`;
+            navigator.clipboard.writeText(fullError)
+              .then(() => {
+                addAlert({
+                  type: "success",
+                  message: "Error details copied to clipboard",
+                  //timeout: 3000 // TODO uncomment this when we support self-closing alerts
+                });
+              })
+              .catch(err => {
+                addAlert({
+                  type: "error",
+                  message: "Failed to copy error details",
+                  //timeout: 3000 // TODO Ditto
+                });
+                console.error("Failed to copy:", err);
+              });
+          }
+        }}>
+          Copy to Clipboard
+        </Button>
+      </>}
+    >
+      <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+        <pre className="text-sm text-red-500">
+          {errorDetails?.message}
+          {errorDetails?.stack}
+        </pre>
+      </div>
     </GenericDialog>
   </>
 }

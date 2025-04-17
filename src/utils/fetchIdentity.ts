@@ -32,7 +32,7 @@ export const fetchIdentity = async (
   address: SS58String
 ): Promise<IdentityInfo | null> => {
   if (!api || !address) {
-    if (import.meta.env.DEV) console.error("API or address not provided to fetchIdentity");
+    console.error("API or address not provided to fetchIdentity");
     return null;
   }
 
@@ -92,9 +92,7 @@ export const fetchIdentity = async (
 
     return identityInfo;
   } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error("Error fetching identity:", error);
-    }
+    console.error("Error fetching identity:", error);
     return null;
   }
 };

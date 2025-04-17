@@ -34,9 +34,7 @@ export function useIdentity({ typedApi, address, }: {
       
       return identityInfo;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error fetching identity info:", error);
-      }
+      console.error("Error fetching identity info:", error);
       return null;
     }
   });

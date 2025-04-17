@@ -9,7 +9,7 @@ export function useDarkMode() {
     });
   })
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ isDark })
+    console.log({ isDark })
     document.documentElement.classList.toggle('dark', isDark)
   }, [isDark])
   const setDark = (value: boolean) => {
