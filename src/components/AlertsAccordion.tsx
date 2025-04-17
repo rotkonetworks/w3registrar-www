@@ -53,7 +53,6 @@ export const AlertsAccordion = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeAlert(alert.key)}
-                      className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A] font-mono"
                     >
                       Dismiss
                     </Button>
