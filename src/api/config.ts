@@ -46,22 +46,24 @@ export type ApiConfig = Config & {
 };
 
 let rococoConfig = {};
-if (import.meta.env.VITE_APP_DEFAULT_WS_URL && import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY) {
-  rococoConfig = {
-    rococo: {
-      name: "Rococo",
-      symbol: "ROC",
-      descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo),
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
-    },
-    rococo_people: {
-      name: "Rococo People",
-      symbol: "ROC",
-      descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo_people),
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO || 0,
-    },
-  };
+if (import.meta.env.DEV) {
+  if (import.meta.env.VITE_APP_DEFAULT_WS_URL && import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY) {
+    rococoConfig = {
+      rococo: {
+        name: "Rococo",
+        symbol: "ROC",
+        descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo),
+        provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
+      },
+      rococo_people: {
+        name: "Rococo People",
+        symbol: "ROC",
+        descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo_people),
+        provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
+        registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO || 0,
+      },
+    };
+  }
 }
 export const config = defineConfig({
   chains: {
