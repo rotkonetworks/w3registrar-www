@@ -25,7 +25,7 @@ import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
 import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiRuntimeCall, ApiTx } from "~/types/api"
+import { ApiRuntimeCall, ApiStorage, ApiTx } from "~/types/api"
 import { GenericDialog } from "./dialogs/GenericDialog"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
@@ -243,9 +243,7 @@ export function IdentityRegistrarComponent() {
   //#region Transactions
   const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
     try {
-      return await ((api.apis.AccountNonceApi as any)
-        .account_nonce(address, { at: "best", }) as ApiRuntimeCall
-      )
+      return (await (api.query.System.Account as ApiStorage).getValue(address, {at: "best"})).nonce
     } catch (error) {
       console.error(error)
       return null
