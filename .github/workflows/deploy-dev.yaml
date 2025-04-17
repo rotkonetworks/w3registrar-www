@@ -14,6 +14,7 @@ env:
   VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO: 0
   VITE_APP_AVAILABLE_CHAINS: polkadot_people,ksmcc3_people,paseo_people,rococo_people
   VITE_APP_DEFAULT_CHAIN: paseo_people
+  MODE: 'development'
   # we using staging api
 
 on:
@@ -32,7 +33,7 @@ jobs:
 
       - name: Build the application
         env:
-          MODE: 'development'
+          BUILD_TARGET: 'production'
         run: |
           nix-shell --command "bash scripts/setup.sh"
           nix-shell --command "bash scripts/build.sh"
