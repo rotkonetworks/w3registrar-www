@@ -39,8 +39,10 @@ done
 bun install
 
 if [ MODE = "development" ]; then
+    echo "Running in development mode..."
     bun vite build --mode development
 else
+    echo "Running in production mode..."
     bun vite build --mode production
 fi
 
