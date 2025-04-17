@@ -27,6 +27,7 @@ readonly REQUIRED_VARS=(
     VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO
     # VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO
     VITE_APP_CHALLENGES_API_URL
+    MODE
 )
 
 for var in "${REQUIRED_VARS[@]}"; do
@@ -38,16 +39,11 @@ done
 
 bun install
 
-# vite build will fail with 
-#   error during build:
-#   undefined
-# So this script is required to get actual error message:
-cat << EOF > ./build.js
-const vite = require('vite');
-
-vite.build();
-EOF
-bun ./build.js
+if [ MODE = "development" ]; then
+    bun vite build --mode development
+else
+    bun vite build --mode production
+fi
 
 if ! bun ./build.js; then
     echo "Error: 'bun run build' failed." >&2

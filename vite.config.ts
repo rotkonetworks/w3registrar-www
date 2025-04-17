@@ -23,11 +23,17 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       sourcemap: isDevelopment, // Enable source map generation only in development
-      minify: !isDevelopment ? "esbuild" : false, // Enable minification only in production
+      minify: !isDevelopment ? "terser" : false, // Enable minification only in production
       mode: isDevelopment ? 'development' : 'production',
-      esbuild: {
-        minify: !isDevelopment,
-        drop: !isDevelopment ? ['console'] : [],
+      terserOptions: {
+        compress: {
+          drop_console: !isDevelopment, // Remove console logs in production
+          drop_debugger: !isDevelopment, // Remove debugger statements in production
+        },
+        format: {
+          comments: isDevelopment, // Remove comments in production
+        },
+        mangle: !isDevelopment, // Mangle variable names in production
       },
     },
     exclude: ['node_modules/.cache'],

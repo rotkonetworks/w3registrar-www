@@ -17,10 +17,14 @@ export function useWalletAccounts({
   const [_, disconnectWallet] = useWalletDisconnector();
 
   // Format accounts with proper SS58 format
-  const formattedAccounts = useMemo(() => accounts.map(account => ({
-    ...account,
-    encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainSs58Format),
-  })), [accounts, chainSs58Format]);
+  const formattedAccounts = useMemo(() => accounts
+    // First filter out accounts with invalid public keys, such as EVM accounts
+    .filter(account => [1, 2, 4, 8, 32, 33].includes(account.polkadotSigner.publicKey.length))
+    .map(account => ({
+      ...account,
+      encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainSs58Format),
+    })
+  ), [accounts, chainSs58Format]);
 
   // Get wallet account by address
   const getWalletAccount = useCallback((address: SS58String) => {

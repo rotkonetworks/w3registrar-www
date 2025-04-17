@@ -18,6 +18,7 @@ import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
 import { ChainInfo } from "~/store/ChainStore";
+import { useWalletAccounts } from "~/hooks/useWalletAccounts";
 
 const getName = (node: AccountTreeNode) => {
   return <>
@@ -234,8 +235,9 @@ export function AccountsTree({
 
       const tx = api.tx.Identity.set_subs({ subs });
       const fees = await tx.getEstimatedFees(currentAddress, { at: "best" });
+      const deposit = mode === "addSubaccount" ? await api.constants.Identity.SubAccountDeposit() : 0n;
 
-      openTxDialog({ mode, tx, estimatedCosts: { fees }});
+      openTxDialog({ mode, tx, estimatedCosts: { fees, deposits: deposit } });
     } catch (error) {
       console.error("Error removing subaccount:", error);
     } finally {
@@ -295,7 +297,7 @@ export function AccountsTree({
     }
   };
 
-  const _walletAccounts = useAccounts()
+  const { accounts: _walletAccounts } = useWalletAccounts({ chainSs58Format: chainStore.ss58Format })
   const [walletAccounts, setWalletAccounts] = useState(_walletAccounts);
   useEffect(() => {
     if (!api) {
