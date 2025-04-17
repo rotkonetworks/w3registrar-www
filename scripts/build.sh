@@ -44,9 +44,4 @@ else
     bun vite build --mode production
 fi
 
-if ! bun ./build.js; then
-    echo "Error: 'bun run build' failed." >&2
-    exit 1
-fi
-
 echo "Build completed successfully."
