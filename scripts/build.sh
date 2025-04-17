@@ -10,7 +10,7 @@ fi
 # Strict environment sanitization
 for var in $(compgen -e); do
     case $var in
-        HOME|PATH|TERM|USER|SHELL|TMPDIR|VITE_*)
+        HOME|PATH|TERM|USER|SHELL|TMPDIR|MODE|VITE_*)
             ;;
         *)
             unset "$var"
@@ -27,7 +27,6 @@ readonly REQUIRED_VARS=(
     VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO
     # VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO
     VITE_APP_CHALLENGES_API_URL
-    MODE
 )
 
 for var in "${REQUIRED_VARS[@]}"; do
