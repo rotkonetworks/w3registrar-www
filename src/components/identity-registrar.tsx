@@ -252,6 +252,13 @@ export function IdentityRegistrarComponent() {
     }
   }, [])
 
+  const [errorDetails, setErrorDetails] = useState<Error | null>(null)
+  useEffect(() => {
+    if (errorDetails) {
+      setOpenDialog("errorDetails")
+    }
+  }, [errorDetails])
+
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
   const recentNotifsIds = useRef<string[]>([])
@@ -415,6 +422,7 @@ export function IdentityRegistrarComponent() {
               message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
                 ?? `Error with ${name}: Please try again`
               ,
+              seeDetails: () => setErrorDetails(error),
             })
             disposeSubscription(() => reject(error))
             return
@@ -738,6 +746,7 @@ export function IdentityRegistrarComponent() {
     {/* Update alerts notification section */}
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
+    {/* TODO Refactor away dialogs */}
     <Dialog 
       open={[
         "clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
@@ -815,14 +824,23 @@ export function IdentityRegistrarComponent() {
                 <li>This relationship will be publicly visible on-chain.</li>
                 {/* TODO Point to deposit */}
                 <li>A deposit will be required for managing subaccounts.</li>
+                <li>
+                  Tf you link an account you don't own, actual owner can quit and take your deposit.
+                </li>
               </>)}
               {openDialog === "removeSubaccount" && (<>
                 <li>You will remove the link between your account and this subaccount.</li>
                 <li>Your deposit for this subaccount will be returned.</li>
               </>)}
+              {openDialog === "editSubAccount" && (<>
+                <li>You will update the name of this subaccount.</li>
+                <li>This will be publicly visible on-chain.</li>
+                <li>There is no deposit required for this action.</li>
+              </>)}
               {openDialog === "quitSub" && (<>
                 <li>You will remove your account's status as a subaccount.</li>
                 <li>This will break the link with your parent account.</li>
+                <li>The deposit for this subaccount will be returned to you.</li>
               </>)}
             </ul>
           </div>
@@ -890,6 +908,45 @@ export function IdentityRegistrarComponent() {
       </>}
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
+    </GenericDialog>
+    <GenericDialog open={openDialog === "errorDetails"} onOpenChange={handleOpenChange} 
+      title="Error details"
+      footer={<>
+        <Button variant="outline" onClick={() => {
+          setOpenDialog(null)
+          setErrorDetails(null)
+        }}>Close</Button>
+        <Button onClick={() => {
+          if (errorDetails) {
+            const fullError = `${errorDetails.message}\n${errorDetails.stack || ''}`;
+            navigator.clipboard.writeText(fullError)
+              .then(() => {
+                addAlert({
+                  type: "success",
+                  message: "Error details copied to clipboard",
+                  //timeout: 3000 // TODO uncomment this when we support self-closing alerts
+                });
+              })
+              .catch(err => {
+                addAlert({
+                  type: "error",
+                  message: "Failed to copy error details",
+                  //timeout: 3000 // TODO Ditto
+                });
+                console.error("Failed to copy:", err);
+              });
+          }
+        }}>
+          Copy to Clipboard
+        </Button>
+      </>}
+    >
+      <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+        <pre className="text-sm text-red-500">
+          {errorDetails?.message}
+          {errorDetails?.stack}
+        </pre>
+      </div>
     </GenericDialog>
   </>
 }

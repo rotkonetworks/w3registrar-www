@@ -10,6 +10,7 @@ export type DialogMode = "clearIdentity" |
   "editSubAccount" |
   "removeSubaccount" |
   "quitSub" |
+  "errorDetails" |
   null;
 
 export type EstimatedCostInfo = {
