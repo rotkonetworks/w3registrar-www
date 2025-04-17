@@ -38,7 +38,7 @@ done
 
 bun install
 
-if [ MODE = "development" ]; then
+if [ $MODE = "development" ]; then
     echo "Running in development mode..."
     bun vite build --mode development
 else
