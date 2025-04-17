@@ -8,6 +8,7 @@ export interface AlertProps {
   key: string;
   closable?: boolean;
   duration?: number;
+  seeDetails?: () => void;
 }
 
 export type AlertPropsOptionalKey = Omit<AlertProps, "key"> & { key?: string };

@@ -58,6 +58,10 @@ export const AlertsAccordion = ({
                       Dismiss
                     </Button>
                   )}
+                  {alert.seeDetails && (
+                    <Button variant="primary" size="sm" onClick={alert.seeDetails}>See Details</Button>
+                  )}
+
                 </AlertDescription>
               </Alert>
             ))}
