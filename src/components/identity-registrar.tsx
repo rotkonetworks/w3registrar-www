@@ -99,7 +99,7 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getWalletAccount(urlParams.address);
-    if (import.meta.env.DEV) console.log({ accountData });
+    console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
@@ -116,7 +116,7 @@ export function IdentityRegistrarComponent() {
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
-    if (import.meta.env.DEV) console.log({ account });
+    console.log({ account });
     Object.assign(accountStore, account);
     updateUrlParams({ ...urlParams, address });
   }, [accountStore, urlParams, updateUrlParams]);
@@ -153,9 +153,9 @@ export function IdentityRegistrarComponent() {
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
-        if (import.meta.env.DEV) console.log({ id, chainProperties })
+        console.log({ id, chainProperties })
       } catch {
-        if (import.meta.env.DEV) console.error({ id, })
+        console.error({ id, })
       }
       const newChainData = {
         name: config.chains[id].name,
@@ -164,7 +164,7 @@ export function IdentityRegistrarComponent() {
       }
       startTransition(() => {
         Object.assign(chainStore, newChainData)
-        if (import.meta.env.DEV) console.log({ id, newChainData })
+        console.log({ id, newChainData })
       })
     }) ())
   }, [chainStore.id, chainClient])
@@ -237,7 +237,7 @@ export function IdentityRegistrarComponent() {
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ isTxBusy })
+    console.log({ isTxBusy })
   }, [isTxBusy])
 
   //#region Transactions
@@ -247,7 +247,7 @@ export function IdentityRegistrarComponent() {
         .account_nonce(address, { at: "best", }) as ApiRuntimeCall
       )
     } catch (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       return null
     }
   }, [])
@@ -261,7 +261,7 @@ export function IdentityRegistrarComponent() {
     const { call, name } = params;
     let api = params.api;
     
-    if (import.meta.env.DEV) console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
+    console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
       api = typedApi
@@ -277,14 +277,14 @@ export function IdentityRegistrarComponent() {
     setTxBusy(true)
 
     const nonce = params.nonce ?? await getNonce(api, accountStore.address)
-    if (import.meta.env.DEV) console.log({ nonce });
+    console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
       addAlert({
         type: "error",
         message: "Unable to prepare transaction. Please try again in a moment.",
       })
-      if (import.meta.env.DEV) console.error("Failed to get nonce")
+      console.error("Failed to get nonce")
       reject(new Error("Failed to get nonce"))
       return
     }
@@ -380,12 +380,12 @@ export function IdentityRegistrarComponent() {
             }
           }
         }
-        if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
+        console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error);
+        console.error(error);
         if (error.message === "Cancelled") {
-          if (import.meta.env.DEV) console.log("Cancelled");
+          console.log("Cancelled");
           addAlert({
             type: "error",
             message: `${name} transaction didn't get signed. Please sign it and try again`,
@@ -409,7 +409,7 @@ export function IdentityRegistrarComponent() {
 
             const { type: pallet, value: { type: errorType } } = errorDetails;
             
-            if (import.meta.env.DEV) console.log({ errorDetails });
+            console.log({ errorDetails });
             addAlert({
               type: "error",
               message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
@@ -427,7 +427,7 @@ export function IdentityRegistrarComponent() {
         }
       },
       complete: () => {
-        if (import.meta.env.DEV) console.log("Completed")
+        console.log("Completed")
         disposeSubscription()
       }
     })
@@ -515,7 +515,7 @@ export function IdentityRegistrarComponent() {
           name: "Teleport Assets"
         })
       } catch (error) {
-        if (import.meta.env.DEV) console.error(error)
+        console.error(error)
         addAlert({
           type: "error",
           message: "Error teleporting assets. Please try again.",
@@ -527,7 +527,7 @@ export function IdentityRegistrarComponent() {
       let awaitedBlocks;
       for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
         await wait(CHAIN_UPDATE_INTERVAL)
-        if (import.meta.env.DEV) console.log({ awaitedBlocks })
+        console.log({ awaitedBlocks })
         if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
           break
         }
@@ -618,7 +618,7 @@ export function IdentityRegistrarComponent() {
   })
 
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
-    if (import.meta.env.DEV) console.log({ args })
+    console.log({ args })
     if (args.mode) {
       setOpenDialog(args.mode)
       setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
@@ -637,7 +637,7 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    console.log({ newValue: accountAction })
     switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
@@ -659,7 +659,7 @@ export function IdentityRegistrarComponent() {
         updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ accountAction })
+        console.log({ accountAction })
         throw new Error("Invalid action type");
     }
   }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])

@@ -72,7 +72,7 @@ async function buildAccountHierarchy(
   };
   allNodes[address] = node; // Store the node in the allNodes object
   
-  if (import.meta.env.DEV) console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
+  console.log(`Building node for: ${address}, isCurrentAccount: ${node.isCurrentAccount}`);
   // Try to fetch super account (parent)
   try {
     const superAccount = await fetchSuperOf(api, address);
@@ -98,9 +98,7 @@ async function buildAccountHierarchy(
       } else {
         // If the super account is already visited, just link it
         node.super = allNodes[superAccount.address];
-        if (import.meta.env.DEV) {
-          console.log(`Superaccount ${superAccount.address} already visited for ${address}`);
-        }
+        console.log(`Superaccount ${superAccount.address} already visited for ${address}`);
       }
     }
   } catch (error) {
@@ -115,7 +113,7 @@ async function buildAccountHierarchy(
       node.deposit = subsResult.deposit;
       node.subs = [];
 
-      if (import.meta.env.DEV) console.log(`Found ${subsResult.subs.length} subaccounts for ${address}`, [...subsResult.subs]);
+      console.log(`Found ${subsResult.subs.length} subaccounts for ${address}`, [...subsResult.subs]);
 
       // Process all subaccounts in parallel using Promise.all
       const subPromises = subsResult.subs.map(async (subAddress) => {
@@ -145,7 +143,7 @@ async function buildAccountHierarchy(
             // Mark if this subaccount is the current account
             subNode.isCurrentAccount = subNode.address === currentAddress;
 
-            if (import.meta.env.DEV) console.log(`Adding subaccount: ${subAddress}, isCurrentAccount: ${subNode.isCurrentAccount}`);
+            console.log(`Adding subaccount: ${subAddress}, isCurrentAccount: ${subNode.isCurrentAccount}`);
             return subNode;
           }
         } else {
@@ -205,7 +203,7 @@ export const useAccountsTree = ({
   const [accountTree, setAccountTree] = useState<AccountTreeNode | null>(null);
   // Keep logging for accountTree changes
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ accountTree });
+    console.log({ accountTree });
   }, [accountTree]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -218,7 +216,7 @@ export const useAccountsTree = ({
     setLoading(true);
 
     try {
-      if (import.meta.env.DEV) console.log(`Starting to build hierarchy for ${address}`);
+      console.log(`Starting to build hierarchy for ${address}`);
 
       const allNodes = {}; // Reset allNodes for each fetch
       
@@ -245,15 +243,13 @@ export const useAccountsTree = ({
             subNode.isDirectSubOfCurrentAccount = true;
           }
         }
-        if (import.meta.env.DEV) {
-          console.log(`Root account: ${rootAccount.address}`);
-          console.log(`Current account found in tree: ${!!currentAccountNode}`);
-        }
+        console.log(`Root account: ${rootAccount.address}`);
+        console.log(`Current account found in tree: ${!!currentAccountNode}`);
         
         setAccountTree(rootAccount);
       } else {
         // If no hierarchy found, create a simple node for the current address
-        if (import.meta.env.DEV) console.log(`No hierarchy found, creating simple node for ${address}`);
+        console.log(`No hierarchy found, creating simple node for ${address}`);
         setAccountTree({
           address,
           isCurrentAccount: true,
