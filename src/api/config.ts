@@ -103,7 +103,7 @@ export const config = defineConfig({
       name: "Westend People",
       symbol: "WND",
       descriptor: westend2_people,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_PEOPLE_WS_URL),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
     ...rococoConfig,
