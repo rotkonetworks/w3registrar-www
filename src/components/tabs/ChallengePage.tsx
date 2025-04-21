@@ -26,6 +26,7 @@ export function ChallengePage({
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
     ...Object.fromEntries(Object.entries(localChallengeStore)
+      .filter(([field]) => field !== "display_name")
       .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
     ),
   }), [localChallengeStore])
