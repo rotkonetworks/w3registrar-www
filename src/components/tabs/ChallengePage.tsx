@@ -227,7 +227,15 @@ export function ChallengePage({
               }
             </div>
           </div>
-        ))}
+        })}
+
+        <Alert>
+          <AlertTitle>Note:</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            Please send the code from the same account you set in your identity. If you send it from
+            a different account, it will not be verified, and you will not be given good judgement.
+          </AlertDescription>
+        </Alert>
       </CardContent>
     </Card>
   );
