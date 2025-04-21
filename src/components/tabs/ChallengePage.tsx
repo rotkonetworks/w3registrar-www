@@ -100,6 +100,14 @@ export function ChallengePage({
 
   const noChallenges = Object.keys(challengeStore.challenges).length
 
+  /* TODO Implement verification for :
+    * GitHub
+    * Image
+    * PGP Fingerprint
+    * Legal
+  */
+  // TODO Add descriptions and icon for domain verification
+  
   const inviteLinkIcons = {
     matrix: <AtSign className="h-4 w-4" />,
     email: <Mail className="h-4 w-4" />,
