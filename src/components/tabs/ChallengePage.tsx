@@ -15,12 +15,10 @@ import { SOCIAL_ICONS } from "~/assets/icons"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Identity } from "~/types/Identity"
 
-export function ChallengePage({
-  addNotification,
-  challengeStore,
-}: {
+export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
-  challengeStore: { challenges: ChallengeStore, error: string | null };
+  challengeStore: { challenges: ChallengeStore, error: string | null },
+  identity: Identity,
 }) {
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
 
