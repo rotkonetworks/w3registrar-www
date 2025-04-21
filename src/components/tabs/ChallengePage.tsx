@@ -279,8 +279,8 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         </CardTitle>
         <CardDescription className="text-[#706D6D]">
           Complete these identity verification challenges by copying each code and submitting it via
-          the chat link. All challenges must be passed for affirmative judgment. You can hover over 
-          the link for more info.
+          the chat link. All challenges must be passed for affirmative judgment. You have click the
+          link for instructions.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
