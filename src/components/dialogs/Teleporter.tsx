@@ -1,26 +1,19 @@
 import React, { ReactNode, useEffect } from "react"
-import { ArrowDownUp, ChevronDown, HelpCircle } from 'lucide-react'
-import { Button } from "@/components/ui/button"
+import { HelpCircle } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { 
-  Command, CommandList, CommandEmpty, CommandGroup, CommandInput, CommandItem 
-} from "../ui/command"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
-import { Binary, PolkadotSigner, SS58String, TypedApi } from "polkadot-api"
+import { SS58String } from "polkadot-api"
 import { ApiConfig } from "~/api/config"
 import BigNumber from "bignumber.js"
-import { useSpendableBalance, useTypedApi } from "@reactive-dot/react"
-import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
 import { ApiTx } from "~/types/api"
 import { Alert } from "../ui/alert"
+import { AccountSelector } from "../ui/account-selector"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
@@ -78,35 +71,10 @@ export default function Teleporter({
       <div className="flex items-start space-x-4">
         <div className="flex-1 space-y-2">
           <Label htmlFor="fromAddress">From Wallet</Label>
-          <Popover open={comboboxOpen === "fromAddress"}
-            onOpenChange={(nextState) => setComboboxOpen(nextState ? "fromAddress" : null)}
-          >
-            <PopoverTrigger id="fromAddress" asChild>
-              <Button role="combobox" className="w-full justify-between">
-                {fromAddress ? accounts.find(account => account.encodedAddress === fromAddress)?.name : "Select wallet"}
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0 bg-[#2C2B2B] border-[#E6007A]">
-              <Command>
-                <CommandInput placeholder="Search wallet..." className="h-9 border-[#E6007A]" />
-                <CommandEmpty>No wallet found.</CommandEmpty>
-                <CommandList>
-                  <CommandGroup>
-                    {accounts.map((account) => (
-                      <CommandItem
-                        key={account.address}
-                        onSelect={() => handleFromWalletChange(account.encodedAddress)}
-                        className="text-[#FFFFFF] hover:bg-[#3A3939]"
-                      >
-                        {account.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <AccountSelector id="fromAddress" accounts={accounts} address={fromAddress}
+            open={comboboxOpen} handleAddressChange={handleFromWalletChange}
+            handleOpen={setComboboxOpen}
+          />
         </div>
 
         <div className="flex-1 space-y-2">

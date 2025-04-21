@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ApiConfig } from "~/api/config";
 import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
-import { IdentityStore } from "~/store/IdentityStore";
+import { Identity } from "~/types/Identity";
 import { SelectLabel } from "@radix-ui/react-select";
 import { AccountData } from "~/store/AccountStore";
 import { Chains } from "@reactive-dot/core/internal.js";
@@ -26,7 +26,7 @@ const AccountListing = ({ address, name }) => (
 )
 
 const Header = ({ 
-  config, chainStore, accountStore, identityStore, accounts, isTxBusy, isDark, balance,
+  config, chainStore, accountStore, identity, accounts, isTxBusy, isDark, balance,
   onChainSelect, onAccountSelect, onRequestWalletConnections, onToggleDark, openHelpDialog,
 }: { 
   accounts: AccountData[];
@@ -38,7 +38,7 @@ const Header = ({
     tokenDecimals: number,
   };
   accountStore: { address: string, name: string };
-  identityStore: IdentityStore;
+  identity: Identity;
   isTxBusy: boolean;
   isDark: boolean;
   onChainSelect: (chainId: keyof ApiConfig["chains"]) => void;
@@ -101,7 +101,7 @@ const Header = ({
               {connectedWallets.length > 0 && <>
                 <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
                 <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
-                {identityStore.info && <>
+                {identity.info && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
                 </>}
                 <SelectSeparator />
@@ -121,7 +121,7 @@ const Header = ({
                               <span className="flex-shrink-0 pe-2">
                                 ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
                               </span>
-                              <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
+                              <BalanceDisplay balance={allAccountBalances?.[index]?.planck} formatter={shortFormatAmount} />
                             </div>
                           </SelectItem>
                         );

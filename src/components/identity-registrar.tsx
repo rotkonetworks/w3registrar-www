@@ -1,33 +1,25 @@
-import { useState, useEffect, useCallback, useMemo, startTransition, memo, useRef, Ref } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, Coins, AlertCircle, Bell } from "lucide-react"
+import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
+import { Coins, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 import { ConnectionDialog } from "dot-connect/react.js"
 import Header from "./Header"
-import { chainStore as _chainStore, ChainInfo } from '~/store/ChainStore'
-import { alertsStore as _alertsStore, pushAlert, removeAlert, AlertProps, AlertPropsOptionalKey } from '~/store/AlertStore'
+import { chainStore as _chainStore } from '~/store/ChainStore'
 import { useProxy } from "valtio/utils"
-import { identityStore as _identityStore, IdentityStore, verifyStatuses } from "~/store/IdentityStore"
-import { challengeStore as _challengeStore, ChallengeStore } from "~/store/challengesStore"
+import { verifyStatuses } from "~/types/Identity"
+import { challengeStore as _challengeStore } from "~/store/challengesStore"
 import { 
-  useAccounts, useClient, useConnectedWallets, useSpendableBalance, useTypedApi, useWalletDisconnector 
+  useClient, useSpendableBalance, useTypedApi
 } from "@reactive-dot/react"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { IdentityForm, IdentityFormData } from "./tabs/IdentityForm"
-import { ChallengePage } from "./tabs/ChallengePage"
-import { StatusPage } from "./tabs/StatusPage"
-import { IdentityData } from "@polkadot-api/descriptors"
 import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { Binary, HexString, SS58String, TypedApi } from "polkadot-api"
-import { NotifyAccountState, useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
+import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
+import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
 import BigNumber from "bignumber.js"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
 import Teleporter from "./dialogs/Teleporter"
-import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useUrlParams } from "~/hooks/useUrlParams"
 import { useDarkMode } from "~/hooks/useDarkMode"
 import type { ChainId } from "@reactive-dot/core";
@@ -41,193 +33,27 @@ import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { Switch } from "./ui/switch"
 import { 
   DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
-  SignSubmitAndWatchParams, FormatAmountOptions, 
+  SignSubmitAndWatchParams, 
 } from "~/types"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
-import { wait, formatAmount as formatAmountUtil } from "~/utils"
+import { wait } from "~/utils"
 import { useFormatAmount } from "~/hooks/useFormatAmount"
-
-const MemoIdeitityForm = memo(IdentityForm)
-const MemoChallengesPage = memo(ChallengePage)
-const MemoStatusPage = memo(StatusPage)
-
-const MainContent = ({
-  identityStore, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, alertsStore, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-}: MainContentProps) => {
-  const tabs = [
-    {
-      id: "identityForm",
-      name: "Identity Form",
-      icon: <UserCircle className="h-5 w-5" />,
-      disabled: false,
-      content: <MemoIdeitityForm
-        ref={identityFormRef}
-        identityStore={identityStore}
-        chainStore={chainStore}
-        typedApi={typedApi}
-        accountStore={accountStore}
-        chainConstants={chainConstants}
-        supportedFields={supportedFields}
-        openTxDialog={openTxDialog}
-        isTxBusy={isTxBusy}
-      />
-    },
-    {
-      id: "challenges",
-      name: "Challenges",
-      icon: <Shield className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.FeePaid,
-      content: <MemoChallengesPage
-        addNotification={addNotification}
-        challengeStore={challengeStore}
-      />
-    },
-    {
-      id: "status",
-      name: "Status",
-      icon: <FileCheck className="h-5 w-5" />,
-      disabled: identityStore.status < verifyStatuses.NoIdentity,
-      content: <MemoStatusPage
-        identityStore={identityStore}
-        challengeStore={challengeStore.challenges}
-        formatAmount={formatAmount}
-        onIdentityClear={() => setOpenDialog("clearIdentity")}
-        isTxBusy={isTxBusy}
-        chainName={chainStore.name?.replace(/ People/g, " ")}
-      />
-    },
-  ]
-  const enabledTabsIndexes = tabs
-    .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
-    .filter(tab => !tab.disabled)
-  
-  const [currentTabIndex, setCurrentTabIndex] = useState(0)
-    
-  useEffect(() => {
-    if (!urlParams) {
-      return;
-    }
-    const tab = tabs.find(tab => tab.id === urlParams.tab && !tab.disabled);
-    if (tab && !tab.disabled) {
-      setCurrentTabIndex(tabs.indexOf(tab))
-    }
-  }, [urlParams.tab])
-  const changeCurrentTab = useCallback((index: number) => {
-    const tab = tabs[index];
-    updateUrlParams({ ...urlParams, tab: tab.id })
-    setCurrentTabIndex(index)
-  }, [urlParams, tabs, updateUrlParams])
-
-  const advanceToPrevTab = useCallback(() => {
-    const prevIndex = enabledTabsIndexes.slice().reverse()
-      .find(({ index }) => index < currentTabIndex)
-    if (prevIndex) {
-      changeCurrentTab(prevIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-  const advanceToNextTab = useCallback(() => {
-    const nextIndex = enabledTabsIndexes.find(({ index }) => index > currentTabIndex)
-    if (nextIndex) {
-      changeCurrentTab(nextIndex.index)
-    }
-  }, [currentTabIndex, enabledTabsIndexes, changeCurrentTab])
-
-  return <>
-    {alertsStore.size > 0 && 
-      <div
-        className="fixed bottom-[2rem] left-[2rem] z-[9999] max-w-sm max-h-sm isolate pointer-events-auto"
-      >
-        <Accordion type="single" collapsible defaultValue="notifications">
-          <AccordionItem value="notifications">
-            <AccordionTrigger 
-              className="rounded-full p-2 bg-[#E6007A] text-[#FFFFFF] dark:bg-[#BC0463] dark:text-[#FFFFFF] hover:no-underline"
-            >
-              <Bell className="h-6 w-6" /> {alertsStore.size}
-            </AccordionTrigger>
-            <AccordionContent
-              className="bg-[#FFFFFF] dark:bg-[#2C2B2B] p-2 rounded-lg overflow-y-auto max-h-sm"
-            >
-              {[...alertsStore.entries()].map(([, alert]) => (
-                <Alert
-                  key={alert.key}
-                  variant={alert.type === 'error' ? "destructive" : "default"}
-                  className={`mb-4 ${alert.type === 'error'
-                    ? 'bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200'
-                    : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
-                  }`}
-                >
-                  <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                  <AlertDescription className="flex justify-between items-center">
-                    {alert.message}
-                    {alert.closable === true && <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeNotification(alert.key)}
-                        className="bg-transparent text-[#670D35] hover:text-[#E6007A] dark:text-[#FFFFFF] dark:hover:text-[#E6007A]"
-                      >
-                        Dismiss
-                      </Button>
-                    </>}
-                  </AlertDescription>
-                </Alert>
-              ))}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
-    }
-
-    <Tabs defaultValue={tabs[0].name} value={tabs[currentTabIndex].name} className="w-full">
-      <TabsList
-        className="grid w-full grid-cols-3 dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden"
-      >
-        {tabs.map((tab, index) => (
-          <TabsTrigger
-            key={index}
-            value={tab.name}
-            onClick={() => changeCurrentTab(index)}
-            className="data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
-            disabled={tab.disabled}
-          >
-            {tab.icon}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {tabs.map((tab, index) => (
-        <TabsContent key={index} value={tab.name} className="p-4">
-          {tab.content}
-        </TabsContent>
-      ))}
-    </Tabs>
-
-    <div className="flex justify-between mt-6">
-      <Button
-        variant="outline"
-        onClick={advanceToPrevTab}
-        disabled={enabledTabsIndexes.slice().reverse().findIndex(({ index }) => index < currentTabIndex) === -1}
-        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-      >
-        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-      </Button>
-      <Button
-        onClick={advanceToNextTab}
-        disabled={enabledTabsIndexes.findIndex(({ index }) => index > currentTabIndex) === -1}
-        className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-      >
-        Next <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
-    </div>
-  </>
-}
+import { errorMessages } from "~/utils/errorMessages"
+import { useAlerts } from "~/hooks/useAlerts"
+import { AlertsAccordion } from "./AlertsAccordion"
+import { MainContent } from "./MainContent"
+import { useWalletAccounts } from "~/hooks/useWalletAccounts"
+import { useIdentity } from "~/hooks/useIdentity"
+import { useSupportedFields } from "~/hooks/useSupportedFields"
+import { useXcmParameters } from "~/hooks/useXcmParameters"
+import { useAccountsTree } from "~/hooks/UseAccountsTree"
 
 export function IdentityRegistrarComponent() {
-  const alertsStore = useProxy(_alertsStore);
+  const {
+    alerts, add: addAlert, remove: removeAlert, clearAll: clearAllAlerts, size: alertsCount
+  } = useAlerts();
   const { isDark, setDark } = useDarkMode()
 
-  const identityStore = useProxy(_identityStore);
   const chainStore = useProxy(_chainStore);
   const typedApi = useTypedApi({ chainId: chainStore.id as ChainId })
 
@@ -235,64 +61,22 @@ export function IdentityRegistrarComponent() {
 
   const { urlParams, updateUrlParams } = useUrlParams()
 
-  //#region notifications
-  const addNotification = useCallback((alert: AlertPropsOptionalKey) => {
-    const key = (alert as AlertProps).key || (new Date()).toISOString();
-    pushAlert({ ...alert, key, closable: alert.closable ?? true });
-  }, [pushAlert])
-
-  const removeNotification = useCallback((key: string) => {
-    removeAlert(key)
-  }, [removeAlert])
-  //#endregion notifications
-
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
-  //#region accounts
-  const accounts = useAccounts()
-  const displayedAccounts = useMemo(() => accounts.map(account => ({
-    ...account,
-    encodedAddress: encodeAddress(account.polkadotSigner.publicKey, chainStore.ss58Format),
-  })), [accounts, chainStore.ss58Format])
+  // Use our clean wallet accounts hook
+  const { 
+    accounts: displayedAccounts, 
+    getWalletAccount, 
+    connectedWallets,
+    disconnectAllWallets 
+  } = useWalletAccounts({
+    chainSs58Format: chainStore.ss58Format
+  });
 
-  const getAccountData = useCallback((address: SS58String) => {
-    let foundAccount: AccountData | null;
-    let decodedAddress: Uint8Array;
-    try {
-      decodedAddress = decodeAddress(address); // Validate address as well
-    } catch (error) {
-      console.error("Error decoding address from URL:", error)
-      addNotification({
-        type: "error",
-        message: "Invalid address in URL. Could not decode",
-        closable: false,
-        key: "invalidAddress",
-      })
-      return null;
-    }
-    foundAccount = accounts.find(account => {
-      const publicKey = account.polkadotSigner.publicKey;
-      return publicKey.every((byte, index) => byte === decodedAddress[index]);
-    });
-
-    if (!foundAccount) {
-      return null;
-    }
-
-    return {
-      name: foundAccount.name,
-      polkadotSigner: foundAccount.polkadotSigner,
-      address: address,
-      encodedAddress: encodeAddress(foundAccount.polkadotSigner.publicKey, chainStore.ss58Format),
-    };
-  }, [accounts, chainStore.ss58Format]);
-
-  const connectedWallets = useConnectedWallets()
-  const [_, disconnectWallet] = useWalletDisconnector()
-
+  // UI-specific account handling
   useEffect(() => {
     if (!connectedWallets.length) {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please connect a wallet so that you can choose an account and continue.",
         closable: false,
@@ -302,10 +86,11 @@ export function IdentityRegistrarComponent() {
     } else {
       removeAlert("noConnectedWallets");
     }
-  }, [connectedWallets.length])
+  }, [connectedWallets.length, addAlert, removeAlert]);
+
   useEffect(() => {
     if (!urlParams.address) {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please pick an account that is registered in your wallets from account dropdown.",
         closable: false,
@@ -313,142 +98,53 @@ export function IdentityRegistrarComponent() {
       })
       return;
     }
-    const accountData = getAccountData(urlParams.address);
-    if (import.meta.env.DEV) console.log({ accountData });
+    const accountData = getWalletAccount(urlParams.address);
+    console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
       removeAlert("invalidAccount");
       removeAlert("invalidAddress");
     } else {
-      addNotification({
+      addAlert({
         type: "error",
         message: "Please pick an account that is registered in your wallets from account dropdown.",
         closable: false,
         key: "invalidAccount",
       })
     }
-  }, [accountStore.polkadotSigner, urlParams.address, getAccountData])
+  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert]);
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
-    if (import.meta.env.DEV) console.log({ account });
+    console.log({ account });
     Object.assign(accountStore, account);
-    updateUrlParams({ ...urlParams, address,  })
-  }, [accountStore, urlParams]);
-  //#endregion accounts
+    updateUrlParams({ ...urlParams, address });
+  }, [accountStore, urlParams, updateUrlParams]);
 
   //#region identity
   const identityFormRef = useRef<{ reset: () => void, }>()
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ identityFormRef })
-  }, [identityFormRef.current])
-  const fetchIdAndJudgement = useCallback(() => (typedApi.query.Identity.IdentityOf as ApiStorage)
-    .getValue(accountStore.address, { at: "best" })
-    .then((result) => {
-      if (import.meta.env.DEV) console.log({ identityOf: result });
-      if (result) {
-        // For most of the cases, the result is an array of IdentityOf, but for Westend it's an object
-        const identityOf = result[0] || result;
-        const identityData = Object.fromEntries(Object.entries(identityOf.info)
-          .filter(([_, value]: [never, IdentityData]) => value?.type?.startsWith("Raw"))
-          .map(([key, value]: [keyof IdentityFormData, IdentityData]) => [key, 
-            (value.value as Binary).asText()
-          ])
-          // TODO Handle other formats, like Blake2_256, etc.
-        );
-        identityStore.deposit = identityOf.deposit
-        identityStore.info = identityData;
-        identityStore.status = verifyStatuses.IdentitySet;
-        const idJudgementOfId = identityOf.judgements;
-        const judgementsData: typeof identityStore.judgements = idJudgementOfId.map((judgement) => ({
-          registrar: {
-            index: judgement[0],
-          },
-          state: judgement[1].type,
-          fee: judgement[1].value,
-        }));
-        if (judgementsData.length > 0) {
-          identityStore.judgements = judgementsData;
-          identityStore.status = verifyStatuses.JudgementRequested;
-        }
-        if (judgementsData.find(j => j.state === "FeePaid")) {
-          identityStore.status = verifyStatuses.FeePaid;
-        }
-        if (judgementsData.find(judgement => ["Reasonable", "KnownGood"].includes(judgement.state))) {
-          identityStore.status = verifyStatuses.IdentityVerified;
-        }
-        const idDeposit = identityOf.deposit;
-        if (import.meta.env.DEV) console.log({ identityOf, identityData, judgementsData, idDeposit, });
-      } else {
-        identityStore.status = verifyStatuses.NoIdentity;
-        identityStore.info = null
-        identityStore.deposit = null
-      }
-      identityFormRef.current.reset()
-      return identityStore;
-    })
-    .catch(e => {
-      if (import.meta.env.DEV) {
-        if (import.meta.env.DEV) console.error("Couldn't get identityOf.", e);
-      }
-    })
-  , [accountStore.address, typedApi]);
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ typedApi, accountStore })
-    identityStore.deposit = null;
-    identityStore.info = null
-    identityStore.status = verifyStatuses.Unknown;
-    if (accountStore.address) {
-      fetchIdAndJudgement();
-    }
-  }, [accountStore.address, fetchIdAndJudgement])
-  //#endregion identity
+
+  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
+  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
   
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
-    alertsStore.forEach(alert => {
-      delete alertsStore[alert.key]
-    })
+    clearAllAlerts()
   }, [chainStore.id, accountStore.address])
 
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
 
-  const IdentityField = {
-    display: 1 << 0,
-    legal: 1 << 1,
-    web: 1 << 2,
-    matrix: 1 << 3,
-    email: 1 << 4,
-    pgp_fingerprint: 1 << 5,
-    image: 1 << 6,
-    twitter: 1 << 7,
-    github: 1 << 8,
-    discord: 1 << 9,
-  } as const;
-  const getSupportedFields = (bitfield: number): string[] => {
-    const result: string[] = [];
-    for (const key in IdentityField) {
-      if (bitfield & IdentityField[key as keyof typeof IdentityField]) {
-        result.push(key);
-      }
-    }
-    return result;
-  }
-
-  const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
-  const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
-  const [supportedFields, setSupportedFields] = useState<string[]>([])
+  // Use the new hook for supported fields
+  const supportedFields = useSupportedFields({ typedApi, registrarIndex, });
+  
+  // Use the hook for core identity functionality
+  const { 
+    identity, fetchIdAndJudgement, prepareClearIdentityTx, 
+  } = useIdentity({ typedApi, address: accountStore.address, });
   useEffect(() => {
-    (typedApi.query.Identity.Registrars as ApiStorage)
-      .getValue()
-      .then((result) => {
-        const fields = result[registrarIndex]?.fields
-        const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) -1)
-        setSupportedFields(_supportedFields)
-        if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result })
-      })
-  }, [chainStore.id, typedApi, registrarIndex])
+    identityFormRef.current?.reset()
+  }, [identity])
   
   useEffect(() => {
     ((async () => {
@@ -457,9 +153,9 @@ export function IdentityRegistrarComponent() {
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
-        if (import.meta.env.DEV) console.log({ id, chainProperties })
+        console.log({ id, chainProperties })
       } catch {
-        if (import.meta.env.DEV) console.error({ id, })
+        console.error({ id, })
       }
       const newChainData = {
         name: config.chains[id].name,
@@ -468,7 +164,7 @@ export function IdentityRegistrarComponent() {
       }
       startTransition(() => {
         Object.assign(chainStore, newChainData)
-        if (import.meta.env.DEV) console.log({ id, newChainData })
+        console.log({ id, newChainData })
       })
     }) ())
   }, [chainStore.id, chainClient])
@@ -485,13 +181,13 @@ export function IdentityRegistrarComponent() {
     "Identity.JudgementGiven": {
       onEvent: async data => {
         const newIdentity = await fetchIdAndJudgement()
-        if ((newIdentity as IdentityStore)?.status === verifyStatuses.IdentityVerified) {
-          addNotification({
+        if (newIdentity?.status === verifyStatuses.IdentityVerified) {
+          addAlert({
             type: "info",
             message: "Judgement Given! Identity verified successfully. Congratulations!",
           })
         } else {
-          addNotification({
+          addAlert({
             type: "error",
             message: "Judgement Given! Identity not verified. Please remove it and try again.",
           })
@@ -500,7 +196,7 @@ export function IdentityRegistrarComponent() {
       onError: error => { },
       priority: 4,
     },
-  }), [])
+  }), [fetchIdAndJudgement, addAlert])
 
   const [pendingTx, setPendingTx] = useState<
     Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
@@ -524,164 +220,42 @@ export function IdentityRegistrarComponent() {
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
     network: (chainStore.id as string).split("_")[0],
-    identityStore: { info: identityStore.info, status: identityStore.status, },
-    addNotification,
+    identity: { info: identity.info, status: identity.status, },
+    addNotification: addAlert,
   });
   useEffect(() => {
-    if (isChallengeWsConnected && identityStore.status === verifyStatuses.FeePaid) {
+    if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
       subscribeToChallenges()
     }
   }, [isChallengeWsConnected])
   //#endregion challenges
   
   const formatAmount = useFormatAmount({
-      tokenDecimals: chainStore.tokenDecimals,
-      symbol: chainStore.tokenSymbol
-    });
+    tokenDecimals: chainStore.tokenDecimals,
+    symbol: chainStore.tokenSymbol
+  });
   
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ isTxBusy })
+    console.log({ isTxBusy })
   }, [isTxBusy])
-
-  //#region TeleportAccordion
-  const xcmParams = useProxy(_xcmParams)
-
-  const relayChainId = useMemo<keyof Chains>(
-    () => (chainStore.id as string).replace("_people", "") as keyof Chains,
-    [chainStore.id]
-  )
-  const relayAndParachains = Object.entries(config.chains)
-    .filter(([id]) => id.includes(relayChainId) && id !== chainStore.id)
-    .map(([id, chain]) => ({ id, name: chain.name }))
-  useEffect(() => {
-    if (import.meta.env.DEV) console.log({ relayChainId, relayAndParachains });
-    xcmParams.fromChain.id = relayChainId
-  }, [relayChainId, relayAndParachains])
-  const fromTypedApi = useTypedApi({ chainId: xcmParams.fromChain.id || relayChainId as ChainId })
-  
-  const _getParachainId = async (typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>) => {
-    if (typedApi) {
-      try {
-        const paraId = await typedApi.constants.ParachainSystem.SelfParaId()
-        if (import.meta.env.DEV) console.log({ paraId })
-        return paraId
-      } catch (error) {
-        if (import.meta.env.DEV) console.error("Error getting parachain ID", error)
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (fromTypedApi) {
-      _getParachainId(fromTypedApi).then(id => {
-        xcmParams.fromChain.paraId = id
-      })
-    }
-  }, [fromTypedApi])
-  const [parachainId, setParachainId] = useState<number>()
-  useEffect(() => {
-    if (typedApi) {
-      _getParachainId(typedApi).then(id => {
-        setParachainId(id)
-      })
-    }
-  }, [typedApi])
-
-  const getTeleportCall = useCallback(({amount}: { amount: BigNumber }) => {
-    const txArguments = ({
-      dest: {
-        type: "V3",
-        value: {
-          // TODO Add support for other parachains
-          interior: {
-            type: "X1",
-            value: {
-              type: "Parachain",
-              value: parachainId,
-            }
-          },
-          parents: 0,
-        },
-      },
-      beneficiary: {
-        type: "V3",
-        value: {
-          interior: {
-            type: "X1",
-            value: {
-              type: "AccountId32",
-              value: {
-                // using  Binary.fromString() instead of fromBytes() which caused assets to go to 
-                //  the wrong address. 
-                id: Binary.fromBytes(getAccountData(accountStore.address).polkadotSigner.publicKey),
-              },
-            },
-          },
-          parents: 0
-        }
-      },
-      assets: {
-        type: "V3",
-        value: [{
-          fun: {
-            type: "Fungible",
-            value: BigInt(amount.toString())
-          },
-          id: {
-            type: "Concrete",
-            value: xcmParams.fromChain.paraId
-              ?{
-                interior: {
-                  type: "X1",
-                  value: xcmParams.fromChain.paraId,
-                },
-                parents: 1,
-              }
-              : {
-                interior: {
-                  type: "Here",
-                  value: null
-                },
-                parents: 0,
-              }
-            ,
-          }
-        }]
-      },
-      fee_asset_index: 0,
-      weight_limit: {
-        type: "Unlimited",
-        value: null,
-      }
-    })
-    if (import.meta.env.DEV) console.log({ txArguments })
-
-    return fromTypedApi.tx.XcmPallet.limited_teleport_assets(txArguments)
-  }, [fromTypedApi, accountStore.address, xcmParams.txTotalCost, xcmParams.fromChain.paraId, parachainId])
-  //#endregion TeleportAccordion
-
-  //#region Balances
-  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
-  const fromBalance = BigNumber(useSpendableBalance(
-    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
-  ).planck.toString())
-  const balance = BigNumber(useSpendableBalance(
-    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
-  ).planck.toString())
-  //#endregion Balances
 
   //#region Transactions
   const getNonce = useCallback(async (api: TypedApi<ChainDescriptorOf<ChainId>>, address: SS58String) => {
     try {
-      return await ((api.apis.AccountNonceApi as any)
-        .account_nonce(address, { at: "best", }) as ApiRuntimeCall
-      )
+      return (await (api.query.System.Account as ApiStorage).getValue(address, {at: "best"})).nonce
     } catch (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       return null
     }
   }, [])
+
+  const [errorDetails, setErrorDetails] = useState<Error | null>(null)
+  useEffect(() => {
+    if (errorDetails) {
+      setOpenDialog("errorDetails")
+    }
+  }, [errorDetails])
 
   // Keep hashes of recent notifications to prevent duplicates, as a transaction might produce 
   //  multiple notifications
@@ -689,26 +263,33 @@ export function IdentityRegistrarComponent() {
   const signSubmitAndWatch = useCallback((
     params: SignSubmitAndWatchParams
   ) => new Promise(async (resolve, reject) => {
-    const { call, messages, name } = params;
+    const { call, name } = params;
     let api = params.api;
+    
+    console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
       api = typedApi
     }
     if (isTxBusy) {
       reject(new Error("Transaction already in progress"))
+      addAlert({
+        type: "error",
+        message: "There is a transaction already in progress. Please wait for it to finish.",
+      })
       return
     }
     setTxBusy(true)
 
     const nonce = params.nonce ?? await getNonce(api, accountStore.address)
-    if (import.meta.env.DEV) console.log({ nonce });
+    console.log({ nonce });
     if (nonce === null) {
       setTxBusy(false)
-      addNotification({
+      addAlert({
         type: "error",
-        message: "Couldn't get nonce. Please try again.",
+        message: "Unable to prepare transaction. Please try again in a moment.",
       })
+      console.error("Failed to get nonce")
       reject(new Error("Failed to get nonce"))
       return
     }
@@ -732,6 +313,7 @@ export function IdentityRegistrarComponent() {
     const subscription = signedCall.subscribe({
       next: (result) => {
         txHash = result.txHash;
+        // TODO Add result type as below
         const _result: (typeof result) & {
           found: boolean,
           ok: boolean,
@@ -743,38 +325,38 @@ export function IdentityRegistrarComponent() {
           ...result,
         };
         if (result.type === "broadcasted") {
-          addNotification({
+          addAlert({
             key: result.txHash,
             type: "loading",
             closable: false,
-            message: messages.broadcasted || "Transaction broadcasted",
+            message: `${name} transaction broadcasted`,
           })
         }
         else if (_result.type === "txBestBlocksState") {
-            if (_result.ok) {
-              if (params.awaitFinalization) {
-                addNotification({
-                  key: _result.txHash,
-                  type: "loading",
-                  message: messages.loading || "Waiting for finalization...",
-                })
-              } else {
-                addNotification({
-                  key: _result.txHash,
-                  type: "success",
-                  message: messages.success || "Transaction finalized",
-                })
-                fetchIdAndJudgement()
-                disposeSubscription(() => resolve(result))
-              }
+          if (_result.ok) {
+            if (params.awaitFinalization) {
+              addAlert({
+                key: _result.txHash,
+                type: "loading",
+                message: `Waiting for ${name.toLowerCase()} to finalize...`,
+                closable: false,
+              })
+            } else {
+              addAlert({
+                key: _result.txHash,
+                type: "success",
+                message: `${name} completed successfully`,
+              })
+              fetchIdAndJudgement()
+              disposeSubscription(() => resolve(result))
             }
-          else if (!_result.isValid) {
+          } else if (!_result.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "error",
-                message: messages.error || "Transaction failed because it's invalid",
+                message: `${name} failed: invalid transaction`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => reject(new Error("Invalid transaction")))
@@ -784,59 +366,86 @@ export function IdentityRegistrarComponent() {
         else if (_result.type === "finalized") {
           // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
           if (!_result.ok) {
-            addNotification({
+            addAlert({
               key: _result.txHash,
               type: "error",
-              message: messages.error || "Transaction failed",
+              message: `${name} failed`,
             })
             fetchIdAndJudgement()
             disposeSubscription(() => reject(new Error("Transaction failed")))
           } else {
             if (params.awaitFinalization) {
-              addNotification({
+              addAlert({
                 key: _result.txHash,
                 type: "success",
-                message: messages.success || "Transaction finalized",
+                message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
               disposeSubscription(() => resolve(result))
             }
           }
         }
-        if (import.meta.env.DEV) console.log({ _result, recentNotifsIds: recentNotifsIds.current })
+        console.log({ _result, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
-        if (import.meta.env.DEV) console.error(error)
-        if (!recentNotifsIds.current.includes(txHash)) {
-          addNotification({
+        console.error(error);
+        if (error.message === "Cancelled") {
+          console.log("Cancelled");
+          addAlert({
             type: "error",
-            message: messages.error || "Error submitting transaction. Please try again.",
+            message: `${name} transaction didn't get signed. Please sign it and try again`,
+          })
+          disposeSubscription()
+          return
+        }
+        // TODO Handle other errors
+        if (!recentNotifsIds.current.includes(txHash)) {
+          if (error instanceof InvalidTxError || error.invalid) {
+            const errorDetails: {
+              type: string,
+              value: {
+                type: string,
+                value: {
+                  type: string,
+                  value: string,
+                },
+              },
+            } = JSON.parse(error.message);
+
+            const { type: pallet, value: { type: errorType } } = errorDetails;
+            
+            console.log({ errorDetails });
+            addAlert({
+              type: "error",
+              message: errorMessages[pallet]?.[errorType] ?? errorMessages[pallet]?.default
+                ?? `Error with ${name}: Please try again`
+              ,
+              seeDetails: () => setErrorDetails(error),
+            })
+            disposeSubscription(() => reject(error))
+            return
+          }
+          addAlert({
+            type: "error",
+            message: `Error with ${name}: ${error.message || "Please try again"}`,
           })
           disposeSubscription(() => reject(error))
         }
       },
       complete: () => {
-        if (import.meta.env.DEV) console.log("Completed")
+        console.log("Completed")
         disposeSubscription()
       }
     })
-  }), [accountStore.polkadotSigner, isTxBusy])
+  }), [accountStore.polkadotSigner, isTxBusy, fetchIdAndJudgement])
   //#endregion Transactions
 
-
-  const _clearIdentity = useCallback(() => typedApi.tx.Identity.clear_identity({}), [typedApi])
   const onIdentityClear = useCallback(async () => {
     await signSubmitAndWatch({
-      call: _clearIdentity(),
-      messages: {
-        broadcasted: "Clearing identity...",
-        loading: "Waiting for clearing identity transaction...",
-        success: "Identity cleared",
-        error: "Error clearing identity",
-      },
-      name: "Identity.IdentityCleared"
+      call: prepareClearIdentityTx(),
+      name: "Clear Identity"
     })
-  }, [_clearIdentity])
+  }, [prepareClearIdentityTx])
   
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
@@ -844,27 +453,178 @@ export function IdentityRegistrarComponent() {
   const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
   
+  // Use our new hook for XCM parameters
+  const { 
+    xcmParams, 
+    relayAndParachains, 
+    fromTypedApi, 
+    getTeleportCall, 
+    getParachainId,
+    teleportExpanded, 
+    setTeleportExpanded 
+  } = useXcmParameters({
+    chainId: chainStore.id,
+    estimatedCosts
+  });
+
+  const [parachainId, setParachainId] = useState<number>()
+  useEffect(() => {
+    if (typedApi) {
+      getParachainId(typedApi).then(id => {
+        if (id !== null) {
+          setParachainId(id)
+        }
+      })
+    }
+  }, [typedApi, getParachainId])
+
+  //#region Balances
+  const genericAddress = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY" as SS58String // Alice
+  const fromBalance = BigNumber(useSpendableBalance(
+    xcmParams.fromAddress || genericAddress, { chainId: xcmParams.fromChain.id }
+  ).planck.toString())
+  const balance = BigNumber(useSpendableBalance(
+    accountStore.address || genericAddress, { chainId: chainStore.id as keyof Chains }
+  ).planck.toString())
+  //#endregion Balances
+
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
   
-  //region TeleportAccordion
-  const teleportExpanded = xcmParams.enabled
-  const setTeleportExpanded = (nextState: boolean) => {
-    xcmParams.enabled = nextState
+  const hasEnoughBalance = useMemo(
+    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
+    [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]
+  )
+  const minimunTeleportAmount = useMemo(() => {
+    const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
+    return hasEnoughBalance 
+      ? calculatedTeleportAmount 
+      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
+  }, [xcmParams.txTotalCost, hasEnoughBalance, chainConstants.existentialDeposit])
+
+  const balanceRef = useRef(balance)
+  useEffect(() => {
+    balanceRef.current = balance
+  }, [balance])
+  const submitTransaction = async () => {
+    if (xcmParams.enabled) {
+      try {
+        await signSubmitAndWatch({
+          nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
+          signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+          awaitFinalization: true,
+          call: getTeleportCall({
+            amount: minimunTeleportAmount,
+            fromApi: fromTypedApi,
+            signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+            parachainId
+          }),
+          name: "Teleport Assets"
+        })
+      } catch (error) {
+        console.error(error)
+        addAlert({
+          type: "error",
+          message: "Error teleporting assets. Please try again.",
+        })
+        return
+      }
+
+      const maxBlocksAwait = 10
+      let awaitedBlocks;
+      for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
+        await wait(CHAIN_UPDATE_INTERVAL)
+        console.log({ awaitedBlocks })
+        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
+          break
+        }
+        addAlert({
+          key: "awaitingAssets",
+          type: "loading",
+          message: "Waiting to receive transferred amount...",
+          closable: false,
+        })
+      }
+      removeAlert("awaitingAssets")
+      if (awaitedBlocks === maxBlocksAwait) {
+        addAlert({
+          type: "error",
+          message: "Balance insufficient. It's not possible to set identity.",
+        })
+        return
+      }
+    }
+
+    switch (openDialog) {
+      case "clearIdentity":
+        await onIdentityClear()
+        break
+      case "disconnect":
+        disconnectAllWallets();
+        Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+        updateUrlParams({ ...urlParams, address: null });
+        break
+      case "setIdentity":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Set Identity"
+        })
+        break
+      case "requestJudgement":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Request Judgement"
+        })
+        break
+      case "addSubaccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Add Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after adding subaccount
+        break;
+      case "removeSubaccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Remove Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after removing subaccount
+        break;
+      case "quitSub":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Quit Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after quitting subaccount
+        break;
+      case "editSubAccount":
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Edit Subaccount"
+        })
+        refreshAccountTree(); // Refresh accounts tree after editing subaccount
+        break;
+      default:
+        console.error("Unexpected openDialog value:", openDialog);
+        await signSubmitAndWatch({
+          call: txToConfirm,
+          name: "Unknown Transaction"
+        })
+        break;
+    }
+    closeTxDialog()
   }
 
-  useEffect(() => {
-    xcmParams.txTotalCost = BigNumber(Object.values(estimatedCosts)
-      .reduce(
-        (total, current) => BigNumber(total as BigNumber).plus(BigNumber(current as BigNumber)), 
-        0n
-      )
-      .toString()
-    ).times(1.1)
-  }, [estimatedCosts])
-  //#endregion TeleportAccordion
+  const { 
+    accountTree, 
+    loading: accountTreeLoading,
+    refresh: refreshAccountTree,
+  } = useAccountsTree({
+    address: accountStore.encodedAddress,
+    api: typedApi,
+  })
 
   const openTxDialog = useCallback((args: OpenTxDialogArgs) => {
-    if (import.meta.env.DEV) console.log({ args })
+    console.log({ args })
     if (args.mode) {
       setOpenDialog(args.mode)
       setEstimatedCosts((args as OpenTxDialogArgs_modeSet).estimatedCosts)
@@ -883,7 +643,7 @@ export function IdentityRegistrarComponent() {
   }, [])
 
   const onAccountSelect = useCallback(async (accountAction: { type: string, account: AccountData }) => {
-    if (import.meta.env.DEV) console.log({ newValue: accountAction })
+    console.log({ newValue: accountAction })
     switch (accountAction.type) {
       case "Wallets":
         setWalletDialogOpen(true);
@@ -892,7 +652,7 @@ export function IdentityRegistrarComponent() {
         setOpenDialog("disconnect")
         break;
       case "RemoveIdentity":
-        const tx = _clearIdentity()
+        const tx = prepareClearIdentityTx()
         openTxDialog({
           mode: "clearIdentity",
           tx: tx,
@@ -905,18 +665,18 @@ export function IdentityRegistrarComponent() {
         updateAccount({ ...accountAction.account });
         break;
       default:
-        if (import.meta.env.DEV) console.log({ accountAction })
+        console.log({ accountAction })
         throw new Error("Invalid action type");
     }
-  }, [])
+  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identityStore, chainConstants, alertsStore,
+    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
     challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
-    supportedFields,
-    addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    supportedFields, accountTree: { data: accountTree, loading: accountTreeLoading },
+    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
   //#region HelpDialog
@@ -924,112 +684,7 @@ export function IdentityRegistrarComponent() {
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
   
-  const hasEnoughBalance = useMemo(
-    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
-    [balance, chainConstants.existentialDeposit]
-  )
-  const minimunTeleportAmount = useMemo(() => {
-    const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
-    return hasEnoughBalance 
-      ? calculatedTeleportAmount 
-      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
-  }, [xcmParams.txTotalCost])
   //const teleportAmount = formatAmount(xcmParams.txTotalCost)
-
-  const balanceRef = useRef(balance)
-  useEffect(() => {
-    balanceRef.current = balance
-  }, [balance])
-  const submitTransaction = async () => {
-    if (xcmParams.enabled) {
-      try {
-        await signSubmitAndWatch({
-          nonce: await getNonce(fromTypedApi, xcmParams.fromAddress),
-          signer: getAccountData(xcmParams.fromAddress).polkadotSigner,
-          awaitFinalization: true,
-          call: getTeleportCall({
-            amount: minimunTeleportAmount,
-          }),
-          messages: {
-            broadcasted: "Teleporting assets...",
-            loading: "Teleporting assets...",
-            success: "Assets teleported successfully",
-            error: "Error teleporting assets",
-          },
-          name: "TeleportAssets"
-        })
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error)
-        addNotification({
-          type: "error",
-          message: "Error teleporting assets. Please try again.",
-        })
-        return
-      }
-
-      const maxBlocksAwait = 10
-      let awaitedBlocks;
-      for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
-        await wait(CHAIN_UPDATE_INTERVAL)
-        if (import.meta.env.DEV) console.log({ awaitedBlocks })
-        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
-          break
-        }
-        addNotification({
-          key: "awaitingAssets",
-          type: "loading",
-          message: "Waiting to receive transferred amount...",
-          closable: false,
-        })
-      }
-      removeNotification("awaitingAssets")
-      if (awaitedBlocks === maxBlocksAwait) {
-        addNotification({
-          type: "error",
-          message: "Balance insufficient. It's not possible to set identity.",
-        })
-        return
-      }
-    }
-
-    switch (openDialog) {
-      case "clearIdentity":
-        await onIdentityClear()
-        break
-      case "disconnect":
-        connectedWallets.forEach(w => disconnectWallet(w))
-        Object.keys(accountStore).forEach((k) => delete accountStore[k])
-        updateUrlParams({ ...urlParams, address: null, })
-        break
-      case "setIdentity":
-        await signSubmitAndWatch({
-          call: txToConfirm,
-          messages: {
-            broadcasted: "Setting identity...",
-            loading: "Waiting for setting identity transaction...",
-            success: "Identity set successfully",
-            error: "Error setting identity",
-          },
-          name: "Set Identity"
-        })
-        break
-      case "requestJudgement":
-        await signSubmitAndWatch({
-          call: txToConfirm,
-          messages: {
-            broadcasted: "Requesting judgement...",
-            loading: "Waiting for judgement request transaction...",
-            success: "Judgement requested successfully",
-            error: "Error requesting judgement",
-          },
-          name: "Request Judgement"
-        })
-        break
-      default:
-        throw new Error("Unexpected openDialog value")
-    }
-    closeTxDialog()
-  }
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -1041,7 +696,7 @@ export function IdentityRegistrarComponent() {
     >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} identityStore={identityStore} 
+          onAccountSelect={onAccountSelect} identity={identity} 
           onRequestWalletConnections={onRequestWalletConnection}
           accountStore={{
             address: accountStore.encodedAddress,
@@ -1065,7 +720,7 @@ export function IdentityRegistrarComponent() {
             return <MainContent {...mainProps} />;
           }
 
-          if (identityStore.status === verifyStatuses.Unknown) {
+          if (identity.status === verifyStatuses.Unknown) {
             return (
               <div className="w-full flex flex-grow flex-col flex-stretch">
                 <LoadingTabs />
@@ -1086,8 +741,15 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
+    {/* Update alerts notification section */}
+    <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
+
+    {/* TODO Refactor away dialogs */}
     <Dialog 
-      open={["clearIdentity", "disconnect", "setIdentity", "requestJudgement"].includes(openDialog)} 
+      open={[
+        "clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
+        "quitSub", "editSubAccount"
+      ].includes(openDialog)} 
       onOpenChange={v => v 
         ?openTxDialog({
           mode: openDialog as DialogMode,
@@ -1132,7 +794,7 @@ export function IdentityRegistrarComponent() {
                 <li>All identity data will be deleted from chain..</li>
                 <li>You will have to set identity again.</li>
                 <li>You will lose verification status.</li>
-                <li>Your deposit of {formatAmount(identityStore.deposit)} will be returned.</li>
+                <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
               </>)}
               {openDialog === "disconnect" && (<>
                 <li>No data will be removed on chain.</li>
@@ -1141,7 +803,7 @@ export function IdentityRegistrarComponent() {
               {openDialog === "setIdentity" && (<>
                 <li>Identity data will be set on chain.</li>
                 <li>
-                  Deposit of {formatAmount(identityStore.deposit)} will be taken, which will be 
+                  Deposit of {formatAmount(identity.deposit)} will be taken, which will be 
                   released if you clear your identity.
                 </li>
               </>)}
@@ -1154,6 +816,29 @@ export function IdentityRegistrarComponent() {
               {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
                 <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
                 <li>Please ensure all provided information is accurate before continuing.</li>
+              </>)}
+              {openDialog === "addSubaccount" && (<>
+                <li>You will link another account as a subaccount under your identity.</li>
+                <li>This relationship will be publicly visible on-chain.</li>
+                {/* TODO Point to deposit */}
+                <li>A deposit will be required for managing subaccounts.</li>
+                <li>
+                  Tf you link an account you don't own, actual owner can quit and take your deposit.
+                </li>
+              </>)}
+              {openDialog === "removeSubaccount" && (<>
+                <li>You will remove the link between your account and this subaccount.</li>
+                <li>Your deposit for this subaccount will be returned.</li>
+              </>)}
+              {openDialog === "editSubAccount" && (<>
+                <li>You will update the name of this subaccount.</li>
+                <li>This will be publicly visible on-chain.</li>
+                <li>There is no deposit required for this action.</li>
+              </>)}
+              {openDialog === "quitSub" && (<>
+                <li>You will remove your account's status as a subaccount.</li>
+                <li>This will break the link with your parent account.</li>
+                <li>The deposit for this subaccount will be returned to you.</li>
               </>)}
             </ul>
           </div>
@@ -1221,6 +906,45 @@ export function IdentityRegistrarComponent() {
       </>}
     >
       <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
+    </GenericDialog>
+    <GenericDialog open={openDialog === "errorDetails"} onOpenChange={handleOpenChange} 
+      title="Error details"
+      footer={<>
+        <Button variant="outline" onClick={() => {
+          setOpenDialog(null)
+          setErrorDetails(null)
+        }}>Close</Button>
+        <Button onClick={() => {
+          if (errorDetails) {
+            const fullError = `${errorDetails.message}\n${errorDetails.stack || ''}`;
+            navigator.clipboard.writeText(fullError)
+              .then(() => {
+                addAlert({
+                  type: "success",
+                  message: "Error details copied to clipboard",
+                  //timeout: 3000 // TODO uncomment this when we support self-closing alerts
+                });
+              })
+              .catch(err => {
+                addAlert({
+                  type: "error",
+                  message: "Failed to copy error details",
+                  //timeout: 3000 // TODO Ditto
+                });
+                console.error("Failed to copy:", err);
+              });
+          }
+        }}>
+          Copy to Clipboard
+        </Button>
+      </>}
+    >
+      <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
+        <pre className="text-sm text-red-500">
+          {errorDetails?.message}
+          {errorDetails?.stack}
+        </pre>
+      </div>
     </GenericDialog>
   </>
 }

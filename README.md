@@ -8,6 +8,14 @@ Setting it up with Nix is the recommended way, since it takes care of setting up
 
 Once you have cloned the repo, and opened a terminal within this repo, you can run `nix-shell` to start. 
 
+### First-time setup
+
+After entering the Nix shell for the first time, you'll need to run the setup script manually:
+
+```sh
+scripts/setup.sh
+```
+
 For debugging, simply run `nix-shell --command "bun dev"`
 
 For building, just run `nix-shell --command "bun run build"`

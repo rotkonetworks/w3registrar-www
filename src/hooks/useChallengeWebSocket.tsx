@@ -1,8 +1,8 @@
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
-import { AlertPropsOptionalKey } from '~/store/AlertStore';
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
-import { IdentityInfo, verifyStatuses } from '~/store/IdentityStore';
+import { IdentityInfo, verifyStatuses } from '~/types/Identity';
+import { AlertPropsOptionalKey } from './useAlerts';
 
 // Types matching your Rust backend
 type Data = {
@@ -113,13 +113,11 @@ interface UseIdentityWebSocketReturn {
   disconnect: () => void;
 }
 
-const useChallengeWebSocketWrapper = ({ 
-  url, address, network, identityStore, addNotification
-}: {
+const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNotification, }: {
   url: string;
   address: SS58String;
   network: string;
-  identityStore: { info: IdentityInfo, status: verifyStatuses };
+  identity: { info: IdentityInfo, status: verifyStatuses };
   addNotification: (alert: AlertPropsOptionalKey) => void;
 }) => {
   const challengeWebSocket = useChallengeWebSocket({ 
@@ -131,17 +129,21 @@ const useChallengeWebSocketWrapper = ({
   const { challengeState, error, isConnected, } = challengeWebSocket
 
   const [challenges, setChallenges] = useState<ChallengeStore>({});
-  const idWsDeps = [challengeState, error, address, identityStore.info, network]
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ idWsDeps })
+    setChallenges({}) 
+  }, [url, address, network])
+
+  const idWsDeps = [challengeState, error, address, identity.info, network]
+  useEffect(() => {
+    console.log({ idWsDeps })
     if (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       return
     }
     if (idWsDeps.some((value) => value === undefined)) {
       return
     }
-    if (import.meta.env.DEV) console.log({ challengeState })
+    console.log({ challengeState })
     if (challengeState) {
       const {
         pending_challenges,
@@ -154,7 +156,7 @@ const useChallengeWebSocketWrapper = ({
         .filter(([key, value]) => pendingChallenges[key] || value)
         .forEach(([key, value]) => {
           let status;
-          if (identityStore.status === verifyStatuses.IdentityVerified) {
+          if (identity.status === verifyStatuses.IdentityVerified) {
             status = ChallengeStatus.Passed;
           } else {
             status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
@@ -168,7 +170,7 @@ const useChallengeWebSocketWrapper = ({
         })
       setChallenges(_challenges)
 
-      if (import.meta.env.DEV) console.log({
+      console.log({
         origin: "challengeState",
         pendingChallenges,
         verifyState,
@@ -208,7 +210,7 @@ const useChallengeWebSocket = (
         reject(new Error('WebSocket is not connected'));
         return;
       }
-      if (import.meta.env.DEV) console.log({ message, callback: "sendMessage" })
+      console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
       const versionedMessage: VersionedMessage = {
@@ -236,14 +238,14 @@ const useChallengeWebSocket = (
   const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
       const message = JSON.parse(event.data as any) as ChallengeMessageType;
-      if (import.meta.env.DEV) console.log({message})
+      console.log({message})
 
       switch (message.type) {
         case 'JsonResult':
           if ('ok' === message.payload.type) {
             const response = message.payload.message.AccountState;
             if (response) {
-              if (import.meta.env.DEV) console.log({ response })
+              console.log({ response })
               setAccountState({
                 ...response,
                 network: response.network || 'paseo'
@@ -317,22 +319,22 @@ const useChallengeWebSocket = (
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
-      if (import.meta.env.DEV) console.log({ callBack: "onopen" })
+      console.log({ callBack: "onopen" })
       setIsConnected(true);
       setError(null);
     };
     ws.current.onclose = (event) => {
-      if (import.meta.env.DEV) console.log({ callBack: "onclose", code: event.code })
+      console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
     };
     ws.current.onerror = (error) => {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       setError('WebSocket error occurred');
     };
     ws.current.onmessage = handleMessage;
   }
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState })
+    console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
       return;
@@ -358,7 +360,7 @@ const useChallengeWebSocket = (
   }
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account && network) {
-      if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
+      console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
       // Subscribe to account state on connection
       subscribe();
     }

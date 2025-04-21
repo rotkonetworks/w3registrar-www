@@ -29,7 +29,10 @@ export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve,
  */
 export const formatAmount = (
   amount: number | bigint | BigNumber | string,
-  options: FormatAmountOptions = {}
+  options: FormatAmountOptions = {
+    symbol: "",
+    tokenDecimals: 0
+  }
 ): string => {
   if (amount === undefined || amount === null) {
     return "---"

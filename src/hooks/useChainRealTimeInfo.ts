@@ -16,7 +16,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
 }) => {  
   const [ constants, setConstants ] = useState<Record<string, any>>({});
   useEffect(() => {
-    if (import.meta.env.DEV) console.log(constants)
+    console.log(constants)
   }, [constants])
   
   useEffect(() => {
@@ -28,10 +28,10 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
             basicDeposit: await typedApi.constants.Identity.BasicDeposit(),
             existentialDeposit: await typedApi.constants.Balances.ExistentialDeposit(),
           }
-          if (import.meta.env.DEV) console.log({ constants })
+          console.log({ constants })
           setConstants(constants)
         } catch (e) {
-          if (import.meta.env.DEV) console.error(e)
+          console.error(e)
         }
       })()
     }
@@ -50,7 +50,7 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
     const systemEventsSub = (typedApi.query.System.Events as ApiStorage)
       .watchValue("best").subscribe({
         next: (events) => {
-          if (import.meta.env.DEV) console.log({ events });
+          console.log({ events });
           events
             .filter(({ 
               event: {
@@ -84,15 +84,15 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
                 onEvent(data)
               } catch (error) {
                 onError?.(error)
-                if (import.meta.env.DEV) console.error(`Error processing ${data.type}`, error);
+                console.error(`Error processing ${data.type}`, error);
               }
             })
         },
         error: (error) => {
-          if (import.meta.env.DEV) console.error("Error fetching events", error)
+          console.error("Error fetching events", error)
         },
         complete: () => {
-          if (import.meta.env.DEV) console.log({ event: "complete fetching events" })
+          console.log({ event: "complete fetching events" })
         }
       })
     return () => {
