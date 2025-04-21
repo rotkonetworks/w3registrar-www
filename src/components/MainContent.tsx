@@ -47,6 +47,7 @@ export const MainContent = ({
       content: <MemoChallengesPage
         addNotification={addNotification}
         challengeStore={challengeStore}
+        identity={identity}
       />
     },
     {

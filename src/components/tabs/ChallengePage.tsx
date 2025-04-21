@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { HelpCarousel } from "~/help/helpCarousel"
 import { SOCIAL_ICONS } from "~/assets/icons"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
+import { Identity } from "~/types/Identity"
 
 export function ChallengePage({
   addNotification,
@@ -169,7 +170,8 @@ export function ChallengePage({
             <div className="flex justify-between items-center mb-2">
               <Label htmlFor={field} className="text-inherit flex items-center gap-2">
                 {getIcon(field)}
-                <span>{field.charAt(0).toUpperCase() + field.slice(1)} Code</span>
+                <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
+                {identity.info[field]}
               </Label>
               {getStatusBadge(status)}
             </div>
