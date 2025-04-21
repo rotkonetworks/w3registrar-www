@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { HelpCarousel } from "~/help/helpCarousel"
 import { SOCIAL_ICONS } from "~/assets/icons"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
@@ -115,13 +116,132 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     twitter: <XIcon className="h-4 w-4" />,
     web: <Globe className="h-4 w-4" />,
   }
-  const inviteInstructions = {
+  const inviteAltDescription = {
     matrix: "Accept the invite and paste it in the Matrix chat",
     email: "Send an email to the provided address with the code",
     discord: "Join the Discord server and paste the code in the #verification channel",
     twitter: "Send a DM to the provided Twitter account with the code",
   }
 
+  const FullDescriptionPopOver = ({ button, name, url, onclick, description }) => (
+    <Popover>
+      <PopoverTrigger className="bg-transparent cursor-help" asChild>
+        {button}
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
+        {description}
+        <a href={url} target="_blank" rel="noreferrer">
+          <Button variant="primary" className="mt-2 w-full">
+            {`Join ${name}`}
+          </Button>
+        </a>
+      </PopoverContent>
+    </Popover>
+  )
+  const inviteFullDescriptions = {
+    matrix: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="Matrix"
+        url={import.meta.env.VITE_APP_INVITE_LINK_MATRIX}
+        description={
+          <ul className="list-disc pl-4">
+            <li>
+              <strong>Step 1:</strong> Click the button to join the Matrix server.
+            </li>
+            <li>
+              <strong>Step 2:</strong> 
+              Once you are in the server, find the 
+              {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_MATRIX}</code> bot
+              in the admin members list.
+            </li>
+            <li>
+              <strong>Step 3:</strong> Send a DM to the user with the code.
+            </li>
+            <li>
+              <strong>Step 4:</strong> Wait for the bot to verify your code.
+            </li>
+          </ul>
+        }
+      />
+    ),
+    twitter: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="Twitter"
+        url={import.meta.env.VITE_APP_INVITE_LINK_TWITTER}
+        description={
+          <div>
+            <ul className="list-disc pl-4">
+              <li>
+                <strong>Step 1:</strong> Click the button to send a DM to the 
+                {" "}<code>@{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_TWITTER}</code> X
+                account.
+              </li>
+              <li>
+                <strong>Step 2:</strong> Send the code in the DM.
+              </li>
+              <li>
+                <strong>Step 3:</strong> Wait for the account to verify your code.
+              </li>
+            </ul>
+          </div>
+        }
+      />
+    ),
+    discord: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="Discord"
+        url={import.meta.env.VITE_APP_INVITE_LINK_DISCORD}
+        description={
+          <div>
+            <ul className="list-disc pl-4">
+              <li>
+                <strong>Step 1:</strong> Click the button to join the Discord server.
+              </li>
+              <li>
+                <strong>Step 2:</strong> Once you are in the server, find the 
+                {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_DISCORD}</code> bot
+                in the admin members list.
+              </li>
+              <li>
+                <strong>Step 3:</strong> Send a DM to the user with the code.
+              </li>
+              <li>
+                <strong>Step 4:</strong> Wait for the bot to verify your code.
+              </li>
+            </ul>
+          </div>
+        }
+      />
+    ),
+    email: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="Email"
+        url={import.meta.env.VITE_APP_INVITE_LINK_EMAIL}
+        description={
+          <div>
+            <ul className="list-disc pl-4">
+              <li>
+                <strong>Step 1:</strong> Click the button to send an email to the provided address.
+              </li>
+              <li>
+                <strong>Step 2:</strong> Send the code in the email as the message body.
+              </li>
+              <li>
+                <strong>Note:</strong> Subject does not matter, don't worry about it!
+              </li>
+              <li>
+                <strong>Step 3:</strong> Wait for the email to verify your code.
+              </li>
+            </ul>
+          </div>
+        }
+      />
+    ),
+  }
 
   if (challengeStore.error && noChallenges === 0) {
     return (
@@ -164,8 +284,15 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
-        {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => (
-          <div key={field} className="mb-4 last:mb-0">
+        {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
+          const actualButton = 
+            <Button variant="outline" size="icon"
+              className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
+            >
+              {inviteLinkIcons[field]}
+            </Button>
+
+          return <div key={field} className="mb-4 last:mb-0">
             <div className="flex justify-between items-center mb-2">
               <Label htmlFor={field} className="text-inherit flex items-center gap-2">
                 {getIcon(field)}
@@ -197,33 +324,31 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                       } else if (code) {
                         await copyToClipboard(code)
                       }
-                    }} 
+                    }}
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
-                  
+
                   {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
-                    <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
-                      target="_blank" rel="noreferrer" title={inviteInstructions[field]}
-                    >
-                      <Button variant="outline" size="icon"
-                        className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-                      >
-                        {inviteLinkIcons[field]}
-                      </Button>
-                    </a>
+                    inviteFullDescriptions[field]
+                      ? inviteFullDescriptions[field]({
+                        button: actualButton
+                      })
+                  : <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
+                    target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
+                  >
+                    {actualButton}
+                  </a>
                   }
-                  
+
                   {field === "web" &&
                     <Button
                       variant="outline"
                       className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
                     >
                       Verify
-                    </Button>
-                  }
-                </>
-              }
+                    </Button>}
+                </>}
             </div>
           </div>
         })}
