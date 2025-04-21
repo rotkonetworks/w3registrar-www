@@ -123,8 +123,18 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     twitter: "Send a DM to the provided Twitter account with the code",
   }
 
-  const FullDescriptionPopOver = ({ button, name, url, onclick, description }) => (
-    <Popover>
+  const FullDescriptionPopOver = ({ button, name, url, onclick, description }: {
+    button: React.ReactNode,
+    name: string,
+    url?: string,
+    onclick?: () => void,
+    description: React.ReactNode,
+  }) => {
+    if (!url && !onclick) {
+      throw new Error("Either url or onclick must be provided")
+    }
+
+    return <Popover>
       <PopoverTrigger className="bg-transparent cursor-help" asChild>
         {button}
       </PopoverTrigger>
@@ -137,7 +147,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         </a>
       </PopoverContent>
     </Popover>
-  )
+  }
   const inviteFullDescriptions = {
     matrix: ({ button }) => (
       <FullDescriptionPopOver
