@@ -42,12 +42,10 @@ export function useSupportedFields({ typedApi, registrarIndex, }: {
           const fields = result[registrarIndex]?.fields;
           const _supportedFields = getSupportedFields(fields > 0 ? Number(fields) : (1 << 10) - 1);
           setSupportedFields(_supportedFields);
-          if (import.meta.env.DEV) console.log({ supportedFields: _supportedFields, result });
+          console.log({ supportedFields: _supportedFields, result });
         })
         .catch(error => {
-          if (import.meta.env.DEV) {
-            console.error("Error fetching supported fields:", error);
-          }
+          console.error("Error fetching supported fields:", error);
         });
     }
   }, [typedApi, registrarIndex, getSupportedFields]);

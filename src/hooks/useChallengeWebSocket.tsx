@@ -89,6 +89,9 @@ type WebSocketMessage = {
       type: "err", 
       message: string 
     } 
+  } | {
+    type: "error",
+    message: string,
   };
 
 interface VersionedMessage {
@@ -108,6 +111,7 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   challengeState: ResponseAccountState | null;
+  loading: boolean;
   subscribe: () => void;
   connect: () => void;
   disconnect: () => void;
@@ -135,15 +139,15 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
 
   const idWsDeps = [challengeState, error, address, identity.info, network]
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ idWsDeps })
+    console.log({ idWsDeps })
     if (error) {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       return
     }
     if (idWsDeps.some((value) => value === undefined)) {
       return
     }
-    if (import.meta.env.DEV) console.log({ challengeState })
+    console.log({ challengeState })
     if (challengeState) {
       const {
         pending_challenges,
@@ -170,7 +174,7 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
         })
       setChallenges(_challenges)
 
-      if (import.meta.env.DEV) console.log({
+      console.log({
         origin: "challengeState",
         pendingChallenges,
         verifyState,
@@ -179,7 +183,7 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     }
   }, idWsDeps)
 
-  return { challenges, error, isConnected, 
+  return { challenges, error, isConnected, loading: challengeWebSocket.loading, 
     subscribe: challengeWebSocket.subscribe,
     connect: challengeWebSocket.connect,
     disconnect: challengeWebSocket.disconnect,
@@ -194,6 +198,7 @@ const useChallengeWebSocket = (
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [loading, setLoading] = useState(true);
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
@@ -205,15 +210,16 @@ const useChallengeWebSocket = (
   const generateRequestId = () => Math.random().toString(36).substring(7);
 
   const sendMessage = useCallback((message: WebSocketMessage): Promise<any> => {
+    setLoading(true);
     return new Promise((resolve, reject) => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
         reject(new Error('WebSocket is not connected'));
         return;
       }
-      if (import.meta.env.DEV) console.log({ message, callback: "sendMessage" })
+      console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
-      const versionedMessage: VersionedMessage = {
+      const versionedMessage = {
         version: '1.0',
         ...message
       };
@@ -238,21 +244,24 @@ const useChallengeWebSocket = (
   const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
       const message = JSON.parse(event.data as any) as ChallengeMessageType;
-      if (import.meta.env.DEV) console.log({message})
+      console.log({message})
 
       switch (message.type) {
         case 'JsonResult':
           if ('ok' === message.payload.type) {
             const response = message.payload.message.AccountState;
             if (response) {
-              if (import.meta.env.DEV) console.log({ response })
+              console.log({ response })
               setAccountState({
                 ...response,
                 network: response.network || 'paseo'
               });
+              setLoading(false);
+              setError(null);
             }
           } else {
             setError(message.payload.message);
+            setLoading(false);
           }
           break;
           
@@ -284,6 +293,11 @@ const useChallengeWebSocket = (
           }));
           break;
         }
+
+        case "error":
+          setError(message.message);
+          setLoading(false);
+          break;
       }
 
       // Resolve any pending requests
@@ -294,6 +308,7 @@ const useChallengeWebSocket = (
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse message');
+      setLoading(false);
     }
   }, [addNotification]);
 
@@ -312,31 +327,36 @@ const useChallengeWebSocket = (
     if (ws.current?.readyState > WebSocket.OPEN) {
       ws.current = null
     }
+    setLoading(false);
+    setIsConnected(false);
   }, [ws.current?.readyState]);
 
   // Set up WebSocket connection
   const connect = () => {
+    setLoading(true);
+    setIsConnected(false);
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
-      if (import.meta.env.DEV) console.log({ callBack: "onopen" })
+      console.log({ callBack: "onopen" })
       setIsConnected(true);
       setError(null);
     };
     ws.current.onclose = (event) => {
-      if (import.meta.env.DEV) console.log({ callBack: "onclose", code: event.code })
+      console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
     };
     ws.current.onerror = (error) => {
-      if (import.meta.env.DEV) console.error(error)
+      console.error(error)
       setError('WebSocket error occurred');
     };
     ws.current.onmessage = handleMessage;
   }
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState })
+    console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
+      setLoading(true)
       return;
     }
     if (ws.current?.readyState === WebSocket.OPEN) {
@@ -345,6 +365,8 @@ const useChallengeWebSocket = (
     }
     if (!ws.current?.readyState || ws.current?.readyState > WebSocket.OPEN) {
       connect()
+      setIsConnected(false)
+      setLoading(true)
     }
 
     // TODO Make it reconnect if failed to connect or disconnected
@@ -360,7 +382,7 @@ const useChallengeWebSocket = (
   }
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account && network) {
-      if (import.meta.env.DEV) console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
+      console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
       // Subscribe to account state on connection
       subscribe();
     }
@@ -370,6 +392,7 @@ const useChallengeWebSocket = (
     connect,
     subscribe,
     disconnect,
+    loading,
     isConnected,
     error,
     challengeState,

@@ -121,7 +121,7 @@ const Header = ({
                               <span className="flex-shrink-0 pe-2">
                                 ({encodedAddress.substring(0, 4)}...{encodedAddress.substring(encodedAddress.length - 4, encodedAddress.length)})
                               </span>
-                              <BalanceDisplay balance={allAccountBalances[index].planck} formatter={shortFormatAmount} />
+                              <BalanceDisplay balance={allAccountBalances?.[index]?.planck} formatter={shortFormatAmount} />
                             </div>
                           </SelectItem>
                         );

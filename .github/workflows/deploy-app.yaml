@@ -6,6 +6,7 @@ env:
   DEPLOY_PATH: '/home/w3reg/app.w3reg.org'
   BACKUP_PATH: '/home/w3reg/backups'
   STAGING_PATH: '/home/w3reg/staging.w3reg.org'
+  MODE: 'production'
 
 on:
   workflow_dispatch:

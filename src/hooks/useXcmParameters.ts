@@ -37,7 +37,7 @@ export function useXcmParameters({
 
   // Setup fromChain when relayChainId changes
   useEffect(() => {
-    if (import.meta.env.DEV) console.log({ relayChainId, relayAndParachains });
+    console.log({ relayChainId, relayAndParachains });
     xcmParams.fromChain.id = relayChainId;
   }, [relayChainId, relayAndParachains]);
 
@@ -51,10 +51,10 @@ export function useXcmParameters({
     if (typedApi) {
       try {
         const paraId = await typedApi.constants.ParachainSystem.SelfParaId();
-        if (import.meta.env.DEV) console.log({ paraId });
+        console.log({ paraId });
         return paraId;
       } catch (error) {
-        if (import.meta.env.DEV) console.error("Error getting parachain ID", error);
+        console.error("Error getting parachain ID", error);
       }
     }
     return null;
@@ -156,7 +156,7 @@ export function useXcmParameters({
       }
     });
     
-    if (import.meta.env.DEV) console.log({ txArguments });
+    console.log({ txArguments });
     return fromApi.tx.XcmPallet.limited_teleport_assets(txArguments);
   }, [xcmParams.fromChain.paraId]);
 

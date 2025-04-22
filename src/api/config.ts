@@ -13,26 +13,10 @@ import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { createLightClientProvider } from "@reactive-dot/core/providers/light-client.js";
 import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
-const getProviders = () => {
-  const lightClientProvider = createLightClientProvider();
-  const polkadot = lightClientProvider.addRelayChain({ id: "polkadot" });
-  const ksmcc3 = lightClientProvider.addRelayChain({ id: "kusama" });
-  const paseo = lightClientProvider.addRelayChain({ id: "paseo" });
-  const westend = lightClientProvider.addRelayChain({ id: "westend" });
-
-  return {
-    lightClientProvider,
-    polkadot,
-    ksmcc3, 
-    paseo,
-    westend
-  };
-}
-export let providers = getProviders();
+// TODO Have additional WebSocket endpoint for each chain
 
 export type ApiConfig = Config & {
   chains: Record<
@@ -71,13 +55,13 @@ export const config = defineConfig({
       name: "Polkadot",
       symbol: "DOT",
       descriptor: polkadot,
-      provider: providers.polkadot,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_POLKADOT_WS_URL)),
     },
     polkadot_people: {
       name: "Polkadot People",
       symbol: "DOT",
       descriptor: polkadot_people,
-      provider: providers.polkadot.addParachain({ id: "polkadot_people" }),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_POLKADOT_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
     },
 
@@ -85,13 +69,13 @@ export const config = defineConfig({
       name: "Kusama",
       symbol: "KSM",
       descriptor: ksmcc3,
-      provider: providers.ksmcc3,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_KUSAMA_WS_URL)),
     },
     ksmcc3_people: {
       name: "Kusama People",
       symbol: "KSM",
       descriptor: ksmcc3_people,
-      provider: providers.ksmcc3.addParachain({ id: "kusama_people" }),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_KUSAMA_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
     },
 
@@ -99,13 +83,13 @@ export const config = defineConfig({
       name: "Paseo",
       symbol: "PAS",
       descriptor: paseo,
-      provider: providers.paseo,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_PASEO_WS_URL)),
     },
     paseo_people: {
       name: "Paseo People",
       symbol: "PAS",
       descriptor: paseo_people,
-      provider: providers.paseo.addParachain({ id: "paseo_people" }),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_PASEO_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
     },
 
@@ -113,13 +97,13 @@ export const config = defineConfig({
       name: "Westend",
       symbol: "WND",
       descriptor: westend2,
-      provider: providers.westend,
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_WS_URL)),
     },
     westend2_people: {
       name: "Westend People",
       symbol: "WND",
       descriptor: westend2_people,
-      provider: providers.westend.addParachain({ id: "westend_people" }),
+      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
     },
     ...rococoConfig,

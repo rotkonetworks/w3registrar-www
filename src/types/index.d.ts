@@ -1,7 +1,17 @@
 import { TypedApi } from "polkadot-api"
 
-export type DialogMode = "clearIdentity" | "disconnect" | "teleport" | "help" | "requestJudgement" |
-  "setIdentity" | null
+export type DialogMode = "clearIdentity" |
+  "disconnect" |
+  "teleport" |
+  "help" |
+  "requestJudgement" |
+  "setIdentity"  |
+  "addSubaccount" |
+  "editSubAccount" |
+  "removeSubaccount" |
+  "quitSub" |
+  "errorDetails" |
+  null;
 
 export type EstimatedCostInfo = {
   fees?: bigint | BigNumber
@@ -17,7 +27,7 @@ export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
 export type MainContentProps = {
   identity: Identity,
-  challengeStore: { challenges: ChallengeStore, error: string | null },
+  challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
   chainStore: ChainInfo,
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
@@ -32,6 +42,7 @@ export type MainContentProps = {
   updateUrlParams: any,
   setOpenDialog: any,
   isTxBusy: boolean,
+  accountTree: AccountTreeNode | null,
   openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 

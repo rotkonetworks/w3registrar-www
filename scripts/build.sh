@@ -10,7 +10,7 @@ fi
 # Strict environment sanitization
 for var in $(compgen -e); do
     case $var in
-        HOME|PATH|TERM|USER|SHELL|TMPDIR|VITE_*)
+        HOME|PATH|TERM|USER|SHELL|TMPDIR|MODE|VITE_*)
             ;;
         *)
             unset "$var"
@@ -38,20 +38,12 @@ done
 
 bun install
 
-# vite build will fail with 
-#   error during build:
-#   undefined
-# So this script is required to get actual error message:
-cat << EOF > ./build.js
-const vite = require('vite');
-
-vite.build();
-EOF
-bun ./build.js
-
-if ! bun ./build.js; then
-    echo "Error: 'bun run build' failed." >&2
-    exit 1
+if [ $MODE = "development" ]; then
+    echo "Running in development mode..."
+    bun vite build --mode development
+else
+    echo "Running in production mode..."
+    bun vite build --mode production
 fi
 
 echo "Build completed successfully."
