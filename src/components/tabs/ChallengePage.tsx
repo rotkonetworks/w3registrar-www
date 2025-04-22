@@ -18,7 +18,7 @@ import { Identity } from "~/types/Identity"
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
-  challengeStore: { challenges: ChallengeStore, error: string | null },
+  challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
   identity: Identity,
 }) {
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
@@ -253,23 +253,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     ),
   }
 
-  if (challengeStore.error && noChallenges === 0) {
-    return (
-      <Alert
-        key={"challengeError"}
-        variant="destructive"
-        className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
-      >
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription className="flex justify-between items-center">
-          There was an error loading the challenges. Please reload the page and try again later.
-          {/* TODO Add reload button */}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (noChallenges === 0) {
+  if (challengeStore.loading) {
     return (
       <LoadingPlaceholder className="flex flex-col w-full h-[70vh] flex-center">
         <HelpCarousel className="rounded-lg bg-background/30" autoPlayInterval={4000} />
@@ -363,13 +347,41 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
           </div>
         })}
 
-        <Alert>
-          <AlertTitle>Note:</AlertTitle>
-          <AlertDescription className="flex justify-between items-center">
-            Please send the code from the same account you set in your identity. If you send it from
-            a different account, it will not be verified, and you will not be given good judgement.
-          </AlertDescription>
-        </Alert>
+        {noChallenges > 0 &&
+          <Alert
+            key={"challengeError"}
+            variant="destructive"
+            className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+          >
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription className="flex flex-col justify-between items-center gap-2">
+              <p>
+                There was an error loading the challenges. Please wait a moment and try again.
+              </p>
+              <p>
+                {challengeStore.error}
+              </p>
+            </AlertDescription>
+          </Alert>
+        }
+
+        {challengeStore.error &&
+          <Alert
+            key={"challengeError"}
+            variant="destructive"
+            className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+          >
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription className="flex flex-col justify-between items-center gap-2">
+              <p>
+                There was an error loading the challenges. Please wait a moment and try again.
+              </p>
+              <p>
+                {challengeStore.error}
+              </p>
+            </AlertDescription>
+          </Alert>
+        }
       </CardContent>
     </Card>
   );

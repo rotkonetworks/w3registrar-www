@@ -213,6 +213,7 @@ export function IdentityRegistrarComponent() {
   const { challenges, 
     error: challengeError, 
     isConnected: isChallengeWsConnected,
+    loading: challengeLoading,
     subscribe: subscribeToChallenges,
     connect: connectToChallenges,
     disconnect: disconnectFromChallenges,
@@ -674,7 +675,8 @@ export function IdentityRegistrarComponent() {
 
   const mainProps: MainContentProps = { 
     chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
-    challengeStore: { challenges, error: challengeError }, identityFormRef, urlParams, isTxBusy,
+    challengeStore: { challenges, error: challengeError, loading: challengeLoading }, 
+    identityFormRef, urlParams, isTxBusy,
     supportedFields, accountTree: { data: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
