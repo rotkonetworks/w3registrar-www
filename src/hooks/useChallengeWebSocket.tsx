@@ -89,6 +89,9 @@ type WebSocketMessage = {
       type: "err", 
       message: string 
     } 
+  } | {
+    type: "error",
+    message: string,
   };
 
 interface VersionedMessage {
@@ -108,6 +111,7 @@ interface UseIdentityWebSocketReturn {
   isConnected: boolean;
   error: string | null;
   challengeState: ResponseAccountState | null;
+  loading: boolean;
   subscribe: () => void;
   connect: () => void;
   disconnect: () => void;
@@ -179,7 +183,7 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     }
   }, idWsDeps)
 
-  return { challenges, error, isConnected, 
+  return { challenges, error, isConnected, loading: challengeWebSocket.loading, 
     subscribe: challengeWebSocket.subscribe,
     connect: challengeWebSocket.connect,
     disconnect: challengeWebSocket.disconnect,
@@ -194,6 +198,7 @@ const useChallengeWebSocket = (
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [loading, setLoading] = useState(true);
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
@@ -205,6 +210,7 @@ const useChallengeWebSocket = (
   const generateRequestId = () => Math.random().toString(36).substring(7);
 
   const sendMessage = useCallback((message: WebSocketMessage): Promise<any> => {
+    setLoading(true);
     return new Promise((resolve, reject) => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
         reject(new Error('WebSocket is not connected'));
@@ -213,7 +219,7 @@ const useChallengeWebSocket = (
       console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
-      const versionedMessage: VersionedMessage = {
+      const versionedMessage = {
         version: '1.0',
         ...message
       };
@@ -250,9 +256,12 @@ const useChallengeWebSocket = (
                 ...response,
                 network: response.network || 'paseo'
               });
+              setLoading(false);
+              setError(null);
             }
           } else {
             setError(message.payload.message);
+            setLoading(false);
           }
           break;
           
@@ -284,6 +293,11 @@ const useChallengeWebSocket = (
           }));
           break;
         }
+
+        case "error":
+          setError(message.message);
+          setLoading(false);
+          break;
       }
 
       // Resolve any pending requests
@@ -294,6 +308,7 @@ const useChallengeWebSocket = (
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse message');
+      setLoading(false);
     }
   }, [addNotification]);
 
@@ -312,10 +327,14 @@ const useChallengeWebSocket = (
     if (ws.current?.readyState > WebSocket.OPEN) {
       ws.current = null
     }
+    setLoading(false);
+    setIsConnected(false);
   }, [ws.current?.readyState]);
 
   // Set up WebSocket connection
   const connect = () => {
+    setLoading(true);
+    setIsConnected(false);
     ws.current = new WebSocket(url);
 
     ws.current.onopen = () => {
@@ -337,6 +356,7 @@ const useChallengeWebSocket = (
     console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
       setIsConnected(false)
+      setLoading(true)
       return;
     }
     if (ws.current?.readyState === WebSocket.OPEN) {
@@ -345,6 +365,8 @@ const useChallengeWebSocket = (
     }
     if (!ws.current?.readyState || ws.current?.readyState > WebSocket.OPEN) {
       connect()
+      setIsConnected(false)
+      setLoading(true)
     }
 
     // TODO Make it reconnect if failed to connect or disconnected
@@ -370,6 +392,7 @@ const useChallengeWebSocket = (
     connect,
     subscribe,
     disconnect,
+    loading,
     isConnected,
     error,
     challengeState,

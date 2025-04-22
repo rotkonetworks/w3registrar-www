@@ -27,7 +27,7 @@ export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
 export type MainContentProps = {
   identity: Identity,
-  challengeStore: { challenges: ChallengeStore, error: string | null },
+  challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
   chainStore: ChainInfo,
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
