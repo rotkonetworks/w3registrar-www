@@ -372,7 +372,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
             className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
           >
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription className="flex flex-col justify-between items-center gap-2">
+            <AlertDescription className="flex flex-col justify-between items-stretch gap-2">
               <p>
                 There was an error loading the challenges. Please wait a moment and try again.
               </p>
