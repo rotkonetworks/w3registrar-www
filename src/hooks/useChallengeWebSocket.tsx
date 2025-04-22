@@ -219,7 +219,7 @@ const useChallengeWebSocket = (
       console.log({ message, callback: "sendMessage" })
 
       const requestId = generateRequestId();
-      const versionedMessage: VersionedMessage = {
+      const versionedMessage = {
         version: '1.0',
         ...message
       };
