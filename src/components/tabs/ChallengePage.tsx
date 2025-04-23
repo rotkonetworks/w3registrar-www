@@ -290,8 +290,8 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
             </Button>
 
           return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
-            <div className="flex mb-2 flex-wrap justify-between gap-2">
-              <Label htmlFor={field} className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap mb-2 justify-between gap-2">
+              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 w-full xs:w-auto">
                 <div className="flex flex-col sm:flex-row sm:gap-2 w-full xs:w-auto">
                   <div className="flex items-center gap-2">
                     {getIcon(field)}
