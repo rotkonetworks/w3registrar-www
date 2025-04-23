@@ -17,6 +17,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
 import _ from "lodash"
 
+const StatusBadge = ({ status }: { status: ChallengeStatus }) => {
+  switch (status) {
+    case ChallengeStatus.Passed:
+      return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
+    case ChallengeStatus.Failed:
+      return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
+    default:
+      return <Badge variant="secondary">Pending</Badge>
+  }
+}
+
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
   challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
@@ -71,17 +82,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         type: 'error',
         message: 'Failed to copy to clipboard',
       })
-    }
-  }
-
-  const getStatusBadge = (status: ChallengeStatus) => {
-    switch (status) {
-      case ChallengeStatus.Passed:
-        return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-      case ChallengeStatus.Failed:
-        return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
-      default:
-        return <Badge variant="secondary">Pending</Badge>
     }
   }
 
@@ -301,7 +301,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                 </div>
               </Label>
               <div className="ml-auto">
-                {getStatusBadge(status)}
+                <StatusBadge status={status} />
               </div>
             </div>
             <div className="flex justify-end flex-wrap gap-2">
