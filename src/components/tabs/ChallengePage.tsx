@@ -289,10 +289,10 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               {inviteLinkIcons[field]}
             </Button>
 
-          return <div key={field} className="mb-4 last:mb-0">
-            <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
-              <Label htmlFor={field} className="text-inherit flex flex-row flex-wrap items-center gap-2 w-full sm:w-auto">
-                <div className="flex flex-col sm:flex-row sm:gap-2 w-full sm:w-auto">
+          return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
+            <div className="flex mb-2 flex-wrap justify-between gap-2">
+              <Label htmlFor={field} className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:gap-2 w-full xs:w-auto">
                   <div className="flex items-center gap-2">
                     {getIcon(field)}
                     <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
@@ -300,7 +300,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                   <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
                 </div>
               </Label>
-              <div className="ml-auto">
+              <div className="flex flex-row gap-2 items-center justify-end grow">
                 <StatusBadge status={status} />
               </div>
             </div>
