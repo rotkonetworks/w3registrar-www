@@ -301,13 +301,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
             <div className="flex space-x-2 items-center">
               {code &&
                 <Input id={field} value={code} readOnly 
-                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
-                />
-              }
-              {type === "input" &&
-                <Input id={field + "-challenge"} value={formData[field]?.value || ""}
-                  onChange={event => setFormField(field, event.target.value)}
-                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                  className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]" 
                 />
               }
               {status === ChallengeStatus.Pending &&
