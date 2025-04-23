@@ -291,8 +291,8 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
 
           return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
             <div className="flex flex-wrap mb-2 justify-between gap-2">
-              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 w-full xs:w-auto">
-                <div className="flex flex-col sm:flex-row sm:gap-2 w-full xs:w-auto">
+              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 max-w-full">
+                <div className="flex flex-col sm:flex-row sm:gap-2 max-w-full">
                   <div className="flex items-center gap-2">
                     {getIcon(field)}
                     <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
