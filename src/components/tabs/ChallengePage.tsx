@@ -15,6 +15,18 @@ import { SOCIAL_ICONS } from "~/assets/icons"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
+import _ from "lodash"
+
+const StatusBadge = ({ status }: { status: ChallengeStatus }) => {
+  switch (status) {
+    case ChallengeStatus.Passed:
+      return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
+    case ChallengeStatus.Failed:
+      return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
+    default:
+      return <Badge variant="secondary">Pending</Badge>
+  }
+}
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
@@ -22,6 +34,12 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   identity: Identity,
 }) {
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
+  useEffect(() => {
+    console.log("ChallengeStore", challengeStore)
+    if (!challengeStore.loading && !_.isEqual(challengeStore.challenges, localChallengeStore)) {
+      setLocalChallengeStore(challengeStore.challenges)
+    }
+  }, [challengeStore, localChallengeStore])
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
     ...Object.fromEntries(Object.entries(localChallengeStore)
@@ -34,10 +52,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     value: string,
     error: string | null,
   }>>({})
-
-  useEffect(() => {
-    setLocalChallengeStore(challengeStore.challenges)
-  }, [challengeStore])
 
   useEffect(() => {
     setFormData(Object.fromEntries(Object.keys(challengeFieldsConfig)
@@ -71,17 +85,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     }
   }
 
-  const getStatusBadge = (status: ChallengeStatus) => {
-    switch (status) {
-      case ChallengeStatus.Passed:
-        return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-      case ChallengeStatus.Failed:
-        return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
-      default:
-        return <Badge variant="secondary">Pending</Badge>
-    }
-  }
-
   const getIcon = (field: string) => {
     return SOCIAL_ICONS[field]
   }
@@ -99,7 +102,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }, [challengeStore])
 
 
-  const noChallenges = Object.keys(challengeStore.challenges).length
+  const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
 
   /* TODO Implement verification for :
     * GitHub
@@ -253,7 +256,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     ),
   }
 
-  if (challengeStore.loading && noChallenges > 0) {
+  if (challengeStore.loading && noChallenges === 0) {
     return (
       <LoadingPlaceholder className="flex flex-col w-full h-[70vh] flex-center">
         <HelpCarousel className="rounded-lg bg-background/30" autoPlayInterval={4000} />
@@ -286,25 +289,25 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               {inviteLinkIcons[field]}
             </Button>
 
-          return <div key={field} className="mb-4 last:mb-0">
-            <div className="flex justify-between items-center mb-2">
-              <Label htmlFor={field} className="text-inherit flex items-center gap-2">
-                {getIcon(field)}
-                <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
-                {identity.info[field]}
+          return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
+            <div className="flex flex-wrap mb-2 justify-between gap-2">
+              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 w-full xs:w-auto">
+                <div className="flex flex-col sm:flex-row sm:gap-2 w-full xs:w-auto">
+                  <div className="flex items-center gap-2">
+                    {getIcon(field)}
+                    <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
+                  </div>
+                  <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
+                </div>
               </Label>
-              {getStatusBadge(status)}
+              <div className="flex flex-row gap-2 items-center justify-end grow">
+                <StatusBadge status={status} />
+              </div>
             </div>
-            <div className="flex space-x-2 items-center">
+            <div className="flex justify-end flex-wrap gap-2">
               {code &&
                 <Input id={field} value={code} readOnly 
-                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
-                />
-              }
-              {type === "input" &&
-                <Input id={field + "-challenge"} value={formData[field]?.value || ""}
-                  onChange={event => setFormField(field, event.target.value)}
-                  className="bg-transparent border-[#E6007A] text-inherit flex-grow" 
+                  className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]" 
                 />
               }
               {status === ChallengeStatus.Pending &&
@@ -349,17 +352,13 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
 
         {noChallenges > 0 &&
           <Alert
-            key={"challengeError"}
-            variant="destructive"
-            className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+            key={"useOwnAccounts"}
           >
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Note</AlertTitle>
             <AlertDescription className="flex flex-col justify-between items-center gap-2">
               <p>
-                There was an error loading the challenges. Please wait a moment and try again.
-              </p>
-              <p>
-                {challengeStore.error}
+                Please use your own accounts for verification. Otherwise, you will not be able to 
+                prove ownership of the linked accounts, thus failing the challenge.
               </p>
             </AlertDescription>
           </Alert>

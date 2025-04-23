@@ -46,7 +46,7 @@ export const AlertsAccordion = ({
                 }`}
               >
                 <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                <AlertDescription className="flex justify-between items-center">
+                <AlertDescription className="flex flex-col justify-between items-center">
                   <span className="font-mono">{alert.message}</span>
                   {alert.closable === true && (
                     <Button

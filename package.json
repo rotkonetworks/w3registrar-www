@@ -45,6 +45,7 @@
     "dot-connect": "^0.13.2",
     "dot-identicon": "^0.1.0",
     "lit-html": "^3.2.1",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.456.0",
     "polkadot-api": "1.8.0",
     "react": "^18.3.1",
@@ -61,6 +62,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^3.11.2",
     "@eslint/js": "^9.16.0",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^22.10.1",
     "@types/react": "^18.3.16",
     "@types/react-dom": "^18.3.5",
