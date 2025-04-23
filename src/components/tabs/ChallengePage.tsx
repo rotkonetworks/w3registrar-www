@@ -290,15 +290,21 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
             </Button>
 
           return <div key={field} className="mb-4 last:mb-0">
-            <div className="flex justify-between items-center mb-2">
-              <Label htmlFor={field} className="text-inherit flex items-center gap-2">
-                {getIcon(field)}
-                <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
-                {identity.info[field]}
+            <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+              <Label htmlFor={field} className="text-inherit flex flex-row flex-wrap items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row sm:gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    {getIcon(field)}
+                    <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
+                  </div>
+                  <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
+                </div>
               </Label>
-              {getStatusBadge(status)}
+              <div className="ml-auto">
+                {getStatusBadge(status)}
+              </div>
             </div>
-            <div className="flex space-x-2 items-center">
+            <div className="flex justify-end flex-wrap gap-2">
               {code &&
                 <Input id={field} value={code} readOnly 
                   className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]" 
