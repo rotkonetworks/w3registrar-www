@@ -15,6 +15,7 @@ import { SOCIAL_ICONS } from "~/assets/icons"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
+import _ from "lodash"
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
@@ -22,6 +23,12 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   identity: Identity,
 }) {
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
+  useEffect(() => {
+    console.log("ChallengeStore", challengeStore)
+    if (!challengeStore.loading && !_.isEqual(challengeStore.challenges, localChallengeStore)) {
+      setLocalChallengeStore(challengeStore.challenges)
+    }
+  }, [challengeStore, localChallengeStore])
 
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
     ...Object.fromEntries(Object.entries(localChallengeStore)
@@ -34,10 +41,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     value: string,
     error: string | null,
   }>>({})
-
-  useEffect(() => {
-    setLocalChallengeStore(challengeStore.challenges)
-  }, [challengeStore])
 
   useEffect(() => {
     setFormData(Object.fromEntries(Object.keys(challengeFieldsConfig)
@@ -99,7 +102,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }, [challengeStore])
 
 
-  const noChallenges = Object.keys(challengeStore.challenges).length
+  const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
 
   /* TODO Implement verification for :
     * GitHub
@@ -253,7 +256,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     ),
   }
 
-  if (challengeStore.loading && noChallenges > 0) {
+  if (challengeStore.loading && noChallenges === 0) {
     return (
       <LoadingPlaceholder className="flex flex-col w-full h-[70vh] flex-center">
         <HelpCarousel className="rounded-lg bg-background/30" autoPlayInterval={4000} />
