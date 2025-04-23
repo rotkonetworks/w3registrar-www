@@ -349,17 +349,13 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
 
         {noChallenges > 0 &&
           <Alert
-            key={"challengeError"}
-            variant="destructive"
-            className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
+            key={"useOwnAccounts"}
           >
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Note</AlertTitle>
             <AlertDescription className="flex flex-col justify-between items-center gap-2">
               <p>
-                There was an error loading the challenges. Please wait a moment and try again.
-              </p>
-              <p>
-                {challengeStore.error}
+                Please use your own accounts for verification. Otherwise, you will not be able to 
+                prove ownership of the linked accounts, thus failing the challenge.
               </p>
             </AlertDescription>
           </Alert>
