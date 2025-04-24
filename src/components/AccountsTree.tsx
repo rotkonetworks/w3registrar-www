@@ -75,72 +75,70 @@ function AccountNode({
           </div>
         </div>
 
-        <div className="flex flex-row flex-wrap justify-end xs:justify-between items-center gap-2 grow-0 shrink-1 w-full xs:w-auto">
-          <div className="flex flex-wrap flex-row sm:flex-col gap-1 items-center justify-end">
-            {!node.super && (
-              <Badge variant="secondary" className="text-xs">Root</Badge>
-            )}
-            {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-              <Badge variant="secondary" className="text-xs">Current is sub</Badge>
-            )}
-            {node.deposit && (
-              <Badge variant="destructive" size="sm">
-                {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
-              </Badge>
-            )}
-            {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
-          </div>
+        <div className="flex flex-wrap flex-row sm:flex-col gap-1 items-center justify-end">
+          {!node.super && (
+            <Badge variant="secondary" className="text-xs">Root</Badge>
+          )}
+          {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
+            <Badge variant="secondary" className="text-xs">Current is sub</Badge>
+          )}
+          {node.deposit && (
+            <Badge variant="destructive" size="sm">
+              {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
+            </Badge>
+          )}
+          {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
+        </div>
 
-          <div className="flex flex-row gap-2 self-end">
-            {!isRoot && node.isCurrentAccount && (
-              <Button 
-                size="icon" 
-                variant="secondary"
-                className="h-10 w-10 rounded-full"
-                title="Quit subaccount"
-                onClick={() => onQuit(node)}
-                disabled={!!isRemoving}
-              >
-                {isRemoving === node.address ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Unlink className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-            {node.isDirectSubOfCurrentAccount && onRename && (
-              <Button
-                size="icon"
-                variant="secondary"
-                className="h-10 w-10 rounded-full"
-                onClick={() => onRename(node)}
-                disabled={!!isRemoving}
-                title="Remove subaccount"
-              >
-                {isRemoving === node.address ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <PenLine className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-            {node.isDirectSubOfCurrentAccount && onRemove && (
-              <Button 
-                size="icon" 
-                variant="secondary"
-                className="h-10 w-10 rounded-full"
-                onClick={() => onRemove(node)}
-                disabled={!!isRemoving}
-                title="Remove subaccount"
-              >
-                {isRemoving === node.address ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Delete className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-          </div>
+        <div className="flex flex-row gap-2 self-end">
+          {!isRoot && node.isCurrentAccount && (
+            <Button 
+              size="icon" 
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              title="Quit subaccount"
+              onClick={() => onQuit(node)}
+              disabled={!!isRemoving}
+            >
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Unlink className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          {node.isDirectSubOfCurrentAccount && onRename && (
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              onClick={() => onRename(node)}
+              disabled={!!isRemoving}
+              title="Remove subaccount"
+            >
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PenLine className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          {node.isDirectSubOfCurrentAccount && onRemove && (
+            <Button 
+              size="icon" 
+              variant="secondary"
+              className="h-10 w-10 rounded-full"
+              onClick={() => onRemove(node)}
+              disabled={!!isRemoving}
+              title="Remove subaccount"
+            >
+              {isRemoving === node.address ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Delete className="h-4 w-4" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
       
