@@ -30,10 +30,12 @@ const getName = (node: AccountTreeNode) => {
 }
 const getFqcn = (node: AccountTreeNode) => {
   return <>
-    <span>{getName(node)}</span>
-    <span className="text-foreground/50 text-thin inline-flex flex-wrap justify-start">
+    <span className="break-all">{getName(node)}</span>
+    <span className="text-foreground/50 text-thin inline-flex justify-start">
       .
-      {node.super ? getFqcn(node.super) : "alt"}
+      <span className="text-foreground/50 text-thin break-all">
+        {node.super ? getFqcn(node.super) : "alt"}
+      </span>
     </span>
   </>;
 }
