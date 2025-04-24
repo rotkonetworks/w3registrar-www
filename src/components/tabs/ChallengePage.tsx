@@ -117,7 +117,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
-    web: <Globe className="h-4 w-4" />,
   }
   const inviteAltDescription = {
     matrix: "Accept the invite and paste it in the Matrix chat",
@@ -282,12 +281,9 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
-          const actualButton = 
-            <Button variant="outline" size="icon"
-              className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-            >
-              {inviteLinkIcons[field]}
-            </Button>
+          const actualButton = inviteLinkIcons[field]
+            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
+            :null
 
           return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
             <div className="flex flex-wrap mb-2 justify-between gap-2">
@@ -339,12 +335,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                   }
 
                   {field === "web" &&
-                    <Button
-                      variant="outline"
-                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                    >
-                      Verify
-                    </Button>}
+                    <Button variant="primary">Verify</Button>}
                 </>}
             </div>
           </div>
