@@ -137,7 +137,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     }
 
     return <Popover>
-      <PopoverTrigger className="bg-transparent cursor-help" asChild>
+      <PopoverTrigger className="cursor-help" asChild>
         {button}
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
@@ -309,7 +309,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               {status === ChallengeStatus.Pending &&
                 <>
                   <Button variant="outline" size="icon" 
-                    className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                     onClick={async () => {
                       if (type === "input") {
                         const clipText = await window.navigator.clipboard.readText()
