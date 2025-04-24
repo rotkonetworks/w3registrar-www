@@ -59,36 +59,38 @@ function AccountNode({
 }: AccountNodeProps) {
   return (
     <div className={`relative ${isRoot ? '' : 'ml-1 pt-2 xs:ml-2 pl-2 xs:pl-4 border-l border-secondary'}`}>
-      <div className={`p-3 rounded-lg flex flex-row flex-wrap items-center justify-end sm:justify-between ${
+      <div className={`p-3 rounded-lg flex flex-row flex-wrap items-center justify-end sm:justify-between gap-2 ${
         node.isCurrentAccount 
           ? 'bg-primary/20 border border-primary' 
           : 'bg-transparent border-secondary border-[0.5px]'
       }`}>
-        <div className="flex flex-col justify-self-start max-w-full shrink grow-1">
-          <div className="font-semibold truncate">
-            {getFqcn(node)}
+        <div className="flex flex-col flex-wrap justify-end  max-w-full shrink grow-1">
+          <div className="flex flex-col items-start justify-between xs:justify-end max-w-full">
+            <div className="font-semibold truncate max-w-full">
+              {getFqcn(node)}
+            </div>
+            <div className="text-xs text-muted-foreground truncate max-w-full">
+              {node.address}
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground truncate">
-            {node.address}
+
+          <div className="flex flex-wrap flex-row gap-1 items-end justify-content-end justify-end order-first">
+            {!node.super && (
+              <Badge variant="secondary" className="text-xs">Root</Badge>
+            )}
+            {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
+              <Badge variant="secondary" className="text-xs">Current is sub</Badge>
+            )}
+            {node.deposit && (
+              <Badge variant="destructive" size="sm">
+                {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
+              </Badge>
+            )}
+            {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
           </div>
         </div>
 
-        <div className="flex flex-wrap flex-row sm:flex-col gap-1 items-end justify-content-end justify-end max-w-full shrink grow-0 order-first sm:order-0">
-          {!node.super && (
-            <Badge variant="secondary" className="text-xs">Root</Badge>
-          )}
-          {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-            <Badge variant="secondary" className="text-xs">Current is sub</Badge>
-          )}
-          {node.deposit && (
-            <Badge variant="destructive" size="sm">
-              {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
-            </Badge>
-          )}
-          {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
-        </div>
-
-        <div className="flex flex-row sm:flex-col gap-2 self-end">
+        <div className="flex flex-row gap-2 self-end">
           {!isRoot && node.isCurrentAccount && (
             <Button 
               size="icon" 
