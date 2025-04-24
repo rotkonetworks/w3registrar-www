@@ -31,7 +31,7 @@ const getName = (node: AccountTreeNode) => {
 const getFqcn = (node: AccountTreeNode) => {
   return <>
     <span>{getName(node)}</span>
-    <span className="text-foreground/50 text-thin">
+    <span className="text-foreground/50 text-thin inline-flex flex-wrap justify-start">
       .
       {node.super ? getFqcn(node.super) : "alt"}
     </span>
@@ -66,7 +66,7 @@ function AccountNode({
       }`}>
         <div className="flex flex-row flex-wrap max-w-full shrink grow-1">
           <div className="flex flex-col items-start justify-between xs:justify-end self-start max-w-full">
-            <div className="font-semibold truncate max-w-full">
+            <div className="font-semibold max-w-full">
               {getFqcn(node)}
             </div>
             <div className="text-xs text-muted-foreground truncate max-w-full">
