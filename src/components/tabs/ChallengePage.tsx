@@ -324,14 +324,12 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
 
                   {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
                     inviteFullDescriptions[field]
-                      ? inviteFullDescriptions[field]({
-                        button: actualButton
-                      })
-                  : <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
-                    target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
-                  >
-                    {actualButton}
-                  </a>
+                      ?inviteFullDescriptions[field]({ button: actualButton })
+                      :<a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
+                        target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
+                      >
+                        {actualButton}
+                      </a>
                   }
 
                   {field === "web" &&
