@@ -12,7 +12,6 @@ import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
 import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
 import { AccountSelector } from "./ui/account-selector";
-import { useAccounts } from "@reactive-dot/react";
 import { Input } from "./ui/input";
 import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
