@@ -44,39 +44,44 @@ export function StatusPage({
       </CardHeader>
       <CardContent className="space-y-4 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex justify-between items-center">
-            <strong className="flex items-center gap-2">
+          <div className="flex flex-row flex-wrap justify-end items-center gap-0 xs:gap-2">
+            <strong className="flex items-center">
               <UserCircle className="h-4 w-4" />
               Display Name:
             </strong> 
-            <span>{identity.info?.display || "<Not Set>"}</span>
+            <div className="grow shrink-0" />
+            <span className="justify-self-end">{identity.info?.display || "<Not Set>"}</span>
           </div>
-          <div className="flex justify-between items-center max-[450px]:flex-wrap">
+          <div className="flex flex-row flex-wrap justify-end items-center gap-0 xs:gap-2">
             <strong className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
               Verification:
-            </strong> 
+            </strong>
+            <div className="grow shrink-0" />
             <VerificationStatusBadge status={identity.status} />
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-row flex-wrap justify-end items-center gap-0 xs:gap-2">
             <strong className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
               Judgement:
-            </strong> 
+            </strong>
+            <div className="grow shrink-0" />
             <span>{ verifyStatuses[identity.status].match(/[A-Z][a-z]+/g).join(" ") }</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-row flex-wrap justify-end items-center gap-0 xs:gap-2">
             <strong className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
               Deposit:
-            </strong> 
+            </strong>
+            <div className="grow shrink-0" />
             <span>{formatAmount(identity.deposit)}</span>
           </div>
         </div>
         <div className="mt-4">
           <strong>Field Statuses:</strong>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-2">
             {Object.entries(challengeStore)
+              .filter(([ field ]) => field !== "display_name")
               .map(([field, { status, code }]: 
                 [string, Challenge]
               ) => (
