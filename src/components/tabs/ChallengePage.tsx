@@ -119,7 +119,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     twitter: <XIcon className="h-4 w-4" />,
     pgp_fingerprint: <Fingerprint className="h-4 w-4" />,
     github: <Globe className="h-4 w-4" />, // TODO Add correct icon
-    // web: <Globe className="h-4 w-4" />,
+    web: <Globe className="h-4 w-4" />,
   }
 
   const FullDescriptionPopOver = ({ button, name, description, ...props }: (
