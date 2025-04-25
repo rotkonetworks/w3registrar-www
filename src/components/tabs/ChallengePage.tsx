@@ -354,9 +354,15 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
-          const actualButton = inviteLinkIcons[field]
-            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
-            :null
+          const showButton = import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] || inviteFullDescriptions[field]
+          let actualButton = null;
+          
+          if (showButton) {
+            actualButton = <Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>;
+            /* if (field === "web") {
+              actualButton = <Button variant="primary">Verify</Button>;
+            } */
+          }
 
           return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
             <div className="flex flex-wrap justify-between gap-2">
@@ -394,18 +400,10 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                     <Copy className="h-4 w-4" />
                   </Button>
 
-                  {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
-                    inviteFullDescriptions[field]
-                      ?inviteFullDescriptions[field]({ button: actualButton })
-                      :<a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
-                        target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
-                      >
-                        {actualButton}
-                      </a>
+                  {inviteFullDescriptions[field]
+                    ?inviteFullDescriptions[field]({ button: actualButton })
+                    :actualButton
                   }
-
-                  {field === "web" &&
-                    <Button variant="primary">Verify</Button>}
                 </>}
             </div>
           </div>
