@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
+import { AtSign, Mail, Copy, Globe, Shield, Fingerprint } from "lucide-react"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { LoadingPlaceholder } from "~/pages/Loading"
@@ -117,12 +117,9 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
-  }
-  const inviteAltDescription = {
-    matrix: "Accept the invite and paste it in the Matrix chat",
-    email: "Send an email to the provided address with the code",
-    discord: "Join the Discord server and paste the code in the #verification channel",
-    twitter: "Send a DM to the provided Twitter account with the code",
+    pgp_fingerprint: <Fingerprint className="h-4 w-4" />,
+    github: <Globe className="h-4 w-4" />, // TODO Add correct icon
+    // web: <Globe className="h-4 w-4" />,
   }
 
   const FullDescriptionPopOver = ({ button, name, url, onclick, description }: {
