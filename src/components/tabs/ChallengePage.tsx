@@ -122,15 +122,24 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     // web: <Globe className="h-4 w-4" />,
   }
 
-  const FullDescriptionPopOver = ({ button, name, url, onclick, description }: {
-    button: React.ReactNode,
-    name: string,
-    url?: string,
-    onclick?: () => void,
-    description: React.ReactNode,
-  }) => {
-    if (!url && !onclick) {
-      throw new Error("Either url or onclick must be provided")
+  const FullDescriptionPopOver = ({ button, name, description, ...props }: (
+    {
+      button: React.ReactNode
+      name: string
+      description: React.ReactNode
+    } & (
+      {
+        url: string
+        onclick?: never
+      } | {
+        url?: never
+        onclick: () => void
+      } | {}
+    )
+  )) => {
+    const { url, onclick } = props as {
+      url?: string
+      onclick?: () => void
     }
 
     return <Popover>
@@ -139,11 +148,18 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
         {description}
-        <a href={url} target="_blank" rel="noreferrer">
-          <Button variant="primary" className="mt-2 w-full">
-            {`Join ${name}`}
+        {url &&
+          <a href={url} target="_blank" rel="noreferrer">
+            <Button variant="primary" className="mt-2 w-full">
+              {`Complete ${name} challenge`}
+            </Button>
+          </a>
+        }
+        {onclick &&
+          <Button variant="primary" className="mt-2 w-full" onClick={onclick}>
+            {`Complete ${name} challenge`}
           </Button>
-        </a>
+        }
       </PopoverContent>
     </Popover>
   }
