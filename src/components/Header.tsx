@@ -68,7 +68,7 @@ const Header = ({
   })
 
   return (
-    <div className="flex max-[450px]:flex-col sm:flex-row flex-nowrap justify-between items-center mb-6 gap-4">
+    <div className="flex flex-wrap justify-center sm:justify-between content-space-around mb-6 gap-2">
       <div className="flex gap-2 w-full sm:w-auto max-w-[300px]">
         <div className="flex-1 min-w-[180px]">
           <Select 

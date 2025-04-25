@@ -12,7 +12,6 @@ import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
 import { Badge } from "./ui/badge";
 import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
 import { AccountSelector } from "./ui/account-selector";
-import { useAccounts } from "@reactive-dot/react";
 import { Input } from "./ui/input";
 import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
@@ -31,10 +30,12 @@ const getName = (node: AccountTreeNode) => {
 }
 const getFqcn = (node: AccountTreeNode) => {
   return <>
-    <span>{getName(node)}</span>
-    <span className="text-foreground/50 text-thin">
+    <span className="break-all">{getName(node)}</span>
+    <span className="text-foreground/50 text-thin inline-flex justify-start">
       .
-      {node.super ? getFqcn(node.super) : "alt"}
+      <span className="text-foreground/50 text-thin break-all">
+        {node.super ? getFqcn(node.super) : "alt"}
+      </span>
     </span>
   </>;
 }
@@ -59,37 +60,39 @@ function AccountNode({
   // TODO Pass currentNode, so we can get rid of isCurrentAccount abd isDirectSubOfCurrentAccount.
 }: AccountNodeProps) {
   return (
-    <div className={`relative ${isRoot ? '' : 'ml-2 pt-2 pl-4 border-l-2 border-secondary'}`}>
-      <div className={`p-3 rounded-lg flex items-center justify-between ${
+    <div className={`relative ${isRoot ? '' : 'ml-1 pt-2 xs:ml-2 pl-2 xs:pl-4 border-l border-secondary'}`}>
+      <div className={`p-3 rounded-lg flex flex-row flex-wrap items-center justify-end gap-2 ${
         node.isCurrentAccount 
           ? 'bg-primary/20 border border-primary' 
           : 'bg-transparent border-secondary border-[0.5px]'
       }`}>
-        <div>
-          <div className="font-semibold truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
-            {getFqcn(node)}
-          </div>
-          <div className="text-xs text-muted-foreground truncate max-w-[300px] sm:max-w-[500px] md:max-w-100">
-            {node.address}
+        <div className="flex flex-row flex-wrap max-w-full shrink grow-1">
+          <div className="flex flex-col items-start justify-between xs:justify-end self-start max-w-full">
+            <div className="font-semibold max-w-full">
+              {getFqcn(node)}
+            </div>
+            <div className="text-xs text-muted-foreground truncate max-w-full">
+              {node.address}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-row gap-2 items-center">
-          <div className="flex flex-col gap-1 items-end">
-            {!node.super && (
-              <Badge variant="secondary" className="text-xs">Root</Badge>
-            )}
-            {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
-              <Badge variant="secondary" className="text-xs">Current is sub</Badge>
-            )}
-            {node.deposit && (
-              <Badge variant="destructive" size="sm">
-                {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
-              </Badge>
-            )}
-            {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
-          </div>
+        <div className="flex flex-wrap flex-row sm:flex-col gap-1 items-center justify-end">
+          {!node.super && (
+            <Badge variant="secondary" className="text-xs">Root</Badge>
+          )}
+          {isRoot && onRemove && node.subs?.some(sub => sub.isCurrentAccount) && (
+            <Badge variant="secondary" className="text-xs">Current is sub</Badge>
+          )}
+          {node.deposit && (
+            <Badge variant="destructive" size="sm">
+              {node.deposit > 0 ? formatAmount(node.deposit) : "No deposit"}
+            </Badge>
+          )}
+          {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
+        </div>
 
+        <div className="flex flex-row gap-2 self-end">
           {!isRoot && node.isCurrentAccount && (
             <Button 
               size="icon" 

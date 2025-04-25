@@ -117,7 +117,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
-    web: <Globe className="h-4 w-4" />,
   }
   const inviteAltDescription = {
     matrix: "Accept the invite and paste it in the Matrix chat",
@@ -138,7 +137,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     }
 
     return <Popover>
-      <PopoverTrigger className="bg-transparent cursor-help" asChild>
+      <PopoverTrigger className="cursor-help" asChild>
         {button}
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
@@ -282,18 +281,15 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
-          const actualButton = 
-            <Button variant="outline" size="icon"
-              className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
-            >
-              {inviteLinkIcons[field]}
-            </Button>
+          const actualButton = inviteLinkIcons[field]
+            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
+            :null
 
           return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
-            <div className="flex flex-wrap mb-2 justify-between gap-2">
-              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 w-full xs:w-auto">
-                <div className="flex flex-col sm:flex-row sm:gap-2 w-full xs:w-auto">
-                  <div className="flex items-center gap-2">
+            <div className="flex flex-wrap justify-between gap-2">
+              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 max-w-full">
+                <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
+                  <div className="flex items-center gap-2 shrink-0">
                     {getIcon(field)}
                     <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
                   </div>
@@ -313,7 +309,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               {status === ChallengeStatus.Pending &&
                 <>
                   <Button variant="outline" size="icon" 
-                    className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-shrink-0"
                     onClick={async () => {
                       if (type === "input") {
                         const clipText = await window.navigator.clipboard.readText()
@@ -328,23 +323,16 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
 
                   {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
                     inviteFullDescriptions[field]
-                      ? inviteFullDescriptions[field]({
-                        button: actualButton
-                      })
-                  : <a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
-                    target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
-                  >
-                    {actualButton}
-                  </a>
+                      ?inviteFullDescriptions[field]({ button: actualButton })
+                      :<a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
+                        target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
+                      >
+                        {actualButton}
+                      </a>
                   }
 
                   {field === "web" &&
-                    <Button
-                      variant="outline"
-                      className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-                    >
-                      Verify
-                    </Button>}
+                    <Button variant="primary">Verify</Button>}
                 </>}
             </div>
           </div>
