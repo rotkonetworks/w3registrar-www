@@ -266,6 +266,66 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         }
       />
     ),
+    web: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="Website"
+        description={
+          <div>
+            <p>
+              You need to be able to prove you own the domain you are registinging.
+            </p>
+            <ul className="list-disc pl-4">
+              <li>
+                <strong>Step 1:</strong> Get into DNS settings of your domain.
+              </li>
+              <li>
+                <strong>Step 2:</strong> Add a TXT record with the code as the value and registered 
+                domain as the name. 
+              </li>
+              <li>
+                <strong>Step 3:</strong> Await for the DNS TXT record to propagate and be verified.
+              </li>
+            </ul>
+          </div>
+        }
+      />
+    ),
+    pgp_fingerprint: ({ button }) => (
+      <FullDescriptionPopOver
+        button={button}
+        name="PGP Fingerprint"
+        // TODO implement PGP Fingerprint verification, maybe a dialog to paste the signed code
+        description={
+            <div>
+            <p>
+              You need to prove ownership of the PGP key by signing the challenge code.
+            </p>
+            <ul className="list-disc pl-4">
+              <li>
+                <strong>Step 1:</strong> Copy the challenge code shown above.
+              </li>
+              <li>
+                <strong>Step 2:</strong> Sign the code with your private PGP key.
+                  <code className="text-xs mt-1 px-2 rounded">
+                    gpg --clearsign --armor -u YOUR_KEY_ID
+                  </code>
+              </li>
+              <li>
+                <strong>Step 3:</strong> Paste the entire signed message including headers (from 
+                <code className="text-xs px-2 rounded">-----BEGIN PGP SIGNED MESSAGE-----</code> 
+                to 
+                <code className="text-xs px-2 rounded">-----END PGP SIGNATURE-----</code>)
+                in the message to complete verification.
+              </li>
+              <li>
+                <strong>Step 4:</strong> The system will verify your signature using your public key fingerprint.
+              </li>
+            </ul>
+            </div>
+        }
+      />
+    ),
   }
 
   if (challengeStore.loading && noChallenges === 0) {
