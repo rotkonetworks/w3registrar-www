@@ -1,7 +1,8 @@
+import { StepType } from "@reactour/tour";
 
-export const MAIN_TOUR = [
+export const MAIN_TOUR: StepType[] = [
   {
-    target: ".AccountSelect",
+    selector: ".AccountSelect",
     content: <div>
       <p className="text-sm">
         Select an account to use with this identity. You can also create a new account.
@@ -9,7 +10,7 @@ export const MAIN_TOUR = [
     </div>,
   }, 
   {
-    target: ".NetworkSelect",
+    selector: ".NetworkSelect",
     content: <div>
       <p className="text-sm">
         Select a network to use with this identity. You can also create a new network.
