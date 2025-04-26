@@ -71,7 +71,7 @@ const Header = ({
     <div className="flex flex-wrap justify-center sm:justify-between content-space-around mb-6 gap-2">
       <div className="flex gap-2 w-full sm:w-auto max-w-[300px]">
         <div className="flex-1 min-w-[180px]">
-          <Select 
+          <Select
             onValueChange={onAccountSelect} 
             open={isUserDropdownOpen}
             onOpenChange={() => {
@@ -84,7 +84,9 @@ const Header = ({
             }}
             disabled={isTxBusy}
           >
-            <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0">
+            <SelectTrigger
+              className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0 AccountSelect"
+            >
               <div className="w-full min-w-0">
                 {(() => {
                   if (accountStore.address) {
@@ -143,7 +145,9 @@ const Header = ({
             onValueChange={onChainSelect}
             disabled={isTxBusy}
           >
-            <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit">
+            <SelectTrigger
+              className="w-full bg-transparent border-[#E6007A] text-inherit NetworkSelect"
+            >
               <SelectValue placeholder={chainStore.name?.replace("People", "")} />
             </SelectTrigger>
             <SelectContent>
