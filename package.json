@@ -36,6 +36,7 @@
     "@reactive-dot/utils": "^0.8.1",
     "@reactive-dot/wallet-ledger": "0.16.21",
     "@reactive-dot/wallet-walletconnect": "0.17.1",
+    "@reactour/tour": "^3.7.0",
     "@unocss/reset": "^0.63.4",
     "bignumber.js": "^9.1.2",
     "bun": "^1.1.38",
