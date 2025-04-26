@@ -47,7 +47,7 @@ import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
 import { useAccountsTree } from "~/hooks/UseAccountsTree"
-import { MAIN_TOUR } from "~/help/Tours"
+import { useTour } from "@reactour/tour"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -687,7 +687,19 @@ export function IdentityRegistrarComponent() {
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
   
-  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
+  const { 
+    isOpen: isTourOpen,
+    setIsOpen: setTourOpen,
+    currentStep: tourStep,
+    setCurrentStep: setTourStep,
+    steps: tourSteps,
+    setSteps: setTourSteps,
+  } = useTour()
+  useEffect(() => {
+    setTimeout(() => {
+      setTourOpen(true)
+    }, 1000)
+  }, [setTourOpen])
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
