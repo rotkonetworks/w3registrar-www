@@ -47,6 +47,7 @@ import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
 import { useAccountsTree } from "~/hooks/UseAccountsTree"
+import { MAIN_TOUR } from "~/help/Tours"
 
 export function IdentityRegistrarComponent() {
   const {
