@@ -8,10 +8,26 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import { Loading } from './pages/Loading'
 
+import { TourProvider } from '@reactour/tour'
+import { MAIN_TOUR } from './help/Tours'
+import { useDarkMode } from './hooks/useDarkMode'
+
 const Main: React.FC = () => {
+  const { isDark } = useDarkMode()
+
   return <>
     <Suspense fallback={<Loading />}>
-      <App />
+      <TourProvider steps={MAIN_TOUR} styles={{
+        popover: (style) => ({
+          ...style,
+          backgroundColor: !isDark 
+            ?"hsl(0 0% 100%)"
+            :"#2C2B2B"
+          ,
+        }),
+      }}>
+        <App />
+      </TourProvider>
     </Suspense>
   </>
 }
