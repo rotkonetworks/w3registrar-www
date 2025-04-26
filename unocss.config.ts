@@ -22,11 +22,6 @@ export default defineConfig({
   transformers: [
     transformerVariantGroup()
   ],
-  //darkMode: ["class"],
-  //content: [
-  //  "./index.html",
-  //  "./src/**/*.{js,ts,jsx,tsx}",
-  //],
   theme: {
     borderRadius: {
       lg: 'var(--radius)',
