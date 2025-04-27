@@ -1,6 +1,6 @@
 import { StepType } from "@reactour/tour";
 
-export const MAIN_TOUR: StepType[] = [
+export const HeaderSteps: StepType[] = [
   {
     selector: ".AccountSelect",
     content: <div>
