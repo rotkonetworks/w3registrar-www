@@ -48,6 +48,7 @@ import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
 import { useAccountsTree } from "~/hooks/UseAccountsTree"
 import { useTour } from "@reactour/tour"
+import { MAIN_TOUR } from "~/help/Tours"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -698,6 +699,8 @@ export function IdentityRegistrarComponent() {
   useEffect(() => {
     setTimeout(() => {
       setTourOpen(true)
+      setTourSteps(MAIN_TOUR)
+      setTourStep(0)
     }, 1000)
   }, [setTourOpen])
 

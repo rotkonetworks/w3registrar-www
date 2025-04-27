@@ -8,8 +8,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 import { Loading } from './pages/Loading'
 
-import { TourProvider, ArrowProps } from '@reactour/tour'
-import { MAIN_TOUR } from './help/Tours'
+import { TourProvider } from '@reactour/tour'
 import { useDarkMode } from './hooks/useDarkMode'
 import { Button } from './components/ui/button'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
@@ -19,7 +18,7 @@ const Main: React.FC = () => {
 
   return <>
     <Suspense fallback={<Loading />}>
-      <TourProvider steps={MAIN_TOUR} 
+      <TourProvider steps={[]} 
         components={{
           Arrow: ({ inverted, disabled }: ArrowProps) => (
             <Button
