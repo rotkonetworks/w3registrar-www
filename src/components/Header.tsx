@@ -169,23 +169,25 @@ const Header = ({
         </div>
       </div>
       <div className="flex gap-2">
-        <BalanceDisplay balance={balance} formatter={formatAmount} />
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          onClick={() => openHelpDialog()} 
-        >
-          <ShieldQuestion className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          onClick={() => onToggleDark()} 
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
+        <BalanceDisplay className="MainBalanceDisplay" balance={balance} formatter={formatAmount} />
+        <div className="flex gap-2 HeaderButtons">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+            onClick={() => openHelpDialog()} 
+          >
+            <ShieldQuestion className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
+            onClick={() => onToggleDark()} 
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
     </div>
   );
