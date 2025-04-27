@@ -170,7 +170,7 @@ const Header = ({
       </div>
       <div className="flex gap-2">
         <BalanceDisplay className="MainBalanceDisplay" balance={balance} formatter={formatAmount} />
-        <div className="flex gap-2 HeaderButtons">
+        <div className="flex gap-2 HeaderActions">
           <Button 
             variant="outline" 
             size="icon" 
