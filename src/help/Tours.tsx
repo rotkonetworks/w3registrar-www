@@ -36,3 +36,42 @@ export const HeaderSteps: StepType[] = [
     </div>,
   }
 ]
+
+export const MainTabsSteps: StepType[] = [
+  {
+    selector: ".identityFormTab",
+    content: <div>
+      <p className="text-sm">
+        Fill in your identity information here. This is the first step in creating your on-chain identity.
+        Provide personal details that will be securely stored on the blockchain.
+      </p>
+    </div>,
+  },
+  {
+    selector: ".challengesTab",
+    content: <div>
+      <p className="text-sm">
+        Complete verification challenges to prove your identity. This step becomes available 
+        after submitting your identity form and paying the required fee.
+      </p>
+    </div>,
+  },
+  {
+    selector: ".statusTab",
+    content: <div>
+      <p className="text-sm">
+        View your identity verification status here. You can check which steps are completed 
+        and what remains to be done in your verification process.
+      </p>
+    </div>,
+  },
+  {
+    selector: ".subaccountsTab",
+    content: <div>
+      <p className="text-sm">
+        Manage your identity subaccounts. Create hierarchical relationships between accounts and
+        establish connections between your different blockchain addresses.
+      </p>
+    </div>,
+  }
+]

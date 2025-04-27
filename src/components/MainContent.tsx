@@ -121,12 +121,9 @@ export const MainContent = ({
         className={`flex flex-row dark:bg-[#393838] bg-[#ffffff] text-dark dark:text-light overflow-hidden`}
       >
         {tabs.map((tab, index) => (
-          <TabsTrigger
-            key={index}
-            value={tab.name}
-            onClick={() => changeCurrentTab(index)}
-            className="flex-grow data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1"
+          <TabsTrigger key={index} value={tab.name} onClick={() => changeCurrentTab(index)} 
             disabled={tab.disabled}
+            className={`flex-grow data-[state=active]:bg-[#E6007A] data-[state=active]:text-[#FFFFFF] flex items-center justify-center py-2 px-1 ${tab.id || ''}Tab`}
           >
             {tab.icon}
           </TabsTrigger>
