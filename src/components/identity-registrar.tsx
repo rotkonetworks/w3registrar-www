@@ -47,8 +47,8 @@ import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
 import { useAccountsTree } from "~/hooks/UseAccountsTree"
-import { useTour } from "@reactour/tour"
-import { HeaderSteps } from "~/help/Tours"
+import { HeaderSteps, MainTabsSteps } from "~/help/Tours"
+import { useTourManager } from "~/hooks/useTourManager"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -688,21 +688,11 @@ export function IdentityRegistrarComponent() {
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
   
-  const { 
-    isOpen: isTourOpen,
-    setIsOpen: setTourOpen,
-    currentStep: tourStep,
-    setCurrentStep: setTourStep,
-    steps: tourSteps,
-    setSteps: setTourSteps,
-  } = useTour()
-  useEffect(() => {
-    setTimeout(() => {
-      setTourOpen(true)
-      setTourSteps(HeaderSteps)
-      setTourStep(0)
-    }, 1000)
-  }, [setTourOpen])
+  const mainSteps = useMemo(() => ({
+    header: HeaderSteps,
+    mainTabs: MainTabsSteps,
+  }), [])
+  useTourManager(mainSteps)
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
