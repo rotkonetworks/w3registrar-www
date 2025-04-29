@@ -42,7 +42,7 @@ export const useTourManager = (tourCollection: TourCollection) => {
   const closeTour = useCallback(() => {
     setTourOpen(false)
     setCurrentTour(null)
-  }, [currentTour, tourStatuses, tourCollection])
+  }, [])
 
   const tryOpenTourIfNotShown = useCallback((tour: keyof TourCollection) => {
     if (tour === currentTour && isTourOpen) {
@@ -94,7 +94,7 @@ export const useTourManager = (tourCollection: TourCollection) => {
         timeoutRef.current = null
       }
     }
-  }, [tourCollection, tourStatuses, currentTour, tourStep, pendingTours])
+  }, [tourCollection, tourStatuses, currentTour, tourStep, pendingTours, isTourOpen])
 
   return {
     isTourOpen,
