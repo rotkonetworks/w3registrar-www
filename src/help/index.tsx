@@ -96,7 +96,7 @@ export const HELP_SLIDES = {
       .filter(([key]) => key.startsWith("VITE_APP_CONTACT_LINK_"))
       .map(([key, value]) => {
         const contactLinkName = key.replace("VITE_APP_CONTACT_LINK_", "").replace("_", " ")
-        return ({
+        return ({ key,
           title: <><Link className="inline h-4 w-4" />  {contactLinkName}</>,
           description: <a href={value} target="_blank" rel="noreferrer" className="break-words">
             {value}
@@ -143,8 +143,8 @@ export const Collection = ({ title, items }) => {
     <div 
       className="grid sm:grid-cols-2 grid-col-1 gap-2 overflow-auto max-h-[20rem] sm:max-h-full sm:overflow-visible"
     >
-      {items.map(({ title, description }) => (
-        <Item key={title} title={title} description={description} />
+      {items.map(({ key, title, description }) => (
+        <Item key={key || title} title={title} description={description} />
       ))}
     </div>
   </>
