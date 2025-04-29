@@ -57,6 +57,11 @@ export const useTourManager = (tourCollection: TourCollection) => {
   const [pendingTours, setPendingTours] = useState<string[]>(
     Object.keys(tourCollection).filter(tour => !tourStatuses[tour]?.completed)
   )
+  useEffect(() => setPendingTours(tourCollection
+    ? Object.keys(tourCollection).filter(tour => !tourStatuses[tour]?.completed)
+    : []
+  ), [tourCollection, tourStatuses])
+
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
