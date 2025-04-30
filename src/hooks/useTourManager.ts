@@ -14,7 +14,8 @@ type TourStatuses = {
   [key: string]: tourStatus
 }
 
-export const useTourManager = (tourCollection: TourCollection) => {
+export const useTourManager = (_tourCollection?: TourCollection) => {
+  const [tourCollection, setTourCollection] = useState<TourCollection | undefined>(_tourCollection)
   const [tourStatuses, setTourStatuses] = useLocalStorage<TourStatuses>("displayedTours", {})
   const {
     isOpen: isTourOpen,
@@ -27,7 +28,7 @@ export const useTourManager = (tourCollection: TourCollection) => {
 
   useEffect(() => {
     console.log({ tourCollection })
-    setCurrentTour(tourCollection[Object.keys(tourCollection)[0]]
+    setCurrentTour(tourCollection?.[Object.keys(tourCollection)[0]]
       ? Object.keys(tourCollection)[0]
       : null
     )
@@ -65,7 +66,7 @@ export const useTourManager = (tourCollection: TourCollection) => {
   }, [currentTour, tourStatuses, openTour])
 
   const [pendingTours, setPendingTours] = useState<string[]>(
-    Object.keys(tourCollection).filter(tour => !tourStatuses[tour]?.completed)
+    tourCollection ? Object.keys(tourCollection).filter(tour => !tourStatuses[tour]?.completed) : []
   )
   useEffect(() => setPendingTours(tourCollection
     ? Object.keys(tourCollection).filter(tour => !tourStatuses[tour]?.completed)
