@@ -76,7 +76,6 @@ export const useTourManager = (_tourCollection?: TourCollection) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   useEffect(() => {
     timeoutRef.current = setTimeout(async () => {
-      console.log({ tourCollection, tourStatuses, currentTour, tourStep, pendingTours, isTourOpen })
       const lastStepReached = tourCollection[currentTour]?.length - 1 === tourStep
       setTourStatuses((prevStatuses) => ({
         ...prevStatuses,
@@ -106,6 +105,7 @@ export const useTourManager = (_tourCollection?: TourCollection) => {
         setCurrentTour(null)
       }
       timeoutRef.current = null
+      console.log({ tourCollection, tourStatuses, currentTour, tourStep, pendingTours, isTourOpen })
     }, 1000);
 
     return () => {
