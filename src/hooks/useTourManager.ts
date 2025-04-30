@@ -1,6 +1,7 @@
 import { StepType, useTour } from "@reactour/tour"
 import { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { useLocalStorage } from "./useLocalStorage"
+import { waitForElement } from "~/utils/waitForSelector"
 
 type TourCollection = {
   [key: string]: StepType[]
@@ -32,8 +33,17 @@ export const useTourManager = (tourCollection: TourCollection) => {
     )
   }, [tourCollection])
 
+  const waitingForTour = useRef(false)
   const [currentTour, setCurrentTour] = useState<keyof TourCollection>()
-  const openTour = useCallback((tour: keyof TourCollection) => {
+  const openTour = useCallback(async (tour: keyof TourCollection) => {
+    if (waitingForTour.current) {
+      throw new Error("Tour is already waiting for an element to be shown")
+    }
+    waitingForTour.current = true
+    await waitForElement(tourCollection[tour][0].selector as string, {
+      root: document.querySelector("#root"),
+    })
+    waitingForTour.current = false
     setCurrentTour(tour)
     setTourSteps(tourCollection[tour])
     setTourOpen(true)
@@ -44,14 +54,14 @@ export const useTourManager = (tourCollection: TourCollection) => {
     setCurrentTour(null)
   }, [])
 
-  const tryOpenTourIfNotShown = useCallback((tour: keyof TourCollection) => {
+  const tryOpenTourIfNotShown = useCallback(async (tour: keyof TourCollection) => {
     if (tour === currentTour && isTourOpen) {
       return
     }
     if (tourStatuses[tour]?.completed) {
       return
     }
-    openTour(tour)
+    await openTour(tour)
   }, [currentTour, tourStatuses, openTour])
 
   const [pendingTours, setPendingTours] = useState<string[]>(
@@ -64,7 +74,7 @@ export const useTourManager = (tourCollection: TourCollection) => {
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = setTimeout(async () => {
       console.log({ tourCollection, tourStatuses, currentTour, tourStep, pendingTours, isTourOpen })
       if (timeoutRef.current && isTourOpen) {
         return
@@ -79,7 +89,12 @@ export const useTourManager = (tourCollection: TourCollection) => {
       }
       const pendingTour = pendingTours[0];
       if (pendingTour) {
-        tryOpenTourIfNotShown(pendingTour)
+        try {
+          await tryOpenTourIfNotShown(pendingTour)
+        } catch (error) {
+          console.error("Error opening tour:", error)
+          return
+        }
         setPendingTours((prevTours) => prevTours
           .filter((tour, index) => 
             index !== Object.keys(tourCollection).indexOf(pendingTour) 
