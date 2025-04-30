@@ -123,8 +123,14 @@ export const useTourManager = (tourCollection: TourCollection) => {
     setTourStep,
     tourSteps,
     setTourSteps,
+    
     openTour,
     closeTour,
     tryOpenTourIfNotShown,
+
+    currentTour,
+    setCurrentTour,
+    tourStatuses,
+    pendingTours,
   }
 }
