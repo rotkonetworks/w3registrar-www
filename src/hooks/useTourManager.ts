@@ -133,5 +133,7 @@ export const useTourManager = (_tourCollection?: TourCollection) => {
     setCurrentTour,
     tourStatuses,
     pendingTours,
+    tourCollection,
+    setTourCollection,
   }
 }
