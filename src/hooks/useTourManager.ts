@@ -77,16 +77,15 @@ export const useTourManager = (_tourCollection?: TourCollection) => {
   useEffect(() => {
     timeoutRef.current = setTimeout(async () => {
       console.log({ tourCollection, tourStatuses, currentTour, tourStep, pendingTours, isTourOpen })
+      const lastStepReached = tourCollection[currentTour]?.length - 1 === tourStep
+      setTourStatuses((prevStatuses) => ({
+        ...prevStatuses,
+        [currentTour]: {
+          completed: prevStatuses[currentTour]?.completed || lastStepReached,
+        },
+      }))
       if (timeoutRef.current && isTourOpen) {
         return
-      }
-      if (tourCollection[currentTour]?.length -1 === tourStep) {
-        setTourStatuses((prevStatuses) => ({
-          ...prevStatuses,
-          [currentTour]: {
-            completed: true,
-          },
-        }))
       }
       const pendingTour = pendingTours[0];
       if (pendingTour) {
