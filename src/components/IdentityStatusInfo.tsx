@@ -22,7 +22,7 @@ export const IdentityStatusInfo = ({ status }: { status: verifyStatuses }) => {
 
   return <>
     <Alert variant="default"
-      className="dark:bg-[#393838] bg-[#ffffff] border-[#E6007A] dark:text-light text-dark"
+      className="dark:bg-[#393838] bg-[#ffffff] border-[#E6007A] dark:text-light text-dark IdentityStatusInfo"
     >
       <Info className="h-4 w-4" />
       <AlertTitle>On-chain Identity Status

@@ -289,7 +289,7 @@ export const IdentityForm = forwardRef((
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
-          <form onSubmit={handleSubmitIdentity} className="space-y-4">
+          <form onSubmit={handleSubmitIdentity} className="space-y-4 IdentityForm">
             {Object.entries(identityFormFields)
               .filter(([key]) => supportedFields.includes(key))
               .map(([key, props]) =>
@@ -341,7 +341,7 @@ export const IdentityForm = forwardRef((
               {onChainIdentity === verifyStatuses.IdentitySet && (
                 <Button type="button" variant="outline" disabled={forbiddenSubmission || isTxBusy}
                   onClick={handleRequestJudgement}
-                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
+                  className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1 setIdentityButton"
                 >
                   <UserCircle className="mr-2 h-4 w-4" />
                   Request Judgement
