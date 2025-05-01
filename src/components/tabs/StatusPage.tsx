@@ -9,6 +9,7 @@ import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
 import { SOCIAL_ICONS } from "~/assets/icons"
+import { StatusBadge } from "../challenges/StatusBadge"
 
 export function StatusPage({
   identity,
@@ -79,30 +80,25 @@ export function StatusPage({
         </div>
         <div className="mt-4">
           <strong>Field Statuses:</strong>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+          <div className="flex flex-col gap-2 mt-2">
             {Object.entries(challengeStore)
               .filter(([ field ]) => field !== "display_name")
-              .map(([field, { status, code }]: 
+              .map(([field, { status }]: 
                 [string, Challenge]
               ) => (
-                <div key={field} className="flex justify-between items-center">
-                  <span className="flex items-center gap-2">
-                    {getIcon(field)}
-                    {field.charAt(0).toUpperCase() + field.slice(1)}:
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2 max-w-full">
+                    <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
+                      <div className="flex items-center gap-2 shrink-0">
+                        {getIcon(field)}
+                        <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)}:</span>
+                      </div>
+                      <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
+                    </div>
                   </span>
-                  <Badge 
-                    variant={(() => {
-                      if (status === ChallengeStatus.Passed) {
-                        return "success";
-                      }
-                      else if (status === ChallengeStatus.Failed) {
-                        return "destructive";
-                      }
-                      return "secondary";
-                    })()}
-                  >
-                    {ChallengeStatus[status].match(/[A-Z][a-z]+/g).join(" ")}
-                  </Badge>
+                  <div className="flex flex-row gap-2 items-center justify-end grow">
+                    <StatusBadge status={status} />
+                  </div>
                 </div>
               ))
             }
