@@ -57,8 +57,8 @@ export const useLocalStorage = <T>(key: string, initialValue?: T) => {
 
   const setValue = (value: T | ((val: T) => T)) => {
     try {
-      console.log("setValue for ", key, "to", value);
       const valueToStore = value instanceof Function ? value(storedValue) : value;
+      console.log("setValue for ", key, "to", valueToStore);
       setStoredValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
       
