@@ -16,17 +16,7 @@ import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
 import _ from "lodash"
-
-const StatusBadge = ({ status }: { status: ChallengeStatus }) => {
-  switch (status) {
-    case ChallengeStatus.Passed:
-      return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-    case ChallengeStatus.Failed:
-      return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
-    default:
-      return <Badge variant="secondary">Pending</Badge>
-  }
-}
+import { StatusBadge } from "../challenges/StatusBadge"
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
