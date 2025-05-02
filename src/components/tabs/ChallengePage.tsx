@@ -246,14 +246,11 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }
 
   if (challengeStore.loading && noChallenges === 0) {
-    return (
-      <LoadingPlaceholder className="flex flex-col w-full h-[70vh] flex-center">
-        <HelpCarousel className="rounded-lg bg-background/30" autoPlayInterval={4000} />
-        <span className="sm:text-3xl text-xl text-center font-bold pt-4">
-          Loading Challenges...
-        </span>
-      </LoadingPlaceholder>
-    );
+    return <LoadingPlaceholder className="flex flex-col w-full h-40 flex-center">
+      <span className="sm:text-3xl text-xl text-center font-bold pt-4">
+        Loading Challenges...
+      </span>
+    </LoadingPlaceholder>;
   }
 
   return (
