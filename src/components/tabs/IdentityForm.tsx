@@ -38,7 +38,7 @@ export const IdentityForm = forwardRef((
     chainConstants: Record<string, any>,
     isTxBusy: boolean,
     supportedFields: string[],
-    openTxDialog: (darams: OpenTxDialogArgs) => void,
+    openTxDialog: (params: OpenTxDialogArgs) => void,
   },
   ref: Ref<unknown> & { reset: () => void },
 ) => {
