@@ -33,7 +33,7 @@ export function StatusPage({
   const onChainIdentity = identity.status
 
   return (
-    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)] overflow-x-auto">
+    <Card>
       <CardHeader>
         <CardTitle className="text-inherit flex items-center gap-2">
           <FileCheck className="h-5 w-5" />

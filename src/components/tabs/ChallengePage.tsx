@@ -257,11 +257,11 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }
 
   return (
-    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+    <Card>
       <CardHeader>
         <CardTitle className="text-inherit flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Identity Challenges
+          Challenges
         </CardTitle>
         <CardDescription className="text-[#706D6D]">
           Complete these identity verification challenges by copying each code and submitting it via

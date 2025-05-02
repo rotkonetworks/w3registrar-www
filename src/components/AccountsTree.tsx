@@ -364,8 +364,8 @@ export function AccountsTree({
   }
 
   return (
-    <div className={`space-y-6 border-[#E6007A] border-1 ${className}`}>
-      <Card className="bg-transparent">
+    <div className={`space-y-6 ${className} gap-4`}>
+      <Card>
         <CardHeader>
           <CardTitle className="text-inherit flex items-center gap-2">
             <ListTree className="h-5 w-5" />
@@ -397,7 +397,7 @@ export function AccountsTree({
       </Card>
 
       {currentAccountNode && (
-        <Card className="bg-transparent border-[#E6007A]">
+        <Card>
           <CardHeader>
             <CardTitle>{isEditMode ? "Edit Subaccount" : "Add Subaccount"}</CardTitle>
             <CardDescription>
