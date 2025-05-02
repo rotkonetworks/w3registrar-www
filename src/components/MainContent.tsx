@@ -23,34 +23,10 @@ export const MainContent = ({
 }: MainContentProps) => {
   const tabs = [
     {
-      id: "identityForm",
-      name: "Identity Form",
-      icon: <UserCircle className="h-5 w-5" />,
-      disabled: false,
-      content: <div className="flex flex-col gap-4">
-        <MemoIdeitityForm
-          ref={identityFormRef}
-          identity={identity}
-          chainStore={chainStore}
-          typedApi={typedApi}
-          accountStore={accountStore}
-          chainConstants={chainConstants}
-          supportedFields={supportedFields}
-          openTxDialog={openTxDialog}
-          isTxBusy={isTxBusy}
-        />
-        <MemoChallengesPage
-          addNotification={addNotification}
-          challengeStore={challengeStore}
-          identity={identity}
-        />
-      </div>
-    },
-    {
       id: "status",
-      name: "Status",
+      name: "Profile",
       icon: <FileCheck className="h-5 w-5" />,
-      disabled: identity.status < verifyStatuses.NoIdentity,
+      disabled: false,
       content: <div className="flex flex-col gap-4">
         <MemoStatusPage
           identity={identity}
@@ -69,6 +45,29 @@ export const MainContent = ({
           openTxDialog={openTxDialog}
           className="pt-4"
         />
+      </div>
+    },
+    {
+      id: "identityForm",
+      name: "Identity Form",
+      icon: <UserCircle className="h-5 w-5" />,
+      disabled: false,
+      content: <div className="flex flex-col gap-4">
+        <MemoIdeitityForm
+          ref={identityFormRef}
+          identity={identity}
+          chainStore={chainStore}
+          typedApi={typedApi}
+          accountStore={accountStore}
+          chainConstants={chainConstants}
+          supportedFields={supportedFields}
+          openTxDialog={openTxDialog}
+          isTxBusy={isTxBusy}
+        />
+        {identity.status >= verifyStatuses.FeePaid && <MemoChallengesPage 
+          addNotification={addNotification} challengeStore={challengeStore}
+          identity={identity}
+        />}
       </div>
     },
   ]
