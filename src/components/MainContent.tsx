@@ -27,58 +27,50 @@ export const MainContent = ({
       name: "Identity Form",
       icon: <UserCircle className="h-5 w-5" />,
       disabled: false,
-      content: <MemoIdeitityForm
-        ref={identityFormRef}
-        identity={identity}
-        chainStore={chainStore}
-        typedApi={typedApi}
-        accountStore={accountStore}
-        chainConstants={chainConstants}
-        supportedFields={supportedFields}
-        openTxDialog={openTxDialog}
-        isTxBusy={isTxBusy}
-      />
-    },
-    {
-      id: "challenges",
-      name: "Challenges",
-      icon: <Shield className="h-5 w-5" />,
-      disabled: identity.status < verifyStatuses.FeePaid,
-      content: <MemoChallengesPage
-        addNotification={addNotification}
-        challengeStore={challengeStore}
-        identity={identity}
-      />
+      content: <div className="flex flex-col gap-4">
+        <MemoIdeitityForm
+          ref={identityFormRef}
+          identity={identity}
+          chainStore={chainStore}
+          typedApi={typedApi}
+          accountStore={accountStore}
+          chainConstants={chainConstants}
+          supportedFields={supportedFields}
+          openTxDialog={openTxDialog}
+          isTxBusy={isTxBusy}
+        />
+        <MemoChallengesPage
+          addNotification={addNotification}
+          challengeStore={challengeStore}
+          identity={identity}
+        />
+      </div>
     },
     {
       id: "status",
       name: "Status",
       icon: <FileCheck className="h-5 w-5" />,
       disabled: identity.status < verifyStatuses.NoIdentity,
-      content: <MemoStatusPage
-        identity={identity}
-        challengeStore={challengeStore.challenges}
-        formatAmount={formatAmount}
-        onIdentityClear={() => setOpenDialog("clearIdentity")}
-        isTxBusy={isTxBusy}
-        chainName={chainStore.name?.replace(/ People/g, " ")}
-      />
+      content: <div className="flex flex-col gap-4">
+        <MemoStatusPage
+          identity={identity}
+          challengeStore={challengeStore.challenges}
+          formatAmount={formatAmount}
+          onIdentityClear={() => setOpenDialog("clearIdentity")}
+          isTxBusy={isTxBusy}
+          chainName={chainStore.name?.replace(/ People/g, " ")}
+        />
+        <AccountsTree 
+          identity={identity}
+          accountTree={accountTree}
+          chainStore={chainStore}
+          currentAddress={accountStore.address}
+          api={typedApi}
+          openTxDialog={openTxDialog}
+          className="pt-4"
+        />
+      </div>
     },
-    {
-      id: "subaccounts",
-      name: "Subaccounts",
-      icon: <ListTree className="h-5 w-5" />,
-      disabled: !accountTree,
-      content: <AccountsTree 
-        identity={identity}
-        accountTree={accountTree}
-        chainStore={chainStore}
-        currentAddress={accountStore.address}
-        api={typedApi}
-        openTxDialog={openTxDialog}
-        className="pt-4"
-      />
-    }
   ]
   const enabledTabsIndexes = tabs
     .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))

@@ -201,8 +201,8 @@ export function AccountsTree({
   }
 
   // Find the current account node and check if it's a subaccount
-  const { isSubaccount, currentAccountNode } = useMemo(() => {
-    if (!accountTreeData) return { isSubaccount: false, currentAccountNode: null };
+  const currentAccountNode = useMemo(() => {
+    if (!accountTreeData) return null;
     
     // Helper function to find the node with isCurrentAccount flag
     const findCurrentAccountNode = (node: AccountTreeNode): AccountTreeNode | null => {
@@ -218,11 +218,7 @@ export function AccountsTree({
       return null;
     };
     
-    const currentNode = findCurrentAccountNode(accountTreeData);
-    return { 
-      isSubaccount: !!(currentNode?.super),
-      currentAccountNode: currentNode
-    };
+    return findCurrentAccountNode(accountTreeData);
   }, [accountTreeData]);
 
   const prepareAccountModTx = async ({ subs, address, mode }: ({
@@ -368,8 +364,8 @@ export function AccountsTree({
   }
 
   return (
-    <div className={`space-y-6 border-[#E6007A] border-1 ${className}`}>
-      <Card className="bg-transparent">
+    <div className={`space-y-6 ${className} gap-4`}>
+      <Card>
         <CardHeader>
           <CardTitle className="text-inherit flex items-center gap-2">
             <ListTree className="h-5 w-5" />
@@ -401,7 +397,7 @@ export function AccountsTree({
       </Card>
 
       {currentAccountNode && (
-        <Card className="bg-transparent border-[#E6007A]">
+        <Card>
           <CardHeader>
             <CardTitle>{isEditMode ? "Edit Subaccount" : "Add Subaccount"}</CardTitle>
             <CardDescription>

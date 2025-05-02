@@ -16,17 +16,7 @@ import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Identity } from "~/types/Identity"
 import _ from "lodash"
-
-const StatusBadge = ({ status }: { status: ChallengeStatus }) => {
-  switch (status) {
-    case ChallengeStatus.Passed:
-      return <Badge variant="success" className="bg-[#E6007A] text-[#FFFFFF]">Verified</Badge>
-    case ChallengeStatus.Failed:
-      return <Badge variant="destructive" className="bg-[#670D35] text-[#FFFFFF]">Failed</Badge>
-    default:
-      return <Badge variant="secondary">Pending</Badge>
-  }
-}
+import { StatusBadge } from "../challenges/StatusBadge"
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
@@ -267,11 +257,11 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }
 
   return (
-    <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
+    <Card>
       <CardHeader>
         <CardTitle className="text-inherit flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Identity Challenges
+          Challenges
         </CardTitle>
         <CardDescription className="text-[#706D6D]">
           Complete these identity verification challenges by copying each code and submitting it via
