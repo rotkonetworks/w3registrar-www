@@ -201,8 +201,8 @@ export function AccountsTree({
   }
 
   // Find the current account node and check if it's a subaccount
-  const { isSubaccount, currentAccountNode } = useMemo(() => {
-    if (!accountTreeData) return { isSubaccount: false, currentAccountNode: null };
+  const currentAccountNode = useMemo(() => {
+    if (!accountTreeData) return null;
     
     // Helper function to find the node with isCurrentAccount flag
     const findCurrentAccountNode = (node: AccountTreeNode): AccountTreeNode | null => {
@@ -218,11 +218,7 @@ export function AccountsTree({
       return null;
     };
     
-    const currentNode = findCurrentAccountNode(accountTreeData);
-    return { 
-      isSubaccount: !!(currentNode?.super),
-      currentAccountNode: currentNode
-    };
+    return findCurrentAccountNode(accountTreeData);
   }, [accountTreeData]);
 
   const prepareAccountModTx = async ({ subs, address, mode }: ({
