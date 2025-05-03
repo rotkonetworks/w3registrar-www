@@ -144,7 +144,7 @@ export const Collection = ({ title, items }) => {
       className="grid sm:grid-cols-2 grid-col-1 gap-2 overflow-auto max-h-[20rem] sm:max-h-full sm:overflow-visible"
     >
       {items.map(({ key, title, description }) => (
-        <Item key={key || title} title={title} description={description} />
+        <Item _key={key || title} title={title} description={description} />
       ))}
     </div>
   </>
