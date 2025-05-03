@@ -700,6 +700,7 @@ export function IdentityRegistrarComponent() {
   //#endregion HelpDialog  
   
   //const teleportAmount = formatAmount(xcmParams.txTotalCost)
+  const relayChainId = (chainStore.id as string).split("_")[0]
 
   return <>
     <ConnectionDialog open={walletDialogOpen} 
@@ -788,6 +789,13 @@ export function IdentityRegistrarComponent() {
                   <li>Existential deposit: {formatAmount(estimatedCosts.deposits)}</li>
                 }
                 <li>Current balance: {formatAmount(balance)}</li>
+                {import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`] && <li>
+                  Need more {chainStore.tokenSymbol}? Visit the{" "}
+                  <a href={import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`]}
+                    target="_blank" rel="noopener noreferrer" className="text-[#E6007A] underline">
+                    {config.chains[relayChainId].name} faucet
+                  </a> to get more test tokens!
+                </li>}
               </ul>
             </div>
           }
