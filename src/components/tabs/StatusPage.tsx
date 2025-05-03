@@ -18,6 +18,7 @@ export function StatusPage({
   chainName,
   formatAmount,
   onIdentityClear,
+  hasWalletConnected,
 }: {
   identity: Identity,
   challengeStore: ChallengeStore,
@@ -25,6 +26,7 @@ export function StatusPage({
   chainName: string,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
+  hasWalletConnected: boolean,
 }) {
   const getIcon = (field: string) => {
     return SOCIAL_ICONS[field] || <MessageSquare className="h-4 w-4" />
@@ -106,14 +108,14 @@ export function StatusPage({
         </div>
         <IdentityStatusInfo status={identity.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Button variant="outline" 
+          {hasWalletConnected && <Button variant="outline" 
             onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
             disabled={onChainIdentity <= verifyStatuses.NoIdentity || isTxBusy}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity
-          </Button>
+          </Button>}
         </div>
       </CardContent>
     </Card>

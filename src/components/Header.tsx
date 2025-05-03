@@ -37,7 +37,7 @@ const Header = ({
     symbol: string,
     tokenDecimals: number,
   };
-  accountStore: { address: string, name: string };
+  accountStore: { address: string, name: string, polkadotSigner: any };
   identity: Identity;
   isTxBusy: boolean;
   isDark: boolean;
@@ -87,7 +87,7 @@ const Header = ({
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0">
               <div className="w-full min-w-0">
                 {(() => {
-                  if (accountStore.address) {
+                  if (accountStore.address && accountStore.polkadotSigner) {
                     return <AccountListing address={accountStore.address} name={accountStore.name} />;
                   }
                   if (connectedWallets.length > 0) {

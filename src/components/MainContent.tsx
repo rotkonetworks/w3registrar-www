@@ -35,6 +35,7 @@ export const MainContent = ({
           onIdentityClear={() => setOpenDialog("clearIdentity")}
           isTxBusy={isTxBusy}
           chainName={chainStore.name?.replace(/ People/g, " ")}
+          hasWalletConnected={!!accountStore.polkadotSigner}
         />
         <AccountsTree 
           identity={identity}
@@ -44,6 +45,7 @@ export const MainContent = ({
           api={typedApi}
           openTxDialog={openTxDialog}
           className="pt-4"
+          hasWalletConnected={!!accountStore.polkadotSigner}
         />
       </div>
     },
