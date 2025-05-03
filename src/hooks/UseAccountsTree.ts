@@ -258,7 +258,7 @@ export const useAccountsTree = ({
       }
     } catch (err) {
       console.error("Error fetching account hierarchy:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
+      setError(err instanceof Error ? err : new Error(String(err), { cause: err }));
       setAccountTree(null);
     } finally {
       setLoading(false);
