@@ -96,7 +96,7 @@ export const HELP_SLIDES = {
       .filter(([key]) => key.startsWith("VITE_APP_CONTACT_LINK_"))
       .map(([key, value]) => {
         const contactLinkName = key.replace("VITE_APP_CONTACT_LINK_", "").replace("_", " ")
-        return ({
+        return ({ key,
           title: <><Link className="inline h-4 w-4" />  {contactLinkName}</>,
           description: <a href={value} target="_blank" rel="noreferrer" className="break-words">
             {value}
@@ -126,9 +126,9 @@ export const StartGuide = () => (
   </section>
 )
 
-const Item = ({ key, title, description }) => {
+const Item = ({ title, description }) => {
   return (
-    <div key={key}
+    <div
       className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center sm:w-[13rem] w-[70vw]"
     >
       <h3 className="font-semibold text-md mb-2 dark:text-gray-200">{title}</h3>
@@ -143,8 +143,8 @@ export const Collection = ({ title, items }) => {
     <div 
       className="grid sm:grid-cols-2 grid-col-1 gap-2 overflow-auto max-h-[20rem] sm:max-h-full sm:overflow-visible"
     >
-      {items.map(({ title, description }) => (
-        <Item key={title} title={title} description={description} />
+      {items.map(({ key, title, description }) => (
+        <Item key={key || title} title={title} description={description} />
       ))}
     </div>
   </>

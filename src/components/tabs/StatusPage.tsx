@@ -96,7 +96,7 @@ export function StatusPage({
               .map(([field, { status }]: 
                 [string, Challenge]
               ) => (
-                <div className="flex flex-wrap justify-between gap-2">
+                <div className="flex flex-wrap justify-between gap-2" key={field}>
                   <span className="flex flex-wrap items-center gap-2 max-w-full">
                     <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
                       <div className="flex items-center gap-2 shrink-0">
