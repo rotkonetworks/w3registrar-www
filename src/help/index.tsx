@@ -126,7 +126,7 @@ export const StartGuide = () => (
   </section>
 )
 
-const Item = ({ _key, title, description }) => {
+const Item = ({ title, description }) => {
   return (
     <div
       className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center sm:w-[13rem] w-[70vw]"
