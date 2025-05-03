@@ -34,8 +34,13 @@ export const MainContent = ({
           formatAmount={formatAmount}
           onIdentityClear={() => setOpenDialog("clearIdentity")}
           isTxBusy={isTxBusy}
-          chainName={chainStore.name?.replace(/ People/g, " ")}
+          chainStore={{ 
+            name: chainStore.name?.replace(/ People/g, " "),
+            id: (chainStore.id as string).replace(/_people/g, ""),
+          }}
           hasWalletConnected={!!accountStore.polkadotSigner}
+          address={accountStore.encodedAddress}
+          addNotification={addNotification}
         />
         <AccountsTree 
           identity={identity}

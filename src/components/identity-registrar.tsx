@@ -713,16 +713,8 @@ export function IdentityRegistrarComponent() {
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identity={identity} 
           onRequestWalletConnections={onRequestWalletConnection}
-          accountStore={{
-            address: accountStore.encodedAddress,
-            name: accountStore.name,
-          }} 
-          chainStore={{
-            name: chainStore.name,
-            id: chainStore.id,
-            symbol: chainStore.tokenSymbol,
-            tokenDecimals: chainStore.tokenDecimals,
-          }} 
+          accountStore={accountStore} 
+          chainStore={chainStore} 
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
