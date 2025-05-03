@@ -97,7 +97,7 @@ const Header = ({
               {connectedWallets.length > 0 && <>
                 <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
                 <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
-                {identity.info && <>
+                {identity.info && accountStore.polkadotSigner && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
                 </>}
                 <SelectSeparator />
