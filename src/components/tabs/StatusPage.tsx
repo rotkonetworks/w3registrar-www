@@ -124,6 +124,28 @@ export function StatusPage({
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity
           </Button>}
+          <Button variant="primary" className="flex-1" onClick={() => {
+            const url = `${window.location.origin}/?address=${address}&network=${chainStore.id}`;
+            navigator.clipboard.writeText(url)
+              .then(() => {
+                addNotification({
+                  type: "success",
+                  title: "Link Copied",
+                  message: "The link has been copied to your clipboard.",
+                  duration: 5000,
+                })
+              })
+              .catch(err => {
+                addNotification({
+                  type: "error",
+                  title: "Copy Failed",
+                  message: "Failed to copy the link.",
+                  duration: 5000,
+                })
+              });
+          }}>
+            <Share2 />Copy Link
+          </Button>
         </div>
       </CardContent>
     </Card>
