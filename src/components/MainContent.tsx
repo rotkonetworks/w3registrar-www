@@ -58,7 +58,7 @@ export const MainContent = ({
       id: "identityForm",
       name: "Identity Form",
       icon: <UserCircle className="h-5 w-5" />,
-      disabled: false,
+      disabled: !accountStore.polkadotSigner,
       content: <div className="flex flex-col gap-4">
         <MemoIdeitityForm
           ref={identityFormRef}
