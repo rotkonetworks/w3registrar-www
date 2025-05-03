@@ -7,11 +7,12 @@ import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { Identity } from "~/types/Identity";
 import { SelectLabel } from "@radix-ui/react-select";
-import { AccountData } from "~/store/AccountStore";
+import { Account, AccountData } from "~/store/AccountStore";
 import { Chains } from "@reactive-dot/core/internal.js";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
 import { BalanceDisplay } from "./ui/balance-display";
 import { AssetAmount } from "~/types";
+import { ChainInfo } from "~/store/ChainStore";
 
 const AccountListing = ({ address, name }) => (
   <div className="flex items-center w-full min-w-0">
@@ -31,13 +32,8 @@ const Header = ({
 }: { 
   accounts: AccountData[];
   config: ApiConfig;
-  chainStore: {
-    id: string | number | symbol,
-    name: string,
-    symbol: string,
-    tokenDecimals: number,
-  };
-  accountStore: { address: string, name: string };
+  chainStore: ChainInfo;
+  accountStore: Account;
   identity: Identity;
   isTxBusy: boolean;
   isDark: boolean;
@@ -63,7 +59,7 @@ const Header = ({
     decimals: 2,
   })
   const formatAmount = useFormatAmount({
-    symbol: chainStore.symbol,
+    symbol: chainStore.tokenSymbol,
     tokenDecimals: chainStore.tokenDecimals,
   })
 
@@ -87,7 +83,7 @@ const Header = ({
             <SelectTrigger className="w-full bg-transparent border-[#E6007A] text-inherit min-w-0">
               <div className="w-full min-w-0">
                 {(() => {
-                  if (accountStore.address) {
+                  if (accountStore.address && accountStore.polkadotSigner) {
                     return <AccountListing address={accountStore.address} name={accountStore.name} />;
                   }
                   if (connectedWallets.length > 0) {
@@ -101,7 +97,7 @@ const Header = ({
               {connectedWallets.length > 0 && <>
                 <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
                 <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
-                {identity.info && <>
+                {identity.info && accountStore.polkadotSigner && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>
                 </>}
                 <SelectSeparator />

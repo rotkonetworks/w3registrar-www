@@ -27,22 +27,13 @@ export function useWalletAccounts({
   ), [accounts, chainSs58Format]);
 
   // Get wallet account by address
-  const getWalletAccount = useCallback((address: SS58String) => {
+  const getWalletAccount = useCallback((address: SS58String | Uint8Array) => {
     if (!address) return null;
     
-    let foundAccount: AccountData | null;
-    let decodedAddress: Uint8Array;
-    try {
-      decodedAddress = decodeAddress(address);
-    } catch (error) {
-      console.error("Error decoding address:", error);
-      return null;
-    }
-    
-    foundAccount = accounts.find(account => {
-      const publicKey = account.polkadotSigner.publicKey;
-      return publicKey.every((byte, index) => byte === decodedAddress[index]);
-    });
+    const decodedAddress: Uint8Array = typeof address==="string" ? decodeAddress(address) : address;
+    const foundAccount = accounts.find(account => account.polkadotSigner.publicKey
+      .every((byte, index) => byte === decodedAddress[index])
+    );
 
     if (!foundAccount) {
       return null;
@@ -51,7 +42,7 @@ export function useWalletAccounts({
     return {
       name: foundAccount.name,
       polkadotSigner: foundAccount.polkadotSigner,
-      address: address,
+      address: foundAccount.address,
       encodedAddress: encodeAddress(foundAccount.polkadotSigner.publicKey, chainSs58Format),
     };
   }, [accounts, chainSs58Format]);

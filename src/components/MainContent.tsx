@@ -1,5 +1,5 @@
 import { useState, useCallback, memo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, ListTree } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, IdCard } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -23,10 +23,42 @@ export const MainContent = ({
 }: MainContentProps) => {
   const tabs = [
     {
+      id: "status",
+      name: "Profile",
+      icon: <IdCard className="h-5 w-5" />,
+      disabled: false,
+      content: <div className="flex flex-col gap-4">
+        <MemoStatusPage
+          identity={identity}
+          challengeStore={challengeStore.challenges}
+          formatAmount={formatAmount}
+          onIdentityClear={() => setOpenDialog("clearIdentity")}
+          isTxBusy={isTxBusy}
+          chainStore={{ 
+            name: chainStore.name?.replace(/ People/g, " "),
+            id: (chainStore.id as string).replace(/_people/g, ""),
+          }}
+          hasWalletConnected={!!accountStore.polkadotSigner}
+          address={accountStore.encodedAddress}
+          addNotification={addNotification}
+        />
+        <AccountsTree 
+          identity={identity}
+          accountTree={accountTree}
+          chainStore={chainStore}
+          currentAddress={accountStore.address}
+          api={typedApi}
+          openTxDialog={openTxDialog}
+          className="pt-4"
+          hasWalletConnected={!!accountStore.polkadotSigner}
+        />
+      </div>
+    },
+    {
       id: "identityForm",
       name: "Identity Form",
       icon: <UserCircle className="h-5 w-5" />,
-      disabled: false,
+      disabled: !accountStore.polkadotSigner,
       content: <div className="flex flex-col gap-4">
         <MemoIdeitityForm
           ref={identityFormRef}
@@ -39,36 +71,10 @@ export const MainContent = ({
           openTxDialog={openTxDialog}
           isTxBusy={isTxBusy}
         />
-        <MemoChallengesPage
-          addNotification={addNotification}
-          challengeStore={challengeStore}
+        {identity.status >= verifyStatuses.FeePaid && <MemoChallengesPage 
+          addNotification={addNotification} challengeStore={challengeStore}
           identity={identity}
-        />
-      </div>
-    },
-    {
-      id: "status",
-      name: "Status",
-      icon: <FileCheck className="h-5 w-5" />,
-      disabled: identity.status < verifyStatuses.NoIdentity,
-      content: <div className="flex flex-col gap-4">
-        <MemoStatusPage
-          identity={identity}
-          challengeStore={challengeStore.challenges}
-          formatAmount={formatAmount}
-          onIdentityClear={() => setOpenDialog("clearIdentity")}
-          isTxBusy={isTxBusy}
-          chainName={chainStore.name?.replace(/ People/g, " ")}
-        />
-        <AccountsTree 
-          identity={identity}
-          accountTree={accountTree}
-          chainStore={chainStore}
-          currentAddress={accountStore.address}
-          api={typedApi}
-          openTxDialog={openTxDialog}
-          className="pt-4"
-        />
+        />}
       </div>
     },
   ]

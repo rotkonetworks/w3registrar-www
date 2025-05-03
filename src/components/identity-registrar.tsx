@@ -47,6 +47,7 @@ import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
 import { useAccountsTree } from "~/hooks/UseAccountsTree"
+import { decodeAddress, encodeAddress } from "@polkadot/keyring"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -98,7 +99,19 @@ export function IdentityRegistrarComponent() {
       })
       return;
     }
-    const accountData = getWalletAccount(urlParams.address);
+    let decodedAddress: Uint8Array;
+    try {
+      decodedAddress = decodeAddress(urlParams.address);
+    } catch (error) {
+      console.error("Error decoding address:", error);
+      return;
+    }
+    const accountData = getWalletAccount(decodedAddress) 
+      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
+        address: urlParams.address,
+        encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
+      } : null)
+    ;
     console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
@@ -700,16 +713,8 @@ export function IdentityRegistrarComponent() {
         <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
           onAccountSelect={onAccountSelect} identity={identity} 
           onRequestWalletConnections={onRequestWalletConnection}
-          accountStore={{
-            address: accountStore.encodedAddress,
-            name: accountStore.name,
-          }} 
-          chainStore={{
-            name: chainStore.name,
-            id: chainStore.id,
-            symbol: chainStore.tokenSymbol,
-            tokenDecimals: chainStore.tokenDecimals,
-          }} 
+          accountStore={accountStore} 
+          chainStore={chainStore} 
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}

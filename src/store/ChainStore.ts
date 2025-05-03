@@ -1,7 +1,7 @@
 import { proxy } from "valtio";
 
 export interface ChainInfo {
-  id: string | number | symbol;
+  id: string | number | symbol; // TODO Leave this as string, as that's how we use it in the app
   name?: string;
   ss58Format?: number;
   tokenDecimals?: number;

@@ -38,7 +38,7 @@ export const IdentityForm = forwardRef((
     chainConstants: Record<string, any>,
     isTxBusy: boolean,
     supportedFields: string[],
-    openTxDialog: (darams: OpenTxDialogArgs) => void,
+    openTxDialog: (params: OpenTxDialogArgs) => void,
   },
   ref: Ref<unknown> & { reset: () => void },
 ) => {
@@ -331,15 +331,15 @@ export const IdentityForm = forwardRef((
               </div>
             )}
             <IdentityStatusInfo status={identity.status} />
-            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            {accountStore.polkadotSigner && <div className="flex flex-col sm:flex-row gap-4 mt-4">
               <Button type="submit" disabled={forbiddenSubmission || isTxBusy}
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifyStatuses.IdentitySet && (
-                <Button type="button" variant="outline" disabled={forbiddenSubmission || isTxBusy}
+              {onChainIdentity === verifyStatuses.IdentitySet && accountStore.polkadotSigner && (
+                <Button type="button" variant="secondary" disabled={forbiddenSubmission || isTxBusy}
                   onClick={handleRequestJudgement}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
                 >
@@ -347,7 +347,7 @@ export const IdentityForm = forwardRef((
                   Request Judgement
                 </Button>
               )}
-            </div>
+            </div>}
           </form>
         </CardContent>
       </Card>

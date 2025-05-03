@@ -1,4 +1,5 @@
 import { TypedApi } from "polkadot-api"
+import { ChainInfo } from "~/store/ChainStore";
 
 export type DialogMode = "clearIdentity" |
   "disconnect" |

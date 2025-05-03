@@ -48,6 +48,7 @@ type AccountNodeProps = {
   onQuit: (node: AccountTreeNode) => void;
   isRemoving?: SS58String | null;
   formatAmount: (amount: bigint) => string;
+  hasWalletConnected?: boolean;
 };
 function AccountNode({
   node,
@@ -57,6 +58,7 @@ function AccountNode({
   onQuit,
   onRename,
   formatAmount,
+  hasWalletConnected,
   // TODO Pass currentNode, so we can get rid of isCurrentAccount abd isDirectSubOfCurrentAccount.
 }: AccountNodeProps) {
   return (
@@ -92,7 +94,7 @@ function AccountNode({
           {node.isCurrentAccount && <Badge variant="default" className="text-xs flex-grow-0 flex-shrink-1">Current</Badge>}
         </div>
 
-        <div className="flex flex-row gap-2 self-end">
+        {hasWalletConnected && <div className="flex flex-row gap-2 self-end">
           {!isRoot && node.isCurrentAccount && (
             <Button 
               size="icon" 
@@ -141,7 +143,7 @@ function AccountNode({
               )}
             </Button>
           )}
-        </div>
+        </div>}
       </div>
       
       {node.subs && node.subs.length > 0 
@@ -153,6 +155,7 @@ function AccountNode({
           onRename={onRename}
           onQuit={onQuit}
           formatAmount={formatAmount}
+          hasWalletConnected={hasWalletConnected}
         /> ))
       }
     </div>
@@ -170,6 +173,7 @@ type AccountsTreeProps = {
   identity: Identity;
   openTxDialog: (args: OpenTxDialogArgs_modeSet) => void;
   className?: string;
+  hasWalletConnected: boolean;
 };
 
 export function AccountsTree({
@@ -180,6 +184,7 @@ export function AccountsTree({
   identity,
   openTxDialog,
   className = "",
+  hasWalletConnected,
 }: AccountsTreeProps) {
   const [addingSubaccount, setAddingSubaccount] = useState(false);
   const [removingSubaccount, setRemovingSubaccount] = useState<SS58String | null>(null);
@@ -357,8 +362,7 @@ export function AccountsTree({
   if (loading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <LoadingPlaceholder className="h-[50vh] w-full" />
-        <LoadingPlaceholder className="h-[20vh] w-full" />
+        <LoadingPlaceholder className="h-40 w-full" />
       </div>
     );
   }
@@ -390,13 +394,14 @@ export function AccountsTree({
                 onRename={handleEditClick}
                 onQuit={quitSubaccount}
                 formatAmount={formattAmount}
+                hasWalletConnected={hasWalletConnected}
               />
             </div>
           )}
         </CardContent>
       </Card>
 
-      {currentAccountNode && (
+      {currentAccountNode && hasWalletConnected && (
         <Card>
           <CardHeader>
             <CardTitle>{isEditMode ? "Edit Subaccount" : "Add Subaccount"}</CardTitle>

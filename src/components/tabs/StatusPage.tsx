@@ -1,30 +1,40 @@
-import { Challenge, ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
+import { Challenge, ChallengeStore } from "~/store/challengesStore"
 import { Identity, verifyStatuses } from "~/types/Identity"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck } from "lucide-react"
+import { MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Share2 } from "lucide-react"
 import BigNumber from "bignumber.js"
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
 import { SOCIAL_ICONS } from "~/assets/icons"
 import { StatusBadge } from "../challenges/StatusBadge"
+import { SS58String } from "polkadot-api"
+import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 
 export function StatusPage({
   identity,
   challengeStore,
   isTxBusy,
-  chainName,
   formatAmount,
   onIdentityClear,
+  hasWalletConnected,
+  address,
+  chainStore,
+  addNotification,
 }: {
   identity: Identity,
   challengeStore: ChallengeStore,
   isTxBusy: boolean,
-  chainName: string,
   formatAmount: (amount: number | bigint | BigNumber | string, decimals?) => string
   onIdentityClear: () =>  void,
+  hasWalletConnected: boolean,
+  address: SS58String,
+  chainStore: {
+    name: string,
+    id: string,
+  },
+  addNotification: (AlertPropsOptionalKey) => void,
 }) {
   const getIcon = (field: string) => {
     return SOCIAL_ICONS[field] || <MessageSquare className="h-4 w-4" />
@@ -40,7 +50,7 @@ export function StatusPage({
           Identity Status
         </CardTitle>
         <CardDescription className="text-[#706D6D]">
-          This is the current status of your identity on the {chainName} chain.
+          This is the current status of your identity on the {chainStore.name} chain.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
@@ -106,13 +116,35 @@ export function StatusPage({
         </div>
         <IdentityStatusInfo status={identity.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <Button variant="outline" 
+          {hasWalletConnected && <Button variant="outline" 
             onClick={onIdentityClear} 
             className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1" 
             disabled={onChainIdentity <= verifyStatuses.NoIdentity || isTxBusy}
           >
             <Trash className="mr-2 h-4 w-4" />
             Clear Identity
+          </Button>}
+          <Button variant="primary" className="flex-1" onClick={() => {
+            const url = `${window.location.origin}/?address=${address}&network=${chainStore.id}`;
+            navigator.clipboard.writeText(url)
+              .then(() => {
+                addNotification({
+                  type: "success",
+                  title: "Link Copied",
+                  message: "The link has been copied to your clipboard.",
+                  duration: 5000,
+                })
+              })
+              .catch(err => {
+                addNotification({
+                  type: "error",
+                  title: "Copy Failed",
+                  message: "Failed to copy the link.",
+                  duration: 5000,
+                })
+              });
+          }}>
+            <Share2 />Copy Link
           </Button>
         </div>
       </CardContent>
