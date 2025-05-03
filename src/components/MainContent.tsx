@@ -1,5 +1,5 @@
 import { useState, useCallback, memo, useEffect } from "react"
-import { ChevronLeft, ChevronRight, UserCircle, Shield, FileCheck, ListTree } from "lucide-react"
+import { ChevronLeft, ChevronRight, UserCircle, IdCard } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -25,7 +25,7 @@ export const MainContent = ({
     {
       id: "status",
       name: "Profile",
-      icon: <FileCheck className="h-5 w-5" />,
+      icon: <IdCard className="h-5 w-5" />,
       disabled: false,
       content: <div className="flex flex-col gap-4">
         <MemoStatusPage
