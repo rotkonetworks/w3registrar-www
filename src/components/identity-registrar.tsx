@@ -107,10 +107,10 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getWalletAccount(decodedAddress) 
-      ?? [1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
+      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
         address: urlParams.address,
-        encodeAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
-      } : null
+        encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
+      } : null)
     ;
     console.log({ accountData });
     if (accountData) {
