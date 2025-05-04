@@ -90,20 +90,18 @@ export function IdentityRegistrarComponent() {
   }, [connectedWallets.length, addAlert, removeAlert]);
 
   useEffect(() => {
-    if (!urlParams.address) {
-      addAlert({
-        type: "error",
-        message: "Please pick an account that is registered in your wallets from account dropdown.",
-        closable: false,
-        key: "invalidAccount",
-      })
-      return;
-    }
+    if (!urlParams.address) return;
     let decodedAddress: Uint8Array;
     try {
       decodedAddress = decodeAddress(urlParams.address);
     } catch (error) {
       console.error("Error decoding address:", error);
+      addAlert({
+        type: "error",
+        message: "Invalid address format. Please check the address and try again.",
+        closable: false,
+        key: "invalidAddress",
+      })
       return;
     }
     const accountData = getWalletAccount(decodedAddress) 
@@ -115,15 +113,8 @@ export function IdentityRegistrarComponent() {
     console.log({ accountData });
     if (accountData) {
       Object.assign(accountStore, accountData);
-      removeAlert("invalidAccount");
+      
       removeAlert("invalidAddress");
-    } else {
-      addAlert({
-        type: "error",
-        message: "Please pick an account that is registered in your wallets from account dropdown.",
-        closable: false,
-        key: "invalidAccount",
-      })
     }
   }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert]);
 
