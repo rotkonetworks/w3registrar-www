@@ -112,6 +112,10 @@ export function IdentityRegistrarComponent() {
     ;
     console.log({ accountData });
     if (accountData) {
+      // Clear accountStore first to ensure props missing in accountData aren't kept
+      Object.keys(accountStore).forEach(key => {
+        delete accountStore[key];
+      });
       Object.assign(accountStore, accountData);
       
       removeAlert("invalidAddress");
