@@ -751,7 +751,7 @@ export function IdentityRegistrarComponent() {
     {/* TODO Refactor away dialogs */}
     <Dialog 
       open={[
-        "clearIdentity", "disconnect", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
+        "clearIdentity", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
         "quitSub", "editSubAccount"
       ].includes(openDialog)} 
       onOpenChange={v => v 
@@ -806,10 +806,6 @@ export function IdentityRegistrarComponent() {
                 <li>You will have to set identity again.</li>
                 <li>You will lose verification status.</li>
                 <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
-              </>)}
-              {openDialog === "disconnect" && (<>
-                <li>No data will be removed on chain.</li>
-                <li>Current account and wallet will be disconnected.</li>
               </>)}
               {openDialog === "setIdentity" && (<>
                 <li>Identity data will be set on chain.</li>
