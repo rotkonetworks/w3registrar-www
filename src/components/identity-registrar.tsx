@@ -572,11 +572,6 @@ export function IdentityRegistrarComponent() {
       case "clearIdentity":
         await onIdentityClear()
         break
-      case "disconnect":
-        disconnectAllWallets();
-        Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-        updateUrlParams({ ...urlParams, address: null });
-        break
       case "setIdentity":
         await signSubmitAndWatch({
           call: txToConfirm,
@@ -663,7 +658,9 @@ export function IdentityRegistrarComponent() {
         setWalletDialogOpen(true);
         break;
       case "Disconnect":
-        setOpenDialog("disconnect")
+        disconnectAllWallets();
+        Object.keys(accountStore).forEach((k) => delete accountStore[k]);
+        updateUrlParams({ ...urlParams, address: null });
         break;
       case "RemoveIdentity":
         const tx = prepareClearIdentityTx()
