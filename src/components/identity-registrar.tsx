@@ -660,7 +660,6 @@ export function IdentityRegistrarComponent() {
       case "Disconnect":
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
-        updateUrlParams({ ...urlParams, address: null });
         break;
       case "RemoveIdentity":
         const tx = prepareClearIdentityTx()
