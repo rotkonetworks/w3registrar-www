@@ -9,7 +9,7 @@ import { ChallengePage } from "./tabs/ChallengePage"
 import { StatusPage } from "./tabs/StatusPage"
 import { verifyStatuses } from "~/types/Identity"
 import { MainContentProps } from "~/types"
-import { AccountsTree } from "./AccountsTree"
+import { AccountsTree } from "./tabs/AccountsTree"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
