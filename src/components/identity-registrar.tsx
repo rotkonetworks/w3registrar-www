@@ -681,7 +681,7 @@ export function IdentityRegistrarComponent() {
     chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
     challengeStore: { challenges, error: challengeError, loading: challengeLoading }, 
     identityFormRef, urlParams, isTxBusy,
-    supportedFields, accountTree: { data: accountTree, loading: accountTreeLoading },
+    supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 

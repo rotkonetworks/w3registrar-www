@@ -163,8 +163,8 @@ function AccountNode({
 }
 
 type AccountsTreeProps = {
-  accountTree: {
-    data?: AccountTreeNode;
+  accountTreeProps: {
+    tree?: AccountTreeNode;
     loading: boolean;
   },
   currentAddress: SS58String;
@@ -177,7 +177,7 @@ type AccountsTreeProps = {
 };
 
 export function AccountsTree({
-  accountTree: {data: accountTreeData, loading},
+  accountTreeProps: {tree: accountTreeData, loading},
   chainStore,
   currentAddress,
   api,

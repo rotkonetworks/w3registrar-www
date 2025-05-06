@@ -19,7 +19,7 @@ export const MainContent = ({
   identity, challengeStore, chainStore, typedApi, accountStore,
   chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
   addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-  accountTree
+  accountTreeProps
 }: MainContentProps) => {
   const tabs = [
     {
@@ -44,7 +44,7 @@ export const MainContent = ({
         />
         <AccountsTree 
           identity={identity}
-          accountTree={accountTree}
+          accountTreeProps={accountTreeProps}
           chainStore={chainStore}
           currentAddress={accountStore.address}
           api={typedApi}
