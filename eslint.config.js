@@ -76,7 +76,7 @@ export default tseslint.config(
                     alphabetize: { order: 'asc' },
                 },
             ],
-            'no-console': 'warn',
+            'no-console': 'off',    // Logs are expected in dev, and aren't minified away
             'prefer-const': 'warn',
         },
     },
