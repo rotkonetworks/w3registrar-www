@@ -1,11 +1,12 @@
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
+
 import 'uno.css'
 import '@unocss/reset/tailwind-compat.css'
 import "./css/uno.css"
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
+import App from './App'
 import { Loading } from './pages/Loading'
 
 const Main: React.FC = () => {

@@ -1,53 +1,50 @@
-import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
+import { decodeAddress, encodeAddress } from "@polkadot/keyring"
+import type { ChainId } from "@reactive-dot/core";
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
+import { useClient, useSpendableBalance, useTypedApi} from "@reactive-dot/react"
+import BigNumber from "bignumber.js"
+import { ConnectionDialog } from "dot-connect/react.js"
 import { Coins, AlertCircle } from "lucide-react"
+import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
+import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
+import { useProxy } from "valtio/utils"
 
 import { Button } from "@/components/ui/button"
-
-import { ConnectionDialog } from "dot-connect/react.js"
-import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
-import { useProxy } from "valtio/utils"
-import { verifyStatuses } from "~/types/Identity"
-import { challengeStore as _challengeStore } from "~/store/challengesStore"
-import { 
-  useClient, useSpendableBalance, useTypedApi
-} from "@reactive-dot/react"
-import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
-import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
-import BigNumber from "bignumber.js"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
 import { config } from "~/api/config"
-import Teleporter from "./dialogs/Teleporter"
-import { useUrlParams } from "~/hooks/useUrlParams"
-import { useDarkMode } from "~/hooks/useDarkMode"
-import type { ChainId } from "@reactive-dot/core";
-import { LoadingContent, LoadingTabs } from "~/pages/Loading"
-import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiStorage, ApiTx } from "~/types/api"
-import { GenericDialog } from "./dialogs/GenericDialog"
+import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
+import { useAccountsTree } from "~/hooks/UseAccountsTree"
+import { useAlerts } from "~/hooks/useAlerts"
+import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
+import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
+import { useDarkMode } from "~/hooks/useDarkMode"
+import { useFormatAmount } from "~/hooks/useFormatAmount"
+import { useIdentity } from "~/hooks/useIdentity"
+import { useSupportedFields } from "~/hooks/useSupportedFields"
+import { useUrlParams } from "~/hooks/useUrlParams"
+import { useWalletAccounts } from "~/hooks/useWalletAccounts"
+import { useXcmParameters } from "~/hooks/useXcmParameters"
+import { LoadingContent, LoadingTabs } from "~/pages/Loading"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
+import { chainStore as _chainStore } from '~/store/ChainStore'
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
-import { Switch } from "./ui/switch"
 import { 
   DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
   SignSubmitAndWatchParams, 
 } from "~/types"
-import { CHAIN_UPDATE_INTERVAL } from "~/constants"
+import { verifyStatuses } from "~/types/Identity"
+import { ApiStorage, ApiTx } from "~/types/api"
 import { wait } from "~/utils"
-import { useFormatAmount } from "~/hooks/useFormatAmount"
 import { errorMessages } from "~/utils/errorMessages"
-import { useAlerts } from "~/hooks/useAlerts"
+
 import { AlertsAccordion } from "./AlertsAccordion"
+import Header from "./Header"
 import { MainContent } from "./MainContent"
-import { useWalletAccounts } from "~/hooks/useWalletAccounts"
-import { useIdentity } from "~/hooks/useIdentity"
-import { useSupportedFields } from "~/hooks/useSupportedFields"
-import { useXcmParameters } from "~/hooks/useXcmParameters"
-import { useAccountsTree } from "~/hooks/UseAccountsTree"
-import { decodeAddress, encodeAddress } from "@polkadot/keyring"
+import { GenericDialog } from "./dialogs/GenericDialog"
+import Teleporter from "./dialogs/Teleporter"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
+import { Switch } from "./ui/switch"
 
 export function IdentityRegistrarComponent() {
   const {
@@ -182,7 +179,7 @@ export function IdentityRegistrarComponent() {
   }, [urlParams])
   
   const eventHandlers = useMemo<Record<string, { 
-    onEvent: (data: any) => void; 
+    onEvent: (data: object) => void; 
     onError?: (error: Error) => void; 
     priority: number 
   }>>(() => ({
@@ -206,9 +203,6 @@ export function IdentityRegistrarComponent() {
     },
   }), [fetchIdAndJudgement, addAlert])
 
-  const [pendingTx, setPendingTx] = useState<
-    Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
-  >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
@@ -271,6 +265,8 @@ export function IdentityRegistrarComponent() {
   const recentNotifsIds = useRef<string[]>([])
   const signSubmitAndWatch = useCallback((
     params: SignSubmitAndWatchParams
+    // Awaiting for async function, so ignore this rule
+    // eslint-disable-next-line no-async-promise-executor
   ) => new Promise(async (resolve, reject) => {
     const { call, name } = params;
     let api = params.api;
@@ -656,7 +652,7 @@ export function IdentityRegistrarComponent() {
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
         break;
-      case "RemoveIdentity":
+      case "RemoveIdentity":{ 
         const tx = prepareClearIdentityTx()
         openTxDialog({
           mode: "clearIdentity",
@@ -665,7 +661,8 @@ export function IdentityRegistrarComponent() {
             fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
           },
         })
-        break;
+        break; 
+      }
       case "account":
         updateAccount({ ...accountAction.account });
         break;
@@ -678,11 +675,11 @@ export function IdentityRegistrarComponent() {
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 
   const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
+    chainStore, typedApi, accountStore, identity: identity, chainConstants,
     challengeStore: { challenges, error: challengeError, loading: challengeLoading }, 
     identityFormRef, urlParams, isTxBusy,
     supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
-    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    addNotification: addAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
   //#region HelpDialog
@@ -825,7 +822,7 @@ export function IdentityRegistrarComponent() {
                 {/* TODO Point to deposit */}
                 <li>A deposit will be required for managing subaccounts.</li>
                 <li>
-                  Tf you link an account you don't own, actual owner can quit and take your deposit.
+                  Tf you link an account you don&apos;t own, actual owner can quit and take your deposit.
                 </li>
               </>)}
               {openDialog === "removeSubaccount" && (<>
@@ -838,7 +835,7 @@ export function IdentityRegistrarComponent() {
                 <li>There is no deposit required for this action.</li>
               </>)}
               {openDialog === "quitSub" && (<>
-                <li>You will remove your account's status as a subaccount.</li>
+                <li>You will remove your account&apos;s status as a subaccount.</li>
                 <li>This will break the link with your parent account.</li>
                 <li>The deposit for this subaccount will be returned to you.</li>
               </>)}

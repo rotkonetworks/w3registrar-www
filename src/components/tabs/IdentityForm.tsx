@@ -1,19 +1,22 @@
-import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { Identity, verifyStatuses } from '~/types/Identity'
+import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
+import BigNumber from 'bignumber.js'
 import { UserCircle, AtSign, Mail, CheckCircle, Globe, Fingerprint, Github, Image, IdCard, XIcon } from 'lucide-react'
+import { Binary, TypedApi } from 'polkadot-api'
+import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Binary, TypedApi } from 'polkadot-api'
-import { ChainInfo } from '~/store/ChainStore'
-import { AccountData } from '~/store/AccountStore'
-import BigNumber from 'bignumber.js'
-import { IdentityStatusInfo } from '../IdentityStatusInfo'
-import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { DiscordIcon } from '~/assets/icons/discord'
+import { AccountData } from '~/store/AccountStore'
+import { ChainInfo } from '~/store/ChainStore'
 import { OpenTxDialogArgs } from '~/types'
+import { Identity, verifyStatuses } from '~/types/Identity'
+
+import { IdentityStatusInfo } from '../IdentityStatusInfo'
+
+
 
 export type IdentityFormData = Record<string, {
   value: string

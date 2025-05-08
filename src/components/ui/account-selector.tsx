@@ -1,10 +1,12 @@
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { Command, CommandInput, CommandEmpty, CommandList, CommandGroup, CommandItem } from "./command";
 import { ChevronDown } from "lucide-react";
 import { SS58String } from "polkadot-api";
-import { AccountData } from "~/store/AccountStore";
-import { Button } from "./button";
 import { useState } from "react";
+
+import { AccountData } from "~/store/AccountStore";
+
+import { Button } from "./button";
+import { Command, CommandInput, CommandEmpty, CommandList, CommandGroup, CommandItem } from "./command";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 export const AccountSelector = ({
   accounts, address, handleAddressChange, id, open, handleOpen, disabled = false

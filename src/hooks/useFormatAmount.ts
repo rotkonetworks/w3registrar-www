@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
-import { formatAmount } from '~/utils';
-import type { FormatAmountOptions } from '~/types';
 import type BigNumber from 'bignumber.js';
+import { useCallback } from 'react';
+
+import type { FormatAmountOptions } from '~/types';
+import { formatAmount } from '~/utils';
 
 /**
  * Hook that returns a formatting function preconfigured with chain properties

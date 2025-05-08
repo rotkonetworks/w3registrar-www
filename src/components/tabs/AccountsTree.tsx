@@ -1,23 +1,24 @@
-import { CircleOff, Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { TypedApi, SS58String, Binary } from "polkadot-api";
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
-import { LoadingPlaceholder } from "~/pages/Loading";
-import { AccountTreeNode } from "~/hooks/UseAccountsTree";
-import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
-import { Badge } from "@/components/ui/badge";
-import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
+import { CircleOff, Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
+import { TypedApi, SS58String, Binary } from "polkadot-api";
+import { useEffect, useMemo, useState } from "react";
+
 import { AccountSelector } from "@/components/ui/account-selector";
-import { Input } from "@/components/ui/input";
-import { Identity } from "~/types/Identity";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
-import { ChainInfo } from "~/store/ChainStore";
 import { useWalletAccounts } from "~/hooks/useWalletAccounts";
+import { LoadingPlaceholder } from "~/pages/Loading";
+import { ChainInfo } from "~/store/ChainStore";
+import { DialogMode, OpenTxDialogArgs_modeSet } from "~/types";
+import { Identity } from "~/types/Identity";
+import { fetchSuperOf, prepareRawSetSubs } from "~/utils/subaccounts";
 
 const getName = (node: AccountTreeNode) => {
   return <>

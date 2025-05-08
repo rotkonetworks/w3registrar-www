@@ -1,5 +1,5 @@
-import { useLocation } from 'react-router-dom'
 import { Icon } from '@iconify/react'
+import { useLocation } from 'react-router-dom'
 
 export default function ErrorPage() {
   const { pathname } = useLocation()

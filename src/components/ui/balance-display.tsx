@@ -1,9 +1,10 @@
-import { AssetAmount, FormatAmountFn, FormatAmountOptions } from "~/types";
-import { Badge } from "./badge";
+import { Badge } from "@/components/ui/badge";
+import { AssetAmount } from "@/types";
+
 
 export const BalanceDisplay = ({ balance, formatter }: {
   balance: AssetAmount,
-  formatter: (v: AssetAmount) => string,
+  formatter: (_v: AssetAmount) => string,
 }) => {
   return <Badge variant={balance ? "default" : "secondary"}>
     {formatter(balance)}

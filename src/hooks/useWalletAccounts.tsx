@@ -1,8 +1,7 @@
-import { useCallback, useMemo } from "react";
-import { AccountData } from "~/store/AccountStore";
-import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
+import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
 import { SS58String } from "polkadot-api";
+import { useCallback, useMemo } from "react";
 
 interface UseWalletAccountsProps {
   chainSs58Format: number;

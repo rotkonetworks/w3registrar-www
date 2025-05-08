@@ -1,22 +1,25 @@
+import _ from "lodash"
+import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
-import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { LoadingPlaceholder } from "~/pages/Loading"
-import { XIcon } from "~/assets/icons/x"
-import { DiscordIcon } from "~/assets/icons/discord"
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
-import { HelpCarousel } from "~/help/helpCarousel"
 import { SOCIAL_ICONS } from "~/assets/icons"
+import { DiscordIcon } from "~/assets/icons/discord"
+import { XIcon } from "~/assets/icons/x"
+import { HelpCarousel } from "~/help/helpCarousel"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { LoadingPlaceholder } from "~/pages/Loading"
+import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { Identity } from "~/types/Identity"
-import _ from "lodash"
+
 import { StatusBadge } from "../challenges/StatusBadge"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,

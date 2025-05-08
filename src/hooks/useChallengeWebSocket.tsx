@@ -1,7 +1,9 @@
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
+
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
 import { IdentityInfo, verifyStatuses } from '~/types/Identity';
+
 import { AlertPropsOptionalKey } from './useAlerts';
 
 // Types matching your Rust backend

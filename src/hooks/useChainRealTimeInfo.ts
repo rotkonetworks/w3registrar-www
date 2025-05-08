@@ -1,7 +1,7 @@
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
 import { SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CHAIN_UPDATE_INTERVAL } from "~/constants";
+
 import { ApiStorage } from "~/types/api";
 
 export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {

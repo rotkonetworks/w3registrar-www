@@ -1,15 +1,15 @@
-import { useState, useCallback, memo, useEffect } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, IdCard } from "lucide-react"
+import { useState, useCallback, memo, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-import { IdentityForm } from "./tabs/IdentityForm"
-import { ChallengePage } from "./tabs/ChallengePage"
-import { StatusPage } from "./tabs/StatusPage"
-import { verifyStatuses } from "~/types/Identity"
 import { MainContentProps } from "~/types"
+import { verifyStatuses } from "~/types/Identity"
+
 import { AccountsTree } from "./tabs/AccountsTree"
+import { ChallengePage } from "./tabs/ChallengePage"
+import { IdentityForm } from "./tabs/IdentityForm"
+import { StatusPage } from "./tabs/StatusPage"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -17,8 +17,8 @@ const MemoStatusPage = memo(StatusPage)
 
 export const MainContent = ({
   identity, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+  chainConstants, identityFormRef, urlParams, isTxBusy, supportedFields,
+  addNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   accountTreeProps
 }: MainContentProps) => {
   const tabs = [

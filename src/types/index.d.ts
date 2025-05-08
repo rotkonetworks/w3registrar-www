@@ -1,5 +1,18 @@
-import { TypedApi } from "polkadot-api"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import BigNumber from "bignumber.js";
+import { PolkadotSigner, TypedApi } from "polkadot-api"
+import { Ref } from "react";
+
+import { AccountTreeNode } from "~/hooks/UseAccountsTree";
+import { AlertPropsOptionalKey } from "~/hooks/useAlerts";
+import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
+import { ChallengeStore } from "~/store/challengesStore";
+
+import { Identity } from "./Identity";
+import { ApiTx } from "./api";
+
+
 
 export type DialogMode = "clearIdentity" |
   "disconnect" |
@@ -33,17 +46,18 @@ export type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
   chainConstants,
-  alerts: Map<string, AlertProps>,
-  addNotification: any,
-  formatAmount: any,
+  addNotification: (alertProps: AlertPropsOptionalKey) => void,
+  formatAmount: (options, FormatAmountFn) => string,
   supportedFields: string[],
-  removeNotification: any,
   identityFormRef: Ref<unknown>,
   urlParams: Record<string, string>,
-  updateUrlParams: any,
-  setOpenDialog: any,
+  updateUrlParams: (urlParams, UrlParamsArgs) => void,
+  setOpenDialog: (mode: DialogMode) => void,
   isTxBusy: boolean,
-  accountTree: AccountTreeNode | null,
+  accountTreeProps: {
+    tree: AccountTreeNode | null
+    loading: boolean,
+  },
   openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 

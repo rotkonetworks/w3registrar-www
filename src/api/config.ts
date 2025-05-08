@@ -8,12 +8,12 @@ import {
   paseo,
   paseo_people,
 } from "@polkadot-api/descriptors";
+import { getWsProvider } from "@polkadot-api/ws-provider/web";
 import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
+import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
 import { registerDotConnect } from "dot-connect";
-import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 // TODO Have additional WebSocket endpoint for each chain

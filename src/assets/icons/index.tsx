@@ -1,4 +1,5 @@
 import { UserCircle, AtSign, Mail, XIcon, Globe, IdCard, Github, Fingerprint, Image } from "lucide-react";
+
 import { DiscordIcon } from "./discord";
 
 export const SOCIAL_ICONS = {
