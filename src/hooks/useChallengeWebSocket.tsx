@@ -96,12 +96,6 @@ type WebSocketMessage = {
     message: string,
   };
 
-interface VersionedMessage {
-  version: string;
-  type: string;
-  payload: any;
-}
-
 interface UseIdentityWebSocketProps {
   url: string;
   account: string;
@@ -211,7 +205,7 @@ const useChallengeWebSocket = (
 
   const generateRequestId = () => Math.random().toString(36).substring(7);
 
-  const sendMessage = useCallback((message: WebSocketMessage): Promise<any> => {
+  const sendMessage = useCallback((message: WebSocketMessage): Promise<void> => {
     setLoading(true);
     return new Promise((resolve, reject) => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {

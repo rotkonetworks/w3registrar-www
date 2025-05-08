@@ -83,11 +83,13 @@ export const IdentityForm = forwardRef((
     try {
       estimatedCosts = {
         fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
-        deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
-          .times(Object.values(formData)
-            .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+        deposits: BigNumber(chainConstants.basicDeposit.toString())
+          .plus(BigNumber(chainConstants.byteDeposit.toString())
+            .times(Object.values(formData)
+              .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+            )
           )
-        ),
+        ,
       }
     } catch (error) {
       console.error(error)
