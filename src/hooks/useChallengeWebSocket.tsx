@@ -267,18 +267,19 @@ const useChallengeWebSocket = (
           
           // Extract verification states and pending challenges from the new format
           if (message.verification_state?.challenges) {
-            Object.entries(message.verification_state.challenges).forEach(([key, value]: [string, any]) => {
-              verificationStateFields[key] = value.done;
-              if (value.done) {
-                addNotification({
-                  message: `Challenge ${key} has been verified successfully`,
-                  type: 'info'
-                });
-              }
-              if (!value.done && value.token) {
-                pendingChallenges.push([key, value.token]);
-              }
-            });
+            Object.entries(message.verification_state.challenges)
+              .forEach(([key, value]: [string, Challenge]) => {
+                verificationStateFields[key] = value.done;
+                if (value.done) {
+                  addNotification({
+                    message: `Challenge ${key} has been verified successfully`,
+                    type: 'info'
+                  });
+                }
+                if (!value.done && value.token) {
+                  pendingChallenges.push([key, value.token]);
+                }
+              });
           }
 
           setAccountState(prev => ({ 

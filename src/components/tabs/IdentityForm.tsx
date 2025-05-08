@@ -297,15 +297,20 @@ export const IdentityForm = forwardRef((
           <form onSubmit={handleSubmitIdentity} className="space-y-4">
             {Object.entries(identityFormFields)
               .filter(([key]) => supportedFields.includes(key))
-              .map(([key, props]) =>
-                <div className="space-y-2" key={props.key}>
+              .map(([key, { label, icon, placeholder, checkForErrors, }]: [string, {
+                label: string
+                icon: JSX.Element
+                key: string
+                placeholder: string
+                checkForErrors: (v: string) => string | null
+              }]) =>
+                <div className="space-y-2" key={key}>
                   <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
-                    {props.icon}
-                    {props.label}
+                    {icon} {label}
                   </Label>
                   <Input
-                    id={props.key}
-                    name={props.key}
+                    id={key}
+                    name={key}
                     value={formData[key]?.value || ""}
                     disabled={!accountStore.address}
                     onChange={event => setFormData(_formData => {
@@ -313,13 +318,13 @@ export const IdentityForm = forwardRef((
                       _formData = { ..._formData }
                       _formData[key] = { ..._formData[key] }
                       _formData[key].value = newValue;
-                      _formData[key].error = props.checkForErrors(newValue);
+                      _formData[key].error = checkForErrors(newValue);
                       if (identityFormFields[key].required && _formData[key].value === "") {
                         _formData[key].error = "Required";
                       }
                       return _formData;
                     })}
-                    placeholder={props.placeholder}
+                    placeholder={placeholder}
                     className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
                   />
                   {formData[key]?.error && (
@@ -359,3 +364,4 @@ export const IdentityForm = forwardRef((
     </>
   )
 })
+IdentityForm.displayName = "IdentityForm"
