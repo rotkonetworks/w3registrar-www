@@ -204,8 +204,8 @@ const useChallengeWebSocket = (
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
-    resolve: (value: any) => void;
-    reject: (reason: any) => void;
+    resolve: (value: unknown) => void;
+    reject: (reason: Error) => void;
     timeout: number;
   }>>(new Map());
 
@@ -245,7 +245,7 @@ const useChallengeWebSocket = (
 
   const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
-      const message = JSON.parse(event.data as any) as ChallengeMessageType;
+      const message = JSON.parse(event.data as never) as ChallengeMessageType;
       console.log({message})
 
       switch (message.type) {

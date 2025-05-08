@@ -1,6 +1,7 @@
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import BigNumber from "bignumber.js";
 import { SS58String, TypedApi } from "polkadot-api";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ApiStorage } from "~/types/api";
 
@@ -9,12 +10,12 @@ export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
   chainId: string | number | symbol;
   address: SS58String;
   handlers: Record<string, {
-    onEvent: (data: any) => void;
+    onEvent: (data: object) => void;
     onError?: (error: Error) => void;
     priority: number;
   }>
 }) => {  
-  const [ constants, setConstants ] = useState<Record<string, any>>({});
+  const [ constants, setConstants ] = useState<Record<string, bigint | BigNumber | string>>({});
   useEffect(() => {
     console.log(constants)
   }, [constants])

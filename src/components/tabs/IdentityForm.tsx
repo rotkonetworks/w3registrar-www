@@ -38,7 +38,7 @@ export const IdentityForm = forwardRef((
     chainStore: ChainInfo,
     accountStore: AccountData,
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
-    chainConstants: Record<string, any>,
+    chainConstants: Record<string, bigint | BigNumber | string>,
     isTxBusy: boolean,
     supportedFields: string[],
     openTxDialog: (params: OpenTxDialogArgs) => void,

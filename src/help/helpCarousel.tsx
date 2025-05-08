@@ -4,11 +4,10 @@ import { twMerge } from 'tailwind-merge';
 
 import { HELP_SLIDES, Collection, } from '~/help';
 
-interface CarouselProps {
+interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   autoPlayInterval?: number;
   currentSlideIndex?: number;
   onSlideIndexChange?: (index: number) => void;
-  [rest: string]: any;
 }
 
 export const HelpCarousel: React.FC<CarouselProps> = ({ 
