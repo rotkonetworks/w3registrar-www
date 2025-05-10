@@ -5,7 +5,6 @@ import { SS58String } from "polkadot-api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { SOCIAL_ICONS } from "~/assets/icons"
-import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { Challenge, ChallengeStore } from "~/store/challengesStore"
 import { Identity, verifyStatuses } from "~/types/Identity"
 

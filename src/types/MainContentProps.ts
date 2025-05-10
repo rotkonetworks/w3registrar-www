@@ -1,18 +1,18 @@
 import { ChainId } from "@reactive-dot/core"
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js"
 import { TypedApi } from "polkadot-api"
+import { Ref } from "react"
 
 import { AccountTreeNode } from "~/hooks/UseAccountsTree"
 import { AlertProps } from "~/hooks/useAlerts"
+import { UrlParams } from "~/hooks/useUrlParams"
 import { AccountData } from "~/store/AccountStore"
 import { ChainInfo } from "~/store/ChainStore"
 import { Challenge } from "~/store/challengesStore"
 
 import { IdentityInfo } from "./Identity"
 
-
-import { DialogMode, OpenTxDialogArgs_modeSet } from "./"
-
+import { DialogMode, IdentityFormRef, OpenTxDialogArgs_modeSet } from "./"
 
 export type MainContentProps = {
   chainStore: ChainInfo

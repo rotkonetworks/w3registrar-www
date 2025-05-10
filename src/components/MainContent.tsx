@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, UserCircle, IdCard } from "lucide-react"
-import { useState, useCallback, memo, useEffect } from "react"
+import { useState, useCallback, memo, useEffect, useMemo } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"

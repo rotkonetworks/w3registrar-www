@@ -29,8 +29,8 @@ import { accountStore as _accountStore, AccountData } from "~/store/AccountStore
 import { chainStore as _chainStore } from '~/store/ChainStore'
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import { 
-  DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
-  SignSubmitAndWatchParams, 
+  DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs, 
+  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams, 
 } from "~/types"
 import { verifyStatuses } from "~/types/Identity"
 import { ApiStorage, ApiTx } from "~/types/api"
