@@ -227,6 +227,17 @@ export function IdentityRegistrarComponent() {
     addNotification: addAlert,
   });
   useEffect(() => {
+    console.log({
+      message: "useChallengeWebSocket.Props",
+      url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
+      address: accountStore.encodedAddress,
+      network: (chainStore.id as string).split("_")[0],
+      identity: { info: identity.info, status: identity.status, },
+      addNotification: addAlert,
+    })
+  }, [accountStore.encodedAddress, chainStore.id, identity.info, identity.status, addAlert])
+
+  useEffect(() => {
     if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
       subscribeToChallenges()
     }
