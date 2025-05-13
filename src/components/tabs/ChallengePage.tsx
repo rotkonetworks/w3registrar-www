@@ -1,8 +1,7 @@
 import _ from "lodash"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
+import { AtSign, Mail, Copy, Shield } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { SOCIAL_ICONS } from "~/assets/icons"
 import { DiscordIcon } from "~/assets/icons/discord"
 import { XIcon } from "~/assets/icons/x"
-import { HelpCarousel } from "~/help/helpCarousel"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 import { LoadingPlaceholder } from "~/pages/Loading"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
@@ -54,7 +52,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
         error: formData[key]?.error || null,
       }])
     ))
-  }, [challengeFieldsConfig])
+  }, [challengeFieldsConfig, formData])
 
   const setFormField = useCallback((field: string, value: string): void => {
     setFormData(prev => ({
@@ -81,18 +79,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   const getIcon = (field: string) => {
     return SOCIAL_ICONS[field]
   }
-
-  const updateChallengeStatus = useCallback((field: keyof ChallengeStore, result: boolean) => {
-    const newStatus = result ? ChallengeStatus.Passed : ChallengeStatus.Failed
-    setLocalChallengeStore(prev => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        status: newStatus
-      }
-    }))
-    challengeStore[field].status = newStatus
-  }, [challengeStore])
 
   const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
 
