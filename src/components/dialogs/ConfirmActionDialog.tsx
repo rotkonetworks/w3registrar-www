@@ -15,7 +15,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 
 import Teleporter from "./Teleporter";
-import { Switch } from "@radix-ui/react-switch";
 
 export default function ConfirmActionDialog({
   openDialog,

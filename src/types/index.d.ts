@@ -19,7 +19,7 @@ export type DialogMode = "clearIdentity" |
   "teleport" |
   "help" |
   "requestJudgement" |
-  "setIdentity"  |
+  "setIdentity" |
   "addSubaccount" |
   "editSubAccount" |
   "removeSubaccount" |

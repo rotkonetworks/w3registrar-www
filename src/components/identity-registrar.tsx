@@ -26,9 +26,9 @@ import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
 import { chainStore as _chainStore } from '~/store/ChainStore'
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
-import { 
-  DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs, 
-  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams, 
+import {
+  DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs,
+  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams,
 } from "~/types"
 import { verifyStatuses } from "~/types/Identity"
 import { ApiStorage, ApiTx } from "~/types/api"
@@ -58,11 +58,11 @@ export function IdentityRegistrarComponent() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   // Use our clean wallet accounts hook
-  const { 
-    accounts: displayedAccounts, 
-    getWalletAccount, 
+  const {
+    accounts: displayedAccounts,
+    getWalletAccount,
     connectedWallets,
-    disconnectAllWallets 
+    disconnectAllWallets
   } = useWalletAccounts({
     chainSs58Format: chainStore.ss58Format
   });
@@ -97,7 +97,7 @@ export function IdentityRegistrarComponent() {
       })
       return;
     }
-    const accountData = getWalletAccount(decodedAddress) 
+    const accountData = getWalletAccount(decodedAddress)
       ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
         address: urlParams.address,
         encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
@@ -110,7 +110,7 @@ export function IdentityRegistrarComponent() {
         delete accountStore[key];
       });
       Object.assign(accountStore, accountData);
-      
+
       removeAlert("invalidAddress");
     }
     // ESLint Expects us to add accountStore as a dependency, but it will cause an infinite loop.
@@ -129,7 +129,7 @@ export function IdentityRegistrarComponent() {
 
   const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
-  
+
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
     clearAllAlerts()
@@ -140,19 +140,19 @@ export function IdentityRegistrarComponent() {
 
   // Use the new hook for supported fields
   const supportedFields = useSupportedFields({ typedApi, registrarIndex, });
-  
+
   // Use the hook for core identity functionality
-  const { 
-    identity, fetchIdAndJudgement, prepareClearIdentityTx, 
+  const {
+    identity, fetchIdAndJudgement, prepareClearIdentityTx,
   } = useIdentity({ typedApi, address: accountStore.address, });
   useEffect(() => {
     identityFormRef.current?.reset()
   }, [identity])
-  
+
   useEffect(() => {
     ((async () => {
       const id = chainStore.id;
-      
+
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
@@ -169,7 +169,7 @@ export function IdentityRegistrarComponent() {
         Object.assign(chainStore, newChainData)
         console.log({ id, newChainData })
       })
-    }) ())
+    })())
   }, [chainStore, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     startTransition(() => {
@@ -177,11 +177,11 @@ export function IdentityRegistrarComponent() {
       chainStore.id = chainId
     })
   }, [chainStore, updateUrlParams, urlParams])
-  
-  const eventHandlers = useMemo<Record<string, { 
-    onEvent: (data: object) => void; 
-    onError?: (error: Error) => void; 
-    priority: number 
+
+  const eventHandlers = useMemo<Record<string, {
+    onEvent: (data: object) => void;
+    onError?: (error: Error) => void;
+    priority: number
   }>>(() => ({
     "Identity.JudgementGiven": {
       onEvent: async (_data: object) => {
@@ -210,10 +210,10 @@ export function IdentityRegistrarComponent() {
     handlers: eventHandlers,
   })
   //#endregion chains
-  
+
   //#region challenges
-  const { challenges, 
-    error: challengeError, 
+  const { challenges,
+    error: challengeError,
     isConnected: isChallengeWsConnected,
     loading: challengeLoading,
     subscribe: subscribeToChallenges,
@@ -243,12 +243,12 @@ export function IdentityRegistrarComponent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChallengeWsConnected])
   //#endregion challenges
-  
+
   const formatAmount = useFormatAmount({
     tokenDecimals: chainStore.tokenDecimals,
     symbol: chainStore.tokenSymbol
   });
-  
+
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
     console.log({ isTxBusy })
@@ -281,7 +281,7 @@ export function IdentityRegistrarComponent() {
   ) => new Promise(async (resolve, reject) => {
     const { call, name } = params;
     let api = params.api;
-    
+
     console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
@@ -334,7 +334,7 @@ export function IdentityRegistrarComponent() {
           found: boolean,
           ok: boolean,
           isValid: boolean,
-        } = { 
+        } = {
           found: result["found"] || false,
           ok: result["ok"] || false,
           isValid: result["isValid"],
@@ -429,7 +429,7 @@ export function IdentityRegistrarComponent() {
             } = JSON.parse(error.message);
 
             const { type: pallet, value: { type: errorType } } = errorDetails;
-            
+
             console.log({ errorDetails });
             addAlert({
               type: "error",
@@ -455,7 +455,7 @@ export function IdentityRegistrarComponent() {
     })
     // Still, proposed deps remain inmutable, such as AddAlert and getNonce
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [accountStore.polkadotSigner, accountStore.address, isTxBusy, fetchIdAndJudgement, typedApi, ])
+  }), [accountStore.polkadotSigner, accountStore.address, isTxBusy, fetchIdAndJudgement, typedApi,])
   //#endregion Transactions
 
   const onIdentityClear = useCallback(async () => {
@@ -464,22 +464,22 @@ export function IdentityRegistrarComponent() {
       name: "Clear Identity"
     })
   }, [prepareClearIdentityTx, signSubmitAndWatch])
-  
+
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
-  
+
   // Use our new hook for XCM parameters
-  const { 
-    xcmParams, 
-    relayAndParachains, 
-    fromTypedApi, 
-    getTeleportCall, 
+  const {
+    xcmParams,
+    relayAndParachains,
+    fromTypedApi,
+    getTeleportCall,
     getParachainId,
-    teleportExpanded, 
-    setTeleportExpanded 
+    teleportExpanded,
+    setTeleportExpanded
   } = useXcmParameters({
     chainId: chainStore.id,
     estimatedCosts
@@ -507,14 +507,14 @@ export function IdentityRegistrarComponent() {
   //#endregion Balances
 
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
-  
+
   const hasEnoughBalance = useMemo(() => balance
-  .isGreaterThanOrEqualTo(xcmParams.txTotalCost
-    .plus(chainConstants.existentialDeposit?.toString())
-  ), [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]  )
+    .isGreaterThanOrEqualTo(xcmParams.txTotalCost
+      .plus(chainConstants.existentialDeposit?.toString())
+    ), [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost])
   const minimunTeleportAmount = useMemo(() => {
     const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
-    return hasEnoughBalance ? calculatedTeleportAmount 
+    return hasEnoughBalance ? calculatedTeleportAmount
       : calculatedTeleportAmount.plus(chainConstants.existentialDeposit?.toString())
   }, [xcmParams.txTotalCost, hasEnoughBalance, chainConstants.existentialDeposit])
 
@@ -628,8 +628,8 @@ export function IdentityRegistrarComponent() {
     closeTxDialog()
   }
 
-  const { 
-    accountTree, 
+  const {
+    accountTree,
     loading: accountTreeLoading,
     refresh: refreshAccountTree,
   } = useAccountsTree({
@@ -666,7 +666,7 @@ export function IdentityRegistrarComponent() {
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
         break;
-      case "RemoveIdentity":{ 
+      case "RemoveIdentity": {
         const tx = prepareClearIdentityTx()
         openTxDialog({
           mode: "clearIdentity",
@@ -675,7 +675,7 @@ export function IdentityRegistrarComponent() {
             fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
           },
         })
-        break; 
+        break;
       }
       case "account":
         updateAccount({ ...accountAction.account });
@@ -686,11 +686,11 @@ export function IdentityRegistrarComponent() {
     }
   }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore, disconnectAllWallets])
 
-  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])
 
-  const mainProps: MainContentProps = { 
+  const mainProps: MainContentProps = {
     chainStore, typedApi, accountStore, identity: identity, chainConstants,
-    challengeStore: { challenges, error: challengeError, loading: challengeLoading }, 
+    challengeStore: { challenges, error: challengeError, loading: challengeLoading },
     identityFormRef, urlParams, isTxBusy,
     supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
@@ -700,24 +700,21 @@ export function IdentityRegistrarComponent() {
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
-  
-  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
-  const relayChainId = (chainStore.id as string).split("_")[0]
 
   return <>
-    <ConnectionDialog open={walletDialogOpen} 
-      onClose={() => { setWalletDialogOpen(false) }} 
+    <ConnectionDialog open={walletDialogOpen}
+      onClose={() => { setWalletDialogOpen(false) }}
       dark={isDark}
     />
-    <div 
+    <div
       className="min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch bg-[#FFFFFF] text-[#1E1E1E] dark:bg-[#2C2B2B] dark:text-[#FFFFFF]"
     >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
-        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} identity={identity} 
+        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect}
+          onAccountSelect={onAccountSelect} identity={identity}
           onRequestWalletConnections={onRequestWalletConnection}
-          accountStore={accountStore} 
-          chainStore={chainStore} 
+          accountStore={accountStore}
+          chainStore={chainStore}
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
