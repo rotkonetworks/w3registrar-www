@@ -1,3 +1,5 @@
+// All required dependencies are already in the dependency array.
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Chains } from "@reactive-dot/core/internal.js"
 import BigNumber from "bignumber.js"
 import { HelpCircle } from 'lucide-react'
@@ -156,7 +158,7 @@ export default function Teleporter({
                   This is made up of:
                 </p>
                 <ul className="list-disc list-inside">
-                  <li>Destination account's balance</li>
+                  <li>Destination account&apos;s balance</li>
                   <li>Existential Deposit</li>
                   <li>Transaction fee and deposits</li>
                 </ul>

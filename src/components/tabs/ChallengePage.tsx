@@ -94,7 +94,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     challengeStore[field].status = newStatus
   }, [challengeStore])
 
-
   const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
 
   /* TODO Implement verification for :
@@ -161,7 +160,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               in the admin members list.
             </li>
             <li>
-              <strong>Step 3:</strong> Send a DM to the user with the code.
+              <strong>Step 3:</strong> Send a DM to the bot with the code.
             </li>
             <li>
               <strong>Step 4:</strong> Wait for the bot to verify your code.
@@ -236,12 +235,19 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                 <strong>Step 2:</strong> Send the code in the email as the message body.
               </li>
               <li>
-                <strong>Note:</strong> Subject does not matter, don't worry about it!
+                <strong>Note:</strong> Subject does not matter, don&apos;t worry about it!
               </li>
               <li>
                 <strong>Step 3:</strong> Wait for the email to verify your code.
               </li>
             </ul>
+            <Button variant="outline" size="icon" className="mt-2"
+              onClick={async () => {
+                await copyToClipboard(import.meta.env.VITE_APP_INVITE_LINK_EMAIL)
+              }}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
         }
       />

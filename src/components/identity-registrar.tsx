@@ -799,6 +799,7 @@ export function IdentityRegistrarComponent() {
                 <li>You will have to set identity again.</li>
                 <li>You will lose verification status.</li>
                 <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
+                <li>All of your subaccounts will be dropped</li>
               </>)}
               {openDialog === "setIdentity" && (<>
                 <li>Identity data will be set on chain.</li>
