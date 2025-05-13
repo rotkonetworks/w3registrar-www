@@ -19,13 +19,13 @@ export type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<ChainId>>
   accountStore: AccountData
   identity: IdentityInfo
-  chainConstants: Record<string, any>
+  chainConstants: Record<string, number | string | bigint>
   alerts: AlertProps[]
   challengeStore: {
     challenges: Array<Challenge>,
     error: Error | null,
   }
-  identityFormRef: any
+  identityFormRef: Ref<IdentityFormRef>
   isTxBusy: boolean
   urlParams: {
     address: string | null,
@@ -39,6 +39,6 @@ export type MainContentProps = {
   removeNotification: (key: string) => void
   formatAmount: (amount: bigint | string | number) => string
   openTxDialog: (args: OpenTxDialogArgs_modeSet) => void
-  updateUrlParams: (params: any) => void
+  updateUrlParams: (params: UrlParams) => void
   setOpenDialog: (mode: DialogMode) => void
 }

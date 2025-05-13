@@ -127,7 +127,7 @@ export function IdentityRegistrarComponent() {
   }, [accountStore, urlParams, updateUrlParams]);
 
   //#region identity
-  const identityFormRef = useRef<{ reset: () => void, }>()
+  const identityFormRef = useRef<IdentityFormRef>()
 
   const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
@@ -184,7 +184,7 @@ export function IdentityRegistrarComponent() {
     priority: number 
   }>>(() => ({
     "Identity.JudgementGiven": {
-      onEvent: async data => {
+      onEvent: async (_data: object) => {
         const newIdentity = await fetchIdAndJudgement()
         if (newIdentity?.status === verifyStatuses.IdentityVerified) {
           addAlert({
@@ -198,7 +198,7 @@ export function IdentityRegistrarComponent() {
           })
         }
       },
-      onError: error => { },
+      onError: (_error: Error) => { },
       priority: 4,
     },
   }), [fetchIdAndJudgement, addAlert])
@@ -495,15 +495,14 @@ export function IdentityRegistrarComponent() {
 
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
   
-  const hasEnoughBalance = useMemo(
-    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
-    [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]
-  )
+  const hasEnoughBalance = useMemo(() => balance
+  .isGreaterThanOrEqualTo(xcmParams.txTotalCost
+    .plus(chainConstants.existentialDeposit?.toString())
+  ), [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]  )
   const minimunTeleportAmount = useMemo(() => {
     const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
-    return hasEnoughBalance 
-      ? calculatedTeleportAmount 
-      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
+    return hasEnoughBalance ? calculatedTeleportAmount 
+      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit?.toString())
   }, [xcmParams.txTotalCost, hasEnoughBalance, chainConstants.existentialDeposit])
 
   const balanceRef = useRef(balance)
@@ -539,7 +538,9 @@ export function IdentityRegistrarComponent() {
       for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
         await wait(CHAIN_UPDATE_INTERVAL)
         console.log({ awaitedBlocks })
-        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
+        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost
+          .plus(chainConstants.existentialDeposit?.toString())
+        )) {
           break
         }
         addAlert({

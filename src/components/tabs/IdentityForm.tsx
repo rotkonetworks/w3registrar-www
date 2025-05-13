@@ -268,10 +268,10 @@ export const IdentityForm = forwardRef((
   const forbiddenSubmission = useMemo(() => {
     return (
       Object.entries(formData)
-        .filter(([key, { value, error }]) => !value).length >= Object.keys(formData).length
+        .filter(([, { value }]) => !value).length >= Object.keys(formData).length
       || 
       Object.entries(formData)
-        .filter(([key, { value, error }]) => error).length > 0 
+        .filter(([, { error }]) => error).length > 0 
     )
   }, [formData])
 

@@ -135,7 +135,7 @@ export function StatusPage({
                   duration: 5000,
                 })
               })
-              .catch(err => {
+              .catch(() => {
                 addNotification({
                   type: "error",
                   title: "Copy Failed",

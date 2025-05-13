@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ApiStorage } from "~/types/api";
 
-export const useChainRealTimeInfo = ({ typedApi, chainId, address, handlers }: {
+export const useChainRealTimeInfo = ({ typedApi, address, handlers }: {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>;
   chainId: string | number | symbol;
   address: SS58String;

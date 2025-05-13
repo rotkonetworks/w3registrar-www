@@ -49,9 +49,9 @@ export type MainContentProps = {
   addNotification: (alertProps: AlertPropsOptionalKey) => void,
   formatAmount: (options, FormatAmountFn) => string,
   supportedFields: string[],
-  identityFormRef: Ref<unknown>,
+  identityFormRef: Ref<IdentityFormRef>,
   urlParams: Record<string, string>,
-  updateUrlParams: (urlParams, UrlParamsArgs) => void,
+  updateUrlParams: (urlParams: UrlParamsArgs) => void,
   setOpenDialog: (mode: DialogMode) => void,
   isTxBusy: boolean,
   accountTreeProps: {
