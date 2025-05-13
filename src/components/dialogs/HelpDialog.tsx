@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 import { Button } from "@/components/ui/button";
 import { HelpCarousel } from "~/help/helpCarousel";
 
@@ -13,10 +15,10 @@ export default function HelpDialog({
 }: {
   open: boolean;
   handleOpenChange: (open: boolean) => void;
-  setHelpSlideIndex: (index: number) => void;
+  setHelpSlideIndex: Dispatch<SetStateAction<number>>;
   helpSlideIndex: number;
   SLIDES_COUNT: number;
-  setOpenDialog: (dialog: string | null) => void;
+  setOpenDialog: Dispatch<SetStateAction<null | string>>;
 }) {
   return (
     <GenericDialog open={open} onOpenChange={(v) => {

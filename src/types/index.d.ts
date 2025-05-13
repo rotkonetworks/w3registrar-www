@@ -49,7 +49,7 @@ export type MainContentProps = {
   accountStore: AccountData,
   chainConstants,
   addNotification: (alertProps: AlertPropsOptionalKey) => void,
-  formatAmount: (options, FormatAmountFn) => string,
+  formatAmount: FormatAmountFn,
   supportedFields: string[],
   identityFormRef: Ref<IdentityFormRef>,
   urlParams: Record<string, string>,
@@ -75,11 +75,11 @@ export type SignSubmitAndWatchParams = {
 export type FormatAmountOptions = {
   decimals?: number,
   symbol: string,
-  tokenDecimals: number,
+  tokenDecimals?: number,
 }
 export type AssetAmount = number | bigint | BigNumber | string
 
 export type FormatAmountFn = (
   amount: AssetAmount,
-  options: FormatAmountOptions,
+  options?: FormatAmountOptions,
 ) => string

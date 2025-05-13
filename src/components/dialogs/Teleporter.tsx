@@ -13,12 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ApiConfig } from "~/api/config"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
+import { FormatAmountFn } from "~/types"
 import { ApiTx } from "~/types/api"
 
 import { AccountSelector } from "../ui/account-selector"
 import { Alert } from "../ui/alert"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
-import { FormatAmountOptions } from "~/types"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
@@ -33,11 +33,11 @@ export default function Teleporter({
   tokenDecimals: number,
   xcmParams: XcmParameters,
   tx: ApiTx,
-  otherChains: { id: string, name: string }[],
-  fromBalance: string,
-  toBalance: string,
+  otherChains: { id: string; name: string }[],
+  fromBalance: BigNumber,
+  toBalance: BigNumber,
   teleportAmount: BigNumber,
-  formatAmount: (params: FormatAmountOptions) => string,
+  formatAmount: FormatAmountFn,
 }) {
   const fromAddress = xcmParams.fromAddress
   const setFromAddress = (address: string) => xcmParams.fromAddress = address

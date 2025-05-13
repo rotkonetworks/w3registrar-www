@@ -1,3 +1,5 @@
+import { Switch } from "@radix-ui/react-switch";
+import BigNumber from "bignumber.js";
 import { Coins, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -5,7 +7,7 @@ import { ApiConfig } from "~/api/config";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
 import { XcmParameters } from "~/store/XcmParameters";
-import { DialogMode, EstimatedCostInfo, FormatAmountParams, OpenTxDialogArgs } from "~/types";
+import { DialogMode, EstimatedCostInfo, FormatAmountFn, OpenTxDialogArgs } from "~/types";
 import { Identity } from "~/types/Identity";
 import { ApiTx } from "~/types/api";
 
@@ -37,7 +39,7 @@ export default function ConfirmActionDialog({
   identity,
   isTxBusy,
 }: {
-  openDialog: string;
+  openDialog: DialogMode;
   closeTxDialog: () => void;
   openTxDialog: (dialog: OpenTxDialogArgs) => void;
   submitTransaction: () => void;
@@ -49,11 +51,11 @@ export default function ConfirmActionDialog({
   displayedAccounts: AccountData[];
   chainStore: ChainInfo;
   accountStore: AccountData;
-  relayAndParachains: string[];
-  fromBalance: string;
-  balance: string;
-  minimunTeleportAmount: string;
-  formatAmount: (options: FormatAmountParams) => string;
+  relayAndParachains: { id: string; name: string }[];
+  fromBalance: BigNumber;
+  balance: BigNumber;
+  minimunTeleportAmount: BigNumber;
+  formatAmount: FormatAmountFn;
   config: ApiConfig;
   identity: Identity;
   isTxBusy: boolean;
