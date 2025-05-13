@@ -1,15 +1,13 @@
 import { decodeAddress, encodeAddress } from "@polkadot/keyring"
 import type { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { useClient, useSpendableBalance, useTypedApi} from "@reactive-dot/react"
+import { useClient, useSpendableBalance, useTypedApi } from "@reactive-dot/react"
 import BigNumber from "bignumber.js"
 import { ConnectionDialog } from "dot-connect/react.js"
-import { Coins, AlertCircle } from "lucide-react"
 import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
 import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
 import { useProxy } from "valtio/utils"
 
-import { Button } from "@/components/ui/button"
 import { config } from "~/api/config"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
 import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
@@ -40,11 +38,9 @@ import { errorMessages } from "~/utils/errorMessages"
 import { AlertsAccordion } from "./AlertsAccordion"
 import Header from "./Header"
 import { MainContent } from "./MainContent"
-import { GenericDialog } from "./dialogs/GenericDialog"
-import Teleporter from "./dialogs/Teleporter"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
-import { Switch } from "./ui/switch"
+import ConfirmActionDialog from "./dialogs/ConfirmActionDialog";
+import ErrorDetailsDialog from "./dialogs/ErrorDetailsDialog";
+import HelpDialog from "./dialogs/HelpDialog";
 
 export function IdentityRegistrarComponent() {
   const {
@@ -755,214 +751,46 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    {/* Update alerts notification section */}
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
-    {/* TODO Refactor away dialogs */}
-    <Dialog 
-      open={[
-        "clearIdentity", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
-        "quitSub", "editSubAccount"
-      ].includes(openDialog)} 
-      onOpenChange={v => v 
-        ?openTxDialog({
-          mode: openDialog as DialogMode,
-          tx: txToConfirm,
-          estimatedCosts,
-        }) 
-        :closeTxDialog()
-      }
-    >
-      <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
-        <DialogHeader>
-          <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
-          <DialogDescription>
-            Please review the following information before proceeding.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
-          {Object.keys(estimatedCosts).length > 0 &&
-            <div>
-              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <Coins className="h-5 w-5 text-[#E6007A]" />
-                Transaction Costs
-              </h4>
-              <ul className="list-disc list-inside">
-                {estimatedCosts.fees &&
-                  <li>Total estimated cost: {formatAmount(estimatedCosts.fees)}</li>
-                }
-                {estimatedCosts.deposits &&
-                  <li>Existential deposit: {formatAmount(estimatedCosts.deposits)}</li>
-                }
-                <li>Current balance: {formatAmount(balance)}</li>
-                {import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`] && <li>
-                  Need more {chainStore.tokenSymbol}? Visit the{" "}
-                  <a href={import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`]}
-                    target="_blank" rel="noopener noreferrer" className="text-[#E6007A] underline">
-                    {config.chains[relayChainId].name} faucet
-                  </a> to get more test tokens!
-                </li>}
-              </ul>
-            </div>
-          }
-          <div>
-            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-              Important Notes
-            </h4>
-            <ul className="list-disc list-inside">
-              {openDialog === "clearIdentity" && (<>
-                <li>All identity data will be deleted from chain..</li>
-                <li>You will have to set identity again.</li>
-                <li>You will lose verification status.</li>
-                <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
-                <li>All of your subaccounts will be dropped</li>
-              </>)}
-              {openDialog === "setIdentity" && (<>
-                <li>Identity data will be set on chain.</li>
-                <li>
-                  Deposit of {formatAmount(identity.deposit)} will be taken, which will be 
-                  released if you clear your identity.
-                </li>
-              </>)}
-              {openDialog === "requestJudgement" && (<>
-                <li>
-                  After having fees paid, you will have go to second tab and complete all challenges 
-                  in order to be verified.
-                </li>
-              </>)}
-              {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
-                <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
-                <li>Please ensure all provided information is accurate before continuing.</li>
-              </>)}
-              {openDialog === "addSubaccount" && (<>
-                <li>You will link another account as a subaccount under your identity.</li>
-                <li>This relationship will be publicly visible on-chain.</li>
-                {/* TODO Point to deposit */}
-                <li>A deposit will be required for managing subaccounts.</li>
-                <li>
-                  Tf you link an account you don&apos;t own, actual owner can quit and take your deposit.
-                </li>
-              </>)}
-              {openDialog === "removeSubaccount" && (<>
-                <li>You will remove the link between your account and this subaccount.</li>
-                <li>Your deposit for this subaccount will be returned.</li>
-              </>)}
-              {openDialog === "editSubAccount" && (<>
-                <li>You will update the name of this subaccount.</li>
-                <li>This will be publicly visible on-chain.</li>
-                <li>There is no deposit required for this action.</li>
-              </>)}
-              {openDialog === "quitSub" && (<>
-                <li>You will remove your account&apos;s status as a subaccount.</li>
-                <li>This will break the link with your parent account.</li>
-                <li>The deposit for this subaccount will be returned to you.</li>
-              </>)}
-            </ul>
-          </div>
-          <Accordion type="single" collapsible value={teleportExpanded ? "teleport" : null} 
-            onValueChange={(v) => setTeleportExpanded(v === "teleport")}
-          >
-            <AccordionItem value="teleport">
-              <AccordionTrigger className="bg-transparent flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  Trasnfer from other account
-                  <Switch checked={teleportExpanded} />
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-                  address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
-                  tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
-                  teleportAmount={minimunTeleportAmount}
-                  formatAmount={formatAmount}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={closeTxDialog}
-            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={submitTransaction} disabled={isTxBusy}
-            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-          >
-            Confirm
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <GenericDialog open={openDialog === "help"} onOpenChange={(v) => {
-      handleOpenChange(v)
-      setHelpSlideIndex(0)
-    }} 
-      title="Quick start guide"
-      footer={<>
-        {helpSlideIndex < SLIDES_COUNT -1 && (
-          <Button variant="outline" onClick={() => {
-            setOpenDialog(null)
-            setHelpSlideIndex(0)
-          }}>Skip</Button>
-        )}
-        <Button 
-          onClick={() => {
-            if (helpSlideIndex === SLIDES_COUNT - 1) {
-              setOpenDialog(null)
-              setHelpSlideIndex(0)
-            } else {
-              setHelpSlideIndex(prev => prev + 1)
-            }
-          }}
-        >
-          {helpSlideIndex >= SLIDES_COUNT -1 ? "Close" : "Next"}
-        </Button>
-      </>}
-    >
-      <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
-    </GenericDialog>
-    <GenericDialog open={openDialog === "errorDetails"} onOpenChange={handleOpenChange} 
-      title="Error details"
-      footer={<>
-        <Button variant="outline" onClick={() => {
-          setOpenDialog(null)
-          setErrorDetails(null)
-        }}>Close</Button>
-        <Button onClick={() => {
-          if (errorDetails) {
-            const fullError = `${errorDetails.message}\n${errorDetails.stack || ''}`;
-            navigator.clipboard.writeText(fullError)
-              .then(() => {
-                addAlert({
-                  type: "success",
-                  message: "Error details copied to clipboard",
-                  //timeout: 3000 // TODO uncomment this when we support self-closing alerts
-                });
-              })
-              .catch(err => {
-                addAlert({
-                  type: "error",
-                  message: "Failed to copy error details",
-                  //timeout: 3000 // TODO Ditto
-                });
-                console.error("Failed to copy:", err);
-              });
-          }
-        }}>
-          Copy to Clipboard
-        </Button>
-      </>}
-    >
-      <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
-        <pre className="text-sm text-red-500">
-          {errorDetails?.message}
-          {errorDetails?.stack}
-        </pre>
-      </div>
-    </GenericDialog>
+    <ConfirmActionDialog
+      openDialog={openDialog}
+      closeTxDialog={closeTxDialog}
+      openTxDialog={openTxDialog}
+      submitTransaction={submitTransaction}
+      estimatedCosts={estimatedCosts}
+      txToConfirm={txToConfirm}
+      xcmParams={xcmParams}
+      teleportExpanded={teleportExpanded}
+      setTeleportExpanded={setTeleportExpanded}
+      displayedAccounts={displayedAccounts}
+      chainStore={chainStore}
+      accountStore={accountStore}
+      relayAndParachains={relayAndParachains}
+      fromBalance={fromBalance}
+      balance={balance}
+      minimunTeleportAmount={minimunTeleportAmount}
+      formatAmount={formatAmount}
+      config={config}
+      identity={identity}
+      isTxBusy={isTxBusy}
+    />
+
+    <HelpDialog
+      open={openDialog === "help"}
+      handleOpenChange={handleOpenChange}
+      setHelpSlideIndex={setHelpSlideIndex}
+      helpSlideIndex={helpSlideIndex}
+      SLIDES_COUNT={SLIDES_COUNT}
+      setOpenDialog={setOpenDialog}
+    />
+
+    <ErrorDetailsDialog
+      open={openDialog === "errorDetails"}
+      handleOpenChange={handleOpenChange}
+      errorDetails={errorDetails}
+      setErrorDetails={setErrorDetails}
+      addAlert={addAlert}
+    />
   </>
 }

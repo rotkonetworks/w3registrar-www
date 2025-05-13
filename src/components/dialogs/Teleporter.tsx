@@ -18,6 +18,7 @@ import { ApiTx } from "~/types/api"
 import { AccountSelector } from "../ui/account-selector"
 import { Alert } from "../ui/alert"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
+import { FormatAmountOptions } from "~/types"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
@@ -33,10 +34,10 @@ export default function Teleporter({
   xcmParams: XcmParameters,
   tx: ApiTx,
   otherChains: { id: string, name: string }[],
-  fromBalance: BigNumber,
-  toBalance: BigNumber,
+  fromBalance: string,
+  toBalance: string,
   teleportAmount: BigNumber,
-  formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
+  formatAmount: (params: FormatAmountOptions) => string,
 }) {
   const fromAddress = xcmParams.fromAddress
   const setFromAddress = (address: string) => xcmParams.fromAddress = address
