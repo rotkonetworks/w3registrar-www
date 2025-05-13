@@ -83,8 +83,8 @@ export const IdentityForm = forwardRef((
     try {
       estimatedCosts = {
         fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
-        deposits: BigNumber(chainConstants.basicDeposit.toString())
-          .plus(BigNumber(chainConstants.byteDeposit.toString())
+        deposits: BigNumber(chainConstants.basicDeposit?.toString())
+          .plus(BigNumber(chainConstants.byteDeposit?.toString())
             .times(Object.values(formData)
               .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
             )
@@ -162,7 +162,7 @@ export const IdentityForm = forwardRef((
       checkForErrors: (v) => {
         if (v.length === 0) return null;
         try {
-          const url = new URL(v.startsWith('http') ? v : `https://${v}`);
+          new URL(v.startsWith('http') ? v : `https://${v}`); // Ensure URL is valid
           return null;
         } catch {
           return "Invalid URL format";

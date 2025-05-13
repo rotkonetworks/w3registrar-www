@@ -253,7 +253,7 @@ const useChallengeWebSocket = (
               console.log({ response })
               setAccountState({
                 ...response,
-                network: response.network || 'paseo'
+                network: response.network
               });
               setLoading(false);
               setError(null);
@@ -289,7 +289,7 @@ const useChallengeWebSocket = (
             ...prev,
             verification_state: { fields: verificationStateFields },
             pending_challenges: pendingChallenges,
-            network: message.network || network
+            network: message.network
           }));
           break;
         }

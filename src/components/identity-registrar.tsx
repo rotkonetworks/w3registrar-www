@@ -219,8 +219,6 @@ export function IdentityRegistrarComponent() {
     isConnected: isChallengeWsConnected,
     loading: challengeLoading,
     subscribe: subscribeToChallenges,
-    connect: connectToChallenges,
-    disconnect: disconnectFromChallenges,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,

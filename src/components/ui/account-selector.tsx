@@ -47,7 +47,7 @@ export const AccountSelector = ({
                 key={account.address}
                 onSelect={() => {
                   handleAddressChange(account.address);
-                  handleOpen ? handleOpen(false) : setOpen(false);
+                  const _ = handleOpen ? handleOpen(false) : setOpen(false);
                 }}
               >
                 {account.name}
