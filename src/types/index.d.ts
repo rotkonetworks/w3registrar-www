@@ -39,6 +39,8 @@ export type OpenTxDialogArgs_modeSet = {
 }
 export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
+export type IdentityFormRef = { reset: () => void; };
+
 export type MainContentProps = {
   identity: Identity,
   challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
