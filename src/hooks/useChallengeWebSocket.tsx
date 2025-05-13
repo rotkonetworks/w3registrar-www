@@ -335,8 +335,7 @@ const useChallengeWebSocket = (
     }
     setLoading(false);
     setIsConnected(false);
-    // 1 Absolutely necessary to avoid infinite loop. It's a bit tricky, but it works. No more deps!
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // 1 Absolutely nothing, to avoid infinite loop. It's a bit tricky, but it works. No more deps!
   }, []);
 
   // Set up WebSocket connection

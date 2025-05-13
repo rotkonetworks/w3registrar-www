@@ -174,7 +174,7 @@ export function IdentityRegistrarComponent() {
         console.log({ id, newChainData })
       })
     }) ())
-  }, [chainStore.id, chainClient])
+  }, [chainStore, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     startTransition(() => {
       updateUrlParams({ ...urlParams, chain: chainId as string })
