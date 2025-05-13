@@ -117,7 +117,9 @@ export function IdentityRegistrarComponent() {
       
       removeAlert("invalidAddress");
     }
-  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert]);
+    // ESLint Expects us to add accountStore as a dependency, but it will cause an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert, chainStore.ss58Format]);
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
@@ -135,7 +137,7 @@ export function IdentityRegistrarComponent() {
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
     clearAllAlerts()
-  }, [chainStore.id, accountStore.address])
+  }, [chainStore.id, accountStore.address, clearAllAlerts])
 
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
@@ -176,7 +178,7 @@ export function IdentityRegistrarComponent() {
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId as string })
     chainStore.id = chainId
-  }, [urlParams])
+  }, [chainStore, updateUrlParams, urlParams])
   
   const eventHandlers = useMemo<Record<string, { 
     onEvent: (data: object) => void; 
@@ -230,6 +232,8 @@ export function IdentityRegistrarComponent() {
     if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
       subscribeToChallenges()
     }
+    // Don't add suggested deps, as this somehow causes an infinite loop. Don't ask me why :D
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChallengeWsConnected])
   //#endregion challenges
   
@@ -442,7 +446,9 @@ export function IdentityRegistrarComponent() {
         disposeSubscription()
       }
     })
-  }), [accountStore.polkadotSigner, isTxBusy, fetchIdAndJudgement])
+    // Still, proposed deps remain inmutable, such as AddAlert and getNonce
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [accountStore.polkadotSigner, accountStore.address, isTxBusy, fetchIdAndJudgement, typedApi, ])
   //#endregion Transactions
 
   const onIdentityClear = useCallback(async () => {
@@ -450,7 +456,7 @@ export function IdentityRegistrarComponent() {
       call: prepareClearIdentityTx(),
       name: "Clear Identity"
     })
-  }, [prepareClearIdentityTx])
+  }, [prepareClearIdentityTx, signSubmitAndWatch])
   
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
@@ -636,7 +642,7 @@ export function IdentityRegistrarComponent() {
       setTxToConfirm(null)
       xcmParams.enabled = false
     }
-  }, [])
+  }, [xcmParams])
   const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
 
   const handleOpenChange = useCallback((nextState: boolean): void => {
@@ -671,7 +677,7 @@ export function IdentityRegistrarComponent() {
         console.log({ accountAction })
         throw new Error("Invalid action type");
     }
-  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
+  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore, disconnectAllWallets])
 
   const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
 

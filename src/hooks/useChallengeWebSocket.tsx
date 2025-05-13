@@ -178,6 +178,8 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
         challenges: _challenges,
       })
     }
+    // DRY code, also, all required values are already in the deps array and null checked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, idWsDeps)
 
   return { challenges, error, isConnected, loading: challengeWebSocket.loading, 
@@ -327,7 +329,9 @@ const useChallengeWebSocket = (
     }
     setLoading(false);
     setIsConnected(false);
-  }, [ws.current?.readyState]);
+    // 1 Absolutely necessary to avoid infinite loop. It's a bit tricky, but it works. No more deps!
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Set up WebSocket connection
   const connect = () => {
@@ -370,7 +374,9 @@ const useChallengeWebSocket = (
     // TODO Make it reconnect if failed to connect or disconnected
     
     return disconnect;
-  }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
+    // DITTO 1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, ws.current?.readyState]);
 
   const subscribe = () => {
     sendMessage({
@@ -384,7 +390,9 @@ const useChallengeWebSocket = (
       // Subscribe to account state on connection
       subscribe();
     }
-  }, [account, network, sendMessage, ws.current?.readyState])
+    // DITTO 1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account, network, ws.current?.readyState])
 
   return {
     connect,

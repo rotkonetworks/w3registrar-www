@@ -50,7 +50,7 @@ export const IdentityForm = forwardRef((
       key,
       { value: "", error: null }
     ])
-  ), [])
+  ), [supportedFields])
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
 
@@ -241,7 +241,7 @@ export const IdentityForm = forwardRef((
         }
         return all
       }, { }))
-  }), [])
+  }), [_reset])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
@@ -255,11 +255,11 @@ export const IdentityForm = forwardRef((
     } else {
       setFormData(_reset)
     }
-  }, [identity.info, formResetFlag])
+  }, [identity, formResetFlag, _resetFromIdStore, _reset])
   
   useImperativeHandle(ref, () => ({
     reset: () => setFormResetFlag(true)
-  }), [identity])
+  }), [])
 
   useEffect(() => {
     console.log({ formData })

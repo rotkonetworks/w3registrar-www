@@ -21,7 +21,7 @@ export const MainContent = ({
   addNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   accountTreeProps
 }: MainContentProps) => {
-  const tabs = [
+  const tabs = useMemo(() => [
     {
       id: "status",
       name: "Profile",
@@ -77,7 +77,11 @@ export const MainContent = ({
         />}
       </div>
     },
-  ]
+  ], [
+    identity, challengeStore, isTxBusy, chainStore, accountStore, accountTreeProps, typedApi,
+    identityFormRef, chainConstants, supportedFields,
+    formatAmount, addNotification, openTxDialog, setOpenDialog
+  ])
   const enabledTabsIndexes = tabs
     .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
     .filter(tab => !tab.disabled)
@@ -92,7 +96,9 @@ export const MainContent = ({
     if (tab && !tab.disabled) {
       setCurrentTabIndex(tabs.indexOf(tab))
     }
-  }, [urlParams.tab])
+    // eslint keeps suggesting to add urlParams as a dependency, but only .tab is used
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs, urlParams.tab])
   const changeCurrentTab = useCallback((index: number) => {
     const tab = tabs[index];
     updateUrlParams({ ...urlParams, tab: tab.id })

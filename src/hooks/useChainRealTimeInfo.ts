@@ -99,7 +99,7 @@ export const useChainRealTimeInfo = ({ typedApi, address, handlers }: {
     return () => {
       systemEventsSub.unsubscribe?.()
     }
-  }, [typedApi, address, handlerEntries])
+  }, [typedApi, address, handlerEntries, handlers])
 
   return { constants, }
 }
