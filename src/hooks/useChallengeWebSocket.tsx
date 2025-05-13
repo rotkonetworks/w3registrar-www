@@ -169,6 +169,10 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
             code: !value && pendingChallenges[key],
           };
         })
+      if (_.isEqual(challenges, _challenges)) {
+        console.log("No changes in challenges")
+        return
+      }
       setChallenges(_challenges)
 
       console.log({
