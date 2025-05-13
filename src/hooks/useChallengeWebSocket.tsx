@@ -134,7 +134,8 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     setChallenges({}) 
   }, [url, address, network])
 
-  const idWsDeps = [challengeState, error, address, identity.info, network]
+  const idWsDeps = [challengeState, error, address, identity.status, network]
+
   useEffect(() => {
     console.log({ idWsDeps })
     if (error) {
@@ -186,7 +187,7 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, idWsDeps)
 
-  return { challenges, error, isConnected, loading: challengeWebSocket.loading, 
+  return { challenges, error: error, isConnected, loading: challengeWebSocket.loading, 
     subscribe: challengeWebSocket.subscribe,
     connect: challengeWebSocket.connect,
     disconnect: challengeWebSocket.disconnect,
@@ -200,7 +201,7 @@ const useChallengeWebSocket = (
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [challengeState, setChallengeState] = useState<ResponseAccountState | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Keep track of pending promises for responses
@@ -255,7 +256,7 @@ const useChallengeWebSocket = (
             const response = message.payload.message.AccountState;
             if (response) {
               console.log({ response })
-              setAccountState({
+              setChallengeState({
                 ...response,
                 network: response.network
               });
@@ -289,7 +290,7 @@ const useChallengeWebSocket = (
               });
           }
 
-          setAccountState(prev => ({ 
+          setChallengeState(prev => ({ 
             ...prev,
             verification_state: { fields: verificationStateFields },
             pending_challenges: pendingChallenges,
