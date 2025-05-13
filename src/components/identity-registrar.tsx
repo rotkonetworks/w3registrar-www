@@ -176,8 +176,10 @@ export function IdentityRegistrarComponent() {
     }) ())
   }, [chainStore.id, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
-    updateUrlParams({ ...urlParams, chain: chainId as string })
-    chainStore.id = chainId
+    startTransition(() => {
+      updateUrlParams({ ...urlParams, chain: chainId as string })
+      chainStore.id = chainId
+    })
   }, [chainStore, updateUrlParams, urlParams])
   
   const eventHandlers = useMemo<Record<string, { 
