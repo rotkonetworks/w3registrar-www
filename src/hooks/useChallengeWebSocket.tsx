@@ -251,6 +251,7 @@ const useChallengeWebSocket = (
       console.log({message})
 
       switch (message.type) {
+        // TODO Review if code for this case is present in the backend
         case 'JsonResult':
           if ('ok' === message.payload.type) {
             const response = message.payload.message.AccountState;
