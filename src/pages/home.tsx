@@ -10,13 +10,11 @@ import { chainStore as _chainStore } from '~/store/ChainStore';
 
 import { Loading } from './Loading';
 
-
-
 function Home() {
   const chainId = useProxy(_chainStore).id
   React.useEffect(() => {
     console.log({ config });
-  }, [config]);
+  }, []);
 
   React.useEffect(() => {
     if (!Object.keys(config.chains).includes(chainId as string)) {
