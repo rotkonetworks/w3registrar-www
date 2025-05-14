@@ -5,7 +5,7 @@ import { useClient, useSpendableBalance, useTypedApi } from "@reactive-dot/react
 import BigNumber from "bignumber.js"
 import { ConnectionDialog } from "dot-connect/react.js"
 import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
-import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useProxy } from "valtio/utils"
 
 import { config } from "~/api/config"
@@ -165,17 +165,13 @@ export function IdentityRegistrarComponent() {
         registrarIndex: config.chains[id].registrarIndex,
         ...chainProperties,
       }
-      startTransition(() => {
-        Object.assign(chainStore, newChainData)
-        console.log({ id, newChainData })
-      })
+      Object.assign(chainStore, newChainData)
+      console.log({ id, newChainData })
     })())
   }, [chainStore, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
-    startTransition(() => {
-      updateUrlParams({ ...urlParams, chain: chainId as string })
-      chainStore.id = chainId
-    })
+    updateUrlParams({ ...urlParams, chain: chainId as string })
+    chainStore.id = chainId
   }, [chainStore, updateUrlParams, urlParams])
 
   const eventHandlers = useMemo<Record<string, {
