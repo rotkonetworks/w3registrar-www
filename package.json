@@ -10,8 +10,8 @@
     "dev": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint": "eslint ./src",
+    "lint:fix": "eslint --fix ./src"
   },
   "dependencies": {
     "@iconify/react": "^5.1.0",

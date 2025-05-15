@@ -23,7 +23,7 @@ export default tseslint.config(
         'plugin:react-hooks/recommended'
     ),
     {
-        files: ['**/*.{ts,tsx}'],
+        files: ['src/**/*.{ts,tsx}'],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: 'module',
@@ -81,13 +81,13 @@ export default tseslint.config(
         },
     },
     {
-        files: ['**/*.{ts,tsx}'],
+        files: ['src/**/*.{ts,tsx}'],
         rules: {
             '@typescript-eslint/explicit-function-return-type': 'off',
             '@typescript-eslint/strict-boolean-expressions': 'off',
         },
     },
     {
-        ignores: ['node_modules/**', 'dist/**', 'build/**'],
+        ignores: [], // No ignores needed, as only src is linted
     }
 );
