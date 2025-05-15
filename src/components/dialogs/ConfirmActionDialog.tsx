@@ -1,8 +1,8 @@
-import { Switch } from "@radix-ui/react-switch";
 import BigNumber from "bignumber.js";
 import { Coins, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { ApiConfig } from "~/api/config";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
