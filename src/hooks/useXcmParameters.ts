@@ -4,7 +4,7 @@ import { useTypedApi } from "@reactive-dot/react";
 import BigNumber from "bignumber.js";
 import { TypedApi } from "polkadot-api";
 import { Binary } from "polkadot-api";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
 import { useProxy } from "valtio/utils";
 
 import { config } from "~/api/config";
@@ -20,7 +20,7 @@ export function useXcmParameters({
   chainId,
   estimatedCosts = {},
 }: UseXcmParametersOptions) {
-  const xcmParams = useProxy(_xcmParams);
+  const xcmParams = useDeferredValue(useProxy(_xcmParams));
 
   // Determine relay chain ID based on current chain
   const relayChainId = useMemo<keyof Chains>(
