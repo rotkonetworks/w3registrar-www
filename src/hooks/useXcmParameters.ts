@@ -38,9 +38,9 @@ export function useXcmParameters({
 
   // Setup fromChain when relayChainId changes
   useEffect(() => {
-    console.log({ relayChainId, relayAndParachains });
     xcmParams.fromChain.id = relayChainId;
-  }, [relayChainId, relayAndParachains]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relayChainId]);
 
   // Get typed API for from chain
   const fromTypedApi = useTypedApi({ 
@@ -70,6 +70,7 @@ export function useXcmParameters({
         }
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromTypedApi, getParachainId]);
 
   // Update total transaction cost based on estimated costs
@@ -80,6 +81,7 @@ export function useXcmParameters({
         BigNumber(0)
       ) as BigNumber;
     xcmParams.txTotalCost = totalCost.times(1.1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estimatedCosts]);
 
   // Generate teleport call
@@ -165,6 +167,7 @@ export function useXcmParameters({
   const teleportExpanded = xcmParams.enabled;
   const setTeleportExpanded = useCallback((nextState: boolean) => {
     xcmParams.enabled = nextState;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

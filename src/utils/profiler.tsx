@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Profiler as ReactProfiler } from 'react';
 
 function onRenderCallback(
