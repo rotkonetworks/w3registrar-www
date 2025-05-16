@@ -45,13 +45,16 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }>>({})
 
   useEffect(() => {
-    setFormData(Object.fromEntries(Object.keys(challengeFieldsConfig)
+    const _formData = Object.fromEntries(Object.keys(challengeFieldsConfig)
       .filter(key => challengeFieldsConfig[key].type === "input")
       .map(key => [key, {
         value: formData[key]?.value || "",
         error: formData[key]?.error || null,
       }])
-    ))
+    )
+    if (!_.isEqual(_formData, formData)) {
+      setFormData(_formData)
+    }
   }, [challengeFieldsConfig, formData])
 
   const setFormField = useCallback((field: string, value: string): void => {
