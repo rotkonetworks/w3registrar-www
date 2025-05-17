@@ -1,16 +1,16 @@
-import { Challenge, ChallengeStore } from "~/store/challengesStore"
-import { Identity, verifyStatuses } from "~/types/Identity"
+import BigNumber from "bignumber.js"
+import { MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Share2 } from "lucide-react"
+import { SS58String } from "polkadot-api"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { MessageSquare, UserCircle, CheckCircle, AlertCircle, Coins, Trash, FileCheck, Share2 } from "lucide-react"
-import BigNumber from "bignumber.js"
+import { SOCIAL_ICONS } from "~/assets/icons"
+import { Challenge, ChallengeStore } from "~/store/challengesStore"
+import { Identity, verifyStatuses } from "~/types/Identity"
+
 import { IdentityStatusInfo } from "../IdentityStatusInfo"
 import { VerificationStatusBadge } from "../VerificationStatusBadge"
-import { SOCIAL_ICONS } from "~/assets/icons"
 import { StatusBadge } from "../challenges/StatusBadge"
-import { SS58String } from "polkadot-api"
-import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
 
 export function StatusPage({
   identity,
@@ -135,7 +135,7 @@ export function StatusPage({
                   duration: 5000,
                 })
               })
-              .catch(err => {
+              .catch(() => {
                 addNotification({
                   type: "error",
                   title: "Copy Failed",

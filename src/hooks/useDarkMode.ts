@@ -4,10 +4,14 @@ export function useDarkMode() {
   const [isDark, setIsDark] = useState<boolean>(window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   useEffect(() => {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-      setDark(event.matches)
-    });
-  })
+    const handleDarkModeChange = (event: MediaQueryListEvent): void => {
+      setDark(event.matches);
+    };
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', handleDarkModeChange);
+    return () => {
+      window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', handleDarkModeChange);
+    }
+  }, [])
   useEffect(() => {
     console.log({ isDark })
     document.documentElement.classList.toggle('dark', isDark)

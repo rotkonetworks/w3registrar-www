@@ -1,22 +1,23 @@
+import _ from "lodash"
+import { AtSign, Mail, Copy, Shield } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AtSign, Mail, MessageSquare, Copy, CheckCircle, Globe, UserCircle, Shield } from "lucide-react"
-import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { LoadingPlaceholder } from "~/pages/Loading"
-import { XIcon } from "~/assets/icons/x"
-import { DiscordIcon } from "~/assets/icons/discord"
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
-import { HelpCarousel } from "~/help/helpCarousel"
 import { SOCIAL_ICONS } from "~/assets/icons"
+import { DiscordIcon } from "~/assets/icons/discord"
+import { XIcon } from "~/assets/icons/x"
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts"
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { LoadingPlaceholder } from "~/pages/Loading"
+import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { Identity } from "~/types/Identity"
-import _ from "lodash"
+
 import { StatusBadge } from "../challenges/StatusBadge"
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+
 
 export function ChallengePage({ addNotification, challengeStore, identity, }: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
@@ -44,14 +45,17 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   }>>({})
 
   useEffect(() => {
-    setFormData(Object.fromEntries(Object.keys(challengeFieldsConfig)
+    const _formData = Object.fromEntries(Object.keys(challengeFieldsConfig)
       .filter(key => challengeFieldsConfig[key].type === "input")
       .map(key => [key, {
         value: formData[key]?.value || "",
         error: formData[key]?.error || null,
       }])
-    ))
-  }, [challengeFieldsConfig])
+    )
+    if (!_.isEqual(_formData, formData)) {
+      setFormData(_formData)
+    }
+  }, [challengeFieldsConfig, formData])
 
   const setFormField = useCallback((field: string, value: string): void => {
     setFormData(prev => ({
@@ -78,19 +82,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
   const getIcon = (field: string) => {
     return SOCIAL_ICONS[field]
   }
-
-  const updateChallengeStatus = useCallback((field: keyof ChallengeStore, result: boolean) => {
-    const newStatus = result ? ChallengeStatus.Passed : ChallengeStatus.Failed
-    setLocalChallengeStore(prev => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        status: newStatus
-      }
-    }))
-    challengeStore[field].status = newStatus
-  }, [challengeStore])
-
 
   const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
 
@@ -158,7 +149,7 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
               in the admin members list.
             </li>
             <li>
-              <strong>Step 3:</strong> Send a DM to the user with the code.
+              <strong>Step 3:</strong> Send a DM to the bot with the code.
             </li>
             <li>
               <strong>Step 4:</strong> Wait for the bot to verify your code.
@@ -233,12 +224,19 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
                 <strong>Step 2:</strong> Send the code in the email as the message body.
               </li>
               <li>
-                <strong>Note:</strong> Subject does not matter, don't worry about it!
+                <strong>Note:</strong> Subject does not matter, don&apos;t worry about it!
               </li>
               <li>
                 <strong>Step 3:</strong> Wait for the email to verify your code.
               </li>
             </ul>
+            <Button variant="outline" size="icon" className="mt-2"
+              onClick={async () => {
+                await copyToClipboard(import.meta.env.VITE_APP_INVITE_LINK_EMAIL)
+              }}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
         }
       />

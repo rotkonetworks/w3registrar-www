@@ -1,13 +1,13 @@
 import { Circle } from "lucide-react";
 import React from "react";
+
 import { HelpCarousel } from "~/help/helpCarousel";
 import { useDarkMode } from "~/hooks/useDarkMode";
 
 export const LoadingPlaceholder = ({ className, children, ...props }: {
   className?: string,
   children?: React.ReactNode | React.ReactNode[],
-  [key: string]: any
-}) => <div {...props}
+} & React.HTMLAttributes<HTMLDivElement>) => <div {...props}
   className={`${className} animate-pulse bg-gray`} 
 >
   {children}
@@ -15,8 +15,7 @@ export const LoadingPlaceholder = ({ className, children, ...props }: {
 
 export const LoadingTabs = ({ className, ...props }: {
   className?: string,
-  [key: string]: any
-}) => <>
+} & React.HTMLAttributes<HTMLDivElement>) => <>
   <LoadingPlaceholder {...props}
     className={
       "h-10 rounded-md p-1 text-muted-foreground grid w-full grid-cols-3 overflow-hidden"
@@ -28,8 +27,7 @@ export const LoadingTabs = ({ className, ...props }: {
 export const LoadingContent = ({ className, children, ...props }: {
   className?: string,
   children?: React.ReactNode | React.ReactNode[],
-  [key: string]: any
-}) => <>
+} & React.HTMLAttributes<HTMLDivElement>) => <>
   <div {...props}
     className={
       "flex flex-grow flex-col items-stretch mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 "

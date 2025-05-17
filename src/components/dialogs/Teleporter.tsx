@@ -1,19 +1,24 @@
-import React, { ReactNode, useEffect } from "react"
+// All required dependencies are already in the dependency array.
+/* eslint-disable react-hooks/exhaustive-deps */
+import { Chains } from "@reactive-dot/core/internal.js"
+import BigNumber from "bignumber.js"
 import { HelpCircle } from 'lucide-react'
+import { SS58String } from "polkadot-api"
+import React, { ReactNode, useEffect } from "react"
+
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
-import { SS58String } from "polkadot-api"
 import { ApiConfig } from "~/api/config"
-import BigNumber from "bignumber.js"
-import { Chains } from "@reactive-dot/core/internal.js"
 import { AccountData } from "~/store/AccountStore"
 import { XcmParameters } from "~/store/XcmParameters"
+import { FormatAmountFn } from "~/types"
 import { ApiTx } from "~/types/api"
-import { Alert } from "../ui/alert"
+
 import { AccountSelector } from "../ui/account-selector"
+import { Alert } from "../ui/alert"
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/tooltip"
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
@@ -28,11 +33,11 @@ export default function Teleporter({
   tokenDecimals: number,
   xcmParams: XcmParameters,
   tx: ApiTx,
-  otherChains: { id: string, name: string }[],
+  otherChains: { id: string; name: string }[],
   fromBalance: BigNumber,
   toBalance: BigNumber,
   teleportAmount: BigNumber,
-  formatAmount: (amount: number | bigint | BigNumber | string, options?: { symbol }) => string,
+  formatAmount: FormatAmountFn,
 }) {
   const fromAddress = xcmParams.fromAddress
   const setFromAddress = (address: string) => xcmParams.fromAddress = address
@@ -154,7 +159,7 @@ export default function Teleporter({
                   This is made up of:
                 </p>
                 <ul className="list-disc list-inside">
-                  <li>Destination account's balance</li>
+                  <li>Destination account&apos;s balance</li>
                   <li>Existential Deposit</li>
                   <li>Transaction fee and deposits</li>
                 </ul>

@@ -1,53 +1,46 @@
-import { useState, useEffect, useCallback, useMemo, startTransition, useRef } from "react"
-import { Coins, AlertCircle } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-
-import { ConnectionDialog } from "dot-connect/react.js"
-import Header from "./Header"
-import { chainStore as _chainStore } from '~/store/ChainStore'
-import { useProxy } from "valtio/utils"
-import { verifyStatuses } from "~/types/Identity"
-import { challengeStore as _challengeStore } from "~/store/challengesStore"
-import { 
-  useClient, useSpendableBalance, useTypedApi
-} from "@reactive-dot/react"
-import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
-import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
-import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
-import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
-import BigNumber from "bignumber.js"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog"
-import { config } from "~/api/config"
-import Teleporter from "./dialogs/Teleporter"
-import { useUrlParams } from "~/hooks/useUrlParams"
-import { useDarkMode } from "~/hooks/useDarkMode"
+import { decodeAddress, encodeAddress } from "@polkadot/keyring"
 import type { ChainId } from "@reactive-dot/core";
-import { LoadingContent, LoadingTabs } from "~/pages/Loading"
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js"
-import { ApiStorage, ApiTx } from "~/types/api"
-import { GenericDialog } from "./dialogs/GenericDialog"
-import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
-import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
-import { Switch } from "./ui/switch"
-import { 
-  DialogMode, EstimatedCostInfo, MainContentProps, OpenTxDialogArgs, OpenTxDialogArgs_modeSet,
-  SignSubmitAndWatchParams, 
-} from "~/types"
+import { useClient, useSpendableBalance, useTypedApi } from "@reactive-dot/react"
+import BigNumber from "bignumber.js"
+import { ConnectionDialog } from "dot-connect/react.js"
+import { HexString, InvalidTxError, SS58String, TypedApi } from "polkadot-api"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { useProxy } from "valtio/utils"
+
+import { config } from "~/api/config"
 import { CHAIN_UPDATE_INTERVAL } from "~/constants"
-import { wait } from "~/utils"
-import { useFormatAmount } from "~/hooks/useFormatAmount"
-import { errorMessages } from "~/utils/errorMessages"
+import { HelpCarousel, SLIDES_COUNT } from "~/help/helpCarousel"
+import { useAccountsTree } from "~/hooks/UseAccountsTree"
 import { useAlerts } from "~/hooks/useAlerts"
-import { AlertsAccordion } from "./AlertsAccordion"
-import { MainContent } from "./MainContent"
-import { useWalletAccounts } from "~/hooks/useWalletAccounts"
+import { useChainRealTimeInfo } from "~/hooks/useChainRealTimeInfo"
+import { useChallengeWebSocket } from "~/hooks/useChallengeWebSocket"
+import { useDarkMode } from "~/hooks/useDarkMode"
+import { useFormatAmount } from "~/hooks/useFormatAmount"
 import { useIdentity } from "~/hooks/useIdentity"
 import { useSupportedFields } from "~/hooks/useSupportedFields"
+import { useUrlParams } from "~/hooks/useUrlParams"
+import { useWalletAccounts } from "~/hooks/useWalletAccounts"
 import { useXcmParameters } from "~/hooks/useXcmParameters"
-import { useAccountsTree } from "~/hooks/UseAccountsTree"
-import { decodeAddress, encodeAddress } from "@polkadot/keyring"
+import { LoadingContent, LoadingTabs } from "~/pages/Loading"
+import { accountStore as _accountStore, AccountData } from "~/store/AccountStore"
+import { chainStore as _chainStore } from '~/store/ChainStore'
+import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
+import {
+  DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs,
+  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams,
+} from "~/types"
+import { verifyStatuses } from "~/types/Identity"
+import { ApiStorage, ApiTx } from "~/types/api"
+import { wait } from "~/utils"
+import { errorMessages } from "~/utils/errorMessages"
+
+import { AlertsAccordion } from "./AlertsAccordion"
+import Header from "./Header"
+import { MainContent } from "./MainContent"
+import ConfirmActionDialog from "./dialogs/ConfirmActionDialog";
+import ErrorDetailsDialog from "./dialogs/ErrorDetailsDialog";
+import HelpDialog from "./dialogs/HelpDialog";
 
 export function IdentityRegistrarComponent() {
   const {
@@ -65,11 +58,11 @@ export function IdentityRegistrarComponent() {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);
 
   // Use our clean wallet accounts hook
-  const { 
-    accounts: displayedAccounts, 
-    getWalletAccount, 
+  const {
+    accounts: displayedAccounts,
+    getWalletAccount,
     connectedWallets,
-    disconnectAllWallets 
+    disconnectAllWallets
   } = useWalletAccounts({
     chainSs58Format: chainStore.ss58Format
   });
@@ -104,7 +97,7 @@ export function IdentityRegistrarComponent() {
       })
       return;
     }
-    const accountData = getWalletAccount(decodedAddress) 
+    const accountData = getWalletAccount(decodedAddress)
       ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
         address: urlParams.address,
         encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
@@ -117,10 +110,12 @@ export function IdentityRegistrarComponent() {
         delete accountStore[key];
       });
       Object.assign(accountStore, accountData);
-      
+
       removeAlert("invalidAddress");
     }
-  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert]);
+    // ESLint Expects us to add accountStore as a dependency, but it will cause an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountStore.polkadotSigner, urlParams.address, getWalletAccount, addAlert, removeAlert, chainStore.ss58Format]);
 
   const updateAccount = useCallback(({ name, address, polkadotSigner }: AccountData) => {
     const account = { name, address, polkadotSigner };
@@ -130,34 +125,34 @@ export function IdentityRegistrarComponent() {
   }, [accountStore, urlParams, updateUrlParams]);
 
   //#region identity
-  const identityFormRef = useRef<{ reset: () => void, }>()
+  const identityFormRef = useRef<IdentityFormRef>()
 
   const _formattedChainId = (chainStore.name as string)?.split(' ')[0]?.toUpperCase()
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
-  
+
   // Make sure to clear anything else that might change according to the chain or account
   useEffect(() => {
     clearAllAlerts()
-  }, [chainStore.id, accountStore.address])
+  }, [chainStore.id, accountStore.address, clearAllAlerts])
 
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
 
   // Use the new hook for supported fields
   const supportedFields = useSupportedFields({ typedApi, registrarIndex, });
-  
+
   // Use the hook for core identity functionality
-  const { 
-    identity, fetchIdAndJudgement, prepareClearIdentityTx, 
+  const {
+    identity, fetchIdAndJudgement, prepareClearIdentityTx,
   } = useIdentity({ typedApi, address: accountStore.address, });
   useEffect(() => {
     identityFormRef.current?.reset()
   }, [identity])
-  
+
   useEffect(() => {
     ((async () => {
       const id = chainStore.id;
-      
+
       let chainProperties
       try {
         chainProperties = (await chainClient.getChainSpecData()).properties
@@ -170,24 +165,22 @@ export function IdentityRegistrarComponent() {
         registrarIndex: config.chains[id].registrarIndex,
         ...chainProperties,
       }
-      startTransition(() => {
-        Object.assign(chainStore, newChainData)
-        console.log({ id, newChainData })
-      })
-    }) ())
-  }, [chainStore.id, chainClient])
+      Object.assign(chainStore, newChainData)
+      console.log({ id, newChainData })
+    })())
+  }, [chainStore, chainClient])
   const onChainSelect = useCallback((chainId: string | number | symbol) => {
     updateUrlParams({ ...urlParams, chain: chainId as string })
     chainStore.id = chainId
-  }, [urlParams])
-  
-  const eventHandlers = useMemo<Record<string, { 
-    onEvent: (data: any) => void; 
-    onError?: (error: Error) => void; 
-    priority: number 
+  }, [chainStore, updateUrlParams, urlParams])
+
+  const eventHandlers = useMemo<Record<string, {
+    onEvent: (data: object) => void;
+    onError?: (error: Error) => void;
+    priority: number
   }>>(() => ({
     "Identity.JudgementGiven": {
-      onEvent: async data => {
+      onEvent: async (_data: object) => {
         const newIdentity = await fetchIdAndJudgement()
         if (newIdentity?.status === verifyStatuses.IdentityVerified) {
           addAlert({
@@ -201,14 +194,11 @@ export function IdentityRegistrarComponent() {
           })
         }
       },
-      onError: error => { },
+      onError: (_error: Error) => { },
       priority: 4,
     },
   }), [fetchIdAndJudgement, addAlert])
 
-  const [pendingTx, setPendingTx] = useState<
-    Array<{ hash: HexString, type: string, who: SS58String, [key: string]: any, txHash: HexString }>
-  >([])
   const { constants: chainConstants } = useChainRealTimeInfo({
     typedApi,
     chainId: chainStore.id,
@@ -216,15 +206,13 @@ export function IdentityRegistrarComponent() {
     handlers: eventHandlers,
   })
   //#endregion chains
-  
+
   //#region challenges
-  const { challenges, 
-    error: challengeError, 
+  const { challenges,
+    error: challengeError,
     isConnected: isChallengeWsConnected,
     loading: challengeLoading,
     subscribe: subscribeToChallenges,
-    connect: connectToChallenges,
-    disconnect: disconnectFromChallenges,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
@@ -233,17 +221,30 @@ export function IdentityRegistrarComponent() {
     addNotification: addAlert,
   });
   useEffect(() => {
+    console.log({
+      message: "useChallengeWebSocket.Props",
+      url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
+      address: accountStore.encodedAddress,
+      network: (chainStore.id as string).split("_")[0],
+      identity: { info: identity.info, status: identity.status, },
+      addNotification: addAlert,
+    })
+  }, [accountStore.encodedAddress, chainStore.id, identity.info, identity.status, addAlert])
+
+  useEffect(() => {
     if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
       subscribeToChallenges()
     }
+    // Don't add suggested deps, as this somehow causes an infinite loop. Don't ask me why :D
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChallengeWsConnected])
   //#endregion challenges
-  
+
   const formatAmount = useFormatAmount({
     tokenDecimals: chainStore.tokenDecimals,
     symbol: chainStore.tokenSymbol
   });
-  
+
   const [isTxBusy, setTxBusy] = useState(false)
   useEffect(() => {
     console.log({ isTxBusy })
@@ -271,10 +272,12 @@ export function IdentityRegistrarComponent() {
   const recentNotifsIds = useRef<string[]>([])
   const signSubmitAndWatch = useCallback((
     params: SignSubmitAndWatchParams
+    // Awaiting for async function, so ignore this rule
+    // eslint-disable-next-line no-async-promise-executor
   ) => new Promise(async (resolve, reject) => {
     const { call, name } = params;
     let api = params.api;
-    
+
     console.log({ call: call.decodedCall, signSubmitAndWatchParams: params })
 
     if (!api) {
@@ -327,7 +330,7 @@ export function IdentityRegistrarComponent() {
           found: boolean,
           ok: boolean,
           isValid: boolean,
-        } = { 
+        } = {
           found: result["found"] || false,
           ok: result["ok"] || false,
           isValid: result["isValid"],
@@ -422,7 +425,7 @@ export function IdentityRegistrarComponent() {
             } = JSON.parse(error.message);
 
             const { type: pallet, value: { type: errorType } } = errorDetails;
-            
+
             console.log({ errorDetails });
             addAlert({
               type: "error",
@@ -446,7 +449,9 @@ export function IdentityRegistrarComponent() {
         disposeSubscription()
       }
     })
-  }), [accountStore.polkadotSigner, isTxBusy, fetchIdAndJudgement])
+    // Still, proposed deps remain inmutable, such as AddAlert and getNonce
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [accountStore.polkadotSigner, accountStore.address, isTxBusy, fetchIdAndJudgement, typedApi,])
   //#endregion Transactions
 
   const onIdentityClear = useCallback(async () => {
@@ -454,23 +459,23 @@ export function IdentityRegistrarComponent() {
       call: prepareClearIdentityTx(),
       name: "Clear Identity"
     })
-  }, [prepareClearIdentityTx])
-  
+  }, [prepareClearIdentityTx, signSubmitAndWatch])
+
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   //#region CostExtimations
   const [estimatedCosts, setEstimatedCosts] = useState<EstimatedCostInfo>({})
   //#endregion CostExtimations
-  
+
   // Use our new hook for XCM parameters
-  const { 
-    xcmParams, 
-    relayAndParachains, 
-    fromTypedApi, 
-    getTeleportCall, 
+  const {
+    xcmParams,
+    relayAndParachains,
+    fromTypedApi,
+    getTeleportCall,
     getParachainId,
-    teleportExpanded, 
-    setTeleportExpanded 
+    teleportExpanded,
+    setTeleportExpanded
   } = useXcmParameters({
     chainId: chainStore.id,
     estimatedCosts
@@ -498,16 +503,15 @@ export function IdentityRegistrarComponent() {
   //#endregion Balances
 
   const [txToConfirm, setTxToConfirm] = useState<ApiTx | null>(null)
-  
-  const hasEnoughBalance = useMemo(
-    () => balance.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit)), 
-    [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost]
-  )
+
+  const hasEnoughBalance = useMemo(() => balance
+    .isGreaterThanOrEqualTo(xcmParams.txTotalCost
+      .plus(chainConstants.existentialDeposit?.toString())
+    ), [balance, chainConstants.existentialDeposit, xcmParams.txTotalCost])
   const minimunTeleportAmount = useMemo(() => {
     const calculatedTeleportAmount = xcmParams.txTotalCost.times(1.1)
-    return hasEnoughBalance 
-      ? calculatedTeleportAmount 
-      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit)
+    return hasEnoughBalance ? calculatedTeleportAmount
+      : calculatedTeleportAmount.plus(chainConstants.existentialDeposit?.toString())
   }, [xcmParams.txTotalCost, hasEnoughBalance, chainConstants.existentialDeposit])
 
   const balanceRef = useRef(balance)
@@ -543,7 +547,9 @@ export function IdentityRegistrarComponent() {
       for (awaitedBlocks = 0; awaitedBlocks < maxBlocksAwait; awaitedBlocks++) {
         await wait(CHAIN_UPDATE_INTERVAL)
         console.log({ awaitedBlocks })
-        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost.plus(chainConstants.existentialDeposit))) {
+        if (balanceRef.current.isGreaterThanOrEqualTo(xcmParams.txTotalCost
+          .plus(chainConstants.existentialDeposit?.toString())
+        )) {
           break
         }
         addAlert({
@@ -618,8 +624,8 @@ export function IdentityRegistrarComponent() {
     closeTxDialog()
   }
 
-  const { 
-    accountTree, 
+  const {
+    accountTree,
     loading: accountTreeLoading,
     refresh: refreshAccountTree,
   } = useAccountsTree({
@@ -639,7 +645,7 @@ export function IdentityRegistrarComponent() {
       setTxToConfirm(null)
       xcmParams.enabled = false
     }
-  }, [])
+  }, [xcmParams])
   const closeTxDialog = useCallback(() => openTxDialog({ mode: null }), [openTxDialog])
 
   const handleOpenChange = useCallback((nextState: boolean): void => {
@@ -656,7 +662,7 @@ export function IdentityRegistrarComponent() {
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
         break;
-      case "RemoveIdentity":
+      case "RemoveIdentity": {
         const tx = prepareClearIdentityTx()
         openTxDialog({
           mode: "clearIdentity",
@@ -666,6 +672,7 @@ export function IdentityRegistrarComponent() {
           },
         })
         break;
+      }
       case "account":
         updateAccount({ ...accountAction.account });
         break;
@@ -673,40 +680,37 @@ export function IdentityRegistrarComponent() {
         console.log({ accountAction })
         throw new Error("Invalid action type");
     }
-  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore.address])
+  }, [updateAccount, prepareClearIdentityTx, openTxDialog, accountStore, disconnectAllWallets])
 
-  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])  
+  const onRequestWalletConnection = useCallback(() => setWalletDialogOpen(true), [])
 
-  const mainProps: MainContentProps = { 
-    chainStore, typedApi, accountStore, identity: identity, chainConstants, alerts: alerts as any,
-    challengeStore: { challenges, error: challengeError, loading: challengeLoading }, 
+  const mainProps: MainContentProps = {
+    chainStore, typedApi, accountStore, identity: identity, chainConstants,
+    challengeStore: { challenges, error: challengeError, loading: challengeLoading },
     identityFormRef, urlParams, isTxBusy,
-    supportedFields, accountTree: { data: accountTree, loading: accountTreeLoading },
-    addNotification: addAlert, removeNotification: removeAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
+    addNotification: addAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
   }
 
   //#region HelpDialog
   const openHelpDialog = useCallback(() => setOpenDialog("help"), [])
   const [helpSlideIndex, setHelpSlideIndex] = useState(0)
   //#endregion HelpDialog  
-  
-  //const teleportAmount = formatAmount(xcmParams.txTotalCost)
-  const relayChainId = (chainStore.id as string).split("_")[0]
 
   return <>
-    <ConnectionDialog open={walletDialogOpen} 
-      onClose={() => { setWalletDialogOpen(false) }} 
+    <ConnectionDialog open={walletDialogOpen}
+      onClose={() => { setWalletDialogOpen(false) }}
       dark={isDark}
     />
-    <div 
+    <div
       className="min-h-screen p-4 transition-colors duration-300 flex flex-grow flex-col flex-stretch bg-[#FFFFFF] text-[#1E1E1E] dark:bg-[#2C2B2B] dark:text-[#FFFFFF]"
     >
       <div className="container mx-auto max-w-3xl font-mono flex flex-grow flex-col flex-stretch">
-        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect} 
-          onAccountSelect={onAccountSelect} identity={identity} 
+        <Header config={config} accounts={displayedAccounts} onChainSelect={onChainSelect}
+          onAccountSelect={onAccountSelect} identity={identity}
           onRequestWalletConnections={onRequestWalletConnection}
-          accountStore={accountStore} 
-          chainStore={chainStore} 
+          accountStore={accountStore}
+          chainStore={chainStore}
           onToggleDark={() => setDark(!isDark)}
           isDark={isDark}
           isTxBusy={isTxBusy}
@@ -740,213 +744,46 @@ export function IdentityRegistrarComponent() {
       </div>
     </div>
 
-    {/* Update alerts notification section */}
     <AlertsAccordion alerts={alerts} removeAlert={removeAlert} count={alertsCount} />
 
-    {/* TODO Refactor away dialogs */}
-    <Dialog 
-      open={[
-        "clearIdentity", "setIdentity", "requestJudgement", "addSubaccount", "removeSubaccount", 
-        "quitSub", "editSubAccount"
-      ].includes(openDialog)} 
-      onOpenChange={v => v 
-        ?openTxDialog({
-          mode: openDialog as DialogMode,
-          tx: txToConfirm,
-          estimatedCosts,
-        }) 
-        :closeTxDialog()
-      }
-    >
-      <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
-        <DialogHeader>
-          <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
-          <DialogDescription>
-            Please review the following information before proceeding.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
-          {Object.keys(estimatedCosts).length > 0 &&
-            <div>
-              <h4 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                <Coins className="h-5 w-5 text-[#E6007A]" />
-                Transaction Costs
-              </h4>
-              <ul className="list-disc list-inside">
-                {estimatedCosts.fees &&
-                  <li>Total estimated cost: {formatAmount(estimatedCosts.fees)}</li>
-                }
-                {estimatedCosts.deposits &&
-                  <li>Existential deposit: {formatAmount(estimatedCosts.deposits)}</li>
-                }
-                <li>Current balance: {formatAmount(balance)}</li>
-                {import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`] && <li>
-                  Need more {chainStore.tokenSymbol}? Visit the{" "}
-                  <a href={import.meta.env[`VITE_APP_${relayChainId.toUpperCase()}_FAUCET_URL`]}
-                    target="_blank" rel="noopener noreferrer" className="text-[#E6007A] underline">
-                    {config.chains[relayChainId].name} faucet
-                  </a> to get more test tokens!
-                </li>}
-              </ul>
-            </div>
-          }
-          <div>
-            <h4 className="text-lg font-semibold mt-4 mb-2 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-[#E6007A]" />
-              Important Notes
-            </h4>
-            <ul className="list-disc list-inside">
-              {openDialog === "clearIdentity" && (<>
-                <li>All identity data will be deleted from chain..</li>
-                <li>You will have to set identity again.</li>
-                <li>You will lose verification status.</li>
-                <li>Your deposit of {formatAmount(identity.deposit)} will be returned.</li>
-              </>)}
-              {openDialog === "setIdentity" && (<>
-                <li>Identity data will be set on chain.</li>
-                <li>
-                  Deposit of {formatAmount(identity.deposit)} will be taken, which will be 
-                  released if you clear your identity.
-                </li>
-              </>)}
-              {openDialog === "requestJudgement" && (<>
-                <li>
-                  After having fees paid, you will have go to second tab and complete all challenges 
-                  in order to be verified.
-                </li>
-              </>)}
-              {["setIdentity", "requestJudgement"].includes(openDialog) && (<>
-                <li>Your identity information will remain publicly visible on-chain to everyone until you clear it.</li>
-                <li>Please ensure all provided information is accurate before continuing.</li>
-              </>)}
-              {openDialog === "addSubaccount" && (<>
-                <li>You will link another account as a subaccount under your identity.</li>
-                <li>This relationship will be publicly visible on-chain.</li>
-                {/* TODO Point to deposit */}
-                <li>A deposit will be required for managing subaccounts.</li>
-                <li>
-                  Tf you link an account you don't own, actual owner can quit and take your deposit.
-                </li>
-              </>)}
-              {openDialog === "removeSubaccount" && (<>
-                <li>You will remove the link between your account and this subaccount.</li>
-                <li>Your deposit for this subaccount will be returned.</li>
-              </>)}
-              {openDialog === "editSubAccount" && (<>
-                <li>You will update the name of this subaccount.</li>
-                <li>This will be publicly visible on-chain.</li>
-                <li>There is no deposit required for this action.</li>
-              </>)}
-              {openDialog === "quitSub" && (<>
-                <li>You will remove your account's status as a subaccount.</li>
-                <li>This will break the link with your parent account.</li>
-                <li>The deposit for this subaccount will be returned to you.</li>
-              </>)}
-            </ul>
-          </div>
-          <Accordion type="single" collapsible value={teleportExpanded ? "teleport" : null} 
-            onValueChange={(v) => setTeleportExpanded(v === "teleport")}
-          >
-            <AccordionItem value="teleport">
-              <AccordionTrigger className="bg-transparent flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  Trasnfer from other account
-                  <Switch checked={teleportExpanded} />
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Teleporter accounts={displayedAccounts} chainId={chainStore.id} config={config} 
-                  address={accountStore.encodedAddress} tx={txToConfirm} xcmParams={xcmParams} 
-                  tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
-                  otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
-                  teleportAmount={minimunTeleportAmount}
-                  formatAmount={formatAmount}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={closeTxDialog}
-            className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF]"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={submitTransaction} disabled={isTxBusy}
-            className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463]"
-          >
-            Confirm
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <GenericDialog open={openDialog === "help"} onOpenChange={(v) => {
-      handleOpenChange(v)
-      setHelpSlideIndex(0)
-    }} 
-      title="Quick start guide"
-      footer={<>
-        {helpSlideIndex < SLIDES_COUNT -1 && (
-          <Button variant="outline" onClick={() => {
-            setOpenDialog(null)
-            setHelpSlideIndex(0)
-          }}>Skip</Button>
-        )}
-        <Button 
-          onClick={() => {
-            if (helpSlideIndex === SLIDES_COUNT - 1) {
-              setOpenDialog(null)
-              setHelpSlideIndex(0)
-            } else {
-              setHelpSlideIndex(prev => prev + 1)
-            }
-          }}
-        >
-          {helpSlideIndex >= SLIDES_COUNT -1 ? "Close" : "Next"}
-        </Button>
-      </>}
-    >
-      <HelpCarousel currentSlideIndex={helpSlideIndex} onSlideIndexChange={setHelpSlideIndex} />
-    </GenericDialog>
-    <GenericDialog open={openDialog === "errorDetails"} onOpenChange={handleOpenChange} 
-      title="Error details"
-      footer={<>
-        <Button variant="outline" onClick={() => {
-          setOpenDialog(null)
-          setErrorDetails(null)
-        }}>Close</Button>
-        <Button onClick={() => {
-          if (errorDetails) {
-            const fullError = `${errorDetails.message}\n${errorDetails.stack || ''}`;
-            navigator.clipboard.writeText(fullError)
-              .then(() => {
-                addAlert({
-                  type: "success",
-                  message: "Error details copied to clipboard",
-                  //timeout: 3000 // TODO uncomment this when we support self-closing alerts
-                });
-              })
-              .catch(err => {
-                addAlert({
-                  type: "error",
-                  message: "Failed to copy error details",
-                  //timeout: 3000 // TODO Ditto
-                });
-                console.error("Failed to copy:", err);
-              });
-          }
-        }}>
-          Copy to Clipboard
-        </Button>
-      </>}
-    >
-      <div className="overflow-y-auto max-h-[66vh] sm:max-h-[75vh]">
-        <pre className="text-sm text-red-500">
-          {errorDetails?.message}
-          {errorDetails?.stack}
-        </pre>
-      </div>
-    </GenericDialog>
+    <ConfirmActionDialog
+      openDialog={openDialog}
+      closeTxDialog={closeTxDialog}
+      openTxDialog={openTxDialog}
+      submitTransaction={submitTransaction}
+      estimatedCosts={estimatedCosts}
+      txToConfirm={txToConfirm}
+      xcmParams={xcmParams}
+      teleportExpanded={teleportExpanded}
+      setTeleportExpanded={setTeleportExpanded}
+      displayedAccounts={displayedAccounts}
+      chainStore={chainStore}
+      accountStore={accountStore}
+      relayAndParachains={relayAndParachains}
+      fromBalance={fromBalance}
+      balance={balance}
+      minimunTeleportAmount={minimunTeleportAmount}
+      formatAmount={formatAmount}
+      config={config}
+      identity={identity}
+      isTxBusy={isTxBusy}
+    />
+
+    <HelpDialog
+      open={openDialog === "help"}
+      handleOpenChange={handleOpenChange}
+      setHelpSlideIndex={setHelpSlideIndex}
+      helpSlideIndex={helpSlideIndex}
+      SLIDES_COUNT={SLIDES_COUNT}
+      setOpenDialog={setOpenDialog}
+    />
+
+    <ErrorDetailsDialog
+      open={openDialog === "errorDetails"}
+      handleOpenChange={handleOpenChange}
+      errorDetails={errorDetails}
+      setErrorDetails={setErrorDetails}
+      addAlert={addAlert}
+    />
   </>
 }

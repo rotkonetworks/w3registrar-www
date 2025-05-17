@@ -1,12 +1,25 @@
-import { TypedApi } from "polkadot-api"
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import BigNumber from "bignumber.js";
+import { PolkadotSigner, TypedApi } from "polkadot-api"
+import { Ref } from "react";
+
+import { AccountTreeNode } from "~/hooks/UseAccountsTree";
+import { AlertPropsOptionalKey } from "~/hooks/useAlerts";
+import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
+import { ChallengeStore } from "~/store/challengesStore";
+
+import { Identity } from "./Identity";
+import { ApiTx } from "./api";
+
+
 
 export type DialogMode = "clearIdentity" |
   "disconnect" |
   "teleport" |
   "help" |
   "requestJudgement" |
-  "setIdentity"  |
+  "setIdentity" |
   "addSubaccount" |
   "editSubAccount" |
   "removeSubaccount" |
@@ -26,6 +39,8 @@ export type OpenTxDialogArgs_modeSet = {
 }
 export type OpenTxDialogArgs = OpenTxDialogArgs_modeSet | { mode: null }
 
+export type IdentityFormRef = { reset: () => void; };
+
 export type MainContentProps = {
   identity: Identity,
   challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
@@ -33,17 +48,18 @@ export type MainContentProps = {
   typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
   accountStore: AccountData,
   chainConstants,
-  alerts: Map<string, AlertProps>,
-  addNotification: any,
-  formatAmount: any,
+  addNotification: (alertProps: AlertPropsOptionalKey) => void,
+  formatAmount: FormatAmountFn,
   supportedFields: string[],
-  removeNotification: any,
-  identityFormRef: Ref<unknown>,
+  identityFormRef: Ref<IdentityFormRef>,
   urlParams: Record<string, string>,
-  updateUrlParams: any,
-  setOpenDialog: any,
+  updateUrlParams: (urlParams: UrlParamsArgs) => void,
+  setOpenDialog: (mode: DialogMode) => void,
   isTxBusy: boolean,
-  accountTree: AccountTreeNode | null,
+  accountTreeProps: {
+    tree: AccountTreeNode | null
+    loading: boolean,
+  },
   openTxDialog: (params: OpenTxDialogArgs) => void,
 }
 
@@ -59,11 +75,11 @@ export type SignSubmitAndWatchParams = {
 export type FormatAmountOptions = {
   decimals?: number,
   symbol: string,
-  tokenDecimals: number,
+  tokenDecimals?: number,
 }
 export type AssetAmount = number | bigint | BigNumber | string
 
 export type FormatAmountFn = (
   amount: AssetAmount,
-  options: FormatAmountOptions,
+  options?: FormatAmountOptions,
 ) => string

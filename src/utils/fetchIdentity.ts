@@ -1,22 +1,23 @@
-import { Binary, SS58String, TypedApi } from "polkadot-api";
-import { ApiStorage } from "~/types/api";
 import { IdentityData } from "@polkadot-api/descriptors";
-import { verifyStatuses } from "~/types/Identity";
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
+import { Binary, SS58String, TypedApi } from "polkadot-api";
+
+import { verifyStatuses } from "~/types/Identity";
+import { ApiStorage } from "~/types/api";
 
 export interface JudgementData {
   registrar: {
     index: number;
   };
   state: string;
-  fee: any;
+  fee: bigint;
 }
 
 export interface IdentityInfo {
   status: verifyStatuses;
   info: Record<string, string> | null;
-  deposit: any;
+  deposit: bigint;
   judgements: JudgementData[];
 }
 

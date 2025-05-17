@@ -1,8 +1,10 @@
 import { Bell } from "lucide-react"
+
+import { AlertProps } from "~/hooks/useAlerts"
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 import { Button } from "./ui/button"
-import { AlertProps } from "~/hooks/useAlerts"
 
 interface AlertsAccordionProps {
   alerts: [string, AlertProps][] | Map<string, AlertProps>;

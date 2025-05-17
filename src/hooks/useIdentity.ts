@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { Identity, verifyStatuses } from "~/types/Identity";
-import { TypedApi } from "polkadot-api";
-import { fetchIdentity } from "~/utils/fetchIdentity";
-import { SS58String } from "polkadot-api";
-import { ApiTx } from "~/types/api";
-import { IdentityFormData } from "~/components/tabs/IdentityForm";
-import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { ChainId } from "@reactive-dot/core";
+import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
+import { TypedApi } from "polkadot-api";
+import { SS58String } from "polkadot-api";
+import { useCallback, useEffect, useState } from "react";
+
+import { IdentityFormData } from "~/components/tabs/IdentityForm";
+import { Identity, verifyStatuses } from "~/types/Identity";
+import { ApiTx } from "~/types/api";
+import { fetchIdentity } from "~/utils/fetchIdentity";
 
 export function useIdentity({ typedApi, address, }: {
   typedApi: TypedApi<ChainDescriptorOf<ChainId>>,
