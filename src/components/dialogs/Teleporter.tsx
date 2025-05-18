@@ -72,7 +72,7 @@ export default function Teleporter({
   }, [])
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-4 p-2">
       <div className="flex items-start space-x-4">
         <div className="flex-1 space-y-2">
           <Label htmlFor="fromAddress">From Wallet</Label>
