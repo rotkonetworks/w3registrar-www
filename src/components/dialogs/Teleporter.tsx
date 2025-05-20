@@ -49,9 +49,15 @@ export default function Teleporter({
     }
   }, [address, open])
 
-  const amount = BigNumber(teleportAmount.toString())
+  const [amount, _setAmount] = React.useState(BigNumber(teleportAmount.toString())
     .div(BigNumber(10).pow(BigNumber(tokenDecimals)))
     .toString()
+  )
+  const setAmount = (amount: string) => {
+    _setAmount(amount)
+    const amountInBase = BigNumber(amount).multipliedBy(BigNumber(10).pow(BigNumber(tokenDecimals)))
+    setTeleportAmount(amountInBase)
+  }
   
   const selectedChain = xcmParams.fromChain.id
   const setSelectedChain = (id: keyof Chains) => xcmParams.fromChain.id = id
@@ -173,7 +179,7 @@ export default function Teleporter({
             type="text"
             inputMode="decimal"
             value={amount}
-            readOnly
+            onChange={(e) => setAmount(e.target.value)}
             className="pr-16"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
