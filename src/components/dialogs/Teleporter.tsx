@@ -22,8 +22,8 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
-  otherChains, teleportAmount,
-  formatAmount
+  otherChains, teleportAmount, 
+  setTeleportAmount, formatAmount,
 }: {
   address: SS58String,
   accounts: AccountData[],
@@ -37,6 +37,7 @@ export default function Teleporter({
   fromBalance: BigNumber,
   toBalance: BigNumber,
   teleportAmount: BigNumber,
+  setTeleportAmount: (amount: BigNumber) => void,
   formatAmount: FormatAmountFn,
 }) {
   const fromAddress = xcmParams.fromAddress

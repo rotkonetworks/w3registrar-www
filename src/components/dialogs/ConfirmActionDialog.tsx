@@ -178,7 +178,9 @@ export default function ConfirmActionDialog({
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
                   otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
                   teleportAmount={minimunTeleportAmount}
-                  formatAmount={formatAmount}
+                  formatAmount={formatAmount} setTeleportAmount={v => {
+                    xcmParams.txTotalCost = v
+                  }}
                 />
               </AccordionContent>
             </AccordionItem>
