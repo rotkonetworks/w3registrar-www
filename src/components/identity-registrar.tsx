@@ -526,7 +526,7 @@ export function IdentityRegistrarComponent() {
           signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
           call: getTeleportCall({
-            amount: minimunTeleportAmount,
+            amount: minimunTeleportAmount.integerValue(BigNumber.ROUND_UP),
             fromApi: fromTypedApi,
             signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
             parachainId
