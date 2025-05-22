@@ -100,6 +100,7 @@ const Header = ({
             <SelectContent>
               {connectedWallets.length > 0 && <>
                 <SelectItem value={{type: "Wallets"}}>Connect Wallets</SelectItem>
+                <SelectItem value={{type: "Teleport"}}>Teleport</SelectItem>
                 <SelectItem value={{type: "Disconnect"}}>Disconnect</SelectItem>
                 {identity.info && accountStore.polkadotSigner && <>
                   <SelectItem value={{type: "RemoveIdentity"}}>Remove Identity</SelectItem>

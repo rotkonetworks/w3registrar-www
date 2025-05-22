@@ -41,6 +41,7 @@ import { MainContent } from "./MainContent"
 import ConfirmActionDialog from "./dialogs/ConfirmActionDialog";
 import ErrorDetailsDialog from "./dialogs/ErrorDetailsDialog";
 import HelpDialog from "./dialogs/HelpDialog";
+import { TeleporterDialog } from "./dialogs/teleportDialog";
 
 export function IdentityRegistrarComponent() {
   const {
@@ -663,6 +664,9 @@ export function IdentityRegistrarComponent() {
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
         break;
+      case "Teleport":
+        setOpenDialog("teleport")
+        break;
       case "RemoveIdentity": {
         const tx = prepareClearIdentityTx()
         openTxDialog({
@@ -785,6 +789,44 @@ export function IdentityRegistrarComponent() {
       errorDetails={errorDetails}
       setErrorDetails={setErrorDetails}
       addAlert={addAlert}
+    />
+
+    <TeleporterDialog
+      address={accountStore.address}
+      accounts={displayedAccounts}
+      chainId={chainStore.id}
+      config={config}
+      tokenSymbol={chainStore.tokenSymbol}
+      tokenDecimals={chainStore.tokenDecimals}
+      xcmParams={xcmParams}
+      tx={txToConfirm}
+      otherChains={relayAndParachains}
+      fromBalance={fromBalance}
+      toBalance={balance}
+      
+      isTxBusy={isTxBusy}
+      formatAmount={formatAmount}
+      getTeleportCall={({ amount }: {
+        amount: BigNumber,
+        //parachainId: number,
+      }) => getTeleportCall({
+        amount,
+        parachainId,
+        fromApi: fromTypedApi,
+        signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+      })}
+      signSubmitAndWatch={({
+        call, name, awaitFinalization
+      }: Pick<SignSubmitAndWatchParams, "call" | "name" | "awaitFinalization">) => signSubmitAndWatch({
+        call,
+        name,
+        awaitFinalization,
+        api: fromTypedApi,
+        signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+      })}
+
+      open={openDialog === "teleport"}
+      setOpen={handleOpenChange}
     />
   </>
 }
