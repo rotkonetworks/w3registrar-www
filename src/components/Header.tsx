@@ -7,7 +7,9 @@ import { SS58String } from "polkadot-api";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button"
-import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, SelectTrigger, SelectValue, TypedSelectValue } from "@/components/ui/select"
+import { Select, SelectChangeHandler, SelectContent, SelectGroup, SelectItem, SelectSeparator, 
+  SelectTrigger, SelectValue 
+} from "@/components/ui/select"
 import { ApiConfig } from "~/api/config";
 import { useFormatAmount } from "~/hooks/useFormatAmount";
 import { Account, AccountData } from "~/store/AccountStore";
