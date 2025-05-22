@@ -70,17 +70,13 @@ export function IdentityRegistrarComponent() {
 
   // UI-specific account handling
   useEffect(() => {
-    if (!connectedWallets.length) {
-      addAlert({
-        type: "error",
-        message: "Please connect a wallet so that you can choose an account and continue.",
-        closable: false,
-        key: "noConnectedWallets",
-      })
-      return;
-    } else {
-      removeAlert("noConnectedWallets");
-    }
+    if (connectedWallets.length) removeAlert("noConnectedWallets");
+    addAlert({
+      type: "error",
+      message: "Please connect a wallet so that you can choose an account and continue.",
+      closable: false,
+      key: "noConnectedWallets",
+    })
   }, [connectedWallets.length, addAlert, removeAlert]);
 
   useEffect(() => {
@@ -132,9 +128,7 @@ export function IdentityRegistrarComponent() {
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
 
   // Make sure to clear anything else that might change according to the chain or account
-  useEffect(() => {
-    clearAllAlerts()
-  }, [chainStore.id, accountStore.address, clearAllAlerts])
+  useEffect(clearAllAlerts, [chainStore.id, accountStore.address, clearAllAlerts])
 
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
