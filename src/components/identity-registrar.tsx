@@ -28,7 +28,7 @@ import { chainStore as _chainStore } from '~/store/ChainStore'
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import {
   DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs,
-  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams,
+  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams, TxStateUpdate,
 } from "~/types"
 import { verifyStatuses } from "~/types/Identity"
 import { ApiStorage, ApiTx } from "~/types/api"
@@ -274,7 +274,10 @@ export function IdentityRegistrarComponent() {
     params: SignSubmitAndWatchParams
     // Awaiting for async function, so ignore this rule
     // eslint-disable-next-line no-async-promise-executor
-  ) => new Promise(async (resolve, reject) => {
+  ) => new Promise(async (
+    resolve: (txStateUpdate: TxStateUpdate) => void, 
+    reject: (err: Error) => void
+  ) => {
     const { call, name } = params;
     let api = params.api;
 
@@ -323,50 +326,48 @@ export function IdentityRegistrarComponent() {
     }
 
     const subscription = signedCall.subscribe({
-      next: (result) => {
-        txHash = result.txHash;
+      next: (txStateUpdate) => {
+        txHash = txStateUpdate.txHash;
         // TODO Add result type as below
-        const _result: (typeof result) & {
-          found: boolean,
-          ok: boolean,
-          isValid: boolean,
-        } = {
-          found: result["found"] || false,
-          ok: result["ok"] || false,
-          isValid: result["isValid"],
-          ...result,
+        // Define type for transaction state updates
+        
+        const _txStateUpdate: TxStateUpdate = {
+          found: txStateUpdate["found"] || false,
+          ok: txStateUpdate["ok"] || false,
+          isValid: txStateUpdate["isValid"],
+          ...txStateUpdate,
         };
-        if (result.type === "broadcasted") {
+        if (txStateUpdate.type === "broadcasted") {
           addAlert({
-            key: result.txHash,
+            key: txStateUpdate.txHash,
             type: "loading",
             closable: false,
             message: `${name} transaction broadcasted`,
           })
         }
-        else if (_result.type === "txBestBlocksState") {
-          if (_result.ok) {
+        else if (_txStateUpdate.type === "txBestBlocksState") {
+          if (_txStateUpdate.ok) {
             if (params.awaitFinalization) {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "loading",
                 message: `Waiting for ${name.toLowerCase()} to finalize...`,
                 closable: false,
               })
             } else {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
-              disposeSubscription(() => resolve(result))
+              disposeSubscription(() => resolve(txStateUpdate))
             }
-          } else if (!_result.isValid) {
+          } else if (!_txStateUpdate.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "error",
                 message: `${name} failed: invalid transaction`,
               })
@@ -375,11 +376,11 @@ export function IdentityRegistrarComponent() {
             }
           }
         }
-        else if (_result.type === "finalized") {
+        else if (_txStateUpdate.type === "finalized") {
           // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
-          if (!_result.ok) {
+          if (!_txStateUpdate.ok) {
             addAlert({
-              key: _result.txHash,
+              key: _txStateUpdate.txHash,
               type: "error",
               message: `${name} failed`,
             })
@@ -388,16 +389,16 @@ export function IdentityRegistrarComponent() {
           } else {
             if (params.awaitFinalization) {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
-              disposeSubscription(() => resolve(result))
+              disposeSubscription(() => resolve(txStateUpdate))
             }
           }
         }
-        console.log({ _result, recentNotifsIds: recentNotifsIds.current })
+        console.log({ _txStateUpdate, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
         console.error(error);

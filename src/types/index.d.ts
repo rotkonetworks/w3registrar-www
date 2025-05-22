@@ -83,3 +83,11 @@ export type FormatAmountFn = (
   amount: AssetAmount,
   options?: FormatAmountOptions,
 ) => string
+
+export type TxStateUpdate = {
+  type: "broadcasted" | "txBestBlocksState" | "finalized" | "signed";
+  txHash: HexString;
+  found?: boolean;
+  ok?: boolean;
+  isValid?: boolean;
+};
