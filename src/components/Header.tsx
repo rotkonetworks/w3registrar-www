@@ -3,6 +3,7 @@ import { Chains } from "@reactive-dot/core/internal.js";
 import { useConnectedWallets, useSpendableBalance } from "@reactive-dot/react";
 import { PolkadotIdenticon } from 'dot-identicon/react.js';
 import { Sun, Moon, ShieldQuestion } from "lucide-react";
+import { SS58String } from "polkadot-api";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button"
@@ -14,11 +15,9 @@ import { ChainInfo } from "~/store/ChainStore";
 import { AssetAmount } from "~/types";
 import { Identity } from "~/types/Identity";
 
-
 import { BalanceDisplay } from "./ui/balance-display";
 
-
-const AccountListing = ({ address, name }) => (
+const AccountListing = ({ address, name }: {address: SS58String, name: string}) => (
   <div className="flex items-center w-full min-w-0">
     <div className="flex-shrink-0">
       <PolkadotIdenticon address={address} />
