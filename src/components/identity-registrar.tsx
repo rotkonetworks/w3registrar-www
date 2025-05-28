@@ -70,13 +70,13 @@ export function IdentityRegistrarComponent() {
 
   // UI-specific account handling
   useEffect(() => {
-    if (connectedWallets.length) removeAlert("noConnectedWallets");
     addAlert({
       type: "error",
       message: "Please connect a wallet so that you can choose an account and continue.",
       closable: false,
       key: "noConnectedWallets",
     })
+    if (connectedWallets.length) removeAlert("noConnectedWallets");
   }, [connectedWallets.length, addAlert, removeAlert]);
 
   useEffect(() => {
