@@ -95,10 +95,13 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getWalletAccount(decodedAddress)
-      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
-        address: urlParams.address,
-        encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
-      } : null)
+      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) 
+        ? {
+          address: urlParams.address,
+          encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
+        } 
+        : null
+      )
     ;
     console.log({ accountData });
     if (accountData) {
