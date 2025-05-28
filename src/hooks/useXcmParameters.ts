@@ -2,6 +2,7 @@ import { ChainId, } from "@reactive-dot/core";
 import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
 import { useTypedApi } from "@reactive-dot/react";
 import BigNumber from "bignumber.js";
+import _ from "lodash";
 import { TypedApi } from "polkadot-api";
 import { Binary } from "polkadot-api";
 import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
@@ -20,7 +21,10 @@ export function useXcmParameters({
   chainId,
   estimatedCosts = {},
 }: UseXcmParametersOptions) {
-  const xcmParams = useDeferredValue(useProxy(_xcmParams));
+  const __xcmParams = useProxy(_xcmParams);
+  const xcmParams = useDeferredValue(__xcmParams);
+  
+  const isLoading = useMemo(() => _.isEqual(__xcmParams, xcmParams), [__xcmParams, xcmParams]);
 
   // Determine relay chain ID based on current chain
   const relayChainId = useMemo<keyof Chains>(
@@ -172,6 +176,7 @@ export function useXcmParameters({
 
   return {
     xcmParams,
+    isLoading,
     relayChainId,
     relayAndParachains,
     fromTypedApi,
