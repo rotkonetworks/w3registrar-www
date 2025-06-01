@@ -155,19 +155,19 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
 
       const _challenges: ChallengeStore = {};
       Object.entries(verifyState)
-        .filter(([key, value]) => pendingChallenges[key] || value)
-        .forEach(([key, value]) => {
+        .filter(([key, done]) => pendingChallenges[key] || done)
+        .forEach(([key, done]) => {
           let status;
           if (identity.status === verifyStatuses.IdentityVerified) {
             status = ChallengeStatus.Passed;
           } else {
-            status = value ? ChallengeStatus.Passed : ChallengeStatus.Pending;
+            status = done ? ChallengeStatus.Passed : ChallengeStatus.Pending;
           }
 
           _challenges[key] = {
             type: "matrixChallenge",
             status,
-            code: !value && pendingChallenges[key],
+            code: !done && pendingChallenges[key],
           };
         })
       if (_.isEqual(challenges, _challenges)) {
