@@ -23,8 +23,6 @@ export function useXcmParameters({
 }: UseXcmParametersOptions) {
   const __xcmParams = useProxy(_xcmParams);
   const xcmParams = useDeferredValue(__xcmParams);
-  
-  const isLoading = useMemo(() => _.isEqual(__xcmParams, xcmParams), [__xcmParams, xcmParams]);
 
   // Determine relay chain ID based on current chain
   const relayChainId = useMemo<keyof Chains>(
@@ -176,7 +174,6 @@ export function useXcmParameters({
 
   return {
     xcmParams,
-    isLoading,
     relayChainId,
     relayAndParachains,
     fromTypedApi,
