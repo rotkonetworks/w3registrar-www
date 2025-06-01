@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { DiscordIcon } from '~/assets/icons/discord'
 import { AccountData } from '~/store/AccountStore'
 import { ChainInfo } from '~/store/ChainStore'
-import { OpenTxDialogArgs } from '~/types'
+import { EstimatedCostInfo, OpenTxDialogArgs } from '~/types'
 import { Identity, verifyStatuses } from '~/types/Identity'
 
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
@@ -79,7 +79,7 @@ export const IdentityForm = forwardRef((
     console.log({ info })
     const tx = typedApi.tx.Identity.set_identity({ info, });
 
-    let estimatedCosts;
+    let estimatedCosts: EstimatedCostInfo;
     try {
       estimatedCosts = {
         fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
