@@ -18,11 +18,25 @@ import { StatusBadge } from "../challenges/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 
+import { PGPVerification } from "./challenges/PGPVerification"
 
-export function ChallengePage({ addNotification, challengeStore, identity, }: {
+export function ChallengePage({ 
+  addNotification, 
+  challengeStore, 
+  identity,
+  chainStore,
+  accountStore,
+}: {
   addNotification: (alert: AlertPropsOptionalKey) => void,
-  challengeStore: { challenges: ChallengeStore, error: string | null, loading: boolean },
+  challengeStore: { 
+    challenges: ChallengeStore, 
+    error: string | null, 
+    loading: boolean,
+    sendPGPVerification: (payload: any) => Promise<void>
+  },
   identity: Identity,
+  chainStore: { id: string },
+  accountStore: { encodedAddress: string },
 }) {
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
   useEffect(() => {
@@ -92,7 +106,6 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
     * Legal
   */
   // TODO Add descriptions and icon for domain verification
-  
   const inviteLinkIcons = {
     matrix: <AtSign className="h-4 w-4" />,
     email: <Mail className="h-4 w-4" />,
@@ -266,6 +279,36 @@ export function ChallengePage({ addNotification, challengeStore, identity, }: {
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
+          const actualButton = inviteLinkIcons[field]
+            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
+            :null
+
+          // handling for PGP fingerprint
+          if (field === 'pgp_fingerprint' && code && status === ChallengeStatus.Pending) {
+            return (
+              <div key={field} className="mb-4 last:mb-0">
+                <PGPVerification
+                  challenge={code}
+                  onVerify={async (pubkey, signedChallenge) => {
+                    try {
+                      await challengeStore.sendPGPVerification({
+                        network: identity.network || chainStore.id.split("_")[0], // You'll need to pass chainStore
+                        account: identity.account || accountStore.encodedAddress, // You'll need to pass accountStore
+                        pubkey,
+                        signed_challenge: signedChallenge,
+                      });
+                    } catch (error) {
+                      addNotification({
+                        type: 'error',
+                        message: 'Failed to send PGP verification',
+                      });
+                    }
+                  }}
+                  isVerifying={challengeStore.loading}
+                />
+              </div>
+            );
+          }
           const actualButton = inviteLinkIcons[field]
             ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
             :null

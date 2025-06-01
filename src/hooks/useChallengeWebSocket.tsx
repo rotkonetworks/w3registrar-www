@@ -1,3 +1,4 @@
+// src/hooks/useChallengeWebSocket.tsx
 import _ from 'lodash';
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -56,6 +57,13 @@ type SubscribeAccountState = {
   account: string;
 };
 
+type VerifyPGPKey = {
+  network: string;
+  account: string;
+  pubkey: string;
+  signed_challenge: string;
+};
+
 type Challenge = {
   done: boolean;
   name: string;
@@ -83,11 +91,14 @@ type WebSocketMessage = {
   } | { 
     type: 'NotifyAccountState'; 
     payload: NotifyAccountState 
+  } | {
+    type: 'VerifyPGPKey';
+    payload: VerifyPGPKey;
   } | { 
     type: 'JsonResult'; 
     payload: { 
       type: "ok", 
-      message: ResponsePayload 
+      message: ResponsePayload | string
     } | { 
       type: "err", 
       message: string 
@@ -112,6 +123,7 @@ interface UseIdentityWebSocketReturn {
   subscribe: () => void;
   connect: () => void;
   disconnect: () => void;
+  sendPGPVerification: (payload: VerifyPGPKey) => Promise<void>;
 }
 
 const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNotification, }: {
@@ -127,7 +139,7 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     network: network.split("_")[0], 
     addNotification,
   });
-  const { challengeState, error, isConnected, } = challengeWebSocket
+  const { challengeState, error, isConnected } = challengeWebSocket
 
   const [challenges, setChallenges] = useState<ChallengeStore>({});
   useEffect(() => {
@@ -187,14 +199,19 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, idWsDeps)
 
-  return { challenges, error: error, isConnected, loading: challengeWebSocket.loading, 
+  return { 
+    challenges, 
+    error: error, 
+    isConnected, 
+    loading: challengeWebSocket.loading, 
     subscribe: challengeWebSocket.subscribe,
     connect: challengeWebSocket.connect,
     disconnect: challengeWebSocket.disconnect,
+    sendPGPVerification: challengeWebSocket.sendPGPVerification,
   }
 }
 
-// TODO Rename as a generic WebSocket hook
+// Generic WebSocket hook with challenge verification support
 const useChallengeWebSocket = (
   { url, account, network, addNotification }: UseIdentityWebSocketProps
 ): UseIdentityWebSocketReturn => {
@@ -242,6 +259,22 @@ const useChallengeWebSocket = (
     });
   }, []);
 
+  // Send PGP verification
+  const sendPGPVerification = useCallback((payload: VerifyPGPKey): Promise<void> => {
+    return sendMessage({
+      type: 'VerifyPGPKey',
+      payload,
+    });
+  }, [sendMessage]);
+
+  // Subscribe to account state
+  const subscribe = useCallback(() => {
+    sendMessage({
+      type: 'SubscribeAccountState',
+      payload: { account, network },
+    }).catch(err => setError(err.message));
+  }, [sendMessage, account, network]);
+
   // Note union of types for event.data. it's done because AccountStateMessage does not have `payload` field.
   type ChallengeMessageType = WebSocketMessage | AccountStateMessage;
 
@@ -251,22 +284,46 @@ const useChallengeWebSocket = (
       console.log({message})
 
       switch (message.type) {
-        // TODO Review if code for this case is present in the backend
         case 'JsonResult':
-          if ('ok' === message.payload.type) {
-            const response = message.payload.message.AccountState;
-            if (response) {
-              console.log({ response })
-              setChallengeState({
-                ...response,
-                network: response.network
-              });
-              setLoading(false);
-              setError(null);
+          if (message.payload.type === 'ok') {
+            // Handle different success scenarios
+            if (typeof message.payload.message === 'string') {
+              // Handle string responses (like PGP verification)
+              if (message.payload.message === 'PGP verification is done') {
+                addNotification({
+                  type: 'success',
+                  message: 'PGP key verified successfully!',
+                });
+                // Trigger a refresh of account state
+                subscribe();
+              } else {
+                // Handle other string messages
+                addNotification({
+                  type: 'info',
+                  message: message.payload.message,
+                });
+              }
+            } else if (message.payload.message && typeof message.payload.message === 'object') {
+              // Handle object responses (AccountState)
+              const response = (message.payload.message as ResponsePayload).AccountState;
+              if (response) {
+                console.log({ response })
+                setChallengeState({
+                  ...response,
+                  network: response.network
+                });
+                setLoading(false);
+                setError(null);
+              }
             }
           } else {
+            // Handle error
             setError(message.payload.message);
             setLoading(false);
+            addNotification({
+              type: 'error',
+              message: message.payload.message,
+            });
           }
           break;
           
@@ -297,12 +354,17 @@ const useChallengeWebSocket = (
             pending_challenges: pendingChallenges,
             network: message.network
           }));
+          setLoading(false);
           break;
         }
 
         case "error":
           setError(message.message);
           setLoading(false);
+          addNotification({
+            type: 'error',
+            message: message.message,
+          });
           break;
       }
 
@@ -316,7 +378,7 @@ const useChallengeWebSocket = (
       setError(err instanceof Error ? err.message : 'Failed to parse message');
       setLoading(false);
     }
-  }, [addNotification]);
+  }, [addNotification, subscribe]);
 
   const disconnect = useCallback(() => {
     // Important. Socket explicitly checked if open. so it won't get closed before ones that are
@@ -339,7 +401,7 @@ const useChallengeWebSocket = (
   }, []);
 
   // Set up WebSocket connection
-  const connect = () => {
+  const connect = useCallback(() => {
     setLoading(true);
     setIsConnected(false);
     ws.current = new WebSocket(url);
@@ -352,13 +414,20 @@ const useChallengeWebSocket = (
     ws.current.onclose = (event) => {
       console.log({ callBack: "onclose", code: event.code })
       setIsConnected(false);
+      // Attempt to reconnect after a delay
+      setTimeout(() => {
+        if (!ws.current || ws.current.readyState === WebSocket.CLOSED) {
+          connect();
+        }
+      }, 5000);
     };
     ws.current.onerror = (error) => {
       console.error(error)
       setError('WebSocket error occurred');
     };
     ws.current.onmessage = handleMessage;
-  }
+  }, [url, handleMessage]);
+
   useEffect(() => {
     console.log({ ws: ws.current, state: ws.current?.readyState })
     if (ws.current?.readyState === WebSocket.CONNECTING) {
@@ -376,19 +445,11 @@ const useChallengeWebSocket = (
       setLoading(true)
     }
 
-    // TODO Make it reconnect if failed to connect or disconnected
-    
     return disconnect;
     // DITTO 1
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, ws.current?.readyState]);
 
-  const subscribe = () => {
-    sendMessage({
-      type: 'SubscribeAccountState',
-      payload: { account, network },
-    }).catch(err => setError(err.message));
-  }
   useEffect(() => {
     if (ws.current?.readyState === WebSocket.OPEN && account && network) {
       console.log({ ws: ws.current, state: ws.current?.readyState, account, callback: "sendMessage<effect>" });
@@ -407,6 +468,7 @@ const useChallengeWebSocket = (
     isConnected,
     error,
     challengeState,
+    sendPGPVerification,
   };
 };
 
