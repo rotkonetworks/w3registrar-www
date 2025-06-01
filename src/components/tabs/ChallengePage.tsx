@@ -17,67 +17,106 @@ import { Identity } from "~/types/Identity"
 import { StatusBadge } from "../challenges/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { PGPVerification } from "../challenges/PGPVerification"
 
-import { PGPVerification } from "./challenges/PGPVerification"
+// Challenge renderer interface for extensibility
+interface ChallengeRenderer {
+  (props: {
+    field: string
+    code: string
+    status: ChallengeStatus
+    identity: Identity
+    onVerify: (data: any) => Promise<void>
+    isLoading: boolean
+  }): React.ReactElement | null
+}
 
-export function ChallengePage({ 
-  addNotification, 
-  challengeStore, 
+// Map of special challenge renderers
+const specialChallengeRenderers: Record<string, ChallengeRenderer> = {
+  pgp_fingerprint: ({ code, status, identity, onVerify, isLoading }) => {
+    if (!code || status !== ChallengeStatus.Pending) return null
+    
+    return (
+      <PGPVerification
+        challenge={code}
+        onVerify={async (pubkey, signed_challenge) => {
+          await onVerify({
+            pubkey,
+            signed_challenge,
+            network: identity.network,
+            account: identity.account,
+          })
+        }}
+        isVerifying={isLoading}
+      />
+    )
+  },
+  // Easy to add more special renderers here
+  // web: ({ ... }) => <WebVerification ... />,
+  // github: ({ ... }) => <GitHubVerification ... />,
+}
+
+interface ChallengePageProps {
+  addNotification: (alert: AlertPropsOptionalKey) => void
+  challengeStore: {
+    challenges: ChallengeStore
+    error: string | null
+    loading: boolean
+    sendPGPVerification: (payload: any) => Promise<void>
+    // Add more verification methods as needed
+  }
+  identity: Identity
+  chainStore: { id: string }
+  accountStore: { encodedAddress: string }
+}
+
+export function ChallengePage({
+  addNotification,
+  challengeStore,
   identity,
   chainStore,
   accountStore,
-}: {
-  addNotification: (alert: AlertPropsOptionalKey) => void,
-  challengeStore: { 
-    challenges: ChallengeStore, 
-    error: string | null, 
-    loading: boolean,
-    sendPGPVerification: (payload: any) => Promise<void>
-  },
-  identity: Identity,
-  chainStore: { id: string },
-  accountStore: { encodedAddress: string },
-}) {
+}: ChallengePageProps) {
+  // State management
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
+  const [formData, setFormData] = useState<Record<string, { value: string; error: string | null }>>({})
+
+  // Sync challenge store
   useEffect(() => {
-    console.log("ChallengeStore", challengeStore)
     if (!challengeStore.loading && !_.isEqual(challengeStore.challenges, localChallengeStore)) {
       setLocalChallengeStore(challengeStore.challenges)
     }
   }, [challengeStore, localChallengeStore])
 
+  // Build challenge configuration
   const challengeFieldsConfig = useMemo<ChallengeStore>(() => ({
-    ...Object.fromEntries(Object.entries(localChallengeStore)
-      .filter(([field]) => field !== "display_name")
-      .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
+    ...Object.fromEntries(
+      Object.entries(localChallengeStore)
+        .filter(([field]) => field !== "display_name")
+        .map(([field, { code, status }]) => [field, { type: "matrixChallenge", code, status }])
     ),
   }), [localChallengeStore])
 
-  const [formData, setFormData] = useState<Record<string, {
-    value: string,
-    error: string | null,
-  }>>({})
-
+  // Form data sync
   useEffect(() => {
-    const _formData = Object.fromEntries(Object.keys(challengeFieldsConfig)
-      .filter(key => challengeFieldsConfig[key].type === "input")
-      .map(key => [key, {
-        value: formData[key]?.value || "",
-        error: formData[key]?.error || null,
-      }])
+    const _formData = Object.fromEntries(
+      Object.keys(challengeFieldsConfig)
+        .filter(key => challengeFieldsConfig[key].type === "input")
+        .map(key => [key, {
+          value: formData[key]?.value || "",
+          error: formData[key]?.error || null,
+        }])
     )
     if (!_.isEqual(_formData, formData)) {
       setFormData(_formData)
     }
   }, [challengeFieldsConfig, formData])
 
+  // Handlers
   const setFormField = useCallback((field: string, value: string): void => {
     setFormData(prev => ({
       ...prev,
-      [field]: {
-        ...prev[field],
-        value
-      }
+      [field]: { ...prev[field], value }
     }))
   }, [])
 
@@ -93,57 +132,74 @@ export function ChallengePage({
     }
   }
 
-  const getIcon = (field: string) => {
-    return SOCIAL_ICONS[field]
+  // Generic verification handler
+  const handleVerification = async (field: string, data: any) => {
+    try {
+      // Route to appropriate verification method
+      switch (field) {
+        case 'pgp_fingerprint':
+          await challengeStore.sendPGPVerification({
+            ...data,
+            network: data.network || chainStore.id.split("_")[0],
+            account: data.account || accountStore.encodedAddress,
+          })
+          break
+        // Add more cases as needed
+        default:
+          throw new Error(`Unknown verification type: ${field}`)
+      }
+    } catch (error) {
+      addNotification({
+        type: 'error',
+        message: `Failed to verify ${field}`,
+      })
+    }
   }
 
-  const noChallenges = Object.keys(challengeFieldsConfig).length ?? 0
-
-  /* TODO Implement verification for :
-    * GitHub
-    * Image
-    * PGP Fingerprint
-    * Legal
-  */
-  // TODO Add descriptions and icon for domain verification
-  const inviteLinkIcons = {
+  // Icon configuration
+  const inviteLinkIcons: Record<string, React.ReactNode> = {
     matrix: <AtSign className="h-4 w-4" />,
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
   }
-  const inviteAltDescription = {
+
+  const inviteAltDescription: Record<string, string> = {
     matrix: "Accept the invite and paste it in the Matrix chat",
     email: "Send an email to the provided address with the code",
     discord: "Join the Discord server and paste the code in the #verification channel",
     twitter: "Send a DM to the provided Twitter account with the code",
   }
 
+  // Popover descriptions (keeping existing implementation)
   const FullDescriptionPopOver = ({ button, name, url, onclick, description }: {
-    button: React.ReactNode,
-    name: string,
-    url?: string,
-    onclick?: () => void,
-    description: React.ReactNode,
+    button: React.ReactNode
+    name: string
+    url?: string
+    onclick?: () => void
+    description: React.ReactNode
   }) => {
     if (!url && !onclick) {
       throw new Error("Either url or onclick must be provided")
     }
 
-    return <Popover>
-      <PopoverTrigger className="cursor-help" asChild>
-        {button}
-      </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
-        {description}
-        <a href={url} target="_blank" rel="noreferrer">
-          <Button variant="primary" className="mt-2 w-full">
-            {`Join ${name}`}
-          </Button>
-        </a>
-      </PopoverContent>
-    </Popover>
+    return (
+      <Popover>
+        <PopoverTrigger className="cursor-help" asChild>
+          {button}
+        </PopoverTrigger>
+        <PopoverContent className="w-[300px] p-4 bg-[#2C2B2B] border-[#E6007A]" sideOffset={5}>
+          {description}
+          <a href={url} target="_blank" rel="noreferrer">
+            <Button variant="primary" className="mt-2 w-full">
+              {`Join ${name}`}
+            </Button>
+          </a>
+        </PopoverContent>
+      </Popover>
+    )
   }
+
   const inviteFullDescriptions = {
     matrix: ({ button }) => (
       <FullDescriptionPopOver
@@ -152,21 +208,10 @@ export function ChallengePage({
         url={import.meta.env.VITE_APP_INVITE_LINK_MATRIX}
         description={
           <ul className="list-disc pl-4">
-            <li>
-              <strong>Step 1:</strong> Click the button to join the Matrix server.
-            </li>
-            <li>
-              <strong>Step 2:</strong> 
-              Once you are in the server, find the 
-              {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_MATRIX}</code> bot
-              in the admin members list.
-            </li>
-            <li>
-              <strong>Step 3:</strong> Send a DM to the bot with the code.
-            </li>
-            <li>
-              <strong>Step 4:</strong> Wait for the bot to verify your code.
-            </li>
+            <li><strong>Step 1:</strong> Click the button to join the Matrix server.</li>
+            <li><strong>Step 2:</strong> Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_MATRIX}</code> bot in the admin members list.</li>
+            <li><strong>Step 3:</strong> Send a DM to the bot with the code.</li>
+            <li><strong>Step 4:</strong> Wait for the bot to verify your code.</li>
           </ul>
         }
       />
@@ -179,17 +224,9 @@ export function ChallengePage({
         description={
           <div>
             <ul className="list-disc pl-4">
-              <li>
-                <strong>Step 1:</strong> Click the button to send a DM to the 
-                {" "}<code>@{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_TWITTER}</code> X
-                account.
-              </li>
-              <li>
-                <strong>Step 2:</strong> Send the code in the DM.
-              </li>
-              <li>
-                <strong>Step 3:</strong> Wait for the account to verify your code.
-              </li>
+              <li><strong>Step 1:</strong> Click the button to send a DM to the {" "}<code>@{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_TWITTER}</code> X account.</li>
+              <li><strong>Step 2:</strong> Send the code in the DM.</li>
+              <li><strong>Step 3:</strong> Wait for the account to verify your code.</li>
             </ul>
           </div>
         }
@@ -203,20 +240,10 @@ export function ChallengePage({
         description={
           <div>
             <ul className="list-disc pl-4">
-              <li>
-                <strong>Step 1:</strong> Click the button to join the Discord server.
-              </li>
-              <li>
-                <strong>Step 2:</strong> Once you are in the server, find the 
-                {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_DISCORD}</code> bot
-                in the admin members list.
-              </li>
-              <li>
-                <strong>Step 3:</strong> Send a DM to the user with the code.
-              </li>
-              <li>
-                <strong>Step 4:</strong> Wait for the bot to verify your code.
-              </li>
+              <li><strong>Step 1:</strong> Click the button to join the Discord server.</li>
+              <li><strong>Step 2:</strong> Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_DISCORD}</code> bot in the admin members list.</li>
+              <li><strong>Step 3:</strong> Send a DM to the user with the code.</li>
+              <li><strong>Step 4:</strong> Wait for the bot to verify your code.</li>
             </ul>
           </div>
         }
@@ -230,18 +257,10 @@ export function ChallengePage({
         description={
           <div>
             <ul className="list-disc pl-4">
-              <li>
-                <strong>Step 1:</strong> Click the button to send an email to the provided address.
-              </li>
-              <li>
-                <strong>Step 2:</strong> Send the code in the email as the message body.
-              </li>
-              <li>
-                <strong>Note:</strong> Subject does not matter, don&apos;t worry about it!
-              </li>
-              <li>
-                <strong>Step 3:</strong> Wait for the email to verify your code.
-              </li>
+              <li><strong>Step 1:</strong> Click the button to send an email to the provided address.</li>
+              <li><strong>Step 2:</strong> Send the code in the email as the message body.</li>
+              <li><strong>Note:</strong> Subject does not matter, don&apos;t worry about it!</li>
+              <li><strong>Step 3:</strong> Wait for the email to verify your code.</li>
             </ul>
             <Button variant="outline" size="icon" className="mt-2"
               onClick={async () => {
@@ -256,14 +275,18 @@ export function ChallengePage({
     ),
   }
 
-  if (challengeStore.loading && noChallenges === 0) {
-    return <LoadingPlaceholder className="flex flex-col w-full h-40 flex-center">
-      <span className="sm:text-3xl text-xl text-center font-bold pt-4">
-        Loading Challenges...
-      </span>
-    </LoadingPlaceholder>;
+  // Loading state
+  if (challengeStore.loading && Object.keys(challengeFieldsConfig).length === 0) {
+    return (
+      <LoadingPlaceholder className="flex flex-col w-full h-40 flex-center">
+        <span className="sm:text-3xl text-xl text-center font-bold pt-4">
+          Loading Challenges...
+        </span>
+      </LoadingPlaceholder>
+    )
   }
 
+  // Main render
   return (
     <Card>
       <CardHeader>
@@ -279,125 +302,123 @@ export function ChallengePage({
       </CardHeader>
       <CardContent className="space-y-6 p-4 overflow-x-auto">
         {Object.entries(challengeFieldsConfig).map(([field, { type, code, status }]) => {
-          const actualButton = inviteLinkIcons[field]
-            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
-            :null
-
-          // handling for PGP fingerprint
-          if (field === 'pgp_fingerprint' && code && status === ChallengeStatus.Pending) {
-            return (
-              <div key={field} className="mb-4 last:mb-0">
-                <PGPVerification
-                  challenge={code}
-                  onVerify={async (pubkey, signedChallenge) => {
-                    try {
-                      await challengeStore.sendPGPVerification({
-                        network: identity.network || chainStore.id.split("_")[0], // You'll need to pass chainStore
-                        account: identity.account || accountStore.encodedAddress, // You'll need to pass accountStore
-                        pubkey,
-                        signed_challenge: signedChallenge,
-                      });
-                    } catch (error) {
-                      addNotification({
-                        type: 'error',
-                        message: 'Failed to send PGP verification',
-                      });
-                    }
-                  }}
-                  isVerifying={challengeStore.loading}
-                />
-              </div>
-            );
+          // Check for special renderer
+          const specialRenderer = specialChallengeRenderers[field]
+          if (specialRenderer) {
+            const rendered = specialRenderer({
+              field,
+              code,
+              status,
+              identity,
+              onVerify: (data) => handleVerification(field, data),
+              isLoading: challengeStore.loading,
+            })
+            if (rendered) {
+              return <div key={field} className="mb-4 last:mb-0">{rendered}</div>
+            }
           }
-          const actualButton = inviteLinkIcons[field]
-            ?<Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
-            :null
 
-          return <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
-            <div className="flex flex-wrap justify-between gap-2">
-              <Label htmlFor={field} className="flex flex-wrap items-center gap-2 max-w-full">
-                <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
-                  <div className="flex items-center gap-2 shrink-0">
-                    {getIcon(field)}
-                    <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)} Code:</span>
+          // Default renderer
+          const actualButton = inviteLinkIcons[field] ? (
+            <Button variant="primary" size="icon">{inviteLinkIcons[field]}</Button>
+          ) : null
+
+          return (
+            <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
+              <div className="flex flex-wrap justify-between gap-2">
+                <Label htmlFor={field} className="flex flex-wrap items-center gap-2 max-w-full">
+                  <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
+                    <div className="flex items-center gap-2 shrink-0">
+                      {SOCIAL_ICONS[field]}
+                      <span className="font-bold">
+                        {field.charAt(0).toUpperCase() + field.slice(1)} Code:
+                      </span>
+                    </div>
+                    <span className="overflow-hidden truncate w-full sm:w-auto">
+                      {identity.info[field]}
+                    </span>
                   </div>
-                  <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
+                </Label>
+                <div className="flex flex-row gap-2 items-center justify-end grow">
+                  <StatusBadge status={status} />
                 </div>
-              </Label>
-              <div className="flex flex-row gap-2 items-center justify-end grow">
-                <StatusBadge status={status} />
+              </div>
+              <div className="flex justify-end flex-wrap gap-2">
+                {code && (
+                  <Input
+                    id={field}
+                    value={code}
+                    readOnly
+                    className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]"
+                  />
+                )}
+                {status === ChallengeStatus.Pending && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={async () => {
+                        if (type === "input") {
+                          const clipText = await window.navigator.clipboard.readText()
+                          setFormField(field, clipText)
+                        } else if (code) {
+                          await copyToClipboard(code)
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+
+                    {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
+                      (inviteFullDescriptions[field]
+                        ? inviteFullDescriptions[field]({ button: actualButton })
+                        : (
+                          <a
+                            href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={inviteAltDescription[field]}
+                          >
+                            {actualButton}
+                          </a>
+                        )
+                      )
+                    }
+
+                    {field === "web" && <Button variant="primary">Verify</Button>}
+                  </>
+                )}
               </div>
             </div>
-            <div className="flex justify-end flex-wrap gap-2">
-              {code &&
-                <Input id={field} value={code} readOnly 
-                  className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]" 
-                />
-              }
-              {status === ChallengeStatus.Pending &&
-                <>
-                  <Button variant="outline" size="icon" 
-                    onClick={async () => {
-                      if (type === "input") {
-                        const clipText = await window.navigator.clipboard.readText()
-                        setFormField(field, clipText)
-                      } else if (code) {
-                        await copyToClipboard(code)
-                      }
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-
-                  {import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`] &&
-                    inviteFullDescriptions[field]
-                      ?inviteFullDescriptions[field]({ button: actualButton })
-                      :<a href={import.meta.env[`VITE_APP_INVITE_LINK_${field.toUpperCase()}`]}
-                        target="_blank" rel="noreferrer" title={inviteAltDescription[field]}
-                      >
-                        {actualButton}
-                      </a>
-                  }
-
-                  {field === "web" &&
-                    <Button variant="primary">Verify</Button>}
-                </>}
-            </div>
-          </div>
+          )
         })}
 
-        {noChallenges > 0 &&
-          <Alert
-            key={"useOwnAccounts"}
-          >
+        {Object.keys(challengeFieldsConfig).length > 0 && (
+          <Alert key="useOwnAccounts">
             <AlertTitle>Note</AlertTitle>
             <AlertDescription className="flex flex-col justify-between items-center gap-2">
               <p>
-                Please use your own accounts for verification. Otherwise, you will not be able to 
+                Please use your own accounts for verification. Otherwise, you will not be able to
                 prove ownership of the linked accounts, thus failing the challenge.
               </p>
             </AlertDescription>
           </Alert>
-        }
+        )}
 
-        {challengeStore.error &&
+        {challengeStore.error && (
           <Alert
-            key={"challengeError"}
+            key="challengeError"
             variant="destructive"
             className="mb-4 bg-red-200 border-[#E6007A] text-red-800 dark:bg-red-800 dark:text-red-200"
           >
             <AlertTitle>Error</AlertTitle>
             <AlertDescription className="flex flex-col justify-between items-stretch gap-2">
-              <p>
-                There was an error loading the challenges. Please wait a moment and try again.
-              </p>
-              <p>
-                {challengeStore.error}
-              </p>
+              <p>There was an error loading the challenges. Please wait a moment and try again.</p>
+              <p>{challengeStore.error}</p>
             </AlertDescription>
           </Alert>
-        }
+        )}
       </CardContent>
     </Card>
-  );
+  )
 }
