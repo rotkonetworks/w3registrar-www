@@ -151,7 +151,17 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
         pending_challenges,
         verification_state: { fields: verifyState },
       } = challengeState;
-      const pendingChallenges = Object.fromEntries(pending_challenges)
+      console.log({ pending_challenges, verifyState })
+      const pendingChallenges = Object.fromEntries(pending_challenges
+        // new API assumes challenges are Array<[[string, string]]>, but we still support old format.
+        .map(([key, code]: [string | [string, string], string | undefined]) => {
+          if (Array.isArray(key)) {
+            return [key[0], key[1]];
+          } else {
+            return [key, code];
+          }
+        })
+      )
 
       const _challenges: ChallengeStore = {};
       Object.entries(verifyState)
