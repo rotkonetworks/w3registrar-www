@@ -219,17 +219,6 @@ export const IdentityForm = forwardRef((
       required: false,
     }
   }
-  const setId_requiredFields = [
-    "display", 
-    "legal",
-    "web", 
-    "matrix", 
-    "email", 
-    "image",
-    "twitter", 
-    "github", 
-    "discord", 
-  ]
 
   const _resetFromIdStore = useCallback((identityInfo) => ({
     ..._reset(),
