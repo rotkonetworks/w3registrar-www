@@ -150,7 +150,15 @@ export const IdentityForm = forwardRef((
     openTxDialog({ mode: "requestJudgement", tx, estimatedCosts, })
   }
 
-  const identityFormFields = {
+  const identityFormFields: Record<keyof IdentityFormData, {
+    label: string
+    icon: JSX.Element
+    key: string
+    placeholder: string
+    checkForErrors: (v: string) => string | null
+    transform?: (value: string) => string
+    required?: boolean
+  }> = {
     display: {
       label: "Display Name",
       icon: <UserCircle className="h-4 w-4" />,
