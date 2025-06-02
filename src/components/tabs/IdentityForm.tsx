@@ -18,10 +18,23 @@ import { IdentityStatusInfo } from '../IdentityStatusInfo'
 
 
 
-export type IdentityFormData = Record<string, {
+export type FormDataValue = {
   value: string
   error: string | null
-}>
+}
+
+export type IdentityFormData = {
+  display?: FormDataValue
+  legal?: FormDataValue
+  web?: FormDataValue
+  matrix?: FormDataValue
+  email?: FormDataValue
+  image?: FormDataValue
+  twitter?: FormDataValue
+  github?: FormDataValue
+  discord?: FormDataValue
+  pgp_fingerprint?: FormDataValue
+}
 
 export const IdentityForm = forwardRef((
   {
@@ -61,20 +74,49 @@ export const IdentityForm = forwardRef((
     if (forbiddenSubmission) {
       return
     }
-    const info = {
-      ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
+    type RawIdentityField = {
+      type: string
+      value: Binary
+    } | {
+      type: "None"
+    }
+
+    type RawIdentityData = Record<keyof Omit<IdentityFormData, "pgp_fingerprint">, RawIdentityField> & {
+      pgp_fingerprint?: Binary
+    }
+
+    const initialInfo = {
+      display: { type: "None" },
+      legal: { type: "None" },
+      web: { type: "None" },
+      matrix: { type: "None" },
+      email: { type: "None" },
+      image: { type: "None" },
+      twitter: { type: "None" },
+      github: { type: "None" },
+      discord: { type: "None" }
+    } as Record<keyof Omit<IdentityFormData, "pgp_fingerprint">, RawIdentityField>;
+    
+    const info: RawIdentityData = {
+      ...initialInfo,
       ...(Object.fromEntries(Object.entries(formData)
-        .filter(([_, { value }]) => value && value !== "")
-        .map(([key, { value }]): [string, { value: string }] => [key, {
-          value: identityFormFields[key].transform
-            ? identityFormFields[key].transform(value)
-            : value
-        }])
-        .map(([key, { value }]) => [key, key !== "pgp_fingerprint"
-          ? { type: `Raw${value.length}`, value: Binary.fromText(value) }
-          : value
+        .filter(([key, { value }]: [string, FormDataValue]) => 
+          value && value !== "" && key !== "pgp_fingerprint" && 
+          key in initialInfo // ensure key is valid for RawIdentityData
+        )
+        .map(([key, { value }]: [string, FormDataValue]) => [key, 
+          identityFormFields[key].transform ? identityFormFields[key].transform(value) : value
+        ])
+        .map(([key, value]: [string, string]) => [key, 
+          { type: `Raw${value.length}`, value: Binary.fromText(value) 
+        }
         ])
       )),
+    }
+    if (identityFormFields.pgp_fingerprint && formData.pgp_fingerprint?.value) {
+      info.pgp_fingerprint = Binary.fromText(formData.pgp_fingerprint.value);
+    } else {
+      delete info.pgp_fingerprint; // Ensure it's not included if empty
     }
     console.log({ info })
     const tx = typedApi.tx.Identity.set_identity({ info, });
