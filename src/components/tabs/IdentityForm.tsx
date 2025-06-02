@@ -231,16 +231,15 @@ export const IdentityForm = forwardRef((
     "discord", 
   ]
 
-  const _resetFromIdStore = useCallback((identityInfo) => (
-    {
-      ..._reset(),
-      ...(Object.entries(identityInfo).reduce((all, [key]) => {
-        all[key] = {
-          value: identityInfo![key],
-          error: null,
-        }
-        return all
-      }, { }))
+  const _resetFromIdStore = useCallback((identityInfo) => ({
+    ..._reset(),
+    ...(Object.entries(identityInfo).reduce((all, [key]) => {
+      all[key] = {
+        value: identityInfo![key],
+        error: null,
+      }
+      return all
+    }, { }))
   }), [_reset])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
