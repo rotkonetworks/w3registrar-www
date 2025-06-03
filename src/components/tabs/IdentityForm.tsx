@@ -258,9 +258,14 @@ export const IdentityForm = forwardRef((
       icon: <Fingerprint className="h-4 w-4" />,
       key: "pgp_fingerprint",
       placeholder: '0x1234...',
-      checkForErrors: (v) => v.length > 0 && !/^0x[a-fA-F0-9]{40}$/.test(v)
+      checkForErrors: (v) => v.length > 0 && !/^(0x)?[a-fA-F0-9]{40}$/.test(v)
         ? "Invalid format"
         : null,
+      transform: (value: string) => {
+        if (!value) return null;
+        value = value.trim().toLowerCase();
+        return value.startsWith('0x') ? value.slice(2) : value;
+      },
       required: false,
     }
   }
@@ -347,7 +352,26 @@ export const IdentityForm = forwardRef((
                     value={formData[key]?.value || ""}
                     disabled={!accountStore.address}
                     onChange={event => setFormData(_formData => {
-                      const newValue = event.target.value
+                      let newValue = event.target.value
+                      // Filter out non-hex characters when pasting into PGP fingerprint field
+                      if (key === 'pgp_fingerprint') {
+                        // First determine if there's a 0x prefix we want to keep
+                        const hasPrefix = /^0x/i.test(newValue);
+                        // Filter out non-hex characters (keeping x for the prefix if needed)
+                        const filtered = newValue.replace(/[^0-9a-fA-FxX]/g, '');
+                        // Normalize prefix: either keep existing one or ensure it starts with 0x
+                        if (hasPrefix) {
+                          // Ensure the 0x is lowercase and preserve remaining content
+                          newValue = '0x' + filtered.replace(/^0x/i, '');
+                        } else if (filtered.toLowerCase().startsWith('0x')) {
+                          // Fix case of existing 0x prefix
+                          newValue = '0x' + filtered.substring(2);
+                        } else {
+                          // Add prefix if there isn't one
+                          newValue = '0x' + filtered;
+                        }
+                        console.log("Filtered PGP fingerprint:", newValue);
+                      }
                       _formData = { ..._formData }
                       _formData[key] = { ..._formData[key] }
                       _formData[key].value = newValue;
