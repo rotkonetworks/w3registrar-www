@@ -91,15 +91,15 @@ export const IdentityForm = forwardRef((
       github: { type: "None" },
       discord: { type: "None" }
     } as Record<keyof Omit<IdentityFormData, "pgp_fingerprint">, RawIdentityField>;
-    
+
     const info: RawIdentityData = {
       ...initialInfo,
       ...(Object.fromEntries(Object.entries(formData)
-        .filter(([key, { value }]: [string, FormDataValue]) => 
-          value && value !== "" && key !== "pgp_fingerprint" && 
+        .filter(([key, { value }]: [string, FormDataValue]) =>
+          value && value !== "" && key !== "pgp_fingerprint" &&
           key in initialInfo // ensure key is valid for RawIdentityData
         )
-        .map(([key, { value }]: [string, FormDataValue]) => [key, 
+        .map(([key, { value }]: [string, FormDataValue]) => [key,
           identityFormFields[key].transform ? identityFormFields[key].transform(value) : value
         ])
         .map(([key, value]: [string, string]) => [key, 
@@ -119,7 +119,7 @@ export const IdentityForm = forwardRef((
     let estimatedCosts: EstimatedCostInfo;
     try {
       estimatedCosts = {
-        fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
+        fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
         deposits: BigNumber(chainConstants.basicDeposit?.toString())
           .plus(BigNumber(chainConstants.byteDeposit?.toString())
             .times(Object.values(formData)
@@ -278,7 +278,7 @@ export const IdentityForm = forwardRef((
         error: null,
       }
       return all
-    }, { }))
+    }, {}))
   }), [_reset])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
@@ -294,7 +294,7 @@ export const IdentityForm = forwardRef((
       setFormData(_reset)
     }
   }, [identity, formResetFlag, _resetFromIdStore, _reset])
-  
+
   useImperativeHandle(ref, () => ({
     reset: () => setFormResetFlag(true)
   }), [])
@@ -307,9 +307,9 @@ export const IdentityForm = forwardRef((
     return (
       Object.entries(formData)
         .filter(([, { value }]) => !value).length >= Object.keys(formData).length
-      || 
+      ||
       Object.entries(formData)
-        .filter(([, { error }]) => error).length > 0 
+        .filter(([, { error }]) => error).length > 0
     )
   }, [formData])
 
@@ -323,12 +323,12 @@ export const IdentityForm = forwardRef((
             Identity Information
           </CardTitle>
           <CardDescription className="text-[#706D6D]">
-            This form allows you to 
+            This form allows you to
             {identity.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
-            your identity data. It has all the fields that 
+            your identity data. It has all the fields that
             {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
-            supports for identity verification. Please make sure that all contact information is 
-            accurate before proceeding. 
+            supports for identity verification. Please make sure that all contact information is
+            accurate before proceeding.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
@@ -352,22 +352,15 @@ export const IdentityForm = forwardRef((
                     value={formData[key]?.value || ""}
                     disabled={!accountStore.address}
                     onChange={event => setFormData(_formData => {
-                      let newValue = event.target.value
-                      // Filter out non-hex characters when pasting into PGP fingerprint field
+                      let newValue = event.target.value.toLowerCase().trim();
                       if (key === 'pgp_fingerprint') {
-                        // First determine if there's a 0x prefix we want to keep
                         const hasPrefix = /^0x/i.test(newValue);
-                        // Filter out non-hex characters (keeping x for the prefix if needed)
                         const filtered = newValue.replace(/[^0-9a-fA-FxX]/g, '');
-                        // Normalize prefix: either keep existing one or ensure it starts with 0x
                         if (hasPrefix) {
-                          // Ensure the 0x is lowercase and preserve remaining content
                           newValue = '0x' + filtered.replace(/^0x/i, '');
                         } else if (filtered.toLowerCase().startsWith('0x')) {
-                          // Fix case of existing 0x prefix
                           newValue = '0x' + filtered.substring(2);
                         } else {
-                          // Add prefix if there isn't one
                           newValue = '0x' + filtered;
                         }
                         console.log("Filtered PGP fingerprint:", newValue);
