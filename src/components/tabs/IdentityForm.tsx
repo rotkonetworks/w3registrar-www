@@ -102,14 +102,17 @@ export const IdentityForm = forwardRef((
         .map(([key, { value }]: [string, FormDataValue]) => [key,
           identityFormFields[key].transform ? identityFormFields[key].transform(value) : value
         ])
-        .map(([key, value]: [string, string]) => [key, 
-          { type: `Raw${value.length}`, value: Binary.fromText(value) 
-        }
+        .map(([key, value]: [string, string]) => [key,
+          {
+            type: `Raw${value.length}`, value: Binary.fromText(value)
+          }
         ])
       )),
     }
     if (identityFormFields.pgp_fingerprint && formData.pgp_fingerprint?.value) {
-      info.pgp_fingerprint = Binary.fromText(formData.pgp_fingerprint.value);
+      info.pgp_fingerprint = Binary.fromHex(
+        identityFormFields.pgp_fingerprint.transform(formData.pgp_fingerprint.value)
+      );
     } else {
       delete info.pgp_fingerprint; // Ensure it's not included if empty
     }

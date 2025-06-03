@@ -54,6 +54,7 @@ export const fetchIdentity = async (
 
     // For most chains, the result is an array of IdentityOf, but for Westend it's an object
     const identityOf = result[0] || result;
+    console.log("Fetched identityOf:", identityOf);
     
     // Extract identity data (raw text fields)
     const identityData = Object.fromEntries(
@@ -64,6 +65,10 @@ export const fetchIdentity = async (
           (value.value as Binary).asText()
         ])
     );
+    // PGP fingerprint is a special case.
+    if (identityOf.info.pgp_fingerprint) {
+      identityData.pgp_fingerprint = (identityOf.info.pgp_fingerprint as Binary).asHex();
+    }
 
     // Store the deposit
     identityInfo.deposit = identityOf.deposit;
