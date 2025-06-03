@@ -16,8 +16,6 @@ import { Identity, verifyStatuses } from '~/types/Identity'
 
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 
-
-
 export type FormDataValue = {
   value: string
   error: string | null
@@ -65,9 +63,6 @@ export const IdentityForm = forwardRef((
     ])
   ), [supportedFields])
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
-
-
-  const onChainIdentity = identity.status
 
   const handleSubmitIdentity = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -384,9 +379,9 @@ export const IdentityForm = forwardRef((
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
+                {identity.status === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifyStatuses.IdentitySet && accountStore.polkadotSigner && (
+              {identity.status === verifyStatuses.IdentitySet && accountStore.polkadotSigner && (
                 <Button type="button" variant="secondary" disabled={forbiddenSubmission || isTxBusy}
                   onClick={handleRequestJudgement}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"
