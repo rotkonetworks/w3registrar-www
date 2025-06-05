@@ -3,7 +3,7 @@
   "descriptorPath": ".papi/descriptors",
   "entries": {
     "polkadot": {
-      "wsUrl": "wss://polkadot.dotters.network",
+      "chain": "polkadot",
       "metadata": ".papi/metadata/polkadot.scale"
     },
     "paseo": {
@@ -33,6 +33,22 @@
     "westend2_people": {
       "chain": "westend2_people",
       "metadata": ".papi/metadata/westend2_people.scale"
+    },
+    "polkadot_asset_hub": {
+      "chain": "polkadot_asset_hub",
+      "metadata": ".papi/metadata/polkadot_asset_hub.scale"
+    },
+    "westend2_asset_hub": {
+      "chain": "westend2_asset_hub",
+      "metadata": ".papi/metadata/westend2_asset_hub.scale"
+    },
+    "ksmcc3_asset_hub": {
+      "chain": "ksmcc3_asset_hub",
+      "metadata": ".papi/metadata/ksmcc3_asset_hub.scale"
+    },
+    "paseo_asset_hub": {
+      "chain": "paseo_asset_hub",
+      "metadata": ".papi/metadata/paseo_asset_hub.scale"
     }
   }
 }

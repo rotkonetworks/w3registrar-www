@@ -1,7 +1,8 @@
 import { decodeAddress, encodeAddress } from "@polkadot/keyring";
 import { useAccounts, useConnectedWallets, useWalletDisconnector } from "@reactive-dot/react";
+import _ from "lodash";
 import { SS58String } from "polkadot-api";
-import { useCallback, useMemo } from "react";
+import { useCallback, useDeferredValue, useMemo } from "react";
 
 interface UseWalletAccountsProps {
   chainSs58Format: number;
@@ -10,10 +11,19 @@ interface UseWalletAccountsProps {
 export function useWalletAccounts({
   chainSs58Format,
 }: UseWalletAccountsProps) {
+  const _accounts = useAccounts();
+  const _connectedWallets = useConnectedWallets();
+  
   // Get accounts from wallet
-  const accounts = useAccounts();
-  const connectedWallets = useConnectedWallets();
-  const [_, disconnectWallet] = useWalletDisconnector();
+  const accounts = useDeferredValue(_accounts);
+  const connectedWallets = useDeferredValue(_connectedWallets);
+
+  const isLoading = useMemo(() => 
+    _.isEqual(_accounts, accounts) && _.isEqual(_connectedWallets, connectedWallets),
+    [_accounts, accounts, _connectedWallets, connectedWallets]
+  );
+
+  const [__, disconnectWallet] = useWalletDisconnector();
 
   // Format accounts with proper SS58 format
   const formattedAccounts = useMemo(() => accounts
@@ -53,6 +63,7 @@ export function useWalletAccounts({
 
   return {
     accounts: formattedAccounts,
+    isLoading,
     connectedWallets,
     getWalletAccount,
     disconnectAllWallets,
