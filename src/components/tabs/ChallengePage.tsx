@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { AtSign, Mail, Copy, Shield } from "lucide-react"
+import { AtSign, Mail, Copy, Shield, Github } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -170,6 +170,7 @@ export function ChallengePage({
     email: <Mail className="h-4 w-4" />,
     discord: <DiscordIcon className="h-4 w-4" />,
     twitter: <XIcon className="h-4 w-4" />,
+    github: <Github className="h-4 w-4" />,
   }
 
   const inviteAltDescription: Record<string, string> = {
@@ -262,21 +263,18 @@ export function ChallengePage({
         button={button}
         name="Email"
         url={import.meta.env.VITE_APP_INVITE_LINK_EMAIL}
+    github: ({ button, link }) => (
+      <FullDescriptionPopOver
+        button={button}
+        url={link}
+        name="GitHub"
         description={
           <div>
-            <ul className="list-disc pl-4">
-              <li><strong>Step 1:</strong> Click the button to send an email to the provided address.</li>
-              <li><strong>Step 2:</strong> Send the code in the email as the message body.</li>
-              <li><strong>Note:</strong> Subject does not matter, don&apos;t worry about it!</li>
-              <li><strong>Step 3:</strong> Wait for the email to verify your code.</li>
-            </ul>
-            <Button variant="outline" size="icon" className="mt-2"
-              onClick={async () => {
-                await copyToClipboard(import.meta.env.VITE_APP_INVITE_LINK_EMAIL)
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+            <ol className="list-decimal pl-4">
+              <li>Follow the link.</li>
+              <li>Log into your GitHub account.</li>
+              <li>Click the button to accept the invite.</li>
+            </ol>
           </div>
         }
       />
@@ -352,7 +350,7 @@ export function ChallengePage({
                 </div>
               </div>
               <div className="flex justify-end flex-wrap gap-2">
-                {code && (
+                {(code && field !== "github") && (
                   <Input
                     id={field}
                     value={code}
@@ -392,6 +390,13 @@ export function ChallengePage({
                         )
                       )
                     }
+
+                    {field === "github" && (
+                      inviteFullDescriptions.github({
+                        button: actualButton,
+                        link: code,
+                      })
+                    )}
 
                     {field === "web" && <Button variant="primary">Verify</Button>}
                   </>
