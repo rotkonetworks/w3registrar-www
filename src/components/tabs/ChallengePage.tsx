@@ -14,10 +14,10 @@ import { LoadingPlaceholder } from "~/pages/Loading"
 import { ChallengeStatus, ChallengeStore } from "~/store/challengesStore"
 import { Identity } from "~/types/Identity"
 
+import { PGPVerification } from "../challenges/PGPVerification"
 import { StatusBadge } from "../challenges/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
-import { PGPVerification } from "../challenges/PGPVerification"
 
 // Challenge renderer interface for extensibility
 interface ChallengeRenderer {
@@ -26,7 +26,7 @@ interface ChallengeRenderer {
     code: string
     status: ChallengeStatus
     identity: Identity
-    onVerify: (data: any) => Promise<void>
+    onVerify: (data: unknown) => Promise<void>
     isLoading: boolean
   }): React.ReactElement | null
 }
@@ -43,8 +43,6 @@ const specialChallengeRenderers: Record<string, ChallengeRenderer> = {
           await onVerify({
             pubkey,
             signed_challenge,
-            network: identity.network,
-            account: identity.account,
           })
         }}
         isVerifying={isLoading}
@@ -62,12 +60,17 @@ interface ChallengePageProps {
     challenges: ChallengeStore
     error: string | null
     loading: boolean
-    sendPGPVerification: (payload: any) => Promise<void>
-    // Add more verification methods as needed
   }
   identity: Identity
   chainStore: { id: string }
   accountStore: { encodedAddress: string }
+  sendPGPVerification: (payload: { 
+    pubkey: string; 
+    signed_challenge: string; 
+    network: string; 
+    account: string
+  }) => Promise<void>
+  // Add more props as needed
 }
 
 export function ChallengePage({
@@ -76,6 +79,7 @@ export function ChallengePage({
   identity,
   chainStore,
   accountStore,
+  sendPGPVerification,
 }: ChallengePageProps) {
   // State management
   const [localChallengeStore, setLocalChallengeStore] = useState(challengeStore.challenges)
@@ -133,15 +137,18 @@ export function ChallengePage({
   }
 
   // Generic verification handler
-  const handleVerification = async (field: string, data: any) => {
+  const handleVerification = async (field: string, data: null | {
+    pubkey: string
+    signed_challenge: string
+  }) => {
     try {
       // Route to appropriate verification method
       switch (field) {
         case 'pgp_fingerprint':
-          await challengeStore.sendPGPVerification({
+          await sendPGPVerification({
             ...data,
-            network: data.network || chainStore.id.split("_")[0],
-            account: data.account || accountStore.encodedAddress,
+            network: chainStore.id.split("_")[0],
+            account: accountStore.encodedAddress,
           })
           break
         // Add more cases as needed
@@ -153,6 +160,7 @@ export function ChallengePage({
         type: 'error',
         message: `Failed to verify ${field}`,
       })
+      console.error(`Verification error for ${field}:`, error)
     }
   }
 

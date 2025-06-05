@@ -57,7 +57,7 @@ type SubscribeAccountState = {
   account: string;
 };
 
-type VerifyPGPKey = {
+export type VerifyPGPKey = {
   network: string;
   account: string;
   pubkey: string;

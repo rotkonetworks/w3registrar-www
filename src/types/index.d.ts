@@ -5,6 +5,7 @@ import { Ref } from "react";
 
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts";
+import { VerifyPGPKey } from "~/hooks/useChallengeWebSocket";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
 import { ChallengeStore } from "~/store/challengesStore";
@@ -61,6 +62,7 @@ export type MainContentProps = {
     loading: boolean,
   },
   openTxDialog: (params: OpenTxDialogArgs) => void,
+  sendPGPVerification: (payload: VerifyPGPKey) => Promise<void>
 }
 
 export type SignSubmitAndWatchParams = {

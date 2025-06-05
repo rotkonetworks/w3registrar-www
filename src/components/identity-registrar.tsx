@@ -211,6 +211,7 @@ export function IdentityRegistrarComponent() {
     isConnected: isChallengeWsConnected,
     loading: challengeLoading,
     subscribe: subscribeToChallenges,
+    sendPGPVerification,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
@@ -682,6 +683,7 @@ export function IdentityRegistrarComponent() {
     identityFormRef, urlParams, isTxBusy,
     supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    sendPGPVerification,
   }
 
   //#region HelpDialog
