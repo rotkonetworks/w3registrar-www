@@ -13,8 +13,6 @@ import { ChallengeStore } from "~/store/challengesStore";
 import { Identity } from "./Identity";
 import { ApiTx } from "./api";
 
-
-
 export type DialogMode = "clearIdentity" |
   "disconnect" |
   "teleport" |
