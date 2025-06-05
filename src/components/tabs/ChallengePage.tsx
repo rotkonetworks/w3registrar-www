@@ -215,54 +215,66 @@ export function ChallengePage({
         button={button}
         name="Matrix"
         url={import.meta.env.VITE_APP_INVITE_LINK_MATRIX}
-        description={
-          <ul className="list-disc pl-4">
-            <li><strong>Step 1:</strong> Click the button to join the Matrix server.</li>
-            <li><strong>Step 2:</strong> Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_MATRIX}</code> bot in the admin members list.</li>
-            <li><strong>Step 3:</strong> Send a DM to the bot with the code.</li>
-            <li><strong>Step 4:</strong> Wait for the bot to verify your code.</li>
-          </ul>
-        }
+        description={<ol className="list-decimal pl-4">
+          <li>Click the button to join the Matrix server.</li>
+          <li>Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_MATRIX}</code> bot in the admin members list.</li>
+          <li>Send a DM to the bot with the code.</li>
+          <li>Wait for the bot to verify your code.</li>
+        </ol>}
       />
-    ),
-    twitter: ({ button }) => (
+        ),
+        twitter: ({ button }) => (
       <FullDescriptionPopOver
         button={button}
         name="Twitter"
         url={import.meta.env.VITE_APP_INVITE_LINK_TWITTER}
-        description={
-          <div>
-            <ul className="list-disc pl-4">
-              <li><strong>Step 1:</strong> Click the button to send a DM to the {" "}<code>@{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_TWITTER}</code> X account.</li>
-              <li><strong>Step 2:</strong> Send the code in the DM.</li>
-              <li><strong>Step 3:</strong> Wait for the account to verify your code.</li>
-            </ul>
-          </div>
-        }
+        description={<ol className="list-decimal pl-4">
+          <li>Click the button to send a DM to the {" "}<code>@{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_TWITTER}</code> X account.</li>
+          <li>Send the code in the DM.</li>
+          <li>Wait for the account to verify your code.</li>
+        </ol>}
       />
-    ),
-    discord: ({ button }) => (
+        ),
+        discord: ({ button }) => (
       <FullDescriptionPopOver
         button={button}
         name="Discord"
         url={import.meta.env.VITE_APP_INVITE_LINK_DISCORD}
-        description={
-          <div>
-            <ul className="list-disc pl-4">
-              <li><strong>Step 1:</strong> Click the button to join the Discord server.</li>
-              <li><strong>Step 2:</strong> Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_DISCORD}</code> bot in the admin members list.</li>
-              <li><strong>Step 3:</strong> Send a DM to the user with the code.</li>
-              <li><strong>Step 4:</strong> Wait for the bot to verify your code.</li>
-            </ul>
-          </div>
-        }
+        description={<ol className="list-decimal pl-4">
+          <li>Click the button to join the Discord server.</li>
+          <li>Once you are in the server, find the {" "}<code>{import.meta.env.VITE_APP_CHALLENGES_PRIVATE_ACCOUNT_DISCORD}</code> bot in the admin members list.</li>
+          <li>Send a DM to the user with the code.</li>
+          <li>Wait for the bot to verify your code.</li>
+        </ol>}
       />
-    ),
-    email: ({ button }) => (
+        ),
+        email: ({ button }) => (
       <FullDescriptionPopOver
         button={button}
         name="Email"
         url={import.meta.env.VITE_APP_INVITE_LINK_EMAIL}
+        description={<>
+          <ol className="list-decimal pl-4">
+            <li>Click the button to send an email to the provided address.</li>
+            <li>
+              Send the code in the email as the message body.
+            </li>
+            <p className="text-sm mt-1">
+              <strong>Note:</strong> Subject does not matter, don&apos;t worry about it!
+            </p>
+            <li>Wait for the email to verify your code.</li>
+          </ol>
+          <Button variant="outline" size="icon" className="mt-2 w-full"
+            onClick={async () => {
+              await copyToClipboard(import.meta.env.VITE_APP_INVITE_LINK_EMAIL)
+            }}
+          >
+            Copy Email
+            <Copy className="h-4 w-4" />
+          </Button>
+        </>}
+      />
+    ),
     github: ({ button, link }) => (
       <FullDescriptionPopOver
         button={button}
