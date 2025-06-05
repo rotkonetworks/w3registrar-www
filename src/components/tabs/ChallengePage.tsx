@@ -344,7 +344,7 @@ export function ChallengePage({
           return (
             <div key={field} className="mb-4 last:mb-0 flex flex-col gap-2">
               <div className="flex flex-wrap justify-between gap-2">
-                <Label htmlFor={field} className="flex flex-wrap items-center gap-2 max-w-full">
+                <Label htmlFor={`challenge-${field}`} className="flex flex-wrap items-center gap-2 max-w-full">
                   <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
                     <div className="flex items-center gap-2 shrink-0">
                       {SOCIAL_ICONS[field]}
@@ -364,7 +364,7 @@ export function ChallengePage({
               <div className="flex justify-end flex-wrap gap-2">
                 {(code && field !== "github") && (
                   <Input
-                    id={field}
+                    id={`challenge-${field}`}
                     value={code}
                     readOnly
                     className="bg-transparent border-[#E6007A] text-inherit flex-grow flex-shrink-0 flex-basis-[120px]"
