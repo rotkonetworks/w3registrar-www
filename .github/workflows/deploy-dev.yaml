@@ -15,6 +15,7 @@ env:
   VITE_APP_AVAILABLE_CHAINS: polkadot_people,ksmcc3_people,paseo_people,rococo_people
   VITE_APP_DEFAULT_CHAIN: paseo_people
   MODE: 'development'
+  VITE_APP_CHALLENGES_API_URL: wss://dapi.w3reg.org
   # we using staging api
 
 on:
