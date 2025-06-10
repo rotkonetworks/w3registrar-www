@@ -192,18 +192,29 @@ export function AccountsTree({
 
   const findAccountNode = (address: SS58String) => {
     if (!accountTreeData) return null;
-    const findNode = (node: AccountTreeNode, visited = new Set()): AccountTreeNode | null => {
-      if (node.address === address) return node;
+
+    const visited: Record<SS58String, AccountTreeNode> = {};
+    const findNode = (node: AccountTreeNode, visited = {}): AccountTreeNode | null => {
+      const foundNode = visited[node.address];
+      if (foundNode) return foundNode;
+
+      if (node.address === address) {
+        visited[node.address] = node; // Mark as visited
+        return node
+      };
       if (node.subs) {
         for (const sub of node.subs) {
           const found = findNode(sub);
-          if (found) return found;
+          if (found) {
+            visited[sub.address] = found; // Mark as visited
+            return found;
+          }
         }
       }
       return null;
     };
 
-    return findNode(accountTreeData);
+    return findNode(accountTreeData, visited);
   }
 
   // Find the current account node and check if it's a subaccount
@@ -327,7 +338,7 @@ export function AccountsTree({
         )
       );
     })()
-  }, [api, _walletAccounts, accountTreeData]);
+  }, [api, _walletAccounts, currentAddress]);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedName, setSelectedName] = useState<string>("");
