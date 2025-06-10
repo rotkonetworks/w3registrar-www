@@ -2,7 +2,7 @@ import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { CircleOff, Delete, ListTree, Loader2, PenLine, PlusCircle, Unlink, } from "lucide-react";
 import { TypedApi, SS58String, Binary } from "polkadot-api";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AccountSelector } from "@/components/ui/account-selector";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -190,7 +190,7 @@ export function AccountsTree({
   const [addingSubaccount, setAddingSubaccount] = useState(false);
   const [removingSubaccount, setRemovingSubaccount] = useState<SS58String | null>(null);
 
-  const findAccountNode = (address: SS58String) => {
+  const findAccountNode = useCallback((address: SS58String) => {
     if (!accountTreeData) return null;
 
     const visited: Record<SS58String, AccountTreeNode> = {};
@@ -215,7 +215,7 @@ export function AccountsTree({
     };
 
     return findNode(accountTreeData, visited);
-  }
+  }, [accountTreeData]);
 
   // Find the current account node and check if it's a subaccount
   const currentAccountNode = useMemo(() => {
@@ -338,7 +338,7 @@ export function AccountsTree({
         )
       );
     })()
-  }, [api, _walletAccounts, currentAddress]);
+  }, [api, _walletAccounts, currentAddress, findAccountNode]);
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedName, setSelectedName] = useState<string>("");
