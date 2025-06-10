@@ -328,7 +328,9 @@ export function ChallengePage({
               code,
               status,
               identity,
-              onVerify: (data) => handleVerification(field, data),
+              // Depending on the challenge type, the verification data may vary.
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onVerify: (data: any) => handleVerification(field, data),
               isLoading: challengeStore.loading,
             })
             if (rendered) {
