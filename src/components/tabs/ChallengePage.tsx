@@ -33,7 +33,7 @@ interface ChallengeRenderer {
 
 // Map of special challenge renderers
 const specialChallengeRenderers: Record<string, ChallengeRenderer> = {
-  pgp_fingerprint: ({ code, status, identity, onVerify, isLoading }) => {
+  pgp_fingerprint: ({ code, status, onVerify, isLoading }) => {
     if (!code || status !== ChallengeStatus.Pending) return null
     
     return (
