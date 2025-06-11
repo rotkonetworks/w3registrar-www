@@ -1,7 +1,7 @@
 import type BigNumber from 'bignumber.js';
 import { useCallback } from 'react';
 
-import type { FormatAmountOptions } from '~/types';
+import type { AssetAmount, FormatAmountOptions } from '~/types';
 import { formatAmount } from '~/utils';
 
 /**
@@ -13,9 +13,9 @@ import { formatAmount } from '~/utils';
 export function useFormatAmount(props: FormatAmountOptions) {
   const { symbol, tokenDecimals, decimals } = props;
   
-  return useCallback((
-    amount: number | bigint | BigNumber | string,
-  ) => {
-    return formatAmount(amount, { tokenDecimals, symbol, decimals, });
-  }, [decimals, symbol, tokenDecimals]);
+
+  return useCallback(
+    (amount: AssetAmount) => formatAmount(amount, { tokenDecimals, symbol, decimals, }), 
+    [decimals, symbol, tokenDecimals]
+  );
 }
