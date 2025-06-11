@@ -39,7 +39,7 @@ export const HelpCarousel: React.FC<CarouselProps> = ({
         interval={autoPlayInterval}
         selectedItem={currentSlide}
         onChange={handleChange}
-        renderIndicator={(_: never, isSelected, index, label) => {
+        renderIndicator={(_clickHandler, isSelected, index, _label) => {
           const title = HELP_SLIDES[Object.keys(HELP_SLIDES)[index]].title;
           return (
             <li
