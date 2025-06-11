@@ -23,8 +23,10 @@ export function useAlerts() {
   
   // Clean up timeouts when component unmounts
   useEffect(() => {
+    // Capture this effect run's timeouts from current effect, to prevent unexpected ref changes
+    const activeTimeouts = timeoutsRef.current; 
     return () => {
-      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      activeTimeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, []);
 
