@@ -126,7 +126,14 @@ export const StartGuide = () => (
   </section>
 )
 
-const Item = ({ title, description }) => {
+
+type HelpItem = {
+  key?: string
+  title: React.ReactNode
+  description: React.ReactNode
+}
+
+const Item = ({ title, description }: HelpItem) => {
   return (
     <div
       className="dark:bg-gray-800 bg-gray-200 border-1 border-gray rounded-lg shadow-sm p-3 text-center sm:w-[13rem] w-[70vw]"
@@ -137,14 +144,14 @@ const Item = ({ title, description }) => {
   )
 }
 
-export const Collection = ({ title, items }) => {
+export const Collection = ({ title, items }: { title: string, items: HelpItem[] }) => {
   return <>
     <h2 className="text-2xl font-bold text-center mb-3">{title}</h2>
     <div 
       className="grid sm:grid-cols-2 grid-col-1 gap-2 overflow-auto max-h-[20rem] sm:max-h-full sm:overflow-visible"
     >
       {items.map(({ key, title, description }) => (
-        <Item key={key || title} title={title} description={description} />
+        <Item key={(key || title) as string} title={title} description={description} />
       ))}
     </div>
   </>
