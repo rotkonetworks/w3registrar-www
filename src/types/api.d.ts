@@ -1,4 +1,6 @@
-import type { Transaction, UnsafeTransaction, StorageDescriptor, TxOptions, RuntimeDescriptor } from "polkadot-api";
+import type {
+  Transaction, UnsafeTransaction, StorageDescriptor, TxOptions, RuntimeDescriptor
+} from "polkadot-api";
 import { Observable } from "rxjs";
 
 export type ApiTx = UnsafeTransaction<unknown | any, string, string, any> 
