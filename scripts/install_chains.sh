@@ -1,13 +1,31 @@
-networks=("polkadot" "westend2" "ksmcc3")
-parachains=("asset_hub" "bridge_hub" "collectives" "encointer" "people")
+networks=("polkadot" "westend2" "ksmcc3" "paseo")
+parachains=("asset_hub" "people")
+
+add_chain() {
+  local network=$1
+  local parachain=$2
+  if [ -z "$parachain" ]; then
+    local network_id="$network"
+  else 
+    local network_id="${network}_${parachain}"
+  fi
+  echo "installing $network $parachain"
+  command="bunx papi add ${network_id} -n ${network_id} --skip-codegen"
+  echo \$ $command
+  $command
+}
+
+codegen() {
+  command="bunx papi generate"
+  echo "Generating code for installed chains' metadata"
+  echo \$ $command
+  $command
+}
 
 for network in "${networks[@]}"; do
+  add_chain "$network"
   for parachain in "${parachains[@]}"; do
-    echo "Processing $network $parachain"
-    network_id="${network}_${parachain}"
-    command="bunx papi add ${network_id} -n ${network_id}"
-    echo \$ $command
-    $command
-    echo 
+    add_chain "$network" "$parachain"
   done
 done
+codegen

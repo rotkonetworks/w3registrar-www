@@ -88,32 +88,34 @@ export function StatusPage({
             <span>{formatAmount(identity.deposit)}</span>
           </div>
         </div>
-        <div className="mt-4">
-          <strong>Field Statuses:</strong>
-          <div className="flex flex-col gap-2 mt-2">
-            {Object.entries(challengeStore)
-              .filter(([ field ]) => field !== "display_name")
-              .map(([field, { status }]: 
-                [string, Challenge]
-              ) => (
-                <div className="flex flex-wrap justify-between gap-2" key={field}>
-                  <span className="flex flex-wrap items-center gap-2 max-w-full">
-                    <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
-                      <div className="flex items-center gap-2 shrink-0">
-                        {getIcon(field)}
-                        <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)}:</span>
+        {(Object.keys(identity.info || {}).length * Object.keys(challengeStore || {}).length) > 0 && <>
+          <div className="mt-4">
+            <strong>Field Statuses:</strong>
+            <div className="flex flex-col gap-2 mt-2">
+              {Object.entries(challengeStore)
+                .filter(([field]) => field !== "display_name")
+                .map(([field, { status }]:
+                  [string, Challenge]
+                ) => (
+                  <div className="flex flex-wrap justify-between gap-2" key={field}>
+                    <span className="flex flex-wrap items-center gap-2 max-w-full">
+                      <div className="flex flex-col xs:flex-row gap-x-2 max-w-full">
+                        <div className="flex items-center gap-2 shrink-0">
+                          {getIcon(field)}
+                          <span className="font-bold">{field.charAt(0).toUpperCase() + field.slice(1)}:</span>
+                        </div>
+                        <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
                       </div>
-                      <span className="overflow-hidden truncate w-full sm:w-auto">{identity.info[field]}</span>
+                    </span>
+                    <div className="flex flex-row gap-2 items-center justify-end grow">
+                      <StatusBadge status={status} />
                     </div>
-                  </span>
-                  <div className="flex flex-row gap-2 items-center justify-end grow">
-                    <StatusBadge status={status} />
                   </div>
-                </div>
-              ))
-            }
+                ))
+              }
+            </div>
           </div>
-        </div>
+        </>}
         <IdentityStatusInfo status={identity.status} />
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           {hasWalletConnected && <Button variant="outline" 

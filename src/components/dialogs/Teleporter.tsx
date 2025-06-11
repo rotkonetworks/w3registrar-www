@@ -22,8 +22,8 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "../ui/
 
 export default function Teleporter({ 
   address, accounts, chainId, tokenSymbol, tokenDecimals, config, xcmParams, fromBalance, toBalance,
-  otherChains, teleportAmount,
-  formatAmount
+  otherChains, teleportAmount, 
+  setTeleportAmount, formatAmount,
 }: {
   address: SS58String,
   accounts: AccountData[],
@@ -37,6 +37,7 @@ export default function Teleporter({
   fromBalance: BigNumber,
   toBalance: BigNumber,
   teleportAmount: BigNumber,
+  setTeleportAmount: (amount: BigNumber) => void,
   formatAmount: FormatAmountFn,
 }) {
   const fromAddress = xcmParams.fromAddress
@@ -49,9 +50,15 @@ export default function Teleporter({
     }
   }, [address, open])
 
-  const amount = BigNumber(teleportAmount.toString())
+  const [amount, _setAmount] = React.useState(BigNumber(teleportAmount.toString())
     .div(BigNumber(10).pow(BigNumber(tokenDecimals)))
     .toString()
+  )
+  const setAmount = (amount: string) => {
+    _setAmount(amount)
+    const amountInBase = BigNumber(amount).multipliedBy(BigNumber(10).pow(BigNumber(tokenDecimals)))
+    setTeleportAmount(amountInBase)
+  }
   
   const selectedChain = xcmParams.fromChain.id
   const setSelectedChain = (id: keyof Chains) => xcmParams.fromChain.id = id
@@ -72,7 +79,7 @@ export default function Teleporter({
   }, [])
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-4 p-2">
       <div className="flex items-start space-x-4">
         <div className="flex-1 space-y-2">
           <Label htmlFor="fromAddress">From Wallet</Label>
@@ -173,7 +180,7 @@ export default function Teleporter({
             type="text"
             inputMode="decimal"
             value={amount}
-            readOnly
+            onChange={(e) => setAmount(e.target.value)}
             className="pr-16"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">

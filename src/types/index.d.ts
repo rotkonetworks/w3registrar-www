@@ -5,14 +5,13 @@ import { Ref } from "react";
 
 import { AccountTreeNode } from "~/hooks/UseAccountsTree";
 import { AlertPropsOptionalKey } from "~/hooks/useAlerts";
+import { VerifyPGPKey } from "~/hooks/useChallengeWebSocket";
 import { AccountData } from "~/store/AccountStore";
 import { ChainInfo } from "~/store/ChainStore";
 import { ChallengeStore } from "~/store/challengesStore";
 
 import { Identity } from "./Identity";
 import { ApiTx } from "./api";
-
-
 
 export type DialogMode = "clearIdentity" |
   "disconnect" |
@@ -61,6 +60,7 @@ export type MainContentProps = {
     loading: boolean,
   },
   openTxDialog: (params: OpenTxDialogArgs) => void,
+  sendPGPVerification: (payload: VerifyPGPKey) => Promise<void>
 }
 
 export type SignSubmitAndWatchParams = {
@@ -83,3 +83,11 @@ export type FormatAmountFn = (
   amount: AssetAmount,
   options?: FormatAmountOptions,
 ) => string
+
+export type TxStateUpdate = {
+  type: "broadcasted" | "txBestBlocksState" | "finalized" | "signed";
+  txHash: HexString;
+  found?: boolean;
+  ok?: boolean;
+  isValid?: boolean;
+};

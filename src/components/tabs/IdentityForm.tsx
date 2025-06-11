@@ -11,17 +11,28 @@ import { Label } from "@/components/ui/label"
 import { DiscordIcon } from '~/assets/icons/discord'
 import { AccountData } from '~/store/AccountStore'
 import { ChainInfo } from '~/store/ChainStore'
-import { OpenTxDialogArgs } from '~/types'
+import { EstimatedCostInfo, OpenTxDialogArgs } from '~/types'
 import { Identity, verifyStatuses } from '~/types/Identity'
 
 import { IdentityStatusInfo } from '../IdentityStatusInfo'
 
-
-
-export type IdentityFormData = Record<string, {
+export type FormDataValue = {
   value: string
   error: string | null
-}>
+}
+
+export type IdentityFormData = {
+  display?: FormDataValue
+  legal?: FormDataValue
+  web?: FormDataValue
+  matrix?: FormDataValue
+  email?: FormDataValue
+  image?: FormDataValue
+  twitter?: FormDataValue
+  github?: FormDataValue
+  discord?: FormDataValue
+  pgp_fingerprint?: FormDataValue
+}
 
 export const IdentityForm = forwardRef((
   {
@@ -53,36 +64,65 @@ export const IdentityForm = forwardRef((
   ), [supportedFields])
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
-
-  const onChainIdentity = identity.status
-
   const handleSubmitIdentity = async (e: React.FormEvent) => {
     e.preventDefault()
     if (forbiddenSubmission) {
       return
     }
-    const info = {
-      ...Object.fromEntries(setId_requiredFields.map(key => [key, { type: "None" }])),
+    type RawIdentityField = {
+      type: string
+      value: Binary
+    } | {
+      type: "None"
+    }
+
+    type RawIdentityData = Record<keyof Omit<IdentityFormData, "pgp_fingerprint">, RawIdentityField> & {
+      pgp_fingerprint?: Binary
+    }
+
+    const initialInfo = {
+      display: { type: "None" },
+      legal: { type: "None" },
+      web: { type: "None" },
+      matrix: { type: "None" },
+      email: { type: "None" },
+      image: { type: "None" },
+      twitter: { type: "None" },
+      github: { type: "None" },
+      discord: { type: "None" }
+    } as Record<keyof Omit<IdentityFormData, "pgp_fingerprint">, RawIdentityField>;
+
+    const info: RawIdentityData = {
+      ...initialInfo,
       ...(Object.fromEntries(Object.entries(formData)
-        .filter(([_, { value }]) => value && value !== "")
-        .map(([key, { value }]): [string, { value: string }] => [key, {
-          value: identityFormFields[key].transform
-            ? identityFormFields[key].transform(value)
-            : value
-        }])
-        .map(([key, { value }]) => [key, key !== "pgp_fingerprint"
-          ? { type: `Raw${value.length}`, value: Binary.fromText(value) }
-          : value
+        .filter(([key, { value }]: [string, FormDataValue]) =>
+          value && value !== "" && key !== "pgp_fingerprint" &&
+          key in initialInfo // ensure key is valid for RawIdentityData
+        )
+        .map(([key, { value }]: [string, FormDataValue]) => [key,
+          identityFormFields[key].transform ? identityFormFields[key].transform(value) : value
+        ])
+        .map(([key, value]: [string, string]) => [key,
+          {
+            type: `Raw${value.length}`, value: Binary.fromText(value)
+          }
         ])
       )),
+    }
+    if (identityFormFields.pgp_fingerprint && formData.pgp_fingerprint?.value) {
+      info.pgp_fingerprint = Binary.fromHex(
+        identityFormFields.pgp_fingerprint.transform(formData.pgp_fingerprint.value)
+      );
+    } else {
+      delete info.pgp_fingerprint; // Ensure it's not included if empty
     }
     console.log({ info })
     const tx = typedApi.tx.Identity.set_identity({ info, });
 
-    let estimatedCosts;
+    let estimatedCosts: EstimatedCostInfo;
     try {
       estimatedCosts = {
-        fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
+        fees: await tx.getEstimatedFees(accountStore.address, { at: "best" }),
         deposits: BigNumber(chainConstants.basicDeposit?.toString())
           .plus(BigNumber(chainConstants.byteDeposit?.toString())
             .times(Object.values(formData)
@@ -108,7 +148,15 @@ export const IdentityForm = forwardRef((
     openTxDialog({ mode: "requestJudgement", tx, estimatedCosts, })
   }
 
-  const identityFormFields = {
+  const identityFormFields: Record<keyof IdentityFormData, {
+    label: string
+    icon: JSX.Element
+    key: string
+    placeholder: string
+    checkForErrors: (v: string) => string | null
+    transform?: (value: string) => string
+    required?: boolean
+  }> = {
     display: {
       label: "Display Name",
       icon: <UserCircle className="h-4 w-4" />,
@@ -213,34 +261,27 @@ export const IdentityForm = forwardRef((
       icon: <Fingerprint className="h-4 w-4" />,
       key: "pgp_fingerprint",
       placeholder: '0x1234...',
-      checkForErrors: (v) => v.length > 0 && !/^0x[a-fA-F0-9]{40}$/.test(v)
+      checkForErrors: (v) => v.length > 0 && !/^(0x)?[a-fA-F0-9]{40}$/.test(v)
         ? "Invalid format"
         : null,
+      transform: (value: string) => {
+        if (!value) return null;
+        value = value.trim().toLowerCase();
+        return value.startsWith('0x') ? value.slice(2) : value;
+      },
       required: false,
     }
   }
-  const setId_requiredFields = [
-    "display", 
-    "legal",
-    "web", 
-    "matrix", 
-    "email", 
-    "image",
-    "twitter", 
-    "github", 
-    "discord", 
-  ]
 
-  const _resetFromIdStore = useCallback((identityInfo) => (
-    {
-      ..._reset(),
-      ...(Object.entries(identityInfo).reduce((all, [key]) => {
-        all[key] = {
-          value: identityInfo![key],
-          error: null,
-        }
-        return all
-      }, { }))
+  const _resetFromIdStore = useCallback((identityInfo) => ({
+    ..._reset(),
+    ...(Object.entries(identityInfo).reduce((all, [key]) => {
+      all[key] = {
+        value: identityInfo![key],
+        error: null,
+      }
+      return all
+    }, {}))
   }), [_reset])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
@@ -256,7 +297,7 @@ export const IdentityForm = forwardRef((
       setFormData(_reset)
     }
   }, [identity, formResetFlag, _resetFromIdStore, _reset])
-  
+
   useImperativeHandle(ref, () => ({
     reset: () => setFormResetFlag(true)
   }), [])
@@ -269,15 +310,14 @@ export const IdentityForm = forwardRef((
     return (
       Object.entries(formData)
         .filter(([, { value }]) => !value).length >= Object.keys(formData).length
-      || 
+      ||
       Object.entries(formData)
-        .filter(([, { error }]) => error).length > 0 
+        .filter(([, { error }]) => error).length > 0
     )
   }, [formData])
 
   return (
     <>
-      {/* TODO Refactor into GenericDialog */}
       <Card className="bg-transparent border-[#E6007A] text-inherit shadow-[0_0_10px_rgba(230,0,122,0.1)]">
         <CardHeader>
           <CardTitle className="text-inherit flex items-center gap-2">
@@ -285,12 +325,12 @@ export const IdentityForm = forwardRef((
             Identity Information
           </CardTitle>
           <CardDescription className="text-[#706D6D]">
-            This form allows you to 
+            This form allows you to
             {identity.status === verifyStatuses.NoIdentity ? ' set' : ' update'}{" "}
-            your identity data. It has all the fields that 
+            your identity data. It has all the fields that
             {" "}{import.meta.env.VITE_APP_WALLET_CONNECT_PROJECT_DISPLAY_NAME}{" "}
-            supports for identity verification. Please make sure that all contact information is 
-            accurate before proceeding. 
+            supports for identity verification. Please make sure that all contact information is
+            accurate before proceeding.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 p-6">
@@ -314,7 +354,19 @@ export const IdentityForm = forwardRef((
                     value={formData[key]?.value || ""}
                     disabled={!accountStore.address}
                     onChange={event => setFormData(_formData => {
-                      const newValue = event.target.value
+                      let newValue = event.target.value.toLowerCase().trim();
+                      if (key === 'pgp_fingerprint') {
+                        const hasPrefix = /^0x/i.test(newValue);
+                        const filtered = newValue.replace(/[^0-9a-fA-FxX]/g, '');
+                        if (hasPrefix) {
+                          newValue = '0x' + filtered.replace(/^0x/i, '');
+                        } else if (filtered.toLowerCase().startsWith('0x')) {
+                          newValue = '0x' + filtered.substring(2);
+                        } else {
+                          newValue = '0x' + filtered;
+                        }
+                        console.log("Filtered PGP fingerprint:", newValue);
+                      }
                       _formData = { ..._formData }
                       _formData[key] = { ..._formData[key] }
                       _formData[key].value = newValue;
@@ -346,9 +398,9 @@ export const IdentityForm = forwardRef((
                 className="bg-[#E6007A] text-[#FFFFFF] hover:bg-[#BC0463] flex-1"
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                {onChainIdentity === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
+                {identity.status === verifyStatuses.NoIdentity ? 'Set Identity' : 'Update Identity'}
               </Button>
-              {onChainIdentity === verifyStatuses.IdentitySet && accountStore.polkadotSigner && (
+              {identity.status === verifyStatuses.IdentitySet && accountStore.polkadotSigner && (
                 <Button type="button" variant="secondary" disabled={forbiddenSubmission || isTxBusy}
                   onClick={handleRequestJudgement}
                   className="border-[#E6007A] text-inherit hover:bg-[#E6007A] hover:text-[#FFFFFF] flex-1"

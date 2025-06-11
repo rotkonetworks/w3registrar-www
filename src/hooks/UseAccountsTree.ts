@@ -1,7 +1,7 @@
 import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { SS58String, TypedApi } from "polkadot-api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { fetchIdentity } from "~/utils/fetchIdentity";
 import { fetchSubsOf, fetchSuperOf } from "~/utils/subaccounts";
@@ -209,7 +209,7 @@ export const useAccountsTree = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchAccountHierarchy = async () => {
+  const fetchAccountHierarchy = useCallback(async () => {
     if (!address || !api) {
       setLoading(false);
       return;
@@ -264,10 +264,10 @@ export const useAccountsTree = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [address, api]);
   useEffect(() => {
     fetchAccountHierarchy();
-  }, [address, api]);
+  }, [fetchAccountHierarchy]);
 
   return {
     accountTree,
