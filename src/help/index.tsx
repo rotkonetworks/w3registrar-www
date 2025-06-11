@@ -112,7 +112,7 @@ export const Overview = () => (
     <p className="text-lg text-gray-600">
       Verify ownership of your social media accounts and web domains for transparent on-chain 
       identity. Our automated judgement system helps you prove control of your declared accounts, 
-      allowing others to verify who they're interacting with on the Polkadot network.
+      allowing others to verify who they&apos;re interacting with on the Polkadot network.
     </p>
   </section>
 )
