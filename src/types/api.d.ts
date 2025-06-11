@@ -1,3 +1,5 @@
+// TODO: We already know what API transactions & queries to be used, so we can restrict to corresponding types
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type {
   Transaction, UnsafeTransaction, StorageDescriptor, TxOptions, RuntimeDescriptor
 } from "polkadot-api";
