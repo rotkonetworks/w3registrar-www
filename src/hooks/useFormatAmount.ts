@@ -17,5 +17,5 @@ export function useFormatAmount(props: FormatAmountOptions) {
     amount: number | bigint | BigNumber | string,
   ) => {
     return formatAmount(amount, { tokenDecimals, symbol, decimals, });
-  }, [symbol, tokenDecimals]);
+  }, [decimals, symbol, tokenDecimals]);
 }
