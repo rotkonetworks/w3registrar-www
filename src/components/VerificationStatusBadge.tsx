@@ -1,5 +1,6 @@
 
 import { verifyStatuses } from "~/types/Identity";
+
 import { Badge } from "./ui/badge";
 
 export function VerificationStatusBadge({ status }: { status: number }) {

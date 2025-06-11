@@ -1,5 +1,10 @@
 import { useMemo, useCallback } from "react";
 
+export type UrlParamsArgs = Record<string, string | undefined>;
+export type UrlParams = {
+  [key: string]: string | undefined;
+};
+
 export function useUrlParams() {
   const urlParams = useMemo(() => {
     const searchParams = Object.fromEntries(new URLSearchParams(window.location.search));
@@ -7,7 +12,8 @@ export function useUrlParams() {
     return searchParams;
   }, [window.location.search]);
 
-  const updateUrlParams = useCallback((params: Record<string, string | undefined>) => {
+
+  const updateUrlParams = useCallback((params: UrlParamsArgs) => {
     const queryString = new URLSearchParams(
       Object.entries(params).filter(([, value]) => value)
     ).toString();

@@ -1,5 +1,6 @@
 import type React from 'react'
 import { lazy } from 'react'
+
 import Home from '~/pages/home'
 
 const ErrorPage = lazy(() => import('~/pages/error-page'))

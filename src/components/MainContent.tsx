@@ -1,15 +1,15 @@
-import { useState, useCallback, memo, useEffect } from "react"
 import { ChevronLeft, ChevronRight, UserCircle, IdCard } from "lucide-react"
+import { useState, useCallback, memo, useEffect, useMemo } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-import { IdentityForm } from "./tabs/IdentityForm"
-import { ChallengePage } from "./tabs/ChallengePage"
-import { StatusPage } from "./tabs/StatusPage"
-import { verifyStatuses } from "~/types/Identity"
 import { MainContentProps } from "~/types"
-import { AccountsTree } from "./AccountsTree"
+import { verifyStatuses } from "~/types/Identity"
+
+import { AccountsTree } from "./tabs/AccountsTree"
+import { ChallengePage } from "./tabs/ChallengePage"
+import { IdentityForm } from "./tabs/IdentityForm"
+import { StatusPage } from "./tabs/StatusPage"
 
 const MemoIdeitityForm = memo(IdentityForm)
 const MemoChallengesPage = memo(ChallengePage)
@@ -17,11 +17,11 @@ const MemoStatusPage = memo(StatusPage)
 
 export const MainContent = ({
   identity, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, alerts, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, removeNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-  accountTree
+  chainConstants, identityFormRef, urlParams, isTxBusy, supportedFields,
+  addNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+  accountTreeProps
 }: MainContentProps) => {
-  const tabs = [
+  const tabs = useMemo(() => [
     {
       id: "status",
       name: "Profile",
@@ -44,7 +44,7 @@ export const MainContent = ({
         />
         <AccountsTree 
           identity={identity}
-          accountTree={accountTree}
+          accountTreeProps={accountTreeProps}
           chainStore={chainStore}
           currentAddress={accountStore.address}
           api={typedApi}
@@ -77,7 +77,11 @@ export const MainContent = ({
         />}
       </div>
     },
-  ]
+  ], [
+    identity, challengeStore, isTxBusy, chainStore, accountStore, accountTreeProps, typedApi,
+    identityFormRef, chainConstants, supportedFields,
+    formatAmount, addNotification, openTxDialog, setOpenDialog
+  ])
   const enabledTabsIndexes = tabs
     .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))
     .filter(tab => !tab.disabled)
@@ -92,7 +96,9 @@ export const MainContent = ({
     if (tab && !tab.disabled) {
       setCurrentTabIndex(tabs.indexOf(tab))
     }
-  }, [urlParams.tab])
+    // eslint keeps suggesting to add urlParams as a dependency, but only .tab is used
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs, urlParams.tab])
   const changeCurrentTab = useCallback((index: number) => {
     const tab = tabs[index];
     updateUrlParams({ ...urlParams, tab: tab.id })

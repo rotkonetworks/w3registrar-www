@@ -38,6 +38,7 @@ jobs:
       - name: Build the application
         env:
           BUILD_TARGET: 'production'
+          VITE_APP_CHALLENGES_API_URL: wss://dapi.w3reg.org
         run: |
           nix-shell --command "bash scripts/setup.sh"
           nix-shell --command "bash scripts/build.sh"

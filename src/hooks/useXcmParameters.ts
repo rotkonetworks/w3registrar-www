@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo } from "react";
-import { useProxy } from "valtio/utils";
+import { ChainId, } from "@reactive-dot/core";
+import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import { useTypedApi } from "@reactive-dot/react";
 import BigNumber from "bignumber.js";
 import { TypedApi } from "polkadot-api";
 import { Binary } from "polkadot-api";
-import { useTypedApi } from "@reactive-dot/react";
-import { ChainId, } from "@reactive-dot/core";
-import { xcmParameters as _xcmParams } from "~/store/XcmParameters";
+import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
+import { useProxy } from "valtio/utils";
+
 import { config } from "~/api/config";
 import { AccountData } from "~/store/AccountStore";
-import { ChainDescriptorOf, Chains } from "@reactive-dot/core/internal.js";
+import { xcmParameters as _xcmParams } from "~/store/XcmParameters";
 
 interface UseXcmParametersOptions {
   chainId: string | number | symbol;
@@ -19,7 +20,7 @@ export function useXcmParameters({
   chainId,
   estimatedCosts = {},
 }: UseXcmParametersOptions) {
-  const xcmParams = useProxy(_xcmParams);
+  const xcmParams = useDeferredValue(useProxy(_xcmParams));
 
   // Determine relay chain ID based on current chain
   const relayChainId = useMemo<keyof Chains>(
@@ -37,9 +38,9 @@ export function useXcmParameters({
 
   // Setup fromChain when relayChainId changes
   useEffect(() => {
-    console.log({ relayChainId, relayAndParachains });
     xcmParams.fromChain.id = relayChainId;
-  }, [relayChainId, relayAndParachains]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relayChainId]);
 
   // Get typed API for from chain
   const fromTypedApi = useTypedApi({ 
@@ -69,6 +70,7 @@ export function useXcmParameters({
         }
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromTypedApi, getParachainId]);
 
   // Update total transaction cost based on estimated costs
@@ -79,6 +81,7 @@ export function useXcmParameters({
         BigNumber(0)
       ) as BigNumber;
     xcmParams.txTotalCost = totalCost.times(1.1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [estimatedCosts]);
 
   // Generate teleport call
@@ -164,6 +167,7 @@ export function useXcmParameters({
   const teleportExpanded = xcmParams.enabled;
   const setTeleportExpanded = useCallback((nextState: boolean) => {
     xcmParams.enabled = nextState;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

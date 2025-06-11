@@ -1,7 +1,10 @@
+import _ from 'lodash';
 import { SS58String } from 'polkadot-api';
 import { useEffect, useCallback, useState, useRef } from 'react';
+
 import { ChallengeStatus, ChallengeStore } from '~/store/challengesStore';
 import { IdentityInfo, verifyStatuses } from '~/types/Identity';
+
 import { AlertPropsOptionalKey } from './useAlerts';
 
 // Types matching your Rust backend
@@ -94,12 +97,6 @@ type WebSocketMessage = {
     message: string,
   };
 
-interface VersionedMessage {
-  version: string;
-  type: string;
-  payload: any;
-}
-
 interface UseIdentityWebSocketProps {
   url: string;
   account: string;
@@ -137,7 +134,8 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
     setChallenges({}) 
   }, [url, address, network])
 
-  const idWsDeps = [challengeState, error, address, identity.info, network]
+  const idWsDeps = [challengeState, error, address, identity.status, network]
+
   useEffect(() => {
     console.log({ idWsDeps })
     if (error) {
@@ -172,6 +170,10 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
             code: !value && pendingChallenges[key],
           };
         })
+      if (_.isEqual(challenges, _challenges)) {
+        console.log("No changes in challenges")
+        return
+      }
       setChallenges(_challenges)
 
       console.log({
@@ -181,9 +183,11 @@ const useChallengeWebSocketWrapper = ({ url, address, network, identity, addNoti
         challenges: _challenges,
       })
     }
+    // DRY code, also, all required values are already in the deps array and null checked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, idWsDeps)
 
-  return { challenges, error, isConnected, loading: challengeWebSocket.loading, 
+  return { challenges, error: error, isConnected, loading: challengeWebSocket.loading, 
     subscribe: challengeWebSocket.subscribe,
     connect: challengeWebSocket.connect,
     disconnect: challengeWebSocket.disconnect,
@@ -197,19 +201,19 @@ const useChallengeWebSocket = (
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [challengeState, setAccountState] = useState<ResponseAccountState | null>(null);
+  const [challengeState, setChallengeState] = useState<ResponseAccountState | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Keep track of pending promises for responses
   const pendingRequests = useRef<Map<string, { 
-    resolve: (value: any) => void;
-    reject: (reason: any) => void;
+    resolve: (value: unknown) => void;
+    reject: (reason: Error) => void;
     timeout: number;
   }>>(new Map());
 
   const generateRequestId = () => Math.random().toString(36).substring(7);
 
-  const sendMessage = useCallback((message: WebSocketMessage): Promise<any> => {
+  const sendMessage = useCallback((message: WebSocketMessage): Promise<void> => {
     setLoading(true);
     return new Promise((resolve, reject) => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
@@ -243,18 +247,19 @@ const useChallengeWebSocket = (
 
   const handleMessage = useCallback((event: MessageEvent<ChallengeMessageType>) => {
     try {
-      const message = JSON.parse(event.data as any) as ChallengeMessageType;
+      const message = JSON.parse(event.data as never) as ChallengeMessageType;
       console.log({message})
 
       switch (message.type) {
+        // TODO Review if code for this case is present in the backend
         case 'JsonResult':
           if ('ok' === message.payload.type) {
             const response = message.payload.message.AccountState;
             if (response) {
               console.log({ response })
-              setAccountState({
+              setChallengeState({
                 ...response,
-                network: response.network || 'paseo'
+                network: response.network
               });
               setLoading(false);
               setError(null);
@@ -271,25 +276,26 @@ const useChallengeWebSocket = (
           
           // Extract verification states and pending challenges from the new format
           if (message.verification_state?.challenges) {
-            Object.entries(message.verification_state.challenges).forEach(([key, value]: [string, any]) => {
-              verificationStateFields[key] = value.done;
-              if (value.done) {
-                addNotification({
-                  message: `Challenge ${key} has been verified successfully`,
-                  type: 'info'
-                });
-              }
-              if (!value.done && value.token) {
-                pendingChallenges.push([key, value.token]);
-              }
-            });
+            Object.entries(message.verification_state.challenges)
+              .forEach(([key, value]: [string, Challenge]) => {
+                verificationStateFields[key] = value.done;
+                if (value.done) {
+                  addNotification({
+                    message: `Challenge ${key} has been verified successfully`,
+                    type: 'info'
+                  });
+                }
+                if (!value.done && value.token) {
+                  pendingChallenges.push([key, value.token]);
+                }
+              });
           }
 
-          setAccountState(prev => ({ 
+          setChallengeState(prev => ({ 
             ...prev,
             verification_state: { fields: verificationStateFields },
             pending_challenges: pendingChallenges,
-            network: message.network || network
+            network: message.network
           }));
           break;
         }
@@ -329,7 +335,8 @@ const useChallengeWebSocket = (
     }
     setLoading(false);
     setIsConnected(false);
-  }, [ws.current?.readyState]);
+    // 1 Absolutely nothing, to avoid infinite loop. It's a bit tricky, but it works. No more deps!
+  }, []);
 
   // Set up WebSocket connection
   const connect = () => {
@@ -372,7 +379,9 @@ const useChallengeWebSocket = (
     // TODO Make it reconnect if failed to connect or disconnected
     
     return disconnect;
-  }, [url, handleMessage, sendMessage, ws.current, ws.current?.readyState]);
+    // DITTO 1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, ws.current?.readyState]);
 
   const subscribe = () => {
     sendMessage({
@@ -386,7 +395,9 @@ const useChallengeWebSocket = (
       // Subscribe to account state on connection
       subscribe();
     }
-  }, [account, network, sendMessage, ws.current?.readyState])
+    // DITTO 1
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account, network, ws.current?.readyState])
 
   return {
     connect,

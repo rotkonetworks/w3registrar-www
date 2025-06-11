@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import { ApiStorage } from "~/types/api";
-import { TypedApi } from "polkadot-api";
-import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { ChainId } from "@reactive-dot/core";
+import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
+import { TypedApi } from "polkadot-api";
+import { useCallback, useEffect, useState } from "react";
+
+import { ApiStorage } from "~/types/api";
 
 // Bitfield for different identity fields
 const IdentityField = {

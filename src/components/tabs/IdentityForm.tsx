@@ -1,19 +1,22 @@
-import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import { Identity, verifyStatuses } from '~/types/Identity'
+import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
+import BigNumber from 'bignumber.js'
 import { UserCircle, AtSign, Mail, CheckCircle, Globe, Fingerprint, Github, Image, IdCard, XIcon } from 'lucide-react'
+import { Binary, TypedApi } from 'polkadot-api'
+import { forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Binary, TypedApi } from 'polkadot-api'
-import { ChainInfo } from '~/store/ChainStore'
-import { AccountData } from '~/store/AccountStore'
-import BigNumber from 'bignumber.js'
-import { IdentityStatusInfo } from '../IdentityStatusInfo'
-import { ChainDescriptorOf, Chains } from '@reactive-dot/core/internal.js'
 import { DiscordIcon } from '~/assets/icons/discord'
+import { AccountData } from '~/store/AccountStore'
+import { ChainInfo } from '~/store/ChainStore'
 import { OpenTxDialogArgs } from '~/types'
+import { Identity, verifyStatuses } from '~/types/Identity'
+
+import { IdentityStatusInfo } from '../IdentityStatusInfo'
+
+
 
 export type IdentityFormData = Record<string, {
   value: string
@@ -35,7 +38,7 @@ export const IdentityForm = forwardRef((
     chainStore: ChainInfo,
     accountStore: AccountData,
     typedApi: TypedApi<ChainDescriptorOf<keyof Chains>>,
-    chainConstants: Record<string, any>,
+    chainConstants: Record<string, bigint | BigNumber | string>,
     isTxBusy: boolean,
     supportedFields: string[],
     openTxDialog: (params: OpenTxDialogArgs) => void,
@@ -47,7 +50,7 @@ export const IdentityForm = forwardRef((
       key,
       { value: "", error: null }
     ])
-  ), [])
+  ), [supportedFields])
   const [formData, setFormData] = useState<IdentityFormData>(_reset())
 
 
@@ -80,11 +83,13 @@ export const IdentityForm = forwardRef((
     try {
       estimatedCosts = {
         fees: await tx.getEstimatedFees(accountStore.address, { at: "best"}),
-        deposits: BigNumber(chainConstants.basicDeposit).plus(BigNumber(chainConstants.byteDeposit)
-          .times(Object.values(formData)
-            .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+        deposits: BigNumber(chainConstants.basicDeposit?.toString())
+          .plus(BigNumber(chainConstants.byteDeposit?.toString())
+            .times(Object.values(formData)
+              .reduce((total, { value }) => BigNumber(total).plus(value?.length || 0), BigNumber(0))
+            )
           )
-        ),
+        ,
       }
     } catch (error) {
       console.error(error)
@@ -157,7 +162,7 @@ export const IdentityForm = forwardRef((
       checkForErrors: (v) => {
         if (v.length === 0) return null;
         try {
-          const url = new URL(v.startsWith('http') ? v : `https://${v}`);
+          new URL(v.startsWith('http') ? v : `https://${v}`); // Ensure URL is valid
           return null;
         } catch {
           return "Invalid URL format";
@@ -236,7 +241,7 @@ export const IdentityForm = forwardRef((
         }
         return all
       }, { }))
-  }), [])
+  }), [_reset])
 
   const [formResetFlag, setFormResetFlag] = useState(true)
   useEffect(() => {
@@ -250,11 +255,11 @@ export const IdentityForm = forwardRef((
     } else {
       setFormData(_reset)
     }
-  }, [identity.info, formResetFlag])
+  }, [identity, formResetFlag, _resetFromIdStore, _reset])
   
   useImperativeHandle(ref, () => ({
     reset: () => setFormResetFlag(true)
-  }), [identity])
+  }), [])
 
   useEffect(() => {
     console.log({ formData })
@@ -263,10 +268,10 @@ export const IdentityForm = forwardRef((
   const forbiddenSubmission = useMemo(() => {
     return (
       Object.entries(formData)
-        .filter(([key, { value, error }]) => !value).length >= Object.keys(formData).length
+        .filter(([, { value }]) => !value).length >= Object.keys(formData).length
       || 
       Object.entries(formData)
-        .filter(([key, { value, error }]) => error).length > 0 
+        .filter(([, { error }]) => error).length > 0 
     )
   }, [formData])
 
@@ -292,15 +297,20 @@ export const IdentityForm = forwardRef((
           <form onSubmit={handleSubmitIdentity} className="space-y-4">
             {Object.entries(identityFormFields)
               .filter(([key]) => supportedFields.includes(key))
-              .map(([key, props]) =>
-                <div className="space-y-2" key={props.key}>
+              .map(([key, { label, icon, placeholder, checkForErrors, }]: [string, {
+                label: string
+                icon: JSX.Element
+                key: string
+                placeholder: string
+                checkForErrors: (v: string) => string | null
+              }]) =>
+                <div className="space-y-2" key={key}>
                   <Label htmlFor="display-name" className="text-inherit flex items-center gap-2">
-                    {props.icon}
-                    {props.label}
+                    {icon} {label}
                   </Label>
                   <Input
-                    id={props.key}
-                    name={props.key}
+                    id={key}
+                    name={key}
                     value={formData[key]?.value || ""}
                     disabled={!accountStore.address}
                     onChange={event => setFormData(_formData => {
@@ -308,13 +318,13 @@ export const IdentityForm = forwardRef((
                       _formData = { ..._formData }
                       _formData[key] = { ..._formData[key] }
                       _formData[key].value = newValue;
-                      _formData[key].error = props.checkForErrors(newValue);
+                      _formData[key].error = checkForErrors(newValue);
                       if (identityFormFields[key].required && _formData[key].value === "") {
                         _formData[key].error = "Required";
                       }
                       return _formData;
                     })}
-                    placeholder={props.placeholder}
+                    placeholder={placeholder}
                     className="bg-transparent border-[#E6007A] text-inherit placeholder-[#706D6D] focus:ring-[#E6007A]"
                   />
                   {formData[key]?.error && (
@@ -354,3 +364,4 @@ export const IdentityForm = forwardRef((
     </>
   )
 })
+IdentityForm.displayName = "IdentityForm"

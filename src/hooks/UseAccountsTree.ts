@@ -2,6 +2,7 @@ import { ChainId } from "@reactive-dot/core";
 import { ChainDescriptorOf } from "@reactive-dot/core/internal.js";
 import { SS58String, TypedApi } from "polkadot-api";
 import { useEffect, useState } from "react";
+
 import { fetchIdentity } from "~/utils/fetchIdentity";
 import { fetchSubsOf, fetchSuperOf } from "~/utils/subaccounts";
 

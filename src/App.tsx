@@ -1,7 +1,9 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import React, { Suspense } from 'react';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+
 import type { RouteType } from '~/routes';
 import { routes } from '~/routes';
+
 import { Loading } from './pages/Loading';
 
 interface Props {

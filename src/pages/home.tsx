@@ -1,18 +1,20 @@
 import { ChainProvider, ReactiveDotProvider } from '@reactive-dot/react';
+import { Suspense } from 'react';
+import React from 'react';
 import { useProxy } from 'valtio/utils';
+
+import { config } from '~/api/config';
+import { ErrorBoundary } from '~/components/ErrorBoundary';
 import { IdentityRegistrarComponent } from '~/components/identity-registrar';
 import { chainStore as _chainStore } from '~/store/ChainStore';
-import { config } from '~/api/config';
-import { Suspense } from 'react';
+
 import { Loading } from './Loading';
-import React from 'react';
-import { ErrorBoundary } from '~/components/ErrorBoundary';
 
 function Home() {
   const chainId = useProxy(_chainStore).id
   React.useEffect(() => {
     console.log({ config });
-  }, [config]);
+  }, []);
 
   React.useEffect(() => {
     if (!Object.keys(config.chains).includes(chainId as string)) {
