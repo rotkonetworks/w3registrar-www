@@ -28,7 +28,7 @@ import { chainStore as _chainStore } from '~/store/ChainStore'
 import { xcmParameters as _xcmParams } from "~/store/XcmParameters"
 import {
   DialogMode, EstimatedCostInfo, IdentityFormRef, MainContentProps, OpenTxDialogArgs,
-  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams,
+  OpenTxDialogArgs_modeSet, SignSubmitAndWatchParams, TxStateUpdate,
 } from "~/types"
 import { verifyStatuses } from "~/types/Identity"
 import { ApiStorage, ApiTx } from "~/types/api"
@@ -41,6 +41,7 @@ import { MainContent } from "./MainContent"
 import ConfirmActionDialog from "./dialogs/ConfirmActionDialog";
 import ErrorDetailsDialog from "./dialogs/ErrorDetailsDialog";
 import HelpDialog from "./dialogs/HelpDialog";
+import { TeleporterDialog } from "./dialogs/teleportDialog";
 
 export function IdentityRegistrarComponent() {
   const {
@@ -69,17 +70,13 @@ export function IdentityRegistrarComponent() {
 
   // UI-specific account handling
   useEffect(() => {
-    if (!connectedWallets.length) {
-      addAlert({
-        type: "error",
-        message: "Please connect a wallet so that you can choose an account and continue.",
-        closable: false,
-        key: "noConnectedWallets",
-      })
-      return;
-    } else {
-      removeAlert("noConnectedWallets");
-    }
+    addAlert({
+      type: "error",
+      message: "Please connect a wallet so that you can choose an account and continue.",
+      closable: false,
+      key: "noConnectedWallets",
+    })
+    if (connectedWallets.length) removeAlert("noConnectedWallets");
   }, [connectedWallets.length, addAlert, removeAlert]);
 
   useEffect(() => {
@@ -98,10 +95,13 @@ export function IdentityRegistrarComponent() {
       return;
     }
     const accountData = getWalletAccount(decodedAddress)
-      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) ? {
-        address: urlParams.address,
-        encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
-      } : null)
+      ?? ([1, 2, 4, 8, 32, 33].includes(decodedAddress.length) 
+        ? {
+          address: urlParams.address,
+          encodedAddress: encodeAddress(decodedAddress, chainStore.ss58Format),
+        } 
+        : null
+      )
     ;
     console.log({ accountData });
     if (accountData) {
@@ -131,9 +131,7 @@ export function IdentityRegistrarComponent() {
   const registrarIndex = import.meta.env[`VITE_APP_REGISTRAR_INDEX__PEOPLE_${_formattedChainId}`] as number
 
   // Make sure to clear anything else that might change according to the chain or account
-  useEffect(() => {
-    clearAllAlerts()
-  }, [chainStore.id, accountStore.address, clearAllAlerts])
+  useEffect(clearAllAlerts, [chainStore.id, accountStore.address, clearAllAlerts])
 
   //#region chains
   const chainClient = useClient({ chainId: chainStore.id as keyof Chains })
@@ -213,6 +211,7 @@ export function IdentityRegistrarComponent() {
     isConnected: isChallengeWsConnected,
     loading: challengeLoading,
     subscribe: subscribeToChallenges,
+    sendPGPVerification,
   } = useChallengeWebSocket({
     url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
     address: accountStore.encodedAddress,
@@ -220,16 +219,6 @@ export function IdentityRegistrarComponent() {
     identity: { info: identity.info, status: identity.status, },
     addNotification: addAlert,
   });
-  useEffect(() => {
-    console.log({
-      message: "useChallengeWebSocket.Props",
-      url: import.meta.env.VITE_APP_CHALLENGES_API_URL as string,
-      address: accountStore.encodedAddress,
-      network: (chainStore.id as string).split("_")[0],
-      identity: { info: identity.info, status: identity.status, },
-      addNotification: addAlert,
-    })
-  }, [accountStore.encodedAddress, chainStore.id, identity.info, identity.status, addAlert])
 
   useEffect(() => {
     if (isChallengeWsConnected && identity.status === verifyStatuses.FeePaid) {
@@ -274,7 +263,10 @@ export function IdentityRegistrarComponent() {
     params: SignSubmitAndWatchParams
     // Awaiting for async function, so ignore this rule
     // eslint-disable-next-line no-async-promise-executor
-  ) => new Promise(async (resolve, reject) => {
+  ) => new Promise(async (
+    resolve: (txStateUpdate: TxStateUpdate) => void, 
+    reject: (err: Error) => void
+  ) => {
     const { call, name } = params;
     let api = params.api;
 
@@ -323,50 +315,48 @@ export function IdentityRegistrarComponent() {
     }
 
     const subscription = signedCall.subscribe({
-      next: (result) => {
-        txHash = result.txHash;
+      next: (txStateUpdate) => {
+        txHash = txStateUpdate.txHash;
         // TODO Add result type as below
-        const _result: (typeof result) & {
-          found: boolean,
-          ok: boolean,
-          isValid: boolean,
-        } = {
-          found: result["found"] || false,
-          ok: result["ok"] || false,
-          isValid: result["isValid"],
-          ...result,
+        // Define type for transaction state updates
+        
+        const _txStateUpdate: TxStateUpdate = {
+          found: txStateUpdate["found"] || false,
+          ok: txStateUpdate["ok"] || false,
+          isValid: txStateUpdate["isValid"],
+          ...txStateUpdate,
         };
-        if (result.type === "broadcasted") {
+        if (txStateUpdate.type === "broadcasted") {
           addAlert({
-            key: result.txHash,
+            key: txStateUpdate.txHash,
             type: "loading",
             closable: false,
             message: `${name} transaction broadcasted`,
           })
         }
-        else if (_result.type === "txBestBlocksState") {
-          if (_result.ok) {
+        else if (_txStateUpdate.type === "txBestBlocksState") {
+          if (_txStateUpdate.ok) {
             if (params.awaitFinalization) {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "loading",
                 message: `Waiting for ${name.toLowerCase()} to finalize...`,
                 closable: false,
               })
             } else {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
-              disposeSubscription(() => resolve(result))
+              disposeSubscription(() => resolve(txStateUpdate))
             }
-          } else if (!_result.isValid) {
+          } else if (!_txStateUpdate.isValid) {
             if (!recentNotifsIds.current.includes(txHash)) {
               recentNotifsIds.current = [...recentNotifsIds.current, txHash]
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "error",
                 message: `${name} failed: invalid transaction`,
               })
@@ -375,11 +365,11 @@ export function IdentityRegistrarComponent() {
             }
           }
         }
-        else if (_result.type === "finalized") {
+        else if (_txStateUpdate.type === "finalized") {
           // Tx need only be processed successfully. If Ok, it's already been found in best blocks.
-          if (!_result.ok) {
+          if (!_txStateUpdate.ok) {
             addAlert({
-              key: _result.txHash,
+              key: _txStateUpdate.txHash,
               type: "error",
               message: `${name} failed`,
             })
@@ -388,16 +378,16 @@ export function IdentityRegistrarComponent() {
           } else {
             if (params.awaitFinalization) {
               addAlert({
-                key: _result.txHash,
+                key: _txStateUpdate.txHash,
                 type: "success",
                 message: `${name} completed successfully`,
               })
               fetchIdAndJudgement()
-              disposeSubscription(() => resolve(result))
+              disposeSubscription(() => resolve(txStateUpdate))
             }
           }
         }
-        console.log({ _result, recentNotifsIds: recentNotifsIds.current })
+        console.log({ _txStateUpdate, recentNotifsIds: recentNotifsIds.current })
       },
       error: (error) => {
         console.error(error);
@@ -526,7 +516,7 @@ export function IdentityRegistrarComponent() {
           signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
           awaitFinalization: true,
           call: getTeleportCall({
-            amount: minimunTeleportAmount,
+            amount: minimunTeleportAmount.integerValue(BigNumber.ROUND_UP),
             fromApi: fromTypedApi,
             signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
             parachainId
@@ -662,6 +652,9 @@ export function IdentityRegistrarComponent() {
         disconnectAllWallets();
         Object.keys(accountStore).forEach((k) => delete accountStore[k]);
         break;
+      case "Teleport":
+        setOpenDialog("teleport")
+        break;
       case "RemoveIdentity": {
         const tx = prepareClearIdentityTx()
         openTxDialog({
@@ -690,6 +683,7 @@ export function IdentityRegistrarComponent() {
     identityFormRef, urlParams, isTxBusy,
     supportedFields, accountTreeProps: { tree: accountTree, loading: accountTreeLoading },
     addNotification: addAlert, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
+    sendPGPVerification,
   }
 
   //#region HelpDialog
@@ -784,6 +778,44 @@ export function IdentityRegistrarComponent() {
       errorDetails={errorDetails}
       setErrorDetails={setErrorDetails}
       addAlert={addAlert}
+    />
+
+    <TeleporterDialog
+      address={accountStore.address}
+      accounts={displayedAccounts}
+      chainId={chainStore.id}
+      config={config}
+      tokenSymbol={chainStore.tokenSymbol}
+      tokenDecimals={chainStore.tokenDecimals}
+      xcmParams={xcmParams}
+      tx={txToConfirm}
+      otherChains={relayAndParachains}
+      fromBalance={fromBalance}
+      toBalance={balance}
+      
+      isTxBusy={isTxBusy}
+      formatAmount={formatAmount}
+      getTeleportCall={({ amount }: {
+        amount: BigNumber,
+        //parachainId: number,
+      }) => getTeleportCall({
+        amount,
+        parachainId,
+        fromApi: fromTypedApi,
+        signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+      })}
+      signSubmitAndWatch={({
+        call, name, awaitFinalization
+      }: Pick<SignSubmitAndWatchParams, "call" | "name" | "awaitFinalization">) => signSubmitAndWatch({
+        call,
+        name,
+        awaitFinalization,
+        api: fromTypedApi,
+        signer: getWalletAccount(xcmParams.fromAddress).polkadotSigner,
+      })}
+
+      open={openDialog === "teleport"}
+      setOpen={handleOpenChange}
     />
   </>
 }

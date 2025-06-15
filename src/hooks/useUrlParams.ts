@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 
 export type UrlParamsArgs = Record<string, string | undefined>;
 export type UrlParams = {
@@ -6,18 +7,19 @@ export type UrlParams = {
 };
 
 export function useUrlParams() {
+  const location = useLocation();
+
   const urlParams = useMemo(() => {
-    const searchParams = Object.fromEntries(new URLSearchParams(window.location.search));
+    const searchParams = Object.fromEntries(new URLSearchParams(location.search));
     console.debug({ searchParams });
     return searchParams;
-  }, [window.location.search]);
-
+  }, [location.search]);
 
   const updateUrlParams = useCallback((params: UrlParamsArgs) => {
     const queryString = new URLSearchParams(
       Object.entries(params).filter(([, value]) => value)
     ).toString();
-    window.history.replaceState(null, "", `${window.location.pathname}${queryString ? "?" + queryString : ""}`);
+    window.history.replaceState(null, "", `${location.pathname}${queryString ? "?" + queryString : ""}`);
     console.debug({ queryString });
   }, []);
 

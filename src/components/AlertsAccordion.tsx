@@ -47,22 +47,23 @@ export const AlertsAccordion = ({
                   : 'bg-[#FFE5F3] border-[#E6007A] text-[#670D35] dark:bg-[#393838] dark:text-[#FFFFFF]'
                 }`}
               >
-                <AlertTitle>{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
-                <AlertDescription className="flex flex-col justify-between items-center">
-                  <span className="font-mono">{alert.message}</span>
-                  {alert.closable === true && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAlert(alert.key)}
-                    >
-                      Dismiss
-                    </Button>
-                  )}
-                  {alert.seeDetails && (
-                    <Button variant="primary" size="sm" onClick={alert.seeDetails}>See Details</Button>
-                  )}
-
+                <AlertTitle className="font-bold">{alert.type === 'error' ? 'Error' : 'Notification'}</AlertTitle>
+                <AlertDescription className="flex flex-col justify-between items-center gap-2">
+                  <span className="font-mono self-start">{alert.message}</span>
+                  <div className="flex items-center gap-1">
+                    {alert.closable === true && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAlert(alert.key)}
+                      >
+                        Dismiss
+                      </Button>
+                    )}
+                    {alert.seeDetails && (
+                      <Button variant="primary" size="sm" onClick={alert.seeDetails}>See Details</Button>
+                    )}
+                  </div>
                 </AlertDescription>
               </Alert>
             ))}

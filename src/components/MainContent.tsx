@@ -16,10 +16,9 @@ const MemoChallengesPage = memo(ChallengePage)
 const MemoStatusPage = memo(StatusPage)
 
 export const MainContent = ({
-  identity, challengeStore, chainStore, typedApi, accountStore,
-  chainConstants, identityFormRef, urlParams, isTxBusy, supportedFields,
-  addNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog,
-  accountTreeProps
+  identity, challengeStore, chainStore, typedApi, accountStore, accountTreeProps, chainConstants, 
+  identityFormRef, urlParams, isTxBusy, supportedFields,
+  addNotification, formatAmount, openTxDialog, updateUrlParams, setOpenDialog, sendPGPVerification,
 }: MainContentProps) => {
   const tabs = useMemo(() => [
     {
@@ -72,15 +71,19 @@ export const MainContent = ({
           isTxBusy={isTxBusy}
         />
         {identity.status >= verifyStatuses.FeePaid && <MemoChallengesPage 
-          addNotification={addNotification} challengeStore={challengeStore}
-          identity={identity}
+          challengeStore={challengeStore}
+          identity={identity} 
+          addNotification={addNotification} 
+          sendPGPVerification={sendPGPVerification}
+          chainStore={{ id: chainStore.id as string }}
+          accountStore={{ encodedAddress: accountStore.encodedAddress }}
         />}
       </div>
     },
   ], [
     identity, challengeStore, isTxBusy, chainStore, accountStore, accountTreeProps, typedApi,
     identityFormRef, chainConstants, supportedFields,
-    formatAmount, addNotification, openTxDialog, setOpenDialog
+    formatAmount, addNotification, openTxDialog, setOpenDialog, sendPGPVerification
   ])
   const enabledTabsIndexes = tabs
     .map((tab, index) => ({ index, id: tab.id, disabled: tab.disabled }))

@@ -78,6 +78,7 @@ export default function ConfirmActionDialog({
     >
       <DialogContent className="dark:bg-[#2C2B2B] dark:text-[#FFFFFF] border-[#E6007A]">
         <DialogHeader>
+          {/* TODO Add transaction name */}
           <DialogTitle className="text-[#E6007A]">Confirm Action</DialogTitle>
           <DialogDescription>
             Please review the following information before proceeding.
@@ -178,7 +179,9 @@ export default function ConfirmActionDialog({
                   tokenSymbol={chainStore.tokenSymbol} tokenDecimals={chainStore.tokenDecimals}
                   otherChains={relayAndParachains} fromBalance={fromBalance} toBalance={balance}
                   teleportAmount={minimunTeleportAmount}
-                  formatAmount={formatAmount}
+                  formatAmount={formatAmount} setTeleportAmount={v => {
+                    xcmParams.txTotalCost = v
+                  }}
                 />
               </AccordionContent>
             </AccordionItem>

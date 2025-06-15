@@ -9,6 +9,7 @@ export interface IdentityInfo {
   image?: string;
   legal?: string;
   matrix?: string;
+  pgp_fingerprint?: string;
   twitter?: string;
   web?: string;
 }
