@@ -1,0 +1,55 @@
+/* Critical CSS that should be inlined */
+body {
+  background-color: #111827;
+  color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.bg-gray-900 {
+  background-color: #111827;
+}
+
+.text-white {
+  color: white;
+}
+
+.text-pink-400 {
+  color: #ec4899;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
