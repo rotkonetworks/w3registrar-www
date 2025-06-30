@@ -31,6 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { NetworkSelection } from "@/components/network-selection-register"
 import { AuthProviderButton } from "@/components/auth-provider-button"
 import { getProfile, type Profile as ProfileType } from "@/lib/profile" // For fetching profile by ID
+import { CHAIN_CONFIG } from "../../polkadot-api/chain-config"
 
 const GoogleIcon = () => <Mail className="w-5 h-5" />
 const MatrixIcon = () => (
@@ -313,52 +314,23 @@ export default function RegisterPage() {
     isEditMode ? "Update Complete" : "Registration Complete",
   ]
 
-  const networks = [
-    {
-      id: "paseo",
-      name: "Paseo",
-      description: "Testnet for development, free tokens available.",
+  const networks = Object.entries(CHAIN_CONFIG.chains)
+    .filter(([key]) => key.endsWith("_people"))
+    .map(([key, networkInfo]) => ({
+      id: key,
+      name: networkInfo.name,
+      description: networkInfo.description || "",
+      // TODO Add actual icons for each network
       icon: (
-        <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-          P
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${networkInfo.iconStyle}`}>
+          <span className="text-white font-bold text-xs">{networkInfo.symbol}</span>
         </div>
       ),
-      color: "border-pink-500/70 hover:bg-pink-500/10",
-      badge: "Testnet",
-      badgeColor: "bg-pink-500/20 text-pink-400",
-      features: ["Free Tokens", "Fast Transactions", "No Real Value"],
-    },
-    {
-      id: "polkadot",
-      name: "Polkadot",
-      description: "The enterprise-grade network for high-value applications.",
-      icon: (
-        <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-          DOT
-        </div>
-      ),
-      color: "border-purple-500/70 hover:bg-purple-500/10",
-      badge: "Enterprise",
-      badgeColor: "bg-purple-500/20 text-purple-400",
-      features: ["High Security", "Governance", "Interoperability"],
-    },
-    {
-      id: "kusama",
-      name: "Kusama",
-      description: "A privacy-focused network for radical innovation.",
-      icon: (
-        <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
-          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-          </svg>
-        </div>
-      ),
-      color: "border-cyan-500/70 hover:bg-cyan-500/10",
-      badge: "Experimental",
-      badgeColor: "bg-cyan-500/20 text-cyan-400",
-      features: ["Privacy-focused", "Fast Iteration", "Experimental Features"],
-    },
-  ]
+      color: networkInfo.iconStyle || "border-gray-500/70 hover:bg-gray-500/10",
+      badge: networkInfo.badge || "",
+      badgeColor: networkInfo.badgeColor || "bg-gray-500/20 text-gray-400",
+      features: networkInfo.features || [],
+    }))
   const [hoveredNetwork, setHoveredNetwork] = useState<string | null>(null)
 
   const getCanProceedOverall = () => {
@@ -402,7 +374,9 @@ export default function RegisterPage() {
               )}
               {network && (
                 <Badge className={`${networkColor} bg-opacity-20 text-opacity-100 hidden sm:inline-flex`}>
-                  {networkDisplayName} {isNetworkEncrypted && "(Private Mode)"}
+                  {networkDisplayName}
+                  {/* TODO Maybe display if testnet. */}
+                  {/* {isNetworkEncrypted && "(Private Mode)"} */}
                 </Badge>
               )}
               <Badge className="bg-gray-700 text-white text-xs">
@@ -477,7 +451,7 @@ export default function RegisterPage() {
             {currentStep === 4 && (
               <IdentityFieldsForm
                 initialData={identityData}
-                onSubmit={() => {}}
+                onSubmit={() => { }}
                 isSubmitting={isSubmittingIdentity}
                 isEditMode={isEditMode}
                 onDataChange={handleIdentityDataFormChange}
