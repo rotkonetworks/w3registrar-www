@@ -40,7 +40,17 @@ const MatrixIcon = () => (
   </svg>
 )
 
-const TOTAL_STEPS = 7 // Assuming linking external accounts is still a step
+
+export const STEP_MUMBERS = {
+  pickNetwork: 1,
+  connectWallet: 2,
+  pickAccount: 3,
+  fillIdentityInfo: 4,
+  reviewAndSubmit: 5,
+  linkExternalAccounts: 6,
+  complete: 7,
+} as const
+const TOTAL_STEPS = Object.keys(STEP_MUMBERS).length
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -75,6 +85,15 @@ export default function RegisterPage() {
   const flowParam = searchParams.get("flow")
   const parentIdParam = searchParams.get("parentId")
   const isEditingCurrentUserFromParams = searchParams.get("edit") === "true"
+
+  useEffect(() => {
+    if (network) {
+      setCurrentStep(STEP_MUMBERS.connectWallet)
+    } else {
+      setCurrentStep(STEP_MUMBERS.pickNetwork)
+      return
+    }
+  }, [network])
 
   useEffect(() => {
     // Wait for user data to be loaded before doing anything.
@@ -398,7 +417,7 @@ export default function RegisterPage() {
           </p>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 md:p-8 shadow-xl min-h-[300px]">
-            {currentStep === 1 && (
+            {currentStep === STEP_MUMBERS.pickNetwork && (
               <>
                 <NetworkSelection
                   networks={networks}
