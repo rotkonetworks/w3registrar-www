@@ -100,27 +100,6 @@ export const CHAIN_CONFIG = defineConfig({
       badgeColor: "bg-pink-500/20 text-pink-400",
       features: ["Free Tokens", "Fast Transactions"],
     },
-
-    westend2: {
-      name: "Westend",
-      symbol: "WND",
-      descriptor: westend2,
-      provider: withPolkadotSdkCompat(getWsProvider(process.env.VITE_APP_WESTEND_WS_URL)),
-    },
-    westend2_people: {
-      name: "Westend People",
-      symbol: "WND",
-      descriptor: westend2_people,
-      provider: withPolkadotSdkCompat(getWsProvider(process.env.VITE_APP_WESTEND_PEOPLE_WS_URL)),
-      registrarIndex: process.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
-      // UI properties
-      description: "Testnet for development, free tokens available.",
-      iconStyle: "border-blue-500/70 hover:bg-blue-500/10",
-      primaryColor: "text-blue-500",
-      badge: "Testnet",
-      badgeColor: "bg-blue-500/20 text-blue-400",
-      features: ["Free Tokens", "Fast Transactions"],
-    },
   },
   targetChains: process.env.VITE_APP_AVAILABLE_CHAINS
     ? process.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
