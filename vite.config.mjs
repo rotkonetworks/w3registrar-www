@@ -1,7 +1,8 @@
-// vite.config.ts
+// vite.config.mjs
 import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import UnoCSS from 'unocss/vite'
 
 export default defineConfig(({ mode }) => {
   const isDevelopment = ['development', 'preview'].includes(mode);
@@ -9,6 +10,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      UnoCSS(),
     ],
     server: {
       port: 3000,
@@ -16,7 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@': resolve(__dirname, 'src'),
+        '@': resolve(process.cwd(), 'src'),
       }
     },
     build: {

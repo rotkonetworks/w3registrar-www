@@ -3,13 +3,11 @@ import {
   polkadot_people,
   ksmcc3,
   ksmcc3_people,
-  westend2,
-  westend2_people,
   paseo,
   paseo_people,
 } from "@polkadot-api/descriptors";
 import { getWsProvider } from "@polkadot-api/ws-provider/web";
-import { defineConfig, type ChainConfig, type Config } from "@reactive-dot/core";
+import { defineConfig, type ChainConfig as ReactiveDotChainConfig, type Config } from "@reactive-dot/core";
 import { InjectedWalletProvider } from "@reactive-dot/core/wallets.js";
 import { LedgerWallet } from "@reactive-dot/wallet-ledger";
 import { WalletConnect } from "@reactive-dot/wallet-walletconnect";
@@ -18,38 +16,25 @@ import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat";
 
 // TODO Have additional WebSocket endpoint for each chain
 
-export type ApiConfig = Config & {
+export type ChainConfig = Config & {
   chains: Record<
     string,
-    ChainConfig & {
+    ReactiveDotChainConfig & {
       name: string;
       symbol: string;
       registrarIndex?: number;
+      // UI extra properties
+      description?: string;
+      iconStyle?: string;
+      primaryColor?: string;
+      badge?: string;
+      badgeColor?: string;
+      features?: string[];
     }
   >;
 };
 
-let rococoConfig = {};
-if (import.meta.env.DEV) {
-  if (import.meta.env.VITE_APP_DEFAULT_WS_URL && import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY) {
-    rococoConfig = {
-      rococo: {
-        name: "Rococo",
-        symbol: "ROC",
-        descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo),
-        provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL_RELAY)),
-      },
-      rococo_people: {
-        name: "Rococo People",
-        symbol: "ROC",
-        descriptor: await import("@polkadot-api/descriptors").then(mod => mod.rococo_people),
-        provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_DEFAULT_WS_URL)),
-        registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_ROCOCO || 0,
-      },
-    };
-  }
-}
-export const config = defineConfig({
+export const CHAIN_CONFIG = defineConfig({
   chains: {
     polkadot: {
       name: "Polkadot",
@@ -63,6 +48,13 @@ export const config = defineConfig({
       descriptor: polkadot_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_POLKADOT_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_POLKADOT,
+      // UI properties
+      description: "A community-driven network for people.",
+      iconStyle: "border-pink-500/70 hover:bg-pink-500/10",
+      primaryColor: "text-pink-500",
+      badge: "Community",
+      badgeColor: "bg-pink-500/20 text-pink-400",
+      features: ["Community-driven", "People-focused", "Experimental Features"],
     },
 
     ksmcc3: {
@@ -77,6 +69,13 @@ export const config = defineConfig({
       descriptor: ksmcc3_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_KUSAMA_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_KUSAMA,
+      // UI properties
+      description: "A privacy-focused network for radical innovation.",
+      iconStyle: "border-cyan-500/70 hover:bg-cyan-500/10",
+      primaryColor: "text-cyan-500",
+      badge: "Experimental",
+      badgeColor: "bg-cyan-500/20 text-cyan-400",
+      features: ["Privacy-focused", "Fast Iteration", "Experimental Features"],
     },
 
     paseo: {
@@ -86,30 +85,22 @@ export const config = defineConfig({
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_PASEO_WS_URL)),
     },
     paseo_people: {
-      name: "Paseo People",
-      symbol: "PAS",
       descriptor: paseo_people,
       provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_PASEO_PEOPLE_WS_URL)),
       registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_PASEO,
+      // UI properties
+      name: "Paseo People",
+      symbol: "PAS",
+      description: "Testnet for development, free tokens available.",
+      iconStyle: "border-pink-500/70 hover:bg-pink-500/10",
+      primaryColor: "text-pink-500",
+      badge: "Testnet",
+      badgeColor: "bg-pink-500/20 text-pink-400",
+      features: ["Free Tokens", "Fast Transactions"],
     },
-
-    westend2: {
-      name: "Westend",
-      symbol: "WND",
-      descriptor: westend2,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_WS_URL)),
-    },
-    westend2_people: {
-      name: "Westend People",
-      symbol: "WND",
-      descriptor: westend2_people,
-      provider: withPolkadotSdkCompat(getWsProvider(import.meta.env.VITE_APP_WESTEND_PEOPLE_WS_URL)),
-      registrarIndex: import.meta.env.VITE_APP_REGISTRAR_INDEX__PEOPLE_WESTEND,
-    },
-    ...rococoConfig,
   },
   targetChains: import.meta.env.VITE_APP_AVAILABLE_CHAINS
-    ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map(key => key.trim())
+    ? import.meta.env.VITE_APP_AVAILABLE_CHAINS.split(',').map((key: string) => key.trim())
     : ["polkadot_people", "ksmcc3_people", "westend2_people", "rococo_people"]
   ,
   wallets: [
@@ -138,9 +129,9 @@ export const config = defineConfig({
       ],
     }),
   ],
-} as const satisfies ApiConfig);
+} as const satisfies ChainConfig);
 
 // Register dot-connect custom elements & configure supported wallets
 registerDotConnect({
-  wallets: config.wallets,
+  wallets: CHAIN_CONFIG.wallets,
 });
