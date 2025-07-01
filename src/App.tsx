@@ -9,7 +9,7 @@ import { BalanceProvider } from '@/contexts/balance-context'
 import { Toaster } from '@/components/ui/sonner'
 
 // Import pages
-import HomePage from './pages/HomePage'
+import HomePage from './pages/home-new'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import SearchPage from './pages/SearchPage'

@@ -2,8 +2,9 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useUrlParams } from "@/hooks/useUrlParams"
 import { Search, User, Circle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 // Mock profiles from all networks - in production this would query all databases
 const mockProfiles = [
@@ -46,14 +47,21 @@ const mockProfiles = [
 ]
 
 export default function SearchForm() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [query, setQuery] = useState("")
+  const { urlParams, setParam, deleteParam } = useUrlParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (urlParams.q) {
+      setQuery(urlParams.q)
+    }
+  }, [urlParams])
 
   useEffect(() => {
     if (query.length >= 3) {
@@ -81,12 +89,14 @@ export default function SearchForm() {
 
     setIsSubmitting(true)
     setShowSuggestions(false)
-    router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+    //navigate(`/search?query=${encodeURIComponent(query.trim())}`)
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`)
+    //setParam("query", query.trim())
   }
 
   const handleSuggestionClick = (profile: any) => {
     setShowSuggestions(false)
-    router.push(`/profile/${profile.id}`)
+    navigate(`/profile/${profile.id}`)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -164,11 +174,9 @@ export default function SearchForm() {
             <button
               key={profile.id}
               onClick={() => handleSuggestionClick(profile)}
-              className={`search-suggestion-item w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-700 hover:scale-100 transition-colors ${
-                index === selectedIndex ? "bg-gray-700" : ""
-              } ${index === 0 ? "rounded-t-lg" : ""} ${
-                index === suggestions.length - 1 ? "rounded-b-lg" : "border-b border-gray-700"
-              }`}
+              className={`search-suggestion-item w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-700 hover:scale-100 transition-colors ${index === selectedIndex ? "bg-gray-700" : ""
+                } ${index === 0 ? "rounded-t-lg" : ""} ${index === suggestions.length - 1 ? "rounded-b-lg" : "border-b border-gray-700"
+                }`}
             >
               <img
                 src={profile.avatar || "/placeholder.svg"}

@@ -128,10 +128,10 @@ export function IdentityFieldsForm({
           icon={<AtSign className="w-4 h-4 text-gray-400 mr-2" />}
           value={formData.nickname}
           onChange={(value) => handleChange("nickname", value)}
-          placeholder="e.g., satoshi.dot (Upcoming Feature)"
-          description="On-chain DNS names are an upcoming feature. This field will be enabled soon."
-          className="opacity-60 cursor-not-allowed p-3 bg-gray-800/50 border border-gray-700 rounded-lg"
-          disabled={true}
+          placeholder="e.g., satoshi.dot"
+          description="Register a human-readable DNS name for your on-chain identity. This helps others find and remember your identity."
+          className="p-3 bg-gray-800/50 border border-gray-700 rounded-lg"
+          disabled={false}
         />,
       ],
     },

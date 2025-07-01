@@ -1,22 +1,24 @@
 import React from "react"
+import { Link } from "react-router-dom"
+import SearchForm from "@/components/search-form"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="container mx-auto px-4 py-4">
         <div className="flex justify-end space-x-2">
-          <a
-            href="/login"
+          <Link
+            to="/login"
             className="btn-ghost p-2 md:px-3 md:py-1 text-xs md:text-sm rounded-md transition-colors inline-block"
           >
             Login
-          </a>
-          <a
-            href="/register"
+          </Link>
+          <Link
+            to="/register"
             className="text-accent hover:bg-accent/10 hover:text-accent/80 p-2 md:px-3 md:py-1 text-xs md:text-sm rounded-md transition-colors inline-block"
           >
             Register
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -38,12 +40,26 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="bg-card p-8 rounded-lg border border-border/30">
-          <h2 className="text-xl font-bold text-foreground mb-4">Search Form</h2>
-          <p className="text-muted mb-6">Search functionality coming soon...</p>
+        <div className="max-w-2xl mx-auto w-full">
+          <SearchForm />
+        </div>
 
-          {/* Demo buttons to showcase the button styles */}
+        {/* Demo buttons to showcase the button styles */}
+        <div className="mt-12 bg-card p-8 rounded-lg border border-border/30">
+          <h2 className="text-xl font-bold text-foreground mb-4">Button Styles Demo</h2>
           <div className="flex gap-4 flex-wrap">
+            <button type="button" className="btn-primary px-6 py-3 rounded-lg font-medium">
+              Primary Button
+            </button>
+            <button type="button" className="btn-secondary px-6 py-3 rounded-lg font-medium">
+              Secondary Button
+            </button>
+            <button type="button" className="btn-outline px-6 py-3 rounded-lg font-medium">
+              Outline Button
+            </button>
+            <button type="button" className="btn-ghost px-6 py-3 rounded-lg font-medium">
+              Ghost Button
+            </button>
           </div>
         </div>
       </main>

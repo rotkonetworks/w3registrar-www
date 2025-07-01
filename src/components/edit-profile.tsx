@@ -65,13 +65,12 @@ export function EditProfile({ profile, onClose, onUpdate }: EditProfileProps) {
               id="nickname"
               label="Nickname (DNS)"
               icon={<AtSign className="w-4 h-4 text-pink-400 mr-2" />}
-              value={formData.nickname} // Display current value
-              onChange={(value) => handleChange("nickname", value)} // Keep onChange for consistency, but field is disabled
-              placeholder="your-name.dot (Upcoming Feature)"
-              description="On-chain DNS names are an upcoming feature. This field will be enabled soon."
-              className="opacity-60 cursor-not-allowed"
-              // @ts-ignore
-              disabled={true}
+              value={formData.nickname}
+              onChange={(value) => handleChange("nickname", value)}
+              placeholder="your-name.dot"
+              description="Register a human-readable DNS name for your on-chain identity. This will make it easier for others to find and interact with you."
+              className=""
+              disabled={false}
             />
           </div>
 
