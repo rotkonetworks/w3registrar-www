@@ -15,6 +15,7 @@ import RegisterPage from './pages/RegisterPage'
 import SearchPage from './pages/SearchPage'
 import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
+import { PolkadotApiProvider } from './contexts/PolkadotApiContext'
 
 export default function App() {
   return (
@@ -28,7 +29,11 @@ export default function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/register" element={
+                      <PolkadotApiProvider>
+                        <RegisterPage />
+                      </PolkadotApiProvider>
+                    } />
                     <Route path="/search" element={<SearchPage />} />
                     <Route path="/profile/:id?" element={<ProfilePage />} />
                     <Route path="/settings" element={<SettingsPage />} />

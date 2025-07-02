@@ -108,17 +108,32 @@ export default function RegisterPage() {
   const parentIdParam = searchParams.get("parentId")
   const isEditingCurrentUserFromParams = searchParams.get("edit") === "true"
 
-  useEffect(() => {
+  const connectedWallets = useConnectedWallets();
+
+  useEffect(() => {// Set steps based on whether required information is available
     if (network) {
+      setCurrentStep(STEP_NUMBERS.connectWallet)
+    } else {
+      setCurrentStep(STEP_NUMBERS.pickNetwork)
+      return
+    }
+
+    if (connectedWallets.length > 0) {
+      setCurrentStep(STEP_NUMBERS.pickAccount)
+    } else {
+      setCurrentStep(STEP_NUMBERS.connectWallet)
+      return;
+    }
+
     if (accountStore.address) {
       setCurrentStep(STEP_NUMBERS.fillIdentityInfo)
     } else {
       setCurrentStep(STEP_NUMBERS.pickAccount)
       return
     }
-  }, [network])
+  }, [network, connectedWallets])
 
-  useEffect(() => {
+  useEffect(() => {// Set up profile/idenity data based on URL parameters or logged in user
     // Wait for user data to be loaded before doing anything.
     if (isUserLoading) {
       return
@@ -301,7 +316,10 @@ export default function RegisterPage() {
   }, [identityData, getAllFilledFields, getFieldStatus])
 
   const handleNextStep = () => {
-    if (currentStep === 4 && !canProceedFromIdentityStep) {
+    if (currentStep === STEP_NUMBERS.pickNetwork && _network) {
+      handleNetworkSelect(_network)
+    }
+    if (currentStep === STEP_NUMBERS.fillIdentityInfo && !canProceedFromIdentityStep) {
       const unverifiedFilledFields = getAllFilledFields(identityData)
         .filter((fieldName) => {
           if (fieldName === "displayName" || fieldName === "nickname") return false
@@ -335,6 +353,8 @@ export default function RegisterPage() {
     }
   }
 
+  const [openDialog, setOpenDialog] = useState<DialogMode>(null)
+
   const handleReviewAndSubmit = async () => {
     setIsSubmittingIdentity(true)
     const action = isEditMode ? "Updating" : "Submitting"
@@ -361,7 +381,7 @@ export default function RegisterPage() {
 
   const stepTitles = [
     "Select Network",
-    "Connect Wallet",
+    "Connect Wallets",
     "Select Account",
     "Check Balance",
     isEditMode ? "Update & Verify Identity Info" : "Provide & Verify Identity Info",
@@ -390,9 +410,14 @@ export default function RegisterPage() {
   const [hoveredNetwork, setHoveredNetwork] = useState<string | null>(null)
 
   const getCanProceedOverall = () => {
+    if (currentStep === STEP_NUMBERS.pickNetwork && !_network) return false
+    if (currentStep === STEP_NUMBERS.connectWallet && connectedWallets.length < 1) return false
+    if (currentStep === STEP_NUMBERS.fillIdentityInfo && !canProceedFromIdentityStep) return false
     if (currentStep === STEP_NUMBERS.pickAccount && !walletAddress) return false
     return true
   }
+
+  const { theme: isDark } = useTheme()
 
   if (isUserLoading || isLoadingProfileForEdit) {
     return (
@@ -402,7 +427,11 @@ export default function RegisterPage() {
     )
   }
 
-  return (
+  return <>
+    <ConnectionDialog open={openDialog === "connectWallets"}
+      onClose={() => { setOpenDialog(null) }}
+      dark={isDark === "dark"}
+    />
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       <header className="border-b border-pink-500/30 bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20">
         <div className="container mx-auto px-4 py-4">
@@ -456,12 +485,12 @@ export default function RegisterPage() {
               <>
                 <NetworkSelection
                   networks={networks}
-                  selectedNetwork={network}
-                  onSelect={(val) => handleNetworkSelect(val as AppNetwork)}
+                  selectedNetwork={_network}
+                  onSelect={(val) => _setNetwork(val as AppNetwork)}
                   hoveredNetwork={hoveredNetwork}
                   setHoveredNetwork={setHoveredNetwork}
                 />
-                {network === "kusama" && (
+                {_network === "kusama" && (
                   <div className="mt-4 p-3 text-sm text-cyan-300 bg-cyan-900/20 border border-cyan-500/30 rounded-md flex items-start">
                     <Info className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-cyan-400" />
                     <span>
@@ -473,24 +502,24 @@ export default function RegisterPage() {
               </>
             )}
 
-            {currentStep === STEP_MUMBERS.connectWallet && (
+            {currentStep === STEP_NUMBERS.connectWallet && (
               <div className="text-center space-y-6">
                 <WalletIcon className="w-16 h-16 text-pink-500 mx-auto" />
-                <h2 className="text-xl font-semibold">Connect Your Wallet</h2>
+                <h2 className="text-xl font-semibold">Connect Your Wallets</h2>
                 <p className="text-gray-400">
-                  This wallet will be associated with your identity on the {networkDisplayName} network.
+                  In order to access your accounts, you need to connect your wallets.
                 </p>
-                {walletAddress && (
-                  <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md text-green-400">
-                    Connected: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
-                  </div>
-                )}
+                {/* {wallets.length > 0 && (
+                )} */}
+                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md text-green-400">
+                  {connectedWallets.length} Wallet{connectedWallets.length > 1 ? "s" : ""} Connected
+                </div>
                 <Button
-                  onClick={connectWallet}
+                  onClick={() => setOpenDialog("connectWallets")}
                   disabled={isWalletConnecting || isWalletConnected}
                   className="w-full md:w-auto btn-primary"
                 >
-                  {isWalletConnecting ? "Connecting..." : isWalletConnected ? "Wallet Connected" : "Connect Wallet"}
+                  {openDialog === "connectWallets" ? "Managing..." : "Manage Wallets"}
                 </Button>
               </div>
             )}
@@ -514,12 +543,13 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {currentStep === 3 && walletAddress && (
+            {currentStep === STEP_NUMBERS.checkBalance && walletAddress && (
               <BalanceCheck address={walletAddress} onSufficientBalance={handleNextStep} />
             )}
-            {currentStep === 3 && !walletAddress && (
+            {/* TODO Move up */}
+            {/* {currentStep === 3 && !walletAddress && (
               <p className="text-center text-yellow-400">Please connect your wallet first.</p>
-            )}
+            )} */}
 
             {currentStep === 4 && (
               <IdentityFieldsForm
@@ -664,7 +694,8 @@ export default function RegisterPage() {
             >
               Previous
             </Button>
-            {currentStep < TOTAL_STEPS && currentStep !== 3 && currentStep !== 5 && currentStep !== 6 && (
+            {/* currentStep < TOTAL_STEPS && currentStep !== 3 && currentStep !== 5 && currentStep !== 6 && ( */}
+            {currentStep < TOTAL_STEPS && (
               <Button
                 onClick={handleNextStep}
                 disabled={!getCanProceedOverall() || isSubmittingIdentity || isLinkingAccount}
@@ -678,5 +709,5 @@ export default function RegisterPage() {
         </div>
       </main>
     </div>
-  )
+  </>
 }
