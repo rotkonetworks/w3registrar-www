@@ -63,7 +63,13 @@ const TOTAL_STEPS = Object.keys(STEP_NUMBERS).length
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
   const { network, setNetwork, networkDisplayName, networkColor, isEncrypted: isNetworkEncrypted } = useNetwork()
+  const [_network, _setNetwork] = useState<AppNetwork | null>(network)
+
+  const polkadotApiContext = usePolkadotApi()
+  const { chainStore, accountStore, address, accounts } = polkadotApiContext
+
   const {
     isConnected: isWalletConnected,
     connect: connectWallet,
@@ -446,7 +452,7 @@ export default function RegisterPage() {
           </p>
 
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 md:p-8 shadow-xl min-h-[300px]">
-            {currentStep === STEP_MUMBERS.pickNetwork && (
+            {currentStep === STEP_NUMBERS.pickNetwork && (
               <>
                 <NetworkSelection
                   networks={networks}
