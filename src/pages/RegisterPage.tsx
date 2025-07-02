@@ -31,6 +31,14 @@ import { NetworkSelection } from "@/components/network-selection-register"
 import { AuthProviderButton } from "@/components/auth-provider-button"
 import { getProfile, type Profile as ProfileType } from "@/lib/profile" // For fetching profile by ID
 import { CHAIN_CONFIG } from "@/polkadot-api/chain-config"
+import { chainStore as _chainStore } from "@/store/ChainStore"
+import { useConnectedWallets } from "@reactive-dot/react"
+import { DialogMode } from "@/types"
+import { ConnectionDialog } from "dot-connect/react.js"
+import { useTheme } from "@/components/theme-provider-simple"
+import { usePolkadotApi } from "@/contexts/PolkadotApiContext"
+import { AccountSelector } from "@/components/ui/account-selector"
+import { SS58String } from "polkadot-api"
 
 const GoogleIcon = () => <Mail className="w-5 h-5" />
 const MatrixIcon = () => (
@@ -40,16 +48,17 @@ const MatrixIcon = () => (
 )
 
 
-export const STEP_MUMBERS = {
+export const STEP_NUMBERS = {
   pickNetwork: 1,
   connectWallet: 2,
   pickAccount: 3,
-  fillIdentityInfo: 4,
-  reviewAndSubmit: 5,
-  linkExternalAccounts: 6,
-  complete: 7,
+  checkBalance: 4,
+  fillIdentityInfo: 5,
+  reviewAndSubmit: 6,
+  linkExternalAccounts: 7,
+  complete: 8,
 } as const
-const TOTAL_STEPS = Object.keys(STEP_MUMBERS).length
+const TOTAL_STEPS = Object.keys(STEP_NUMBERS).length
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -57,10 +66,14 @@ export default function RegisterPage() {
   const { network, setNetwork, networkDisplayName, networkColor, isEncrypted: isNetworkEncrypted } = useNetwork()
   const {
     isConnected: isWalletConnected,
-    address: walletAddress,
     connect: connectWallet,
     isConnecting: isWalletConnecting,
   } = useWallet()
+
+  const walletAddress = useMemo(() => {
+    return accountStore.address
+  }, [accountStore.address])
+
   const { userProfile: loggedInUserProfile, isLoading: isUserLoading } = useUser()
   const { getFieldStatus, getAllFilledFields, resetFieldVerification } = useVerification()
 
@@ -80,6 +93,10 @@ export default function RegisterPage() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
   const [isLoadingProfileForEdit, setIsLoadingProfileForEdit] = useState(false)
+  
+  const [hoveredAccount, setHoveredAccount] = useState<string | null>(null)
+  const [selectedAccount, setSelectedAccount] = useState<SS58String | null>(null)
+
   const editIdParam = searchParams.get("editId")
   const flowParam = searchParams.get("flow")
   const parentIdParam = searchParams.get("parentId")
@@ -87,9 +104,10 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (network) {
-      setCurrentStep(STEP_MUMBERS.connectWallet)
+    if (accountStore.address) {
+      setCurrentStep(STEP_NUMBERS.fillIdentityInfo)
     } else {
-      setCurrentStep(STEP_MUMBERS.pickNetwork)
+      setCurrentStep(STEP_NUMBERS.pickAccount)
       return
     }
   }, [network])
@@ -245,6 +263,16 @@ export default function RegisterPage() {
 
   const handleNetworkSelect = (selectedNet: AppNetwork) => {
     setNetwork(selectedNet)
+    chainStore.id = selectedNet
+  }
+
+  const handlePickAccount = (address: SS58String) => {
+    setSelectedAccount(address)
+    accountStore.address = address // Update the accountStore with the selected account
+    // Set address as search parameter to persist selection
+    const searchParams = new URLSearchParams(window.location.search)
+    searchParams.set("address", address)
+    window.history.replaceState({}, "", `${window.location.pathname}?${searchParams.toString()}`)
   }
 
   const handleIdentityDataFormChange = (newData: IdentityData) => {
@@ -285,6 +313,9 @@ export default function RegisterPage() {
         toast.error("Please provide a Display Name or fill and verify at least one other field.")
       }
       return
+    }
+    if (currentStep === STEP_NUMBERS.pickAccount && selectedAccount) {
+      handlePickAccount(selectedAccount)
     }
 
     if (currentStep < TOTAL_STEPS) {
@@ -353,9 +384,7 @@ export default function RegisterPage() {
   const [hoveredNetwork, setHoveredNetwork] = useState<string | null>(null)
 
   const getCanProceedOverall = () => {
-    if (currentStep === 1 && !network) return false
-    if (currentStep === 2 && !isWalletConnected) return false
-    if (currentStep === 4 && !canProceedFromIdentityStep) return false
+    if (currentStep === STEP_NUMBERS.pickAccount && !walletAddress) return false
     return true
   }
 
@@ -460,25 +489,22 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {currentStep === STEP_MUMBERS.pickAccount && (
-              <div className="text-center space-y-6">
-                <WalletIcon className="w-16 h-16 text-pink-500 mx-auto" />
-                <h2 className="text-xl font-semibold">Connect Your Wallet</h2>
-                <p className="text-gray-400">
-                  This wallet will be associated with your identity on the {networkDisplayName} network.
-                </p>
-                {walletAddress && (
-                  <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md text-green-400">
-                    Connected: {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
-                  </div>
-                )}
-                <Button
-                  onClick={connectWallet}
-                  disabled={isWalletConnecting || isWalletConnected}
-                  className="w-full md:w-auto btn-primary"
-                >
-                  {isWalletConnecting ? "Connecting..." : isWalletConnected ? "Wallet Connected" : "Connect Wallet"}
-                </Button>
+            {currentStep === STEP_NUMBERS.pickAccount && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <WalletIcon className="w-16 h-16 text-pink-500 mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Select Your Account</h2>
+                  <p className="text-gray-400">
+                    Choose the account that will be associated with your identity on the {networkDisplayName} network.
+                  </p>
+                </div>
+                
+                <AccountSelector
+                  selectedAccount={accountStore.address || null}
+                  onSelect={(address: string) => accountStore.address = address}
+                  hoveredAccount={hoveredAccount}
+                  setHoveredAccount={setHoveredAccount}
+                />
               </div>
             )}
 
