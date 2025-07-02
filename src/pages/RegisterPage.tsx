@@ -551,136 +551,136 @@ export default function RegisterPage() {
               <p className="text-center text-yellow-400">Please connect your wallet first.</p>
             )} */}
 
-            {currentStep === 4 && (
+            {currentStep === STEP_NUMBERS.fillIdentityInfo && (
               <IdentityFieldsForm
-                initialData={identityData}
-                onSubmit={() => { }}
-                isSubmitting={isSubmittingIdentity}
-                isEditMode={isEditMode}
-                onDataChange={handleIdentityDataFormChange}
+              initialData={identityData}
+              onSubmit={() => { }}
+              isSubmitting={isSubmittingIdentity}
+              isEditMode={isEditMode}
+              onDataChange={handleIdentityDataFormChange}
               />
             )}
 
-            {currentStep === 5 && walletAddress && (
+            {currentStep === STEP_NUMBERS.reviewAndSubmit && walletAddress && (
               <Card className="bg-gray-800/50 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white text-xl">
-                    <ListChecks className="w-6 h-6 mr-3 text-pink-400" />
-                    Review Your Information
-                  </CardTitle>
-                  <CardDescription className="text-gray-400 text-sm">
-                    Confirm details before submitting to the {networkDisplayName} blockchain. This action may incur
-                    network fees.
-                    {isNetworkEncrypted && " Data on this network will be signed for privacy."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
-                    <p>
-                      <strong className="text-gray-300">Network:</strong>{" "}
-                      <span className="text-white font-medium">
-                        {networkDisplayName} {isNetworkEncrypted && "(Private)"}
-                      </span>
-                    </p>
-                    <p>
-                      <strong className="text-gray-300">Wallet Address:</strong>{" "}
-                      <span className="text-white font-medium font-mono break-all">{walletAddress}</span>
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
-                    <p>
-                      <strong className="text-gray-300">Display Name:</strong>{" "}
-                      <span className="text-white font-medium">{identityData.displayName || "(Not provided)"}</span>
-                    </p>
-                    {Object.entries(identityData).map(([key, value]) => {
-                      if (key !== "displayName" && key !== "nickname" && value) {
-                        const fieldStatus = getFieldStatus(key)
-                        return (
-                          <p key={key} className="flex justify-between items-center">
-                            <span>
-                              <strong className="text-gray-300 capitalize">{key.replace(/([A-Z])/g, " $1")}:</strong>{" "}
-                              <span className="text-white font-medium">{value.toString()}</span>
-                            </span>
-                            {fieldStatus?.status === "verified" ? (
-                              <CheckCircle className="w-4 h-4 text-green-400 ml-2" />
-                            ) : fieldStatus?.status === "pending" ? (
-                              <Loader2 className="w-4 h-4 text-yellow-400 animate-spin ml-2" />
-                            ) : fieldStatus?.status === "failed" ? (
-                              <AlertTriangle className="w-4 h-4 text-red-400 ml-2" />
-                            ) : null}
-                          </p>
-                        )
-                      }
-                      return null
-                    })}
-                  </div>
-                  <Button
-                    onClick={handleReviewAndSubmit}
-                    disabled={isSubmittingIdentity}
-                    className="w-full btn-primary text-white mt-6 py-3 text-base"
-                  >
-                    {isSubmittingIdentity
-                      ? `${isEditMode ? "Updating" : "Submitting"} to Blockchain...`
-                      : `${isEditMode ? "Confirm & Submit Update" : "Confirm & Submit Identity"}`}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {currentStep === 6 && (
-              <Card className="bg-gray-800/50 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-white text-xl">
-                    <LinkIcon className="w-6 h-6 mr-3 text-pink-400" />
-                    Link External Accounts (Optional)
-                  </CardTitle>
-                  <CardDescription className="text-gray-400 text-sm">
-                    Enhance your account security and recovery options by linking external accounts. Your primary
-                    identity is secured with your wallet.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 pt-2 pb-6">
-                  <AuthProviderButton
-                    providerName="Google"
-                    icon={<GoogleIcon />}
-                    onClick={() => handleLinkExternalAccount("Google")}
-                    disabled={isLinkingAccount}
-                  />
-                  <AuthProviderButton
-                    providerName="Matrix"
-                    icon={<MatrixIcon />}
-                    onClick={() => handleLinkExternalAccount("Matrix")}
-                    disabled={isLinkingAccount}
-                  />
-                  <p className="text-xs text-gray-500 text-center pt-2">
-                    Linking accounts can help with identity verification and account recovery in the future.
-                  </p>
-                  <Button onClick={handleNextStep} className="w-full btn-primary mt-4" disabled={isLinkingAccount}>
-                    {isEditMode ? "Finish Update" : "Finish Registration"}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {currentStep === 7 && (
-              <div className="text-center space-y-6 py-8">
-                <UserCheck className="w-20 h-20 text-green-500 mx-auto" />
-                <h2 className="text-2xl font-semibold text-white">
-                  {isEditMode ? "Update Successful!" : "Registration Successful!"}
-                </h2>
-                <p className="text-gray-300">
-                  Your identity has been successfully {isEditMode ? "updated" : "registered"} on the{" "}
-                  {networkDisplayName} network.
-                </p>
-                <p className="text-gray-400 text-sm">
-                  Wallet:{" "}
-                  <span className="font-mono">
-                    {walletAddress?.substring(0, 10)}...{walletAddress?.substring(walletAddress.length - 10)}
+              <CardHeader>
+                <CardTitle className="flex items-center text-white text-xl">
+                <ListChecks className="w-6 h-6 mr-3 text-pink-400" />
+                Review Your Information
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-sm">
+                Confirm details before submitting to the {networkDisplayName} blockchain. This action may incur
+                network fees.
+                {isNetworkEncrypted && " Data on this network will be signed for privacy."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
+                <p>
+                  <strong className="text-gray-300">Network:</strong>{" "}
+                  <span className="text-white font-medium">
+                  {networkDisplayName} {isNetworkEncrypted && "(Private)"}
                   </span>
                 </p>
-                <Link href={`/profile/${editingProfileId || walletAddress || "me"}`}>
-                  <Button className="btn-primary px-8 py-3 text-base mt-4">View Your Profile</Button>
-                </Link>
+                <p>
+                  <strong className="text-gray-300">Wallet Address:</strong>{" "}
+                  <span className="text-white font-medium font-mono break-all">{walletAddress}</span>
+                </p>
+                </div>
+                <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
+                <p>
+                  <strong className="text-gray-300">Display Name:</strong>{" "}
+                  <span className="text-white font-medium">{identityData.displayName || "(Not provided)"}</span>
+                </p>
+                {Object.entries(identityData).map(([key, value]) => {
+                  if (key !== "displayName" && key !== "nickname" && value) {
+                  const fieldStatus = getFieldStatus(key)
+                  return (
+                    <p key={key} className="flex justify-between items-center">
+                    <span>
+                      <strong className="text-gray-300 capitalize">{key.replace(/([A-Z])/g, " $1")}:</strong>{" "}
+                      <span className="text-white font-medium">{value.toString()}</span>
+                    </span>
+                    {fieldStatus?.status === "verified" ? (
+                      <CheckCircle className="w-4 h-4 text-green-400 ml-2" />
+                    ) : fieldStatus?.status === "pending" ? (
+                      <Loader2 className="w-4 h-4 text-yellow-400 animate-spin ml-2" />
+                    ) : fieldStatus?.status === "failed" ? (
+                      <AlertTriangle className="w-4 h-4 text-red-400 ml-2" />
+                    ) : null}
+                    </p>
+                  )
+                  }
+                  return null
+                })}
+                </div>
+                <Button
+                onClick={handleReviewAndSubmit}
+                disabled={isSubmittingIdentity}
+                className="w-full btn-primary text-white mt-6 py-3 text-base"
+                >
+                {isSubmittingIdentity
+                  ? `${isEditMode ? "Updating" : "Submitting"} to Blockchain...`
+                  : `${isEditMode ? "Confirm & Submit Update" : "Confirm & Submit Identity"}`}
+                </Button>
+              </CardContent>
+              </Card>
+            )}
+
+            {currentStep === STEP_NUMBERS.linkExternalAccounts && (
+              <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center text-white text-xl">
+                <LinkIcon className="w-6 h-6 mr-3 text-pink-400" />
+                Link External Accounts (Optional)
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-sm">
+                Enhance your account security and recovery options by linking external accounts. Your primary
+                identity is secured with your wallet.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2 pb-6">
+                <AuthProviderButton
+                providerName="Google"
+                icon={<GoogleIcon />}
+                onClick={() => handleLinkExternalAccount("Google")}
+                disabled={isLinkingAccount}
+                />
+                <AuthProviderButton
+                providerName="Matrix"
+                icon={<MatrixIcon />}
+                onClick={() => handleLinkExternalAccount("Matrix")}
+                disabled={isLinkingAccount}
+                />
+                <p className="text-xs text-gray-500 text-center pt-2">
+                Linking accounts can help with identity verification and account recovery in the future.
+                </p>
+                <Button onClick={handleNextStep} className="w-full btn-primary mt-4" disabled={isLinkingAccount}>
+                {isEditMode ? "Finish Update" : "Finish Registration"}
+                </Button>
+              </CardContent>
+              </Card>
+            )}
+
+            {currentStep === STEP_NUMBERS.complete && (
+              <div className="text-center space-y-6 py-8">
+              <UserCheck className="w-20 h-20 text-green-500 mx-auto" />
+              <h2 className="text-2xl font-semibold text-white">
+                {isEditMode ? "Update Successful!" : "Registration Successful!"}
+              </h2>
+              <p className="text-gray-300">
+                Your identity has been successfully {isEditMode ? "updated" : "registered"} on the{" "}
+                {networkDisplayName} network.
+              </p>
+              <p className="text-gray-400 text-sm">
+                Wallet:{" "}
+                <span className="font-mono">
+                {walletAddress?.substring(0, 10)}...{walletAddress?.substring(walletAddress.length - 10)}
+                </span>
+              </p>
+              <Link href={`/profile/${editingProfileId || walletAddress || "me"}`}>
+                <Button className="btn-primary px-8 py-3 text-base mt-4">View Your Profile</Button>
+              </Button>
               </div>
             )}
           </div>
