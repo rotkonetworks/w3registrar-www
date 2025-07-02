@@ -288,13 +288,26 @@ export default function RegisterPage() {
   }
 
   const handlePickAccount = (address: SS58String) => {
-    setSelectedAccount(address)
     accountStore.address = address // Update the accountStore with the selected account
     // Set address as search parameter to persist selection
     const searchParams = new URLSearchParams(window.location.search)
     searchParams.set("address", address)
     window.history.replaceState({}, "", `${window.location.pathname}?${searchParams.toString()}`)
+    console.debug("Selected account:", address)
   }
+
+  useEffect(() => {
+    const searchAddress = searchParams.get("address")
+    if (searchAddress && accounts.some((acc) => acc.address === searchAddress)) {
+      setSelectedAccount(searchAddress as SS58String)
+      accountStore.address = searchAddress as SS58String // Update the accountStore with the selected account
+      // Set address as search parameter to persist selection
+      const searchParams = new URLSearchParams(window.location.search)
+      searchParams.set("address", searchAddress)
+      window.history.replaceState({}, "", `${window.location.pathname}?${searchParams.toString()}`)
+      console.debug("Selected account from search params:", searchAddress)
+    }
+  }, [accounts])
 
   const handleIdentityDataFormChange = (newData: IdentityData) => {
     setIdentityData(newData)
@@ -535,8 +548,8 @@ export default function RegisterPage() {
                 </div>
                 
                 <AccountSelector
-                  selectedAccount={accountStore.address || null}
-                  onSelect={(address: string) => accountStore.address = address}
+                  selectedAccount={selectedAccount || walletAddress}
+                  onSelect={(address: string) => setSelectedAccount(address as SS58String)}
                   hoveredAccount={hoveredAccount}
                   setHoveredAccount={setHoveredAccount}
                 />
@@ -679,8 +692,8 @@ export default function RegisterPage() {
                 </span>
               </p>
               <Link href={`/profile/${editingProfileId || walletAddress || "me"}`}>
-                <Button className="btn-primary px-8 py-3 text-base mt-4">View Your Profile</Button>
-              </Button>
+                View Your Profile
+              </Link>
               </div>
             )}
           </div>
