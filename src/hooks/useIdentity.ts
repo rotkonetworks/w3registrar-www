@@ -23,7 +23,7 @@ export function useIdentity({ typedApi, address, }: {
   };
   const [identity, _setIdentity] = useState<Identity>(_blankIdentity);
 
-  const fetchIdAndJudgement = (async () => {
+  const fetchIdAndJudgement = useCallback(async () => {
     try {
       const identityInfo = await fetchIdentity(typedApi, address);
       console.log({ identityInfo });
@@ -38,7 +38,7 @@ export function useIdentity({ typedApi, address, }: {
       console.error("Error fetching identity info:", error);
       return null;
     }
-  });
+  }, [typedApi, address]);
 
   useEffect(() => {
     _setIdentity({ ..._blankIdentity });

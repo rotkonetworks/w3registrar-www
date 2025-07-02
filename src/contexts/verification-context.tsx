@@ -17,7 +17,7 @@ interface VerificationContextType {
   verifications: FieldVerification[]
   startVerification: (
     field: string,
-    methodType: "code" | "oauth" | "dns-challenge" | "challenge",
+    methodType: "code" | "oauth" | "dns-challenge" | "challenge" | "challenge-url" | "gpg-challenge",
     label: string,
   ) => Promise<string | null>
   confirmVerification: (field: string, signedChallenge?: string) => Promise<boolean>
@@ -25,8 +25,12 @@ interface VerificationContextType {
   isVerifying: (field: string) => boolean
   getVerifiedFields: () => FieldVerification[]
   getAllFilledFields: (formData: Record<string, string>) => string[]
-  resetFieldVerification: (field: string) => void // New function
-  setInitialVerifications: (initialStates: FieldVerification[]) => void // New function for edit mode
+  resetFieldVerification: (field: string) => void
+  setInitialVerifications: (initialStates: FieldVerification[]) => void
+  // Add challenges from WebSocket API
+  setChallenges: (challenges: Record<string, { code: string; status: any }>) => void
+  // Add PGP verification function
+  setSendPGPVerification: (fn: (payload: { pubkey: string; signed_challenge: string; network: string; account: string }) => Promise<void>) => void
 }
 
 const VerificationContext = createContext<VerificationContextType | undefined>(undefined)
@@ -43,6 +47,8 @@ const initialVerificationFields: FieldVerification[] = [
 export function VerificationProvider({ children }: { children: React.ReactNode }) {
   const [verifications, setVerifications] = useState<FieldVerification[]>(initialVerificationFields)
   const [verifyingFields, setVerifyingFields] = useState<Set<string>>(new Set())
+  const [challenges, setChallenges] = useState<Record<string, { code: string; status: any }>>({})
+  const [sendPGPVerification, setSendPGPVerification] = useState<((payload: { pubkey: string; signed_challenge: string; network: string; account: string }) => Promise<void>) | null>(null)
 
   const isVerifying = useCallback((field: string) => verifyingFields.has(field), [verifyingFields])
 
@@ -73,22 +79,48 @@ export function VerificationProvider({ children }: { children: React.ReactNode }
 
   const startVerification = async (
     field: string,
-    methodType: "code" | "oauth" | "dns-challenge" | "challenge",
+    methodType: "code" | "oauth" | "dns-challenge" | "challenge" | "challenge-url" | "gpg-challenge",
     label: string,
   ): Promise<string | null> => {
     setVerifyingFields((prev) => new Set(prev).add(field))
-    toast.info(`Initiating verification for ${label}...`)
 
+    // Check if we have a real challenge from WebSocket API for this field
+    const websocketChallenge = challenges[field]
+    if (websocketChallenge && websocketChallenge.code) {
+      toast.info(`Using verification challenge for ${label}...`)
+
+      setVerifications((prev) =>
+        prev.map((v) =>
+          v.field === field
+            ? { ...v, status: "pending", verificationMethod: label, verificationPayload: websocketChallenge.code }
+            : v,
+        ),
+      )
+
+      setVerifyingFields((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(field)
+        return newSet
+      })
+
+      return websocketChallenge.code
+    }
+
+    // Fallback for when WebSocket challenges are not available (should not happen in normal flow)
+    toast.info(`Initiating verification for ${label}...`)
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     let payload: string | null = null
     if (methodType === "code") {
       payload = Math.floor(100000 + Math.random() * 900000).toString()
-    } else if (methodType === "challenge" || methodType === "dns-challenge") {
+    } else if (methodType === "challenge" || methodType === "gpg-challenge" || methodType === "dns-challenge") {
       payload =
         methodType === "dns-challenge"
           ? `whodb-${uuidv4().substring(0, 8)}`
           : `whodb-verification-challenge: ${uuidv4()} @ ${new Date().toISOString()}`
+    } else if (methodType === "challenge-url") {
+      // For GitHub, this would be the OAuth URL from the API
+      payload = `https://api.whodb.com/verify/github?challenge=${uuidv4()}&field=${field}`
     }
 
     setVerifications((prev) =>
@@ -116,6 +148,59 @@ export function VerificationProvider({ children }: { children: React.ReactNode }
     const fieldState = verifications.find((v) => v.field === field)
     toast.info(`Checking verification status for ${fieldState?.verificationMethod || field}...`)
 
+    if (field === "pgpFingerprint" && signedChallenge && sendPGPVerification) {
+      try {
+        // Use the real PGP verification function from the API
+        await sendPGPVerification({
+          pubkey: "USER_PGP_KEY", // This would need to be extracted from the signed challenge
+          signed_challenge: signedChallenge,
+          network: "current_network", // This would be passed from context
+          account: "current_account", // This would be passed from context
+        })
+
+        setVerifications((prev) =>
+          prev.map((v) =>
+            v.field === field
+              ? {
+                ...v,
+                status: "verified",
+                lastVerified: new Date().toISOString(),
+                verificationPayload: undefined,
+              }
+              : v,
+          ),
+        )
+
+        setVerifyingFields((prev) => {
+          const next = new Set(prev)
+          next.delete(field)
+          return next
+        })
+
+        toast.success(`PGP verification successful!`)
+        return true
+
+      } catch (error) {
+        setVerifications((prev) =>
+          prev.map((v) =>
+            v.field === field
+              ? { ...v, status: "failed" }
+              : v,
+          ),
+        )
+
+        setVerifyingFields((prev) => {
+          const next = new Set(prev)
+          next.delete(field)
+          return next
+        })
+
+        toast.error(`PGP verification failed: ${error}`)
+        return false
+      }
+    }
+
+    // For other verification types, use the existing simulation logic
     if (field === "pgpFingerprint" && signedChallenge) {
       console.log("PGP Verification Data:", {
         fingerprint: "USER_FINGERPRINT_HERE", // This should be the actual fingerprint from form
@@ -133,11 +218,11 @@ export function VerificationProvider({ children }: { children: React.ReactNode }
       prev.map((v) =>
         v.field === field
           ? {
-              ...v,
-              status: success ? "verified" : "failed",
-              lastVerified: success ? new Date().toISOString() : undefined,
-              verificationPayload: success ? undefined : v.verificationPayload, // Clear payload on success
-            }
+            ...v,
+            status: success ? "verified" : "failed",
+            lastVerified: success ? new Date().toISOString() : undefined,
+            verificationPayload: success ? undefined : v.verificationPayload, // Clear payload on success
+          }
           : v,
       ),
     )
@@ -185,6 +270,8 @@ export function VerificationProvider({ children }: { children: React.ReactNode }
         getAllFilledFields,
         resetFieldVerification,
         setInitialVerifications,
+        setChallenges,
+        setSendPGPVerification,
       }}
     >
       {children}

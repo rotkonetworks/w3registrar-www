@@ -1,4 +1,3 @@
-\`\`\`tsx
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,9 +40,8 @@ const NetworkSelection: React.FC<NetworkSelectionProps> = ({
         {networks.map((network) => (
           <Card
             key={network.id}
-            className={`cursor-pointer transition-all duration-200 ${network.color} ${
-              selectedNetwork === network.id ? "ring-2 ring-offset-2 ring-offset-gray-900" : ""
-            } ${hoveredNetwork === network.id ? "scale-[1.02]" : ""}`}
+            className={`cursor-pointer transition-all duration-200 ${network.color} ${selectedNetwork === network.id ? "ring-2 ring-offset-2 ring-offset-gray-900" : ""
+              } ${hoveredNetwork === network.id ? "scale-[1.02]" : ""}`}
             onMouseEnter={() => setHoveredNetwork(network.id)}
             onMouseLeave={() => setHoveredNetwork(null)}
             onClick={() => onSelect(network.id)}
@@ -104,4 +102,3 @@ const NetworkSelection: React.FC<NetworkSelectionProps> = ({
 };
 
 export default NetworkSelection;
-\`\`\`

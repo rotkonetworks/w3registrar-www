@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo, useEffect } from "react" // Added useEffect
+import { useState, useMemo, useEffect, useCallback } from "react" // Added useEffect and useCallback
 import { FormField } from "@/components/form-field"
 import { FieldRequirements } from "@/components/field-requirements"
 import { VerifiableFormField } from "@/components/verifiable-form-field"
 import { useVerification } from "@/contexts/verification-context"
 import {
   User,
-  AtSign,
   Mail,
   MessageSquare,
   Twitter,
@@ -24,21 +23,23 @@ import { Separator } from "@/components/ui/separator"
 export interface IdentityData {
   // Exporting for use in register page
   displayName: string
-  nickname: string
   email: string
   matrix: string
   twitter: string
   website: string
   github: string
   pgpFingerprint: string
+  [key: string]: string // Add index signature for compatibility
 }
 
 interface IdentityFieldsFormProps {
   initialData: IdentityData
-  onSubmit: (data: Omit<IdentityData, "nickname">) => void // onSubmit might not be used if validation is external
+  onSubmit: (data: IdentityData) => void // onSubmit might not be used if validation is external
   isSubmitting: boolean
   isEditMode: boolean // New prop to indicate if we are editing
   onDataChange: (data: IdentityData) => void // Callback to inform parent of data changes
+  canVerifyFields?: boolean // Whether field verification is available (FeePaid status)
+  supportedFields?: string[] // List of supported fields from the registrar
 }
 
 export function IdentityFieldsForm({
@@ -47,10 +48,11 @@ export function IdentityFieldsForm({
   isSubmitting,
   isEditMode,
   onDataChange,
+  canVerifyFields = false,
+  supportedFields = [], // Default to empty array
 }: IdentityFieldsFormProps) {
   const [formData, setFormData] = useState(initialData)
-  const { getVerifiedFields, getFieldStatus, getAllFilledFields, resetFieldVerification, setInitialVerifications } =
-    useVerification()
+  const { getVerifiedFields, resetFieldVerification } = useVerification()
 
   // When initialData changes (e.g., loaded for edit mode), update formData
   useEffect(() => {
@@ -71,27 +73,27 @@ export function IdentityFieldsForm({
       fieldsToReset.forEach((field) => {
         if (initialData[field]) {
           // Only reset if there was initial data, implying it might need re-verification
-          resetFieldVerification(field)
+          resetFieldVerification(String(field))
         }
       })
     }
-  }, [initialData, isEditMode, resetFieldVerification, setInitialVerifications])
+    // Remove resetFieldVerification and setInitialVerifications from deps to avoid infinite loop
+  }, [initialData, isEditMode])
 
-  const handleChange = (field: keyof IdentityData, value: string) => {
+  const handleChange = useCallback((field: keyof IdentityData, value: string) => {
     const newFormData = { ...formData, [field]: value }
     setFormData(newFormData)
     onDataChange(newFormData) // Inform parent of data change
 
-    if (isEditMode && field !== "displayName" && field !== "nickname") {
+    if (isEditMode && field !== "displayName") {
       // If in edit mode and a verifiable field changes, reset its verification status
       // Only reset if the new value is different from the initial value for that field
       if (value !== initialData[field]) {
-        resetFieldVerification(field)
+        resetFieldVerification(String(field))
       }
     }
-  }
+  }, [formData, onDataChange, isEditMode, initialData, resetFieldVerification])
 
-  const filledFields = useMemo(() => getAllFilledFields(formData), [formData, getAllFilledFields])
   const verifiedFieldsCount = useMemo(() => getVerifiedFields().length, [getVerifiedFields])
 
   // This internal handleSubmit is not directly used by a submit button within this form anymore.
@@ -100,16 +102,104 @@ export function IdentityFieldsForm({
     e.preventDefault()
     // Validation logic is now primarily in the parent component (RegisterPage)
     // using canProceedFromIdentityStep.
-    // This onSubmit prop might be for a different purpose or can be removed if not needed.
-    const { nickname, ...dataToSubmit } = formData
-    onSubmit(dataToSubmit)
+    onSubmit(formData)
   }
 
-  const formSections = [
-    {
-      title: "Primary Identity",
-      icon: <User className="w-5 h-5 text-pink-400 mr-2" />,
-      fields: [
+  // Determine which fields to show based on supportedFields
+  // If supportedFields is empty, show all fields (fallback)
+  const fieldsToShow = useMemo(() => supportedFields.length > 0 ? supportedFields : [
+    'display', 'email', 'web', 'twitter', 'github', 'matrix', 'pgp_fingerprint'
+  ], [supportedFields])
+
+  // Field mapping from blockchain names to our form field names - memoized
+  const fieldMapping = useMemo((): Record<string, keyof IdentityData> => ({
+    'display': 'displayName',
+    'email': 'email',
+    'web': 'website',
+    'twitter': 'twitter',
+    'github': 'github',
+    'matrix': 'matrix',
+    'pgp_fingerprint': 'pgpFingerprint'
+  }), [])
+
+  // Memoize field configuration to prevent recreation
+  const fieldConfig = useMemo(() => ({
+    email: {
+      label: "Email Address",
+      icon: <Mail className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "satoshi@example.com",
+      type: "email",
+      verificationInstructions: {
+        method: "code" as const,
+        contactAddress: import.meta.env.VITE_VERIFICATION_EMAIL || "verify@whodb.com",
+        details: `Send verification code via email. You'll receive a unique code to enter for verification.`
+      }
+    },
+    website: {
+      label: "Website",
+      icon: <Globe className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "https://bitcoin.org",
+      type: "url",
+      verificationInstructions: {
+        method: "dns-challenge" as const,
+        details: `Add a TXT record to your domain's DNS with the provided challenge string. Format: TXT record for _whodb-verification.yourdomain.com`
+      }
+    },
+    twitter: {
+      label: "Twitter / X Handle",
+      icon: <Twitter className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "@satoshi",
+      type: "text",
+      verificationInstructions: {
+        method: "code" as const,
+        contactAddress: import.meta.env.VITE_VERIFICATION_TWITTER || "@whodb_verify",
+        details: `Send the verification code as a direct message to ${import.meta.env.VITE_VERIFICATION_TWITTER || "@whodb_verify"} on Twitter/X.`
+      }
+    },
+    github: {
+      label: "GitHub Username",
+      icon: <Github className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "satoshi-nakamoto",
+      type: "text",
+      verificationInstructions: {
+        method: "challenge-url" as const,
+        details: `You'll receive a GitHub challenge URL from our API. Visit the URL and follow the OAuth authentication process to verify your GitHub account.`
+      }
+    },
+    matrix: {
+      label: "Matrix Handle",
+      icon: <MessageSquare className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "@satoshi:matrix.org",
+      type: "text",
+      verificationInstructions: {
+        method: "code" as const,
+        contactAddress: import.meta.env.VITE_VERIFICATION_MATRIX || "@verify:whodb.org",
+        details: `Send the verification code as a message to ${import.meta.env.VITE_VERIFICATION_MATRIX || "@verify:whodb.org"} on Matrix.`
+      }
+    },
+    pgpFingerprint: {
+      label: "PGP Fingerprint",
+      icon: <Key className="w-4 h-4 text-pink-400 mr-2" />,
+      placeholder: "XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX",
+      type: "text",
+      verificationInstructions: {
+        method: "gpg-challenge" as const,
+        details: `GPG Challenge Verification Steps:
+1. Copy the challenge text provided
+2. Sign it with your GPG key: gpg --clearsign --armor
+3. Paste the signed challenge (including -----BEGIN PGP SIGNED MESSAGE----- header)
+4. Ensure your public key is available on keyservers (keys.openpgp.org or pgp.mit.edu)`
+      }
+    }
+  }), [])
+
+  // Create field components only for supported fields - memoized
+  const createFieldComponent = useCallback((fieldKey: string) => {
+    const formFieldKey = fieldMapping[fieldKey]
+    if (!formFieldKey) return null
+
+    if (formFieldKey === 'displayName') {
+      return (
         <FormField
           key="displayName"
           id="displayName"
@@ -120,98 +210,78 @@ export function IdentityFieldsForm({
           placeholder="e.g., Satoshi Nakamoto"
           description="This name will be publicly visible. Verified on-chain after submission."
           className="p-3 bg-gray-800/50 border border-gray-700 rounded-lg"
-        />,
-        <FormField
-          key="nickname"
-          id="nickname"
-          label="Nickname (DNS-like)"
-          icon={<AtSign className="w-4 h-4 text-gray-400 mr-2" />}
-          value={formData.nickname}
-          onChange={(value) => handleChange("nickname", value)}
-          placeholder="e.g., satoshi.dot"
-          description="Register a human-readable DNS name for your on-chain identity. This helps others find and remember your identity."
-          className="p-3 bg-gray-800/50 border border-gray-700 rounded-lg"
-          disabled={false}
-        />,
-      ],
-    },
-    {
-      title: "Online Presence & Contact",
-      icon: <Globe className="w-5 h-5 text-pink-400 mr-2" />,
-      fields: [
-        <VerifiableFormField
-          key="email"
-          fieldId="email"
-          label="Email Address"
-          icon={<Mail className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.email}
-          onChange={(value) => handleChange("email", value)}
-          placeholder="satoshi@gmx.com"
-          type="email"
-          verificationInstructions={{ method: "code", contactAddress: "verify@whodb.com" }}
-        />,
-        <VerifiableFormField
-          key="website"
-          fieldId="website"
-          label="Website"
-          icon={<Globe className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.website}
-          onChange={(value) => handleChange("website", value)}
-          placeholder="https://bitcoin.org"
-          type="url"
-          verificationInstructions={{ method: "dns-challenge" }}
-        />,
-        <VerifiableFormField
-          key="twitter"
-          fieldId="twitter"
-          label="Twitter / X Handle"
-          icon={<Twitter className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.twitter}
-          onChange={(value) => handleChange("twitter", value)}
-          placeholder="@satoshi"
-          verificationInstructions={{ method: "code", contactAddress: "@whodb_verify on X" }}
-        />,
-        <VerifiableFormField
-          key="github"
-          fieldId="github"
-          label="GitHub Username"
-          icon={<Github className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.github}
-          onChange={(value) => handleChange("github", value)}
-          placeholder="satoshi-nakamoto"
-          verificationInstructions={{ method: "oauth" }}
-        />,
-        <VerifiableFormField
-          key="matrix"
-          fieldId="matrix"
-          label="Matrix Handle"
-          icon={<MessageSquare className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.matrix}
-          onChange={(value) => handleChange("matrix", value)}
-          placeholder="@satoshi:matrix.org"
-          verificationInstructions={{ method: "code", contactAddress: "@verify:whodb.org" }}
-        />,
-      ],
-    },
-    {
-      title: "Security",
-      icon: <ShieldCheck className="w-5 h-5 text-pink-400 mr-2" />,
-      fields: [
-        <VerifiableFormField
-          key="pgpFingerprint"
-          fieldId="pgpFingerprint"
-          label="PGP Fingerprint"
-          icon={<Key className="w-4 h-4 text-pink-400 mr-2" />}
-          value={formData.pgpFingerprint}
-          onChange={(value) => handleChange("pgpFingerprint", value)}
-          placeholder="XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX"
-          verificationInstructions={{ method: "challenge" }}
-        />,
-      ],
-    },
-  ]
+        />
+      )
+    }
 
-  const hasDisplayName = formData.displayName.trim() !== ""
+    const config = fieldConfig[formFieldKey as keyof typeof fieldConfig]
+    if (!config) return null
+
+    return (
+      <VerifiableFormField
+        key={formFieldKey}
+        fieldId={formFieldKey as any}
+        label={config.label}
+        icon={config.icon}
+        value={formData[formFieldKey]}
+        onChange={(value) => handleChange(formFieldKey, value)}
+        placeholder={config.placeholder}
+        type={config.type}
+        verificationInstructions={config.verificationInstructions}
+      />
+    )
+  }, [fieldMapping, formData, handleChange, fieldConfig])
+
+  // Group fields into sections based on what's supported - memoized
+  const formSections = useMemo(() => {
+    const primaryFields: React.ReactElement[] = []
+    const contactFields: React.ReactElement[] = []
+    const securityFields: React.ReactElement[] = []
+
+    fieldsToShow.forEach(field => {
+      const component = createFieldComponent(field)
+      if (!component) return
+
+      if (field === 'display') {
+        primaryFields.push(component)
+      } else if (['email', 'web', 'twitter', 'github', 'matrix'].includes(field)) {
+        contactFields.push(component)
+      } else if (field === 'pgp_fingerprint') {
+        securityFields.push(component)
+      }
+    })
+
+    // Only create sections that have fields
+    const sections = []
+
+    if (primaryFields.length > 0) {
+      sections.push({
+        title: "Primary Identity",
+        icon: <User className="w-5 h-5 text-pink-400 mr-2" />,
+        fields: primaryFields,
+      })
+    }
+
+    if (contactFields.length > 0) {
+      sections.push({
+        title: "Online Presence & Contact",
+        icon: <Globe className="w-5 h-5 text-pink-400 mr-2" />,
+        fields: contactFields,
+      })
+    }
+
+    if (securityFields.length > 0) {
+      sections.push({
+        title: "Security",
+        icon: <ShieldCheck className="w-5 h-5 text-pink-400 mr-2" />,
+        fields: securityFields,
+      })
+    }
+
+    return sections
+  }, [fieldsToShow, createFieldComponent])
+
+  const hasDisplayName = useMemo(() => formData.displayName.trim() !== "", [formData.displayName])
 
   return (
     // The form tag is still here, but submission is handled by parent.

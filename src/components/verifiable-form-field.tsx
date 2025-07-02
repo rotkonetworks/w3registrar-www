@@ -19,8 +19,9 @@ interface VerifiableFormFieldProps {
   placeholder?: string
   type?: string
   verificationInstructions: {
-    method: "code" | "oauth" | "dns-challenge" | "challenge"
+    method: "code" | "oauth" | "dns-challenge" | "challenge" | "challenge-url" | "gpg-challenge"
     contactAddress?: string
+    details?: string
   }
 }
 
@@ -49,15 +50,17 @@ export function VerifiableFormField({
     if (payload) {
       setChallengeOrCode(payload)
     }
-    if (verificationInstructions.method === "oauth" && fieldId === "github") {
-      toast.info("Opening GitHub for authentication...")
-      // In a real app, client_id would come from env vars
-      window.open(`https://github.com/login/oauth/authorize?client_id=YOUR_GITHUB_CLIENT_ID&scope=read:user`, "_blank")
+    if (verificationInstructions.method === "challenge-url" && fieldId === "github") {
+      // For GitHub challenge-url method, the payload should contain the URL
+      if (payload) {
+        toast.info("Opening GitHub verification URL...")
+        window.open(payload, "_blank")
+      }
     }
   }
 
   const handleConfirmVerification = () => {
-    if (fieldId === "pgpFingerprint" && verificationInstructions.method === "challenge") {
+    if (fieldId === "pgpFingerprint" && verificationInstructions.method === "gpg-challenge") {
       if (!signedChallenge.trim()) {
         toast.error("Please paste the signed PGP challenge.")
         return
@@ -113,7 +116,7 @@ export function VerifiableFormField({
       )
     }
 
-    const isGithubOauth = verificationInstructions.method === "oauth" && fieldId === "github"
+    const isGithubChallengeUrl = verificationInstructions.method === "challenge-url" && fieldId === "github"
     return (
       <Button
         type="button"
@@ -125,7 +128,7 @@ export function VerifiableFormField({
       >
         {isVerifyingThisField ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-        ) : isGithubOauth ? (
+        ) : isGithubChallengeUrl ? (
           <>
             <Github className="w-3 h-3 mr-1" /> Verify with GitHub
           </>
@@ -152,7 +155,7 @@ export function VerifiableFormField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="bg-gray-700 border-pink-500/30 text-white placeholder-gray-400 focus:border-pink-500 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+          className="bg-gray-700 border-pink-500/30 text-white placeholder:text-gray-400/60 placeholder:italic placeholder:font-light focus:border-pink-500 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
           disabled={isInputDisabled || isVerifyingThisField}
         />
         {renderVerificationButton()}
@@ -182,7 +185,7 @@ export function VerifiableFormField({
               </div>
             </>
           )}
-          {verificationInstructions.method === "challenge" && fieldId === "pgpFingerprint" && (
+          {verificationInstructions.method === "gpg-challenge" && fieldId === "pgpFingerprint" && (
             <>
               <p>1. Sign the following challenge string with your PGP key ({value || "your key"}):</p>
               <div className="my-1.5 p-2 bg-gray-900 rounded-md">
@@ -197,7 +200,8 @@ export function VerifiableFormField({
                   <ClipboardCopy className="w-3 h-3 mr-1" /> Copy Challenge
                 </Button>
               </div>
-              <p>2. Paste the full PGP signed message (including headers and footers) below:</p>
+              <p>2. Use this command to sign: <code className="bg-gray-700 px-1 rounded">gpg --clearsign --armor</code></p>
+              <p>3. Paste the full PGP signed message (including headers and footers) below:</p>
               <Textarea
                 value={signedChallenge}
                 onChange={(e) => setSignedChallenge(e.target.value)}
@@ -205,6 +209,9 @@ export function VerifiableFormField({
                 className="bg-gray-900 text-white font-mono text-xs h-28 mt-1.5 p-2"
                 aria-label="Paste PGP signed message"
               />
+              <p className="text-[11px] text-yellow-300/80">
+                Ensure your public key is available on keyservers (keys.openpgp.org or pgp.mit.edu)
+              </p>
             </>
           )}
           {verificationInstructions.method === "dns-challenge" && fieldId === "website" && (
@@ -231,12 +238,40 @@ export function VerifiableFormField({
               </p>
             </>
           )}
-          {verificationInstructions.method === "oauth" && fieldId === "github" && (
-            <p>A new tab should have opened for GitHub authentication. Please complete the process there.</p>
+          {verificationInstructions.method === "challenge-url" && fieldId === "github" && (
+            <>
+              <p>A new tab should have opened with the GitHub verification URL. Please complete the OAuth process there.</p>
+              {challengeOrCode && (
+                <div className="mt-2">
+                  <p className="text-[11px] text-yellow-300/80 mb-1">If the tab didn't open, use this URL:</p>
+                  <div className="p-1.5 bg-gray-900 rounded-md flex items-center justify-between">
+                    <span className="font-mono text-xs text-white break-all">{challengeOrCode}</span>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="w-7 h-7 text-gray-300 hover:text-white ml-2 flex-shrink-0"
+                      onClick={() => copyToClipboard(challengeOrCode, "GitHub URL copied!")}
+                      aria-label="Copy GitHub verification URL"
+                    >
+                      <ClipboardCopy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           <p className="mt-2 font-medium">
             After completing the required action, click the "Check Verification" button above.
           </p>
+        </div>
+      )}
+
+      {/* Show verification instructions when field is not yet being verified */}
+      {!fieldStatus?.status && verificationInstructions.details && (
+        <div className="p-2.5 mt-2.5 text-xs text-blue-200 bg-blue-900/20 border border-blue-500/30 rounded-md">
+          <p className="font-semibold text-blue-100 mb-1">Verification Instructions:</p>
+          <p className="whitespace-pre-line">{verificationInstructions.details}</p>
         </div>
       )}
     </div>

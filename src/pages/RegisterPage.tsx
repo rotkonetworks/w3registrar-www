@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft,
@@ -39,6 +39,8 @@ import { useTheme } from "@/components/theme-provider-simple"
 import { usePolkadotApi } from "@/contexts/PolkadotApiContext"
 import { AccountSelector } from "@/components/ui/account-selector"
 import { SS58String } from "polkadot-api"
+import { verifyStatuses } from "@/types/Identity"
+import { Binary } from "polkadot-api"
 
 const GoogleIcon = () => <Mail className="w-5 h-5" />
 const MatrixIcon = () => (
@@ -68,7 +70,24 @@ export default function RegisterPage() {
   const [_network, _setNetwork] = useState<AppNetwork | null>(network)
 
   const polkadotApiContext = usePolkadotApi()
-  const { chainStore, accountStore, address, accounts } = polkadotApiContext
+  const {
+    chainStore,
+    accountStore,
+    accounts,
+    identity,
+    fetchIdAndJudgement,
+    prepareClearIdentityTx,
+    challenges,
+    isChallengeWsConnected,
+    challengeLoading,
+    subscribeToChallenges,
+    openTxDialog,
+    formatAmount,
+    isTxBusy,
+    supportedFields,
+    typedApi,
+    sendPGPVerification
+  } = polkadotApiContext
 
   const {
     isConnected: isWalletConnected,
@@ -81,12 +100,11 @@ export default function RegisterPage() {
   }, [accountStore.address])
 
   const { userProfile: loggedInUserProfile, isLoading: isUserLoading } = useUser()
-  const { getFieldStatus, getAllFilledFields, resetFieldVerification } = useVerification()
+  const { getFieldStatus, getAllFilledFields, resetFieldVerification, setChallenges, setSendPGPVerification } = useVerification()
 
   const [currentStep, setCurrentStep] = useState(1)
   const [identityData, setIdentityData] = useState<IdentityData>({
     displayName: "",
-    nickname: "", // Nickname is disabled, so it won't be part of submission logic directly
     email: "",
     matrix: "",
     twitter: "",
@@ -99,7 +117,7 @@ export default function RegisterPage() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
   const [isLoadingProfileForEdit, setIsLoadingProfileForEdit] = useState(false)
-  
+
   const [hoveredAccount, setHoveredAccount] = useState<string | null>(null)
   const [selectedAccount, setSelectedAccount] = useState<SS58String | null>(null)
 
@@ -143,7 +161,6 @@ export default function RegisterPage() {
       setIsLoadingProfileForEdit(true)
       let profileDataToSet: Partial<IdentityData> = {
         displayName: "",
-        nickname: "",
         email: "",
         matrix: "",
         twitter: "",
@@ -164,7 +181,6 @@ export default function RegisterPage() {
         if (fetchedProfile) {
           profileDataToSet = {
             displayName: fetchedProfile.displayName || "",
-            nickname: fetchedProfile.nickname || "",
             email: fetchedProfile.email || "",
             matrix: fetchedProfile.matrix || "",
             twitter: fetchedProfile.twitter || "",
@@ -183,7 +199,7 @@ export default function RegisterPage() {
           ]
           fieldsToReset.forEach((key) => {
             if (profileDataToSet[key] && (profileDataToSet[key] as string).trim() !== "") {
-              resetFieldVerification(key)
+              resetFieldVerification(String(key))
             }
           })
         } else {
@@ -215,7 +231,6 @@ export default function RegisterPage() {
           setEditingProfileId(loggedInUserProfile.id)
           const currentUserData: IdentityData = {
             displayName: loggedInUserProfile.displayName || "",
-            nickname: loggedInUserProfile.nickname || "",
             email: loggedInUserProfile.email || "",
             matrix: loggedInUserProfile.matrix || "",
             twitter: loggedInUserProfile.twitter || "",
@@ -234,7 +249,7 @@ export default function RegisterPage() {
           ]
           fieldsToReset.forEach((key) => {
             if (currentUserData[key] && currentUserData[key]?.trim() !== "") {
-              resetFieldVerification(key)
+              resetFieldVerification(String(key))
             }
           })
           setIsLoadingProfileForEdit(false)
@@ -249,7 +264,6 @@ export default function RegisterPage() {
         setEditingProfileId(null)
         setIdentityData({
           displayName: "",
-          nickname: "",
           email: "",
           matrix: "",
           twitter: "",
@@ -265,7 +279,7 @@ export default function RegisterPage() {
           "github",
           "pgpFingerprint",
         ]
-        allVerifiableFields.forEach(resetFieldVerification)
+        allVerifiableFields.forEach(field => resetFieldVerification(String(field)))
         setIsLoadingProfileForEdit(false)
       }
     }
@@ -309,9 +323,31 @@ export default function RegisterPage() {
     }
   }, [accounts])
 
-  const handleIdentityDataFormChange = (newData: IdentityData) => {
+  // Fetch on-chain identity when account is selected
+  useEffect(() => {
+    if (accountStore.address) {
+      fetchIdAndJudgement().then((fetchedIdentity) => {
+        if (fetchedIdentity && fetchedIdentity.info && !isEditMode) {
+          // Only populate form with fetched identity data if not in edit mode
+          // This allows users to update their existing identity
+          const fetchedData: IdentityData = {
+            displayName: fetchedIdentity.info.display || "",
+            email: fetchedIdentity.info.email || "",
+            matrix: fetchedIdentity.info.matrix || "",
+            twitter: fetchedIdentity.info.twitter || "",
+            website: fetchedIdentity.info.web || "",
+            github: fetchedIdentity.info.github || "",
+            pgpFingerprint: fetchedIdentity.info.pgp_fingerprint || "",
+          }
+          setIdentityData(fetchedData)
+        }
+      })
+    }
+  }, [accountStore.address, isEditMode, fetchIdAndJudgement])
+
+  const handleIdentityDataFormChange = useCallback((newData: IdentityData) => {
     setIdentityData(newData)
-  }
+  }, [])
 
   const canProceedFromIdentityStep = useMemo(() => {
     const filledFields = getAllFilledFields(identityData)
@@ -319,7 +355,7 @@ export default function RegisterPage() {
       return false
 
     for (const fieldName of filledFields) {
-      if (fieldName === "displayName" || fieldName === "nickname") continue
+      if (fieldName === "displayName") continue
       const status = getFieldStatus(fieldName)
       if (!status || status.status !== "verified") {
         return false
@@ -335,7 +371,7 @@ export default function RegisterPage() {
     if (currentStep === STEP_NUMBERS.fillIdentityInfo && !canProceedFromIdentityStep) {
       const unverifiedFilledFields = getAllFilledFields(identityData)
         .filter((fieldName) => {
-          if (fieldName === "displayName" || fieldName === "nickname") return false
+          if (fieldName === "displayName") return false
           const status = getFieldStatus(fieldName)
           return status?.status !== "verified"
         })
@@ -369,19 +405,91 @@ export default function RegisterPage() {
   const [openDialog, setOpenDialog] = useState<DialogMode>(null)
 
   const handleReviewAndSubmit = async () => {
+    if (!walletAddress || !typedApi) return
+
     setIsSubmittingIdentity(true)
     const action = isEditMode ? "Updating" : "Submitting"
-    toast.info(`${action} identity on ${networkDisplayName}...`)
-    if (isNetworkEncrypted) {
-      toast.info("Your data will be signed for privacy on this network.", { duration: 4000 })
-    }
 
-    const { nickname, ...dataToSubmit } = identityData
-    console.log(`${action} to blockchain:`, { network, walletAddress, profileId: editingProfileId, data: dataToSubmit })
-    await new Promise((resolve) => setTimeout(resolve, 2500))
-    setIsSubmittingIdentity(false)
-    toast.success(`Identity ${isEditMode ? "updated" : "submitted"} on blockchain! (Simulated)`)
-    handleNextStep()
+    try {
+      // Prepare transaction data
+      const dataToSubmit = identityData
+
+      // Transform the data to the format expected by the blockchain
+      const initialInfo = {
+        display: { type: "None" },
+        legal: { type: "None" },
+        web: { type: "None" },
+        matrix: { type: "None" },
+        email: { type: "None" },
+        image: { type: "None" },
+        twitter: { type: "None" },
+        github: { type: "None" },
+        discord: { type: "None" }
+      }
+
+      const info: any = {
+        ...initialInfo,
+        ...Object.fromEntries(
+          Object.entries(dataToSubmit)
+            .filter(([_, value]) => value && value.trim() !== "")
+            .map(([key, value]) => {
+              // Map field names to blockchain field names
+              const fieldMap: Record<string, string> = {
+                displayName: 'display',
+                website: 'web',
+                twitter: 'twitter',
+                github: 'github',
+                matrix: 'matrix',
+                email: 'email'
+              }
+              const blockchainField = fieldMap[key] || key
+
+              if (key === "pgpFingerprint") {
+                return [null, null] // Handle separately
+              }
+
+              return [blockchainField, {
+                type: `Raw${value.length}`,
+                value: Binary.fromText(value)
+              }]
+            })
+            .filter(([key]) => key !== null)
+        )
+      }
+
+      // Handle PGP fingerprint separately
+      if (dataToSubmit.pgpFingerprint && dataToSubmit.pgpFingerprint.trim() !== "") {
+        info.pgp_fingerprint = Binary.fromHex(
+          dataToSubmit.pgpFingerprint.startsWith('0x')
+            ? dataToSubmit.pgpFingerprint.slice(2)
+            : dataToSubmit.pgpFingerprint
+        )
+      }
+
+      // Create the transaction
+      const tx = (typedApi.tx.Identity as any).set_identity({ info })
+
+      // Estimate costs
+      const estimatedCosts = {
+        fees: await tx.getEstimatedFees(walletAddress, { at: "best" })
+      }
+
+      // Open transaction dialog
+      openTxDialog({
+        mode: "setIdentity",
+        tx,
+        estimatedCosts
+      })
+
+      toast.info(`${action} identity on ${networkDisplayName}...`)
+      if (isNetworkEncrypted) {
+        toast.info("Your data will be signed for privacy on this network.", { duration: 4000 })
+      }
+    } catch (error: any) {
+      console.error("Transaction preparation error:", error)
+      toast.error(`Failed to prepare transaction: ${error.message}`)
+      setIsSubmittingIdentity(false)
+    }
   }
 
   const handleLinkExternalAccount = async (provider: string) => {
@@ -431,6 +539,20 @@ export default function RegisterPage() {
   }
 
   const { theme: isDark } = useTheme()
+
+  // Sync WebSocket challenges with verification context
+  useEffect(() => {
+    if (challenges && typeof challenges === 'object') {
+      setChallenges(challenges)
+    }
+  }, [challenges, setChallenges])
+
+  // Sync sendPGPVerification function with verification context
+  useEffect(() => {
+    if (sendPGPVerification) {
+      setSendPGPVerification(() => sendPGPVerification)
+    }
+  }, [sendPGPVerification, setSendPGPVerification])
 
   if (isUserLoading || isLoadingProfileForEdit) {
     return (
@@ -546,7 +668,7 @@ export default function RegisterPage() {
                     Choose the account that will be associated with your identity on the {networkDisplayName} network.
                   </p>
                 </div>
-                
+
                 <AccountSelector
                   selectedAccount={selectedAccount || walletAddress}
                   onSelect={(address: string) => setSelectedAccount(address as SS58String)}
@@ -565,135 +687,185 @@ export default function RegisterPage() {
             )} */}
 
             {currentStep === STEP_NUMBERS.fillIdentityInfo && (
-              <IdentityFieldsForm
-              initialData={identityData}
-              onSubmit={() => { }}
-              isSubmitting={isSubmittingIdentity}
-              isEditMode={isEditMode}
-              onDataChange={handleIdentityDataFormChange}
-              />
+              <>
+                {/* Identity Status Display */}
+                <div className="mb-6">
+                  <div className="bg-gray-700/30 border border-gray-600/50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-white mb-2 flex items-center">
+                      <UserCheck className="w-5 h-5 mr-2 text-pink-400" />
+                      On-chain Identity Status
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <div className={`
+                        px-3 py-1 rounded-full text-sm font-medium
+                        ${identity.status === verifyStatuses.NoIdentity ? 'bg-red-500/20 text-red-300' :
+                          identity.status === verifyStatuses.IdentitySet ? 'bg-orange-500/20 text-orange-300' :
+                            identity.status === verifyStatuses.JudgementRequested ? 'bg-yellow-500/20 text-yellow-300' :
+                              identity.status === verifyStatuses.FeePaid ? 'bg-blue-500/20 text-blue-300' :
+                                identity.status === verifyStatuses.IdentityVerified ? 'bg-green-500/20 text-green-300' :
+                                  'bg-gray-500/20 text-gray-300'}
+                      `}>
+                        {identity.status === verifyStatuses.NoIdentity ? 'No Identity' :
+                          identity.status === verifyStatuses.IdentitySet ? 'Identity Set' :
+                            identity.status === verifyStatuses.JudgementRequested ? 'Judgement Requested' :
+                              identity.status === verifyStatuses.FeePaid ? 'Fee Paid - Ready for Verification' :
+                                identity.status === verifyStatuses.IdentityVerified ? 'Identity Verified' :
+                                  'Unknown'}
+                      </div>
+                      {identity.status === verifyStatuses.FeePaid && (
+                        <div className="flex items-center text-blue-300 text-sm">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Challenge verification enabled
+                        </div>
+                      )}
+                    </div>
+                    {identity.status !== verifyStatuses.FeePaid && identity.status !== verifyStatuses.IdentityVerified && (
+                      <p className="text-gray-400 text-sm mt-2">
+                        {identity.status === verifyStatuses.NoIdentity ?
+                          'Set your identity information below and submit to the blockchain.' :
+                          identity.status === verifyStatuses.IdentitySet ?
+                            'Request judgement after filling and verifying your information.' :
+                            identity.status === verifyStatuses.JudgementRequested ?
+                              'Pay the verification fee to enable field verification challenges.' :
+                              'Complete the verification process.'
+                        }
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <IdentityFieldsForm
+                  initialData={identityData}
+                  onSubmit={() => { }}
+                  isSubmitting={isSubmittingIdentity}
+                  isEditMode={isEditMode}
+                  onDataChange={handleIdentityDataFormChange}
+                  canVerifyFields={identity.status === verifyStatuses.FeePaid}
+                  supportedFields={supportedFields}
+                />
+              </>
             )}
 
             {currentStep === STEP_NUMBERS.reviewAndSubmit && walletAddress && (
               <Card className="bg-gray-800/50 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white text-xl">
-                <ListChecks className="w-6 h-6 mr-3 text-pink-400" />
-                Review Your Information
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-sm">
-                Confirm details before submitting to the {networkDisplayName} blockchain. This action may incur
-                network fees.
-                {isNetworkEncrypted && " Data on this network will be signed for privacy."}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
-                <p>
-                  <strong className="text-gray-300">Network:</strong>{" "}
-                  <span className="text-white font-medium">
-                  {networkDisplayName} {isNetworkEncrypted && "(Private)"}
-                  </span>
-                </p>
-                <p>
-                  <strong className="text-gray-300">Wallet Address:</strong>{" "}
-                  <span className="text-white font-medium font-mono break-all">{walletAddress}</span>
-                </p>
-                </div>
-                <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
-                <p>
-                  <strong className="text-gray-300">Display Name:</strong>{" "}
-                  <span className="text-white font-medium">{identityData.displayName || "(Not provided)"}</span>
-                </p>
-                {Object.entries(identityData).map(([key, value]) => {
-                  if (key !== "displayName" && key !== "nickname" && value) {
-                  const fieldStatus = getFieldStatus(key)
-                  return (
-                    <p key={key} className="flex justify-between items-center">
-                    <span>
-                      <strong className="text-gray-300 capitalize">{key.replace(/([A-Z])/g, " $1")}:</strong>{" "}
-                      <span className="text-white font-medium">{value.toString()}</span>
-                    </span>
-                    {fieldStatus?.status === "verified" ? (
-                      <CheckCircle className="w-4 h-4 text-green-400 ml-2" />
-                    ) : fieldStatus?.status === "pending" ? (
-                      <Loader2 className="w-4 h-4 text-yellow-400 animate-spin ml-2" />
-                    ) : fieldStatus?.status === "failed" ? (
-                      <AlertTriangle className="w-4 h-4 text-red-400 ml-2" />
-                    ) : null}
+                <CardHeader>
+                  <CardTitle className="flex items-center text-white text-xl">
+                    <ListChecks className="w-6 h-6 mr-3 text-pink-400" />
+                    Review Your Information
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 text-sm">
+                    Confirm details before submitting to the {networkDisplayName} blockchain. This action may incur
+                    network fees.
+                    {isNetworkEncrypted && " Data on this network will be signed for privacy."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
+                    <p>
+                      <strong className="text-gray-300">Network:</strong>{" "}
+                      <span className="text-white font-medium">
+                        {networkDisplayName} {isNetworkEncrypted && "(Private)"}
+                      </span>
                     </p>
-                  )
-                  }
-                  return null
-                })}
-                </div>
-                <Button
-                onClick={handleReviewAndSubmit}
-                disabled={isSubmittingIdentity}
-                className="w-full btn-primary text-white mt-6 py-3 text-base"
-                >
-                {isSubmittingIdentity
-                  ? `${isEditMode ? "Updating" : "Submitting"} to Blockchain...`
-                  : `${isEditMode ? "Confirm & Submit Update" : "Confirm & Submit Identity"}`}
-                </Button>
-              </CardContent>
+                    <p>
+                      <strong className="text-gray-300">Wallet Address:</strong>{" "}
+                      <span className="text-white font-medium font-mono break-all">{walletAddress}</span>
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-md bg-gray-700/30 border border-gray-600/50">
+                    <p>
+                      <strong className="text-gray-300">Display Name:</strong>{" "}
+                      <span className="text-white font-medium">{identityData.displayName || "(Not provided)"}</span>
+                    </p>
+                    {Object.entries(identityData).map(([key, value]) => {
+                      if (key !== "displayName" && value) {
+                        const fieldStatus = getFieldStatus(key)
+                        return (
+                          <p key={key} className="flex justify-between items-center">
+                            <span>
+                              <strong className="text-gray-300 capitalize">{key.replace(/([A-Z])/g, " $1")}:</strong>{" "}
+                              <span className="text-white font-medium">{value.toString()}</span>
+                            </span>
+                            {fieldStatus?.status === "verified" ? (
+                              <CheckCircle className="w-4 h-4 text-green-400 ml-2" />
+                            ) : fieldStatus?.status === "pending" ? (
+                              <Loader2 className="w-4 h-4 text-yellow-400 animate-spin ml-2" />
+                            ) : fieldStatus?.status === "failed" ? (
+                              <AlertTriangle className="w-4 h-4 text-red-400 ml-2" />
+                            ) : null}
+                          </p>
+                        )
+                      }
+                      return null
+                    })}
+                  </div>
+                  <Button
+                    onClick={handleReviewAndSubmit}
+                    disabled={isSubmittingIdentity}
+                    className="w-full btn-primary text-white mt-6 py-3 text-base"
+                  >
+                    {isSubmittingIdentity
+                      ? `${isEditMode ? "Updating" : "Submitting"} to Blockchain...`
+                      : `${isEditMode ? "Confirm & Submit Update" : "Confirm & Submit Identity"}`}
+                  </Button>
+                </CardContent>
               </Card>
             )}
 
             {currentStep === STEP_NUMBERS.linkExternalAccounts && (
               <Card className="bg-gray-800/50 border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center text-white text-xl">
-                <LinkIcon className="w-6 h-6 mr-3 text-pink-400" />
-                Link External Accounts (Optional)
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-sm">
-                Enhance your account security and recovery options by linking external accounts. Your primary
-                identity is secured with your wallet.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-2 pb-6">
-                <AuthProviderButton
-                providerName="Google"
-                icon={<GoogleIcon />}
-                onClick={() => handleLinkExternalAccount("Google")}
-                disabled={isLinkingAccount}
-                />
-                <AuthProviderButton
-                providerName="Matrix"
-                icon={<MatrixIcon />}
-                onClick={() => handleLinkExternalAccount("Matrix")}
-                disabled={isLinkingAccount}
-                />
-                <p className="text-xs text-gray-500 text-center pt-2">
-                Linking accounts can help with identity verification and account recovery in the future.
-                </p>
-                <Button onClick={handleNextStep} className="w-full btn-primary mt-4" disabled={isLinkingAccount}>
-                {isEditMode ? "Finish Update" : "Finish Registration"}
-                </Button>
-              </CardContent>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-white text-xl">
+                    <LinkIcon className="w-6 h-6 mr-3 text-pink-400" />
+                    Link External Accounts (Optional)
+                  </CardTitle>
+                  <CardDescription className="text-gray-400 text-sm">
+                    Enhance your account security and recovery options by linking external accounts. Your primary
+                    identity is secured with your wallet.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-2 pb-6">
+                  <AuthProviderButton
+                    providerName="Google"
+                    icon={<GoogleIcon />}
+                    onClick={() => handleLinkExternalAccount("Google")}
+                    disabled={isLinkingAccount}
+                  />
+                  <AuthProviderButton
+                    providerName="Matrix"
+                    icon={<MatrixIcon />}
+                    onClick={() => handleLinkExternalAccount("Matrix")}
+                    disabled={isLinkingAccount}
+                  />
+                  <p className="text-xs text-gray-500 text-center pt-2">
+                    Linking accounts can help with identity verification and account recovery in the future.
+                  </p>
+                  <Button onClick={handleNextStep} className="w-full btn-primary mt-4" disabled={isLinkingAccount}>
+                    {isEditMode ? "Finish Update" : "Finish Registration"}
+                  </Button>
+                </CardContent>
               </Card>
             )}
 
             {currentStep === STEP_NUMBERS.complete && (
               <div className="text-center space-y-6 py-8">
-              <UserCheck className="w-20 h-20 text-green-500 mx-auto" />
-              <h2 className="text-2xl font-semibold text-white">
-                {isEditMode ? "Update Successful!" : "Registration Successful!"}
-              </h2>
-              <p className="text-gray-300">
-                Your identity has been successfully {isEditMode ? "updated" : "registered"} on the{" "}
-                {networkDisplayName} network.
-              </p>
-              <p className="text-gray-400 text-sm">
-                Wallet:{" "}
-                <span className="font-mono">
-                {walletAddress?.substring(0, 10)}...{walletAddress?.substring(walletAddress.length - 10)}
-                </span>
-              </p>
-              <Link href={`/profile/${editingProfileId || walletAddress || "me"}`}>
-                View Your Profile
-              </Link>
+                <UserCheck className="w-20 h-20 text-green-500 mx-auto" />
+                <h2 className="text-2xl font-semibold text-white">
+                  {isEditMode ? "Update Successful!" : "Registration Successful!"}
+                </h2>
+                <p className="text-gray-300">
+                  Your identity has been successfully {isEditMode ? "updated" : "registered"} on the{" "}
+                  {networkDisplayName} network.
+                </p>
+                <p className="text-gray-400 text-sm">
+                  Wallet:{" "}
+                  <span className="font-mono">
+                    {walletAddress?.substring(0, 10)}...{walletAddress?.substring(walletAddress.length - 10)}
+                  </span>
+                </p>
+                <Link href={`/profile/${editingProfileId || walletAddress || "me"}`}>
+                  View Your Profile
+                </Link>
               </div>
             )}
           </div>

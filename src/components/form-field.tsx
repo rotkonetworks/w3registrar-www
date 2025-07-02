@@ -45,7 +45,7 @@ export function FormField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="bg-gray-700 border-pink-500/30 text-white placeholder-gray-400 focus:border-pink-500"
+        className="bg-gray-800/80 border-pink-500/30 text-white placeholder:text-gray-400/60 placeholder:italic placeholder:font-light focus:border-pink-500 transition-colors"
         required={required}
         disabled={disabled}
       />
